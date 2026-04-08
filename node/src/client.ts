@@ -190,7 +190,16 @@ export class HttpClient {
     let blob: Blob;
     let name: string;
 
-    if (typeof file === 'string') {
+    if (typeof file === 'string' && (file.startsWith('http://') || file.startsWith('https://'))) {
+      // URL — download first, then upload
+      const dlRes = await fetch(file);
+      if (!dlRes.ok) throw new BulkPublishError(`Failed to download file from URL (HTTP ${dlRes.status})`, dlRes.status);
+      const contentType = dlRes.headers.get('content-type')?.split(';')[0] || 'application/octet-stream';
+      blob = await dlRes.blob();
+      name = fileName || file.split('/').pop()?.split('?')[0] || 'upload';
+      // Override blob type with the server-reported content type
+      blob = new Blob([blob], { type: contentType });
+    } else if (typeof file === 'string') {
       // File path — read into a buffer
       const buf = readFileSync(file);
       const ext = file.split('.').pop()?.toLowerCase() || '';

@@ -79,10 +79,11 @@ class MediaResource:
         """Upload a media file.
 
         Args:
-            file: Path to a local file (``str``) or an open file-like object
-                with a ``read()`` method.
+            file: Path to a local file, an ``https://`` URL, or an open
+                file-like object with a ``read()`` method. URLs are
+                downloaded automatically before uploading.
             filename: Override the filename sent to the server.  Defaults to
-                the basename of the file path.
+                the basename of the file path or URL.
             content_type: MIME type override (e.g. ``"image/png"``).  If not
                 provided, the server infers it from the filename.
 
@@ -99,11 +100,25 @@ class MediaResource:
             result = bp.media.upload("./banner.png")
             file_id = result["file"]["id"]
 
+            # Upload from a URL
+            result = bp.media.upload("https://example.com/photo.jpg")
+
             # Upload from a file object
             with open("video.mp4", "rb") as f:
                 result = bp.media.upload(f, content_type="video/mp4")
         """
         if isinstance(file, str):
+            # URL — download first, then upload
+            if file.startswith("http://") or file.startswith("https://"):
+                import httpx as _httpx
+                resp = _httpx.get(file, follow_redirects=True, timeout=60)
+                resp.raise_for_status()
+                fname = filename or file.split("/")[-1].split("?")[0] or "upload"
+                mime = content_type or resp.headers.get("content-type", "").split(";")[0] or mimetypes.guess_type(fname)[0] or "application/octet-stream"
+                files = {"file": (fname, resp.content, mime)}
+                return self._client._request("POST", "/api/media", files=files)
+
+            # Local file path
             path = file
             if not os.path.isfile(path):
                 raise FileNotFoundError(f"File not found: {path}")
@@ -256,6 +271,18 @@ class AsyncMediaResource:
     ) -> MediaUploadResponse:
         """Upload media — see :meth:`MediaResource.upload` for full docs."""
         if isinstance(file, str):
+            # URL — download first, then upload
+            if file.startswith("http://") or file.startswith("https://"):
+                import httpx as _httpx
+                async with _httpx.AsyncClient() as dl:
+                    resp = await dl.get(file, follow_redirects=True, timeout=60)
+                    resp.raise_for_status()
+                fname = filename or file.split("/")[-1].split("?")[0] or "upload"
+                mime = content_type or resp.headers.get("content-type", "").split(";")[0] or mimetypes.guess_type(fname)[0] or "application/octet-stream"
+                files = {"file": (fname, resp.content, mime)}
+                return await self._client._request("POST", "/api/media", files=files)
+
+            # Local file path
             path = file
             if not os.path.isfile(path):
                 raise FileNotFoundError(f"File not found: {path}")

@@ -82,8 +82,8 @@ export class MediaResource {
    * Maximum file size is 100 MB. Supported types: JPEG, PNG, WebP, GIF, MP4,
    * QuickTime (.mov), WebM.
    *
-   * @param file - File path, Buffer, Blob, or File to upload.
-   * @param fileName - Optional file name override (used when passing a Buffer).
+   * @param file - File path, URL (http/https), Buffer, Blob, or File to upload. URLs are downloaded automatically.
+   * @param fileName - Optional file name override (used when passing a Buffer or URL).
    * @returns The uploaded file metadata.
    *
    * @example
@@ -91,13 +91,12 @@ export class MediaResource {
    * // Upload from a file path
    * const { file } = await bp.media.upload('./banner.png');
    *
+   * // Upload from a URL
+   * const { file } = await bp.media.upload('https://example.com/photo.jpg');
+   *
    * // Upload from a Buffer
    * const buffer = fs.readFileSync('./video.mp4');
    * const { file } = await bp.media.upload(buffer, 'promo.mp4');
-   *
-   * // Upload from a Blob
-   * const blob = new Blob([data], { type: 'image/jpeg' });
-   * const { file } = await bp.media.upload(blob, 'photo.jpg');
    * ```
    */
   upload(file: string | Buffer | Blob, fileName?: string): Promise<UploadMediaResponse> {
