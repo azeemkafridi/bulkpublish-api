@@ -1,37 +1,39 @@
 # BulkPublish API
 
-**The best free social media publishing and scheduling API.**
+**The free social media API built for automation, AI agents, and LLMs.**
 
-Publish to 11 platforms from a single API call. Schedule posts, upload media, track analytics, and automate your social media workflow.
+Programmatically publish to 11 platforms from a single API call. Built for developers, AI agents, LLMs, and agentic workflows that need reliable social media automation without browser sessions or manual interaction.
 
 ```python
-import bulkpublish
+from bulkpublish import BulkPublish
 
-client = bulkpublish.Client("bp_your_key_here")
-client.posts.create(
+bp = BulkPublish("bp_your_key_here")
+bp.posts.create(
     content="Launching our new product today!",
     channels=[{"channelId": 1, "platform": "x"}, {"channelId": 2, "platform": "linkedin"}],
     status="scheduled",
-    scheduledAt="2026-04-10T09:00:00Z"
+    scheduled_at="2026-04-10T09:00:00Z",
 )
 ```
 
----
+## Why BulkPublish?
 
-## Features
+Most social media tools are built for humans clicking buttons. BulkPublish is built for **code** — whether that code is written by a developer, an AI agent, an LLM with tool use, or an autonomous workflow.
 
-- **11 platforms** -- Facebook, Instagram, X/Twitter, TikTok, YouTube, Threads, Bluesky, Pinterest, Google Business Profile, LinkedIn, Mastodon
-- **Scheduling** -- Schedule posts for any future time with timezone support, or let queue slots pick optimal times
-- **Media uploads** -- Images (JPEG, PNG, WebP, GIF) and videos (MP4, MOV, WebM) up to 100 MB
-- **Recurring schedules** -- Repeat posts daily, weekly, biweekly, or monthly with cron-like control
-- **Analytics** -- Track impressions, likes, comments, shares, and engagement across all platforms
-- **Webhooks** -- Get notified when posts are published, fail, or are scheduled
-- **Labels** -- Organize posts and media with color-coded labels
-- **Bulk operations** -- Create multiple posts in a single request
-- **Threads** -- Multi-part thread posts for X, Threads, Bluesky, and Mastodon
-- **Auto first comment** -- Automatically add a comment after publishing on any platform
-- **Per-platform content** -- Customize text and options per platform in a single post
-- **Platform-specific options** -- Instagram collaborators, TikTok privacy, YouTube categories, Pinterest boards, and more
+- **Headless by design** — No browser, no UI, no OAuth pop-ups at runtime. Connect accounts once in the dashboard, then automate everything via API.
+- **AI-native** — MCP server for Claude, tool definitions for GPT and LangChain, structured JSON responses that LLMs parse reliably.
+- **Agentic-ready** — Deterministic API with clear error codes. AI agents can create posts, check status, retry failures, and read analytics autonomously.
+- **11 platforms, one endpoint** — Facebook, Instagram, X/Twitter, TikTok, YouTube, Threads, Bluesky, Pinterest, Google Business Profile, LinkedIn, Mastodon.
+
+## Use Cases
+
+- **AI social media managers** — Let Claude, GPT, or custom agents schedule and publish posts autonomously
+- **Content pipelines** — RSS-to-social, blog-to-social, newsletter-to-social automation
+- **Bulk scheduling** — Upload a CSV or feed a content calendar and schedule weeks of posts programmatically
+- **Cross-platform syndication** — Publish once to all platforms with per-platform content optimization
+- **Analytics dashboards** — Pull engagement data into your own tools, spreadsheets, or AI analysis
+- **Zapier/n8n/Make alternatives** — Direct API access without middleware, lower latency, more control
+- **LLM-powered content creation** — Generate content with AI, publish it with BulkPublish, track performance, iterate
 
 ## Quick Start
 
@@ -41,7 +43,7 @@ Create a free account at [app.bulkpublish.com](https://app.bulkpublish.com/regis
 
 ### 2. Get your API key
 
-Go to **Settings > Developer** in the dashboard and create an API key. Keys start with `bp_` and are shown only once -- save it securely.
+Go to **Settings > Developer** in the dashboard and create an API key. Keys start with `bp_` and are shown only once — save it securely.
 
 ### 3. Connect platforms
 
@@ -61,7 +63,7 @@ pip install bulkpublish
 npm install bulkpublish
 ```
 
-Or call the REST API directly with any HTTP client.
+Or call the REST API directly with `curl`, `fetch`, `requests`, or any HTTP client.
 
 ### 5. Make your first API call
 
@@ -76,19 +78,54 @@ curl -X POST https://app.bulkpublish.com/api/posts \
   }'
 ```
 
+## AI Agent Integration
+
+### MCP Server (Claude, Cursor, Windsurf, Claude Code)
+
+BulkPublish ships an MCP server so AI assistants can manage your social media directly:
+
+```json
+{
+  "mcpServers": {
+    "bulkpublish": {
+      "command": "npx",
+      "args": ["-y", "@bulkpublish/mcp-server"],
+      "env": {
+        "BULKPUBLISH_API_KEY": "bp_your_key_here"
+      }
+    }
+  }
+}
+```
+
+12 tools available: `create_post`, `list_channels`, `upload_media`, `get_analytics`, and more. See [mcp-server/README.md](mcp-server/README.md).
+
+### LLM Tool Use / Function Calling
+
+Ready-made tool definitions for autonomous AI agents:
+
+- **[Claude tool_use example](examples/ai-agents/claude_tool_use.py)** — Anthropic SDK with tool definitions for scheduling posts
+- **[OpenAI function calling example](examples/ai-agents/openai_function.py)** — GPT-4 with functions for post management
+- **[LangChain tool example](examples/ai-agents/langchain_tool.py)** — LangChain agent with BulkPublish tools
+
+All examples are complete, runnable scripts with error handling.
+
 ## Code Examples
 
 ### Create a Post
 
-**Python**
+<table>
+<tr><th>Python</th><th>Node.js</th></tr>
+<tr>
+<td>
 
 ```python
-import bulkpublish
+from bulkpublish import BulkPublish
 
-client = bulkpublish.Client("bp_your_key_here")
+bp = BulkPublish("bp_your_key_here")
 
-post = client.posts.create(
-    content="Check out our latest blog post!",
+post = bp.posts.create(
+    content="Check out our latest update!",
     channels=[
         {"channelId": 1, "platform": "facebook"},
         {"channelId": 2, "platform": "x"},
@@ -96,118 +133,97 @@ post = client.posts.create(
     ],
     status="draft",
 )
-
-print(post["id"])
 ```
 
-**Node.js**
+</td>
+<td>
 
-```javascript
-import BulkPublish from "bulkpublish";
+```typescript
+import { BulkPublish } from 'bulkpublish';
 
-const client = new BulkPublish("bp_your_key_here");
+const bp = new BulkPublish({ apiKey: 'bp_your_key_here' });
 
-const post = await client.posts.create({
-  content: "Check out our latest blog post!",
+const post = await bp.posts.create({
+  content: 'Check out our latest update!',
   channels: [
-    { channelId: 1, platform: "facebook" },
-    { channelId: 2, platform: "x" },
-    { channelId: 3, platform: "linkedin" },
+    { channelId: 1, platform: 'facebook' },
+    { channelId: 2, platform: 'x' },
+    { channelId: 3, platform: 'linkedin' },
   ],
-  status: "draft",
+  status: 'draft',
 });
-
-console.log(post.id);
 ```
+
+</td>
+</tr>
+</table>
 
 ### Schedule a Post
 
-**Python**
-
 ```python
-post = client.posts.create(
+post = bp.posts.create(
     content="This will go out tomorrow morning.",
     channels=[{"channelId": 1, "platform": "instagram"}],
     status="scheduled",
-    scheduledAt="2026-04-10T09:00:00Z",
+    scheduled_at="2026-04-10T09:00:00Z",
     timezone="America/New_York",
 )
 ```
 
-**Node.js**
-
-```javascript
-const post = await client.posts.create({
-  content: "This will go out tomorrow morning.",
-  channels: [{ channelId: 1, platform: "instagram" }],
-  status: "scheduled",
-  scheduledAt: "2026-04-10T09:00:00Z",
-  timezone: "America/New_York",
-});
-```
-
-### Upload Media and Attach to a Post
-
-**Python**
+### Upload Media and Publish
 
 ```python
-# Upload a file
-media = client.media.upload("product-photo.jpg")
+media = bp.media.upload("./product-photo.jpg")
 
-# Use it in a post
-post = client.posts.create(
+post = bp.posts.create(
     content="Our newest product is here.",
     channels=[{"channelId": 1, "platform": "instagram"}],
-    mediaFiles=[media["file"]["id"]],
+    media_files=[media["file"]["id"]],
     status="scheduled",
-    scheduledAt="2026-04-10T12:00:00Z",
+    scheduled_at="2026-04-10T12:00:00Z",
 )
 ```
 
-**Node.js**
-
-```javascript
-import fs from "fs";
-
-// Upload a file
-const media = await client.media.upload(fs.createReadStream("product-photo.jpg"));
-
-// Use it in a post
-const post = await client.posts.create({
-  content: "Our newest product is here.",
-  channels: [{ channelId: 1, platform: "instagram" }],
-  mediaFiles: [media.file.id],
-  status: "scheduled",
-  scheduledAt: "2026-04-10T12:00:00Z",
-});
-```
-
-### List Connected Channels
-
-**Python**
+### Automation Example: Bulk Schedule from CSV
 
 ```python
-channels = client.channels.list()
+import csv
+from bulkpublish import BulkPublish
 
-for ch in channels["channels"]:
-    print(f"{ch['platform']}: {ch['accountName']} (ID: {ch['id']})")
+bp = BulkPublish("bp_your_key_here")
+channels = bp.channels.list()["channels"]
+
+with open("content-calendar.csv") as f:
+    for row in csv.DictReader(f):
+        bp.posts.create(
+            content=row["content"],
+            channels=[{"channelId": ch["id"], "platform": ch["platform"]} for ch in channels],
+            status="scheduled",
+            scheduled_at=row["scheduled_at"],
+            timezone="America/New_York",
+        )
 ```
 
-**Node.js**
+More examples in [`examples/`](examples/) — including [Python automation scripts](examples/python/), [Node.js examples](examples/node/), [curl reference](examples/curl/), and [AI agent integrations](examples/ai-agents/).
 
-```javascript
-const { channels } = await client.channels.list();
+## Features
 
-for (const ch of channels) {
-  console.log(`${ch.platform}: ${ch.accountName} (ID: ${ch.id})`);
-}
-```
+- **11 platforms** — Facebook, Instagram, X/Twitter, TikTok, YouTube, Threads, Bluesky, Pinterest, Google Business Profile, LinkedIn, Mastodon
+- **Scheduling** — Schedule posts for any future time with timezone support, or let queue slots pick optimal times
+- **Media uploads** — Images (JPEG, PNG, WebP, GIF) and videos (MP4, MOV, WebM) up to 100 MB
+- **Recurring schedules** — Repeat posts daily, weekly, biweekly, or monthly with cron expressions
+- **Analytics** — Track impressions, likes, comments, shares, and engagement across all platforms
+- **Webhooks** — Get notified when posts are published, fail, or are scheduled
+- **Labels** — Organize posts and media with color-coded labels
+- **Bulk operations** — Delete or retry multiple posts in a single request
+- **Threads** — Multi-part thread posts for X, Threads, Bluesky, and Mastodon
+- **Auto first comment** — Automatically add a comment after publishing on any platform
+- **Per-platform content** — Customize text and options per platform in a single post
+- **Platform-specific options** — Instagram collaborators, TikTok privacy, YouTube categories, Pinterest boards, and more
 
 ## API Reference
 
-Full interactive API documentation powered by Scalar:
-
-**[app.bulkpublish.com/docs](https://app.bulkpublish.com/docs)**
+Full interactive API documentation: **[app.bulkpublish.com/docs](https://app.bulkpublish.com/docs)**
 
 ### Base URL
 
@@ -217,8 +233,6 @@ https://app.bulkpublish.com
 
 ### Authentication
 
-All requests require an API key in the `Authorization` header:
-
 ```
 Authorization: Bearer bp_your_key_here
 ```
@@ -227,36 +241,34 @@ Authorization: Bearer bp_your_key_here
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/posts` | List posts (paginated, filterable) |
-| `POST` | `/api/posts` | Create a new post |
-| `GET` | `/api/posts/:id` | Get a single post |
-| `PUT` | `/api/posts/:id` | Update a post |
+| `POST` | `/api/posts` | Create a post (draft, scheduled, or immediate) |
+| `GET` | `/api/posts` | List posts (paginated, filterable by status/date/channel/label) |
+| `GET` | `/api/posts/:id` | Get a post with platform statuses and metrics |
+| `PUT` | `/api/posts/:id` | Update a draft or scheduled post |
 | `DELETE` | `/api/posts/:id` | Delete a post |
 | `POST` | `/api/posts/:id/publish` | Publish a draft immediately |
-| `POST` | `/api/posts/:id/retry` | Retry a failed post |
-| `POST` | `/api/posts/bulk` | Create multiple posts |
-| `GET` | `/api/channels` | List connected channels |
-| `POST` | `/api/media` | Upload a media file |
+| `POST` | `/api/posts/:id/retry` | Retry failed platforms |
+| `POST` | `/api/posts/bulk` | Bulk delete or retry |
+| `GET` | `/api/channels` | List connected social media channels |
+| `GET` | `/api/channels/:id/health` | Check channel token health |
+| `POST` | `/api/media` | Upload a media file (multipart) |
 | `GET` | `/api/media` | List uploaded media |
-| `GET` | `/api/media/:id` | Get a media file |
-| `DELETE` | `/api/media/:id` | Delete a media file |
-| `GET` | `/api/labels` | List labels |
-| `POST` | `/api/labels` | Create a label |
-| `GET` | `/api/schedules` | List recurring schedules |
+| `GET` | `/api/analytics/summary` | Analytics summary for a date range |
+| `GET` | `/api/analytics/engagement` | Engagement data grouped by day/week/month |
 | `POST` | `/api/schedules` | Create a recurring schedule |
-| `GET` | `/api/webhooks` | List webhooks |
-| `POST` | `/api/webhooks` | Create a webhook |
-| `GET` | `/api/analytics/summary` | Get analytics summary |
-| `GET` | `/api/analytics/engagement` | Get engagement data |
+| `POST` | `/api/webhooks` | Create a webhook for event notifications |
+| `GET` | `/api/quotas/usage` | Check current plan limits and usage |
+
+See the [OpenAPI spec](openapi.json) for the complete endpoint list.
 
 ## Supported Platforms
 
 | Platform | Post Types | Media |
 |----------|-----------|-------|
 | **Facebook** | Post, Story | Images, Videos |
-| **Instagram** | Feed Photo, Feed Video, Reel, Story, Carousel | Images (JPEG), Videos (MP4, MOV) |
+| **Instagram** | Feed, Reel, Story, Carousel | Images (JPEG), Videos (MP4, MOV) |
 | **X / Twitter** | Tweet, Thread | Images, Videos, GIFs |
-| **TikTok** | Video, Photo Slideshow | Videos (MP4, MOV), Images (JPEG, WebP) |
+| **TikTok** | Video, Photo Slideshow | Videos (MP4, MOV), Images |
 | **YouTube** | Video, Short | Videos (MP4, MOV, WebM, AVI, WMV, FLV) |
 | **Threads** | Post, Thread, Quote Post | Images, Videos |
 | **Bluesky** | Post, Thread | Images |
@@ -273,100 +285,55 @@ Authorization: Bearer bp_your_key_here
 pip install bulkpublish
 ```
 
-```python
-import bulkpublish
+Supports sync and async. Rich docstrings on every method for IDE and LLM consumption.
 
-client = bulkpublish.Client("bp_your_key_here")
-
-# All resources available as client.posts, client.channels, client.media, etc.
-posts = client.posts.list(status="published", limit=10)
-```
-
-### Node.js
+### Node.js / TypeScript
 
 ```bash
 npm install bulkpublish
 ```
 
-```javascript
-import BulkPublish from "bulkpublish";
+Full TypeScript types, zero dependencies, native `fetch` (Node 18+).
 
-const client = new BulkPublish("bp_your_key_here");
+### REST API
 
-// All resources available as client.posts, client.channels, client.media, etc.
-const posts = await client.posts.list({ status: "published", limit: 10 });
-```
-
-### Direct HTTP
-
-No SDK needed. Use `curl`, `fetch`, `requests`, or any HTTP client:
+No SDK needed — any HTTP client works:
 
 ```bash
 curl https://app.bulkpublish.com/api/channels \
   -H "Authorization: Bearer bp_your_key_here"
 ```
 
-## MCP Server
-
-BulkPublish provides an MCP (Model Context Protocol) server for integration with Claude, AI agents, and other MCP-compatible tools.
-
-```json
-{
-  "mcpServers": {
-    "bulkpublish": {
-      "command": "npx",
-      "args": ["-y", "bulkpublish-mcp"],
-      "env": {
-        "BULKPUBLISH_API_KEY": "bp_your_key_here"
-      }
-    }
-  }
-}
-```
-
-This allows AI agents to:
-- Create and schedule posts across all platforms
-- Upload and manage media
-- Query post analytics and status
-- Manage channels, labels, and webhooks
-
 ## Rate Limits
 
-| Limit Type | Free | Pro | Business |
-|-----------|------|-----|----------|
-| Writes per minute | 60 | 60 | 60 |
-| Reads per minute | 300 | 300 | 300 |
+| Limit | Free | Pro | Business |
+|-------|------|-----|----------|
+| Writes/min | 60 | 60 | 60 |
+| Reads/min | 300 | 300 | 300 |
 | Daily API requests | 100 | 5,000 | 50,000 |
 | API keys | 1 | 5 | 10 |
-| Webhooks | -- | 5 | 10 |
-| Recurring schedules | -- | 10 | Unlimited |
+| Webhooks | — | 5 | 10 |
+| Recurring schedules | — | 10 | Unlimited |
 
-Rate limit headers are included in every response:
-
-```
-Retry-After: 12
-```
-
-When you hit a limit, you'll receive a `429 Too Many Requests` response. See the [rate limits guide](guides/rate-limits.md) for best practices.
+See the [rate limits guide](guides/rate-limits.md) for headers, backoff strategies, and best practices.
 
 ## Guides
 
-- [Authentication](guides/authentication.md) -- API keys, authorization, and key management
-- [Scheduling](guides/scheduling.md) -- Scheduled posts, queue slots, recurring schedules
-- [Media Uploads](guides/media-uploads.md) -- Uploading files, supported formats, using media in posts
-- [Platform-Specific Options](guides/platforms.md) -- Per-platform configuration and quirks
-- [Webhooks](guides/webhooks.md) -- Event notifications, payloads, and verification
-- [Rate Limits](guides/rate-limits.md) -- Burst limits, daily quotas, and best practices
+- [Authentication](guides/authentication.md) — API keys, authorization, key management
+- [Scheduling](guides/scheduling.md) — Scheduled posts, queue slots, recurring schedules, timezones
+- [Media Uploads](guides/media-uploads.md) — File uploads, supported formats, using media in posts
+- [Platform Options](guides/platforms.md) — Per-platform configuration and quirks
+- [Webhooks](guides/webhooks.md) — Real-time event notifications, payloads, signature verification
+- [Rate Limits](guides/rate-limits.md) — Burst limits, daily quotas, best practices
 
 ## Links
 
 | Resource | URL |
 |----------|-----|
 | Dashboard | [app.bulkpublish.com](https://app.bulkpublish.com) |
-| API Docs (Scalar) | [app.bulkpublish.com/docs](https://app.bulkpublish.com/docs) |
-| Marketing Site | [bulkpublish.com](https://www.bulkpublish.com) |
-| Status | [status.bulkpublish.com](https://status.bulkpublish.com) |
-| Email Support | support@bulkpublish.com |
+| API Docs | [app.bulkpublish.com/docs](https://app.bulkpublish.com/docs) |
+| Website | [bulkpublish.com](https://www.bulkpublish.com) |
+| Email | support@bulkpublish.com |
 
 ## License
 

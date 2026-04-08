@@ -5,12 +5,17 @@ build-backend = "hatchling.build"
 [project]
 name = "bulkpublish"
 version = "0.1.0"
-description = "Official Python SDK for the BulkPublish social media publishing API"
+description = "Social media automation API for AI agents, LLMs, and developers. Publish to 11 platforms programmatically."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.8"
 authors = [{ name = "BulkPublish", email = "support@bulkpublish.com" }]
-keywords = ["bulkpublish", "social-media", "api", "sdk", "publishing", "scheduling"]
+keywords = [
+    "bulkpublish", "social-media", "api", "sdk", "publishing", "scheduling",
+    "automation", "ai-agent", "llm", "mcp", "agentic", "tool-use",
+    "facebook", "instagram", "twitter", "tiktok", "linkedin", "youtube",
+    "threads", "bluesky", "pinterest", "mastodon",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
