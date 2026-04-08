@@ -7,6 +7,7 @@ used as attachments in social-media posts.
 
 from __future__ import annotations
 
+import mimetypes
 import os
 from typing import TYPE_CHECKING, Any, BinaryIO, Dict, List, Optional, Union
 
@@ -107,14 +108,16 @@ class MediaResource:
             if not os.path.isfile(path):
                 raise FileNotFoundError(f"File not found: {path}")
             fname = filename or os.path.basename(path)
+            mime = content_type or mimetypes.guess_type(fname)[0] or "application/octet-stream"
             with open(path, "rb") as fobj:
-                files = {"file": (fname, fobj, content_type or "application/octet-stream")}
+                files = {"file": (fname, fobj, mime)}
                 return self._client._request("POST", "/api/media", files=files)
         else:
             fname = filename or getattr(file, "name", "upload")
             if isinstance(fname, str) and os.sep in fname:
                 fname = os.path.basename(fname)
-            files = {"file": (fname, file, content_type or "application/octet-stream")}
+            mime = content_type or mimetypes.guess_type(fname)[0] or "application/octet-stream"
+            files = {"file": (fname, file, mime)}
             return self._client._request("POST", "/api/media", files=files)
 
     def get(self, media_id: str) -> MediaFile:
@@ -257,14 +260,16 @@ class AsyncMediaResource:
             if not os.path.isfile(path):
                 raise FileNotFoundError(f"File not found: {path}")
             fname = filename or os.path.basename(path)
+            mime = content_type or mimetypes.guess_type(fname)[0] or "application/octet-stream"
             with open(path, "rb") as fobj:
-                files = {"file": (fname, fobj, content_type or "application/octet-stream")}
+                files = {"file": (fname, fobj, mime)}
                 return await self._client._request("POST", "/api/media", files=files)
         else:
             fname = filename or getattr(file, "name", "upload")
             if isinstance(fname, str) and os.sep in fname:
                 fname = os.path.basename(fname)
-            files = {"file": (fname, file, content_type or "application/octet-stream")}
+            mime = content_type or mimetypes.guess_type(fname)[0] or "application/octet-stream"
+            files = {"file": (fname, file, mime)}
             return await self._client._request("POST", "/api/media", files=files)
 
     async def get(self, media_id: str) -> MediaFile:
