@@ -1,0 +1,15 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - bulkpublishApiKey
+    properties:
+      bulkpublishApiKey:
+        type: string
+        description: Your BulkPublish API key (starts with bp_). Get one at https://app.bulkpublish.com/settings/developer
+  commandFunction:
+    |-
+    config => ({ command: 'npx', args: ['-y', '@bulkpublish/mcp-server'], env: { BULKPUBLISH_API_KEY: config.bulkpublishApiKey } })
