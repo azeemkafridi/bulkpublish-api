@@ -63,6 +63,12 @@ pip install bulkpublish
 npm install bulkpublish
 ```
 
+**Homebrew (macOS/Linux)**
+
+```bash
+brew tap azeemkafridi/bulkpublish && brew install bulkpublish
+```
+
 Or call the REST API directly with `curl`, `fetch`, `requests`, or any HTTP client.
 
 ### 5. Make your first API call
@@ -294,6 +300,14 @@ npm install bulkpublish
 ```
 
 Full TypeScript types, zero dependencies, native `fetch` (Node 18+).
+
+### Homebrew (macOS/Linux)
+
+```bash
+brew tap azeemkafridi/bulkpublish && brew install bulkpublish
+```
+
+Installs the Node SDK via Homebrew.
 
 ### REST API
 
