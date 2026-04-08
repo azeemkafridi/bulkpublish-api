@@ -1,0 +1,46 @@
+{
+  "name": "bulkpublish",
+  "version": "1.0.0",
+  "description": "Official Node.js SDK for the BulkPublish social media publishing API",
+  "author": "BulkPublish",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/azeemkafridi/bulkpublish-api"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "bulkpublish",
+    "social-media",
+    "publishing",
+    "api",
+    "sdk",
+    "scheduling",
+    "facebook",
+    "instagram",
+    "twitter",
+    "tiktok",
+    "linkedin",
+    "youtube",
+    "threads",
+    "bluesky",
+    "pinterest"
+  ],
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}
