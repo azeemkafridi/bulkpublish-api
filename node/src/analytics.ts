@@ -43,7 +43,7 @@ export class AnalyticsResource {
    * ```
    */
   async summary(params?: AnalyticsSummaryParams): Promise<any> {
-    return this.http.get('/api/analytics/summary', params);
+    return this.http.get('/api/analytics/summary', params as Record<string, string | number | undefined>);
   }
 
   /**
@@ -59,7 +59,7 @@ export class AnalyticsResource {
    * ```
    */
   async engagement(params?: EngagementParams): Promise<any> {
-    return this.http.get('/api/analytics/engagement', params);
+    return this.http.get('/api/analytics/engagement', params as Record<string, string | number | undefined>);
   }
 
   /**
@@ -84,6 +84,6 @@ export class AnalyticsResource {
    * ```
    */
   async account(params: AccountMetricsParams): Promise<any> {
-    return this.http.get('/api/analytics/account', params);
+    return this.http.get('/api/analytics/account', { channelId: params.channelId });
   }
 }

@@ -208,7 +208,7 @@ export class HttpClient {
       blob = new Blob([buf], { type: mimeType });
       name = fileName || basename(file);
     } else if (Buffer.isBuffer(file)) {
-      blob = new Blob([file]);
+      blob = new Blob([new Uint8Array(file)]);
       name = fileName || 'upload';
     } else {
       blob = file;
