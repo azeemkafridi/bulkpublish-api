@@ -9,7 +9,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "0c26d80e-09cc-4689-8136-574d2b94ef8a",
+                            "id": "17ae0ddc-34d5-470e-83b3-a46faa4bb7b7",
                             "name": "List posts",
                             "request": {
                                 "name": "List posts",
@@ -51,7 +51,7 @@
                                                 "type": "text/plain"
                                             },
                                             "key": "status",
-                                            "value": "partial"
+                                            "value": "publishing"
                                         },
                                         {
                                             "disabled": false,
@@ -158,7 +158,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "2b74e553-cec2-452d-98f6-425120aa5631",
+                                    "id": "73f2e698-d6da-4f71-9350-e0d38173ec1d",
                                     "name": "Posts list with pagination",
                                     "originalRequest": {
                                         "url": {
@@ -195,7 +195,7 @@
                                                         "type": "text/plain"
                                                     },
                                                     "key": "status",
-                                                    "value": "partial"
+                                                    "value": "publishing"
                                                 },
                                                 {
                                                     "disabled": false,
@@ -315,7 +315,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n  \"posts\": [\n    {\n      \"id\": \"<integer>\",\n      \"content\": \"<string>\",\n      \"status\": \"draft\",\n      \"scheduledAt\": \"<dateTime>\",\n      \"timezone\": \"<string>\",\n      \"postFormat\": \"reel\",\n      \"postTypeOverrides\": {},\n      \"platformSpecific\": {},\n      \"platformContent\": {},\n      \"deleteMediaAfterPublish\": \"<boolean>\",\n      \"autoPlugEnabled\": \"<boolean>\",\n      \"autoPlugText\": \"<string>\",\n      \"autoPlugThreshold\": \"<integer>\",\n      \"autoPlugFired\": \"<boolean>\",\n      \"autoRepostEnabled\": \"<boolean>\",\n      \"autoRepostThreshold\": \"<integer>\",\n      \"autoRepostFired\": \"<boolean>\",\n      \"recurringScheduleId\": \"<integer>\",\n      \"recurringSchedule\": {},\n      \"mediaFiles\": [\n        {\n          \"id\": \"<integer>\",\n          \"fileName\": \"<string>\",\n          \"mimeType\": \"<string>\",\n          \"sizeBytes\": \"<integer>\",\n          \"width\": \"<integer>\",\n          \"height\": \"<integer>\",\n          \"duration\": \"<number>\",\n          \"originalUrl\": \"<string>\",\n          \"thumbnailUrl\": \"<string>\"\n        },\n        {\n          \"id\": \"<integer>\",\n          \"fileName\": \"<string>\",\n          \"mimeType\": \"<string>\",\n          \"sizeBytes\": \"<integer>\",\n          \"width\": \"<integer>\",\n          \"height\": \"<integer>\",\n          \"duration\": \"<number>\",\n          \"originalUrl\": \"<string>\",\n          \"thumbnailUrl\": \"<string>\"\n        }\n      ],\n      \"postPlatforms\": [\n        {\n          \"id\": \"<integer>\",\n          \"channelId\": \"<integer>\",\n          \"platform\": \"<string>\",\n          \"status\": \"<string>\",\n          \"platformPostId\": \"<string>\",\n          \"platformUrl\": \"<string>\",\n          \"errorMessage\": \"<string>\",\n          \"retryCount\": \"<integer>\"\n        },\n        {\n          \"id\": \"<integer>\",\n          \"channelId\": \"<integer>\",\n          \"platform\": \"<string>\",\n          \"status\": \"<string>\",\n          \"platformPostId\": \"<string>\",\n          \"platformUrl\": \"<string>\",\n          \"errorMessage\": \"<string>\",\n          \"retryCount\": \"<integer>\"\n        }\n      ],\n      \"labels\": [\n        {\n          \"id\": \"<integer>\",\n          \"name\": \"<string>\",\n          \"color\": \"<string>\",\n          \"type\": \"media\",\n          \"createdAt\": \"<dateTime>\"\n        },\n        {\n          \"id\": \"<integer>\",\n          \"name\": \"<string>\",\n          \"color\": \"<string>\",\n          \"type\": \"media\",\n          \"createdAt\": \"<dateTime>\"\n        }\n      ],\n      \"createdAt\": \"<dateTime>\",\n      \"publishedAt\": \"<dateTime>\"\n    },\n    {\n      \"id\": \"<integer>\",\n      \"content\": \"<string>\",\n      \"status\": \"published\",\n      \"scheduledAt\": \"<dateTime>\",\n      \"timezone\": \"<string>\",\n      \"postFormat\": \"reel\",\n      \"postTypeOverrides\": {},\n      \"platformSpecific\": {},\n      \"platformContent\": {},\n      \"deleteMediaAfterPublish\": \"<boolean>\",\n      \"autoPlugEnabled\": \"<boolean>\",\n      \"autoPlugText\": \"<string>\",\n      \"autoPlugThreshold\": \"<integer>\",\n      \"autoPlugFired\": \"<boolean>\",\n      \"autoRepostEnabled\": \"<boolean>\",\n      \"autoRepostThreshold\": \"<integer>\",\n      \"autoRepostFired\": \"<boolean>\",\n      \"recurringScheduleId\": \"<integer>\",\n      \"recurringSchedule\": {},\n      \"mediaFiles\": [\n        {\n          \"id\": \"<integer>\",\n          \"fileName\": \"<string>\",\n          \"mimeType\": \"<string>\",\n          \"sizeBytes\": \"<integer>\",\n          \"width\": \"<integer>\",\n          \"height\": \"<integer>\",\n          \"duration\": \"<number>\",\n          \"originalUrl\": \"<string>\",\n          \"thumbnailUrl\": \"<string>\"\n        },\n        {\n          \"id\": \"<integer>\",\n          \"fileName\": \"<string>\",\n          \"mimeType\": \"<string>\",\n          \"sizeBytes\": \"<integer>\",\n          \"width\": \"<integer>\",\n          \"height\": \"<integer>\",\n          \"duration\": \"<number>\",\n          \"originalUrl\": \"<string>\",\n          \"thumbnailUrl\": \"<string>\"\n        }\n      ],\n      \"postPlatforms\": [\n        {\n          \"id\": \"<integer>\",\n          \"channelId\": \"<integer>\",\n          \"platform\": \"<string>\",\n          \"status\": \"<string>\",\n          \"platformPostId\": \"<string>\",\n          \"platformUrl\": \"<string>\",\n          \"errorMessage\": \"<string>\",\n          \"retryCount\": \"<integer>\"\n        },\n        {\n          \"id\": \"<integer>\",\n          \"channelId\": \"<integer>\",\n          \"platform\": \"<string>\",\n          \"status\": \"<string>\",\n          \"platformPostId\": \"<string>\",\n          \"platformUrl\": \"<string>\",\n          \"errorMessage\": \"<string>\",\n          \"retryCount\": \"<integer>\"\n        }\n      ],\n      \"labels\": [\n        {\n          \"id\": \"<integer>\",\n          \"name\": \"<string>\",\n          \"color\": \"<string>\",\n          \"type\": \"media\",\n          \"createdAt\": \"<dateTime>\"\n        },\n        {\n          \"id\": \"<integer>\",\n          \"name\": \"<string>\",\n          \"color\": \"<string>\",\n          \"type\": \"media\",\n          \"createdAt\": \"<dateTime>\"\n        }\n      ],\n      \"createdAt\": \"<dateTime>\",\n      \"publishedAt\": \"<dateTime>\"\n    }\n  ],\n  \"total\": \"<integer>\",\n  \"page\": \"<integer>\",\n  \"limit\": \"<integer>\",\n  \"totalPages\": \"<integer>\"\n}",
+                                    "body": "{\n  \"posts\": [\n    {\n      \"id\": \"<integer>\",\n      \"content\": \"<string>\",\n      \"status\": \"published\",\n      \"scheduledAt\": \"<dateTime>\",\n      \"timezone\": \"<string>\",\n      \"postFormat\": \"post\",\n      \"postTypeOverrides\": {},\n      \"platformSpecific\": {},\n      \"platformContent\": {},\n      \"deleteMediaAfterPublish\": \"<boolean>\",\n      \"autoPlugEnabled\": \"<boolean>\",\n      \"autoPlugText\": \"<string>\",\n      \"autoPlugThreshold\": \"<integer>\",\n      \"autoPlugFired\": \"<boolean>\",\n      \"autoRepostEnabled\": \"<boolean>\",\n      \"autoRepostThreshold\": \"<integer>\",\n      \"autoRepostFired\": \"<boolean>\",\n      \"recurringScheduleId\": \"<integer>\",\n      \"recurringSchedule\": {},\n      \"mediaFiles\": [\n        {\n          \"id\": \"<integer>\",\n          \"fileName\": \"<string>\",\n          \"mimeType\": \"<string>\",\n          \"sizeBytes\": \"<integer>\",\n          \"width\": \"<integer>\",\n          \"height\": \"<integer>\",\n          \"duration\": \"<number>\",\n          \"originalUrl\": \"<string>\",\n          \"thumbnailUrl\": \"<string>\"\n        },\n        {\n          \"id\": \"<integer>\",\n          \"fileName\": \"<string>\",\n          \"mimeType\": \"<string>\",\n          \"sizeBytes\": \"<integer>\",\n          \"width\": \"<integer>\",\n          \"height\": \"<integer>\",\n          \"duration\": \"<number>\",\n          \"originalUrl\": \"<string>\",\n          \"thumbnailUrl\": \"<string>\"\n        }\n      ],\n      \"postPlatforms\": [\n        {\n          \"id\": \"<integer>\",\n          \"channelId\": \"<integer>\",\n          \"platform\": \"<string>\",\n          \"status\": \"<string>\",\n          \"platformPostId\": \"<string>\",\n          \"platformUrl\": \"<string>\",\n          \"errorMessage\": \"<string>\",\n          \"retryCount\": \"<integer>\"\n        },\n        {\n          \"id\": \"<integer>\",\n          \"channelId\": \"<integer>\",\n          \"platform\": \"<string>\",\n          \"status\": \"<string>\",\n          \"platformPostId\": \"<string>\",\n          \"platformUrl\": \"<string>\",\n          \"errorMessage\": \"<string>\",\n          \"retryCount\": \"<integer>\"\n        }\n      ],\n      \"labels\": [\n        {\n          \"id\": \"<integer>\",\n          \"name\": \"<string>\",\n          \"color\": \"<string>\",\n          \"type\": \"media\",\n          \"createdAt\": \"<dateTime>\"\n        },\n        {\n          \"id\": \"<integer>\",\n          \"name\": \"<string>\",\n          \"color\": \"<string>\",\n          \"type\": \"media\",\n          \"createdAt\": \"<dateTime>\"\n        }\n      ],\n      \"createdAt\": \"<dateTime>\",\n      \"publishedAt\": \"<dateTime>\"\n    },\n    {\n      \"id\": \"<integer>\",\n      \"content\": \"<string>\",\n      \"status\": \"publishing\",\n      \"scheduledAt\": \"<dateTime>\",\n      \"timezone\": \"<string>\",\n      \"postFormat\": \"story\",\n      \"postTypeOverrides\": {},\n      \"platformSpecific\": {},\n      \"platformContent\": {},\n      \"deleteMediaAfterPublish\": \"<boolean>\",\n      \"autoPlugEnabled\": \"<boolean>\",\n      \"autoPlugText\": \"<string>\",\n      \"autoPlugThreshold\": \"<integer>\",\n      \"autoPlugFired\": \"<boolean>\",\n      \"autoRepostEnabled\": \"<boolean>\",\n      \"autoRepostThreshold\": \"<integer>\",\n      \"autoRepostFired\": \"<boolean>\",\n      \"recurringScheduleId\": \"<integer>\",\n      \"recurringSchedule\": {},\n      \"mediaFiles\": [\n        {\n          \"id\": \"<integer>\",\n          \"fileName\": \"<string>\",\n          \"mimeType\": \"<string>\",\n          \"sizeBytes\": \"<integer>\",\n          \"width\": \"<integer>\",\n          \"height\": \"<integer>\",\n          \"duration\": \"<number>\",\n          \"originalUrl\": \"<string>\",\n          \"thumbnailUrl\": \"<string>\"\n        },\n        {\n          \"id\": \"<integer>\",\n          \"fileName\": \"<string>\",\n          \"mimeType\": \"<string>\",\n          \"sizeBytes\": \"<integer>\",\n          \"width\": \"<integer>\",\n          \"height\": \"<integer>\",\n          \"duration\": \"<number>\",\n          \"originalUrl\": \"<string>\",\n          \"thumbnailUrl\": \"<string>\"\n        }\n      ],\n      \"postPlatforms\": [\n        {\n          \"id\": \"<integer>\",\n          \"channelId\": \"<integer>\",\n          \"platform\": \"<string>\",\n          \"status\": \"<string>\",\n          \"platformPostId\": \"<string>\",\n          \"platformUrl\": \"<string>\",\n          \"errorMessage\": \"<string>\",\n          \"retryCount\": \"<integer>\"\n        },\n        {\n          \"id\": \"<integer>\",\n          \"channelId\": \"<integer>\",\n          \"platform\": \"<string>\",\n          \"status\": \"<string>\",\n          \"platformPostId\": \"<string>\",\n          \"platformUrl\": \"<string>\",\n          \"errorMessage\": \"<string>\",\n          \"retryCount\": \"<integer>\"\n        }\n      ],\n      \"labels\": [\n        {\n          \"id\": \"<integer>\",\n          \"name\": \"<string>\",\n          \"color\": \"<string>\",\n          \"type\": \"post\",\n          \"createdAt\": \"<dateTime>\"\n        },\n        {\n          \"id\": \"<integer>\",\n          \"name\": \"<string>\",\n          \"color\": \"<string>\",\n          \"type\": \"post\",\n          \"createdAt\": \"<dateTime>\"\n        }\n      ],\n      \"createdAt\": \"<dateTime>\",\n      \"publishedAt\": \"<dateTime>\"\n    }\n  ],\n  \"total\": \"<integer>\",\n  \"page\": \"<integer>\",\n  \"limit\": \"<integer>\",\n  \"totalPages\": \"<integer>\"\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 }
@@ -326,7 +326,7 @@
                             }
                         },
                         {
-                            "id": "eca58902-be08-4bd2-896a-2ac83d2920b5",
+                            "id": "4c15fc21-69be-4105-afb3-05e44ab5a022",
                             "name": "Create post",
                             "request": {
                                 "name": "Create post",
@@ -358,7 +358,7 @@
                                 "method": "POST",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"channels\": [\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    },\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    }\n  ],\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"timezone\": \"UTC\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"postFormat\": \"post\",\n  \"postTypeOverrides\": {},\n  \"platformSpecific\": {\n    \"facebook\": {\n      \"shareToStory\": \"<boolean>\"\n    },\n    \"x\": {\n      \"replySettings\": \"mentionedUsers\"\n    },\n    \"tiktok\": {\n      \"privacyLevel\": \"SELF_ONLY\",\n      \"disableDuet\": \"<boolean>\",\n      \"disableStitch\": \"<boolean>\",\n      \"disableComment\": \"<boolean>\",\n      \"isAigc\": \"<boolean>\",\n      \"brandContentToggle\": \"<boolean>\",\n      \"brandOrganicToggle\": \"<boolean>\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"youtube\": {\n      \"title\": \"<string>\",\n      \"privacyStatus\": \"public\",\n      \"categoryId\": \"<string>\",\n      \"madeForKids\": \"<boolean>\",\n      \"playlistId\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    },\n    \"pinterest\": {\n      \"title\": \"<string>\",\n      \"description\": \"<string>\",\n      \"link\": \"<string>\",\n      \"dominantColor\": \"<string>\"\n    },\n    \"gmb\": {\n      \"ctaType\": \"CALL\",\n      \"ctaUrl\": \"<string>\",\n      \"eventTitle\": \"<string>\",\n      \"startDate\": \"<string>\",\n      \"startTime\": \"<string>\",\n      \"endDate\": \"<string>\",\n      \"endTime\": \"<string>\",\n      \"couponCode\": \"<string>\",\n      \"redeemOnlineUrl\": \"<string>\",\n      \"termsConditions\": \"<string>\"\n    },\n    \"instagram\": {\n      \"collaborators\": \"<string>\",\n      \"shareToStory\": \"<boolean>\",\n      \"trialReel\": \"<boolean>\",\n      \"graduationStrategy\": \"auto\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"threads\": {\n      \"quotePostId\": \"<string>\"\n    }\n  },\n  \"platformContent\": {},\n  \"deleteMediaAfterPublish\": true,\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"platformThreadParts\": {},\n  \"repeatSchedule\": {\n    \"frequency\": \"weekly\",\n    \"daysOfWeek\": [\n      \"<integer>\",\n      \"<integer>\"\n    ],\n    \"dayOfMonth\": \"<integer>\",\n    \"timeOfDay\": \"<string>\",\n    \"timezone\": \"<string>\"\n  },\n  \"autoPlugEnabled\": false,\n  \"autoPlugText\": \"<string>\",\n  \"autoPlugThreshold\": 50,\n  \"autoRepostEnabled\": false,\n  \"autoRepostThreshold\": 100\n}",
+                                    "raw": "{\n  \"channels\": [\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    },\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    }\n  ],\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"timezone\": \"UTC\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"postFormat\": \"post\",\n  \"postTypeOverrides\": {},\n  \"platformSpecific\": {\n    \"facebook\": {\n      \"shareToStory\": \"<boolean>\"\n    },\n    \"x\": {\n      \"replySettings\": \"mentionedUsers\"\n    },\n    \"tiktok\": {\n      \"privacyLevel\": \"SELF_ONLY\",\n      \"disableDuet\": \"<boolean>\",\n      \"disableStitch\": \"<boolean>\",\n      \"disableComment\": \"<boolean>\",\n      \"isAigc\": \"<boolean>\",\n      \"brandContentToggle\": \"<boolean>\",\n      \"brandOrganicToggle\": \"<boolean>\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"youtube\": {\n      \"title\": \"<string>\",\n      \"privacyStatus\": \"private\",\n      \"categoryId\": \"<string>\",\n      \"madeForKids\": \"<boolean>\",\n      \"playlistId\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    },\n    \"pinterest\": {\n      \"title\": \"<string>\",\n      \"description\": \"<string>\",\n      \"link\": \"<string>\",\n      \"dominantColor\": \"<string>\"\n    },\n    \"gmb\": {\n      \"ctaType\": \"BOOK\",\n      \"ctaUrl\": \"<string>\",\n      \"eventTitle\": \"<string>\",\n      \"startDate\": \"<string>\",\n      \"startTime\": \"<string>\",\n      \"endDate\": \"<string>\",\n      \"endTime\": \"<string>\",\n      \"couponCode\": \"<string>\",\n      \"redeemOnlineUrl\": \"<string>\",\n      \"termsConditions\": \"<string>\"\n    },\n    \"instagram\": {\n      \"collaborators\": \"<string>\",\n      \"shareToStory\": \"<boolean>\",\n      \"trialReel\": \"<boolean>\",\n      \"graduationStrategy\": \"manual\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"threads\": {\n      \"quotePostId\": \"<string>\"\n    }\n  },\n  \"platformContent\": {},\n  \"deleteMediaAfterPublish\": true,\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"platformThreadParts\": {},\n  \"repeatSchedule\": {\n    \"frequency\": \"biweekly\",\n    \"daysOfWeek\": [\n      \"<integer>\",\n      \"<integer>\"\n    ],\n    \"dayOfMonth\": \"<integer>\",\n    \"timeOfDay\": \"<string>\",\n    \"timezone\": \"<string>\"\n  },\n  \"autoPlugEnabled\": false,\n  \"autoPlugText\": \"<string>\",\n  \"autoPlugThreshold\": 50,\n  \"autoRepostEnabled\": false,\n  \"autoRepostThreshold\": 100\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -370,7 +370,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "8e6bcb26-619c-4cd4-a07f-3a94bafca8a5",
+                                    "id": "6f44992f-9d9d-4a40-a05f-716697b202ad",
                                     "name": "Post created",
                                     "originalRequest": {
                                         "url": {
@@ -401,7 +401,7 @@
                                         "method": "POST",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n  \"channels\": [\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    },\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    }\n  ],\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"timezone\": \"UTC\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"postFormat\": \"post\",\n  \"postTypeOverrides\": {},\n  \"platformSpecific\": {\n    \"facebook\": {\n      \"shareToStory\": \"<boolean>\"\n    },\n    \"x\": {\n      \"replySettings\": \"mentionedUsers\"\n    },\n    \"tiktok\": {\n      \"privacyLevel\": \"SELF_ONLY\",\n      \"disableDuet\": \"<boolean>\",\n      \"disableStitch\": \"<boolean>\",\n      \"disableComment\": \"<boolean>\",\n      \"isAigc\": \"<boolean>\",\n      \"brandContentToggle\": \"<boolean>\",\n      \"brandOrganicToggle\": \"<boolean>\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"youtube\": {\n      \"title\": \"<string>\",\n      \"privacyStatus\": \"public\",\n      \"categoryId\": \"<string>\",\n      \"madeForKids\": \"<boolean>\",\n      \"playlistId\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    },\n    \"pinterest\": {\n      \"title\": \"<string>\",\n      \"description\": \"<string>\",\n      \"link\": \"<string>\",\n      \"dominantColor\": \"<string>\"\n    },\n    \"gmb\": {\n      \"ctaType\": \"CALL\",\n      \"ctaUrl\": \"<string>\",\n      \"eventTitle\": \"<string>\",\n      \"startDate\": \"<string>\",\n      \"startTime\": \"<string>\",\n      \"endDate\": \"<string>\",\n      \"endTime\": \"<string>\",\n      \"couponCode\": \"<string>\",\n      \"redeemOnlineUrl\": \"<string>\",\n      \"termsConditions\": \"<string>\"\n    },\n    \"instagram\": {\n      \"collaborators\": \"<string>\",\n      \"shareToStory\": \"<boolean>\",\n      \"trialReel\": \"<boolean>\",\n      \"graduationStrategy\": \"auto\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"threads\": {\n      \"quotePostId\": \"<string>\"\n    }\n  },\n  \"platformContent\": {},\n  \"deleteMediaAfterPublish\": true,\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"platformThreadParts\": {},\n  \"repeatSchedule\": {\n    \"frequency\": \"weekly\",\n    \"daysOfWeek\": [\n      \"<integer>\",\n      \"<integer>\"\n    ],\n    \"dayOfMonth\": \"<integer>\",\n    \"timeOfDay\": \"<string>\",\n    \"timezone\": \"<string>\"\n  },\n  \"autoPlugEnabled\": false,\n  \"autoPlugText\": \"<string>\",\n  \"autoPlugThreshold\": 50,\n  \"autoRepostEnabled\": false,\n  \"autoRepostThreshold\": 100\n}",
+                                            "raw": "{\n  \"channels\": [\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    },\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    }\n  ],\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"timezone\": \"UTC\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"postFormat\": \"post\",\n  \"postTypeOverrides\": {},\n  \"platformSpecific\": {\n    \"facebook\": {\n      \"shareToStory\": \"<boolean>\"\n    },\n    \"x\": {\n      \"replySettings\": \"mentionedUsers\"\n    },\n    \"tiktok\": {\n      \"privacyLevel\": \"SELF_ONLY\",\n      \"disableDuet\": \"<boolean>\",\n      \"disableStitch\": \"<boolean>\",\n      \"disableComment\": \"<boolean>\",\n      \"isAigc\": \"<boolean>\",\n      \"brandContentToggle\": \"<boolean>\",\n      \"brandOrganicToggle\": \"<boolean>\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"youtube\": {\n      \"title\": \"<string>\",\n      \"privacyStatus\": \"private\",\n      \"categoryId\": \"<string>\",\n      \"madeForKids\": \"<boolean>\",\n      \"playlistId\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    },\n    \"pinterest\": {\n      \"title\": \"<string>\",\n      \"description\": \"<string>\",\n      \"link\": \"<string>\",\n      \"dominantColor\": \"<string>\"\n    },\n    \"gmb\": {\n      \"ctaType\": \"BOOK\",\n      \"ctaUrl\": \"<string>\",\n      \"eventTitle\": \"<string>\",\n      \"startDate\": \"<string>\",\n      \"startTime\": \"<string>\",\n      \"endDate\": \"<string>\",\n      \"endTime\": \"<string>\",\n      \"couponCode\": \"<string>\",\n      \"redeemOnlineUrl\": \"<string>\",\n      \"termsConditions\": \"<string>\"\n    },\n    \"instagram\": {\n      \"collaborators\": \"<string>\",\n      \"shareToStory\": \"<boolean>\",\n      \"trialReel\": \"<boolean>\",\n      \"graduationStrategy\": \"manual\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"threads\": {\n      \"quotePostId\": \"<string>\"\n    }\n  },\n  \"platformContent\": {},\n  \"deleteMediaAfterPublish\": true,\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"platformThreadParts\": {},\n  \"repeatSchedule\": {\n    \"frequency\": \"biweekly\",\n    \"daysOfWeek\": [\n      \"<integer>\",\n      \"<integer>\"\n    ],\n    \"dayOfMonth\": \"<integer>\",\n    \"timeOfDay\": \"<string>\",\n    \"timezone\": \"<string>\"\n  },\n  \"autoPlugEnabled\": false,\n  \"autoPlugText\": \"<string>\",\n  \"autoPlugThreshold\": 50,\n  \"autoRepostEnabled\": false,\n  \"autoRepostThreshold\": 100\n}",
                                             "options": {
                                                 "raw": {
                                                     "headerFamily": "json",
@@ -417,7 +417,7 @@
                                     "_postman_previewlanguage": "text"
                                 },
                                 {
-                                    "id": "7904b394-d03a-409b-9124-a60c18a99b4b",
+                                    "id": "a76d2050-eb04-45e4-a9a6-6c508b5c86d3",
                                     "name": "Validation error (character limit, missing fields)",
                                     "originalRequest": {
                                         "url": {
@@ -452,7 +452,7 @@
                                         "method": "POST",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n  \"channels\": [\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    },\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    }\n  ],\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"timezone\": \"UTC\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"postFormat\": \"post\",\n  \"postTypeOverrides\": {},\n  \"platformSpecific\": {\n    \"facebook\": {\n      \"shareToStory\": \"<boolean>\"\n    },\n    \"x\": {\n      \"replySettings\": \"mentionedUsers\"\n    },\n    \"tiktok\": {\n      \"privacyLevel\": \"SELF_ONLY\",\n      \"disableDuet\": \"<boolean>\",\n      \"disableStitch\": \"<boolean>\",\n      \"disableComment\": \"<boolean>\",\n      \"isAigc\": \"<boolean>\",\n      \"brandContentToggle\": \"<boolean>\",\n      \"brandOrganicToggle\": \"<boolean>\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"youtube\": {\n      \"title\": \"<string>\",\n      \"privacyStatus\": \"public\",\n      \"categoryId\": \"<string>\",\n      \"madeForKids\": \"<boolean>\",\n      \"playlistId\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    },\n    \"pinterest\": {\n      \"title\": \"<string>\",\n      \"description\": \"<string>\",\n      \"link\": \"<string>\",\n      \"dominantColor\": \"<string>\"\n    },\n    \"gmb\": {\n      \"ctaType\": \"CALL\",\n      \"ctaUrl\": \"<string>\",\n      \"eventTitle\": \"<string>\",\n      \"startDate\": \"<string>\",\n      \"startTime\": \"<string>\",\n      \"endDate\": \"<string>\",\n      \"endTime\": \"<string>\",\n      \"couponCode\": \"<string>\",\n      \"redeemOnlineUrl\": \"<string>\",\n      \"termsConditions\": \"<string>\"\n    },\n    \"instagram\": {\n      \"collaborators\": \"<string>\",\n      \"shareToStory\": \"<boolean>\",\n      \"trialReel\": \"<boolean>\",\n      \"graduationStrategy\": \"auto\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"threads\": {\n      \"quotePostId\": \"<string>\"\n    }\n  },\n  \"platformContent\": {},\n  \"deleteMediaAfterPublish\": true,\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"platformThreadParts\": {},\n  \"repeatSchedule\": {\n    \"frequency\": \"weekly\",\n    \"daysOfWeek\": [\n      \"<integer>\",\n      \"<integer>\"\n    ],\n    \"dayOfMonth\": \"<integer>\",\n    \"timeOfDay\": \"<string>\",\n    \"timezone\": \"<string>\"\n  },\n  \"autoPlugEnabled\": false,\n  \"autoPlugText\": \"<string>\",\n  \"autoPlugThreshold\": 50,\n  \"autoRepostEnabled\": false,\n  \"autoRepostThreshold\": 100\n}",
+                                            "raw": "{\n  \"channels\": [\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    },\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    }\n  ],\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"timezone\": \"UTC\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"postFormat\": \"post\",\n  \"postTypeOverrides\": {},\n  \"platformSpecific\": {\n    \"facebook\": {\n      \"shareToStory\": \"<boolean>\"\n    },\n    \"x\": {\n      \"replySettings\": \"mentionedUsers\"\n    },\n    \"tiktok\": {\n      \"privacyLevel\": \"SELF_ONLY\",\n      \"disableDuet\": \"<boolean>\",\n      \"disableStitch\": \"<boolean>\",\n      \"disableComment\": \"<boolean>\",\n      \"isAigc\": \"<boolean>\",\n      \"brandContentToggle\": \"<boolean>\",\n      \"brandOrganicToggle\": \"<boolean>\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"youtube\": {\n      \"title\": \"<string>\",\n      \"privacyStatus\": \"private\",\n      \"categoryId\": \"<string>\",\n      \"madeForKids\": \"<boolean>\",\n      \"playlistId\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    },\n    \"pinterest\": {\n      \"title\": \"<string>\",\n      \"description\": \"<string>\",\n      \"link\": \"<string>\",\n      \"dominantColor\": \"<string>\"\n    },\n    \"gmb\": {\n      \"ctaType\": \"BOOK\",\n      \"ctaUrl\": \"<string>\",\n      \"eventTitle\": \"<string>\",\n      \"startDate\": \"<string>\",\n      \"startTime\": \"<string>\",\n      \"endDate\": \"<string>\",\n      \"endTime\": \"<string>\",\n      \"couponCode\": \"<string>\",\n      \"redeemOnlineUrl\": \"<string>\",\n      \"termsConditions\": \"<string>\"\n    },\n    \"instagram\": {\n      \"collaborators\": \"<string>\",\n      \"shareToStory\": \"<boolean>\",\n      \"trialReel\": \"<boolean>\",\n      \"graduationStrategy\": \"manual\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"threads\": {\n      \"quotePostId\": \"<string>\"\n    }\n  },\n  \"platformContent\": {},\n  \"deleteMediaAfterPublish\": true,\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"platformThreadParts\": {},\n  \"repeatSchedule\": {\n    \"frequency\": \"biweekly\",\n    \"daysOfWeek\": [\n      \"<integer>\",\n      \"<integer>\"\n    ],\n    \"dayOfMonth\": \"<integer>\",\n    \"timeOfDay\": \"<string>\",\n    \"timezone\": \"<string>\"\n  },\n  \"autoPlugEnabled\": false,\n  \"autoPlugText\": \"<string>\",\n  \"autoPlugThreshold\": 50,\n  \"autoRepostEnabled\": false,\n  \"autoRepostThreshold\": 100\n}",
                                             "options": {
                                                 "raw": {
                                                     "headerFamily": "json",
@@ -474,7 +474,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "57058590-bea7-40e6-97e4-7f280718636c",
+                                    "id": "982a7520-4ff4-471f-bb5f-33c54d4f3cb7",
                                     "name": "Forbidden (media/channel/label ownership)",
                                     "originalRequest": {
                                         "url": {
@@ -505,7 +505,7 @@
                                         "method": "POST",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n  \"channels\": [\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    },\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    }\n  ],\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"timezone\": \"UTC\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"postFormat\": \"post\",\n  \"postTypeOverrides\": {},\n  \"platformSpecific\": {\n    \"facebook\": {\n      \"shareToStory\": \"<boolean>\"\n    },\n    \"x\": {\n      \"replySettings\": \"mentionedUsers\"\n    },\n    \"tiktok\": {\n      \"privacyLevel\": \"SELF_ONLY\",\n      \"disableDuet\": \"<boolean>\",\n      \"disableStitch\": \"<boolean>\",\n      \"disableComment\": \"<boolean>\",\n      \"isAigc\": \"<boolean>\",\n      \"brandContentToggle\": \"<boolean>\",\n      \"brandOrganicToggle\": \"<boolean>\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"youtube\": {\n      \"title\": \"<string>\",\n      \"privacyStatus\": \"public\",\n      \"categoryId\": \"<string>\",\n      \"madeForKids\": \"<boolean>\",\n      \"playlistId\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    },\n    \"pinterest\": {\n      \"title\": \"<string>\",\n      \"description\": \"<string>\",\n      \"link\": \"<string>\",\n      \"dominantColor\": \"<string>\"\n    },\n    \"gmb\": {\n      \"ctaType\": \"CALL\",\n      \"ctaUrl\": \"<string>\",\n      \"eventTitle\": \"<string>\",\n      \"startDate\": \"<string>\",\n      \"startTime\": \"<string>\",\n      \"endDate\": \"<string>\",\n      \"endTime\": \"<string>\",\n      \"couponCode\": \"<string>\",\n      \"redeemOnlineUrl\": \"<string>\",\n      \"termsConditions\": \"<string>\"\n    },\n    \"instagram\": {\n      \"collaborators\": \"<string>\",\n      \"shareToStory\": \"<boolean>\",\n      \"trialReel\": \"<boolean>\",\n      \"graduationStrategy\": \"auto\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"threads\": {\n      \"quotePostId\": \"<string>\"\n    }\n  },\n  \"platformContent\": {},\n  \"deleteMediaAfterPublish\": true,\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"platformThreadParts\": {},\n  \"repeatSchedule\": {\n    \"frequency\": \"weekly\",\n    \"daysOfWeek\": [\n      \"<integer>\",\n      \"<integer>\"\n    ],\n    \"dayOfMonth\": \"<integer>\",\n    \"timeOfDay\": \"<string>\",\n    \"timezone\": \"<string>\"\n  },\n  \"autoPlugEnabled\": false,\n  \"autoPlugText\": \"<string>\",\n  \"autoPlugThreshold\": 50,\n  \"autoRepostEnabled\": false,\n  \"autoRepostThreshold\": 100\n}",
+                                            "raw": "{\n  \"channels\": [\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    },\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    }\n  ],\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"timezone\": \"UTC\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"postFormat\": \"post\",\n  \"postTypeOverrides\": {},\n  \"platformSpecific\": {\n    \"facebook\": {\n      \"shareToStory\": \"<boolean>\"\n    },\n    \"x\": {\n      \"replySettings\": \"mentionedUsers\"\n    },\n    \"tiktok\": {\n      \"privacyLevel\": \"SELF_ONLY\",\n      \"disableDuet\": \"<boolean>\",\n      \"disableStitch\": \"<boolean>\",\n      \"disableComment\": \"<boolean>\",\n      \"isAigc\": \"<boolean>\",\n      \"brandContentToggle\": \"<boolean>\",\n      \"brandOrganicToggle\": \"<boolean>\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"youtube\": {\n      \"title\": \"<string>\",\n      \"privacyStatus\": \"private\",\n      \"categoryId\": \"<string>\",\n      \"madeForKids\": \"<boolean>\",\n      \"playlistId\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    },\n    \"pinterest\": {\n      \"title\": \"<string>\",\n      \"description\": \"<string>\",\n      \"link\": \"<string>\",\n      \"dominantColor\": \"<string>\"\n    },\n    \"gmb\": {\n      \"ctaType\": \"BOOK\",\n      \"ctaUrl\": \"<string>\",\n      \"eventTitle\": \"<string>\",\n      \"startDate\": \"<string>\",\n      \"startTime\": \"<string>\",\n      \"endDate\": \"<string>\",\n      \"endTime\": \"<string>\",\n      \"couponCode\": \"<string>\",\n      \"redeemOnlineUrl\": \"<string>\",\n      \"termsConditions\": \"<string>\"\n    },\n    \"instagram\": {\n      \"collaborators\": \"<string>\",\n      \"shareToStory\": \"<boolean>\",\n      \"trialReel\": \"<boolean>\",\n      \"graduationStrategy\": \"manual\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"threads\": {\n      \"quotePostId\": \"<string>\"\n    }\n  },\n  \"platformContent\": {},\n  \"deleteMediaAfterPublish\": true,\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"platformThreadParts\": {},\n  \"repeatSchedule\": {\n    \"frequency\": \"biweekly\",\n    \"daysOfWeek\": [\n      \"<integer>\",\n      \"<integer>\"\n    ],\n    \"dayOfMonth\": \"<integer>\",\n    \"timeOfDay\": \"<string>\",\n    \"timezone\": \"<string>\"\n  },\n  \"autoPlugEnabled\": false,\n  \"autoPlugText\": \"<string>\",\n  \"autoPlugThreshold\": 50,\n  \"autoRepostEnabled\": false,\n  \"autoRepostThreshold\": 100\n}",
                                             "options": {
                                                 "raw": {
                                                     "headerFamily": "json",
@@ -521,7 +521,7 @@
                                     "_postman_previewlanguage": "text"
                                 },
                                 {
-                                    "id": "1837d20f-7b73-4c18-9eb5-25dd911f79ac",
+                                    "id": "9d3f1b0a-8c7e-4682-be72-df3316adb6af",
                                     "name": "Quota exceeded",
                                     "originalRequest": {
                                         "url": {
@@ -552,7 +552,7 @@
                                         "method": "POST",
                                         "body": {
                                             "mode": "raw",
-                                            "raw": "{\n  \"channels\": [\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    },\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    }\n  ],\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"timezone\": \"UTC\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"postFormat\": \"post\",\n  \"postTypeOverrides\": {},\n  \"platformSpecific\": {\n    \"facebook\": {\n      \"shareToStory\": \"<boolean>\"\n    },\n    \"x\": {\n      \"replySettings\": \"mentionedUsers\"\n    },\n    \"tiktok\": {\n      \"privacyLevel\": \"SELF_ONLY\",\n      \"disableDuet\": \"<boolean>\",\n      \"disableStitch\": \"<boolean>\",\n      \"disableComment\": \"<boolean>\",\n      \"isAigc\": \"<boolean>\",\n      \"brandContentToggle\": \"<boolean>\",\n      \"brandOrganicToggle\": \"<boolean>\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"youtube\": {\n      \"title\": \"<string>\",\n      \"privacyStatus\": \"public\",\n      \"categoryId\": \"<string>\",\n      \"madeForKids\": \"<boolean>\",\n      \"playlistId\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    },\n    \"pinterest\": {\n      \"title\": \"<string>\",\n      \"description\": \"<string>\",\n      \"link\": \"<string>\",\n      \"dominantColor\": \"<string>\"\n    },\n    \"gmb\": {\n      \"ctaType\": \"CALL\",\n      \"ctaUrl\": \"<string>\",\n      \"eventTitle\": \"<string>\",\n      \"startDate\": \"<string>\",\n      \"startTime\": \"<string>\",\n      \"endDate\": \"<string>\",\n      \"endTime\": \"<string>\",\n      \"couponCode\": \"<string>\",\n      \"redeemOnlineUrl\": \"<string>\",\n      \"termsConditions\": \"<string>\"\n    },\n    \"instagram\": {\n      \"collaborators\": \"<string>\",\n      \"shareToStory\": \"<boolean>\",\n      \"trialReel\": \"<boolean>\",\n      \"graduationStrategy\": \"auto\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"threads\": {\n      \"quotePostId\": \"<string>\"\n    }\n  },\n  \"platformContent\": {},\n  \"deleteMediaAfterPublish\": true,\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"platformThreadParts\": {},\n  \"repeatSchedule\": {\n    \"frequency\": \"weekly\",\n    \"daysOfWeek\": [\n      \"<integer>\",\n      \"<integer>\"\n    ],\n    \"dayOfMonth\": \"<integer>\",\n    \"timeOfDay\": \"<string>\",\n    \"timezone\": \"<string>\"\n  },\n  \"autoPlugEnabled\": false,\n  \"autoPlugText\": \"<string>\",\n  \"autoPlugThreshold\": 50,\n  \"autoRepostEnabled\": false,\n  \"autoRepostThreshold\": 100\n}",
+                                            "raw": "{\n  \"channels\": [\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    },\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    }\n  ],\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"timezone\": \"UTC\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"postFormat\": \"post\",\n  \"postTypeOverrides\": {},\n  \"platformSpecific\": {\n    \"facebook\": {\n      \"shareToStory\": \"<boolean>\"\n    },\n    \"x\": {\n      \"replySettings\": \"mentionedUsers\"\n    },\n    \"tiktok\": {\n      \"privacyLevel\": \"SELF_ONLY\",\n      \"disableDuet\": \"<boolean>\",\n      \"disableStitch\": \"<boolean>\",\n      \"disableComment\": \"<boolean>\",\n      \"isAigc\": \"<boolean>\",\n      \"brandContentToggle\": \"<boolean>\",\n      \"brandOrganicToggle\": \"<boolean>\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"youtube\": {\n      \"title\": \"<string>\",\n      \"privacyStatus\": \"private\",\n      \"categoryId\": \"<string>\",\n      \"madeForKids\": \"<boolean>\",\n      \"playlistId\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    },\n    \"pinterest\": {\n      \"title\": \"<string>\",\n      \"description\": \"<string>\",\n      \"link\": \"<string>\",\n      \"dominantColor\": \"<string>\"\n    },\n    \"gmb\": {\n      \"ctaType\": \"BOOK\",\n      \"ctaUrl\": \"<string>\",\n      \"eventTitle\": \"<string>\",\n      \"startDate\": \"<string>\",\n      \"startTime\": \"<string>\",\n      \"endDate\": \"<string>\",\n      \"endTime\": \"<string>\",\n      \"couponCode\": \"<string>\",\n      \"redeemOnlineUrl\": \"<string>\",\n      \"termsConditions\": \"<string>\"\n    },\n    \"instagram\": {\n      \"collaborators\": \"<string>\",\n      \"shareToStory\": \"<boolean>\",\n      \"trialReel\": \"<boolean>\",\n      \"graduationStrategy\": \"manual\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"threads\": {\n      \"quotePostId\": \"<string>\"\n    }\n  },\n  \"platformContent\": {},\n  \"deleteMediaAfterPublish\": true,\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"platformThreadParts\": {},\n  \"repeatSchedule\": {\n    \"frequency\": \"biweekly\",\n    \"daysOfWeek\": [\n      \"<integer>\",\n      \"<integer>\"\n    ],\n    \"dayOfMonth\": \"<integer>\",\n    \"timeOfDay\": \"<string>\",\n    \"timezone\": \"<string>\"\n  },\n  \"autoPlugEnabled\": false,\n  \"autoPlugText\": \"<string>\",\n  \"autoPlugThreshold\": 50,\n  \"autoRepostEnabled\": false,\n  \"autoRepostThreshold\": 100\n}",
                                             "options": {
                                                 "raw": {
                                                     "headerFamily": "json",
@@ -578,7 +578,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "f0751548-9784-4bfd-a41f-3b320b77748d",
+                                    "id": "206c0a40-724a-4dbb-a030-71a32642eb4c",
                                     "name": "Get post",
                                     "request": {
                                         "name": "Get post",
@@ -621,7 +621,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "70ef6608-3c5b-4f19-bfd0-1b94f41f7d58",
+                                            "id": "7701cd11-9703-4c63-b2be-df29601b71ad",
                                             "name": "Post details",
                                             "originalRequest": {
                                                 "url": {
@@ -672,12 +672,12 @@
                                                     "value": "application/json"
                                                 }
                                             ],
-                                            "body": "{\n  \"id\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"status\": \"published\",\n  \"scheduledAt\": \"<dateTime>\",\n  \"timezone\": \"<string>\",\n  \"postFormat\": \"thread\",\n  \"postTypeOverrides\": {},\n  \"platformSpecific\": {},\n  \"platformContent\": {},\n  \"deleteMediaAfterPublish\": \"<boolean>\",\n  \"autoPlugEnabled\": \"<boolean>\",\n  \"autoPlugText\": \"<string>\",\n  \"autoPlugThreshold\": \"<integer>\",\n  \"autoPlugFired\": \"<boolean>\",\n  \"autoRepostEnabled\": \"<boolean>\",\n  \"autoRepostThreshold\": \"<integer>\",\n  \"autoRepostFired\": \"<boolean>\",\n  \"recurringScheduleId\": \"<integer>\",\n  \"recurringSchedule\": {},\n  \"mediaFiles\": [\n    {\n      \"id\": \"<integer>\",\n      \"fileName\": \"<string>\",\n      \"mimeType\": \"<string>\",\n      \"sizeBytes\": \"<integer>\",\n      \"width\": \"<integer>\",\n      \"height\": \"<integer>\",\n      \"duration\": \"<number>\",\n      \"originalUrl\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    },\n    {\n      \"id\": \"<integer>\",\n      \"fileName\": \"<string>\",\n      \"mimeType\": \"<string>\",\n      \"sizeBytes\": \"<integer>\",\n      \"width\": \"<integer>\",\n      \"height\": \"<integer>\",\n      \"duration\": \"<number>\",\n      \"originalUrl\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    }\n  ],\n  \"postPlatforms\": [\n    {\n      \"id\": \"<integer>\",\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\",\n      \"status\": \"<string>\",\n      \"platformPostId\": \"<string>\",\n      \"platformUrl\": \"<string>\",\n      \"errorMessage\": \"<string>\",\n      \"retryCount\": \"<integer>\"\n    },\n    {\n      \"id\": \"<integer>\",\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\",\n      \"status\": \"<string>\",\n      \"platformPostId\": \"<string>\",\n      \"platformUrl\": \"<string>\",\n      \"errorMessage\": \"<string>\",\n      \"retryCount\": \"<integer>\"\n    }\n  ],\n  \"labels\": [\n    {\n      \"id\": \"<integer>\",\n      \"name\": \"<string>\",\n      \"color\": \"<string>\",\n      \"type\": \"post\",\n      \"createdAt\": \"<dateTime>\"\n    },\n    {\n      \"id\": \"<integer>\",\n      \"name\": \"<string>\",\n      \"color\": \"<string>\",\n      \"type\": \"post\",\n      \"createdAt\": \"<dateTime>\"\n    }\n  ],\n  \"createdAt\": \"<dateTime>\",\n  \"publishedAt\": \"<dateTime>\"\n}",
+                                            "body": "{\n  \"id\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"status\": \"failed\",\n  \"scheduledAt\": \"<dateTime>\",\n  \"timezone\": \"<string>\",\n  \"postFormat\": \"carousel\",\n  \"postTypeOverrides\": {},\n  \"platformSpecific\": {},\n  \"platformContent\": {},\n  \"deleteMediaAfterPublish\": \"<boolean>\",\n  \"autoPlugEnabled\": \"<boolean>\",\n  \"autoPlugText\": \"<string>\",\n  \"autoPlugThreshold\": \"<integer>\",\n  \"autoPlugFired\": \"<boolean>\",\n  \"autoRepostEnabled\": \"<boolean>\",\n  \"autoRepostThreshold\": \"<integer>\",\n  \"autoRepostFired\": \"<boolean>\",\n  \"recurringScheduleId\": \"<integer>\",\n  \"recurringSchedule\": {},\n  \"mediaFiles\": [\n    {\n      \"id\": \"<integer>\",\n      \"fileName\": \"<string>\",\n      \"mimeType\": \"<string>\",\n      \"sizeBytes\": \"<integer>\",\n      \"width\": \"<integer>\",\n      \"height\": \"<integer>\",\n      \"duration\": \"<number>\",\n      \"originalUrl\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    },\n    {\n      \"id\": \"<integer>\",\n      \"fileName\": \"<string>\",\n      \"mimeType\": \"<string>\",\n      \"sizeBytes\": \"<integer>\",\n      \"width\": \"<integer>\",\n      \"height\": \"<integer>\",\n      \"duration\": \"<number>\",\n      \"originalUrl\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    }\n  ],\n  \"postPlatforms\": [\n    {\n      \"id\": \"<integer>\",\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\",\n      \"status\": \"<string>\",\n      \"platformPostId\": \"<string>\",\n      \"platformUrl\": \"<string>\",\n      \"errorMessage\": \"<string>\",\n      \"retryCount\": \"<integer>\"\n    },\n    {\n      \"id\": \"<integer>\",\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\",\n      \"status\": \"<string>\",\n      \"platformPostId\": \"<string>\",\n      \"platformUrl\": \"<string>\",\n      \"errorMessage\": \"<string>\",\n      \"retryCount\": \"<integer>\"\n    }\n  ],\n  \"labels\": [\n    {\n      \"id\": \"<integer>\",\n      \"name\": \"<string>\",\n      \"color\": \"<string>\",\n      \"type\": \"media\",\n      \"createdAt\": \"<dateTime>\"\n    },\n    {\n      \"id\": \"<integer>\",\n      \"name\": \"<string>\",\n      \"color\": \"<string>\",\n      \"type\": \"media\",\n      \"createdAt\": \"<dateTime>\"\n    }\n  ],\n  \"createdAt\": \"<dateTime>\",\n  \"publishedAt\": \"<dateTime>\"\n}",
                                             "cookie": [],
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "40c22e53-5b23-4ff5-ad26-dc24a4204cd2",
+                                            "id": "cc34ef03-a709-4490-afd8-c9cb0c9c79d3",
                                             "name": "Not found",
                                             "originalRequest": {
                                                 "url": {
@@ -729,7 +729,7 @@
                                     }
                                 },
                                 {
-                                    "id": "6dd26632-81ba-495c-bfea-c96b438a620a",
+                                    "id": "189b6a11-af2c-40fa-8dd3-d70f8af6b2ea",
                                     "name": "Update post",
                                     "request": {
                                         "name": "Update post",
@@ -781,7 +781,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "70a17ca5-9767-411b-a09b-51e07cb1e24a",
+                                            "id": "972c127c-2c21-462c-80df-2de23029a30e",
                                             "name": "Updated post",
                                             "originalRequest": {
                                                 "url": {
@@ -840,7 +840,7 @@
                                             "_postman_previewlanguage": "text"
                                         },
                                         {
-                                            "id": "538e806d-53fb-4c57-a4b5-86cb3cacb18b",
+                                            "id": "71ec0463-2efc-43fb-b93c-f9fdb9518dd1",
                                             "name": "Validation error",
                                             "originalRequest": {
                                                 "url": {
@@ -905,7 +905,7 @@
                                     }
                                 },
                                 {
-                                    "id": "655cc461-1643-4ae5-83e0-f5f2dbe15b05",
+                                    "id": "e909e353-8a75-40d3-9bd3-cebefcce80c0",
                                     "name": "Delete post",
                                     "request": {
                                         "name": "Delete post",
@@ -939,7 +939,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "361d6e70-3032-495d-8bc8-4b937dddaff3",
+                                            "id": "98e8a817-87e9-413c-9b6a-4fcba5d49976",
                                             "name": "Deleted",
                                             "originalRequest": {
                                                 "url": {
@@ -995,7 +995,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "4ed078fc-a145-4d33-bc5f-950bbae068ec",
+                                            "id": "804c4b8c-17b1-4cf3-b546-66362bffcad7",
                                             "name": "Publish immediately",
                                             "request": {
                                                 "name": "Publish immediately",
@@ -1030,7 +1030,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "14105659-2430-4ffe-93f8-7f02042d8adf",
+                                                    "id": "eaca8fb1-8627-4a70-bf79-15d46c748df2",
                                                     "name": "Publishing started",
                                                     "originalRequest": {
                                                         "url": {
@@ -1089,7 +1089,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "5bb3a467-4578-425f-b23f-c82ebad8aa4d",
+                                            "id": "7e0a6e3c-b87c-44f8-95a9-d3f33ab6ba98",
                                             "name": "Retry failed platforms",
                                             "request": {
                                                 "name": "Retry failed platforms",
@@ -1124,7 +1124,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "b9a39a7e-ba1b-45de-a4c8-279622b32a9d",
+                                                    "id": "9f6d9ad5-769c-49d0-996c-4f61b5a9ac05",
                                                     "name": "Retry queued",
                                                     "originalRequest": {
                                                         "url": {
@@ -1183,7 +1183,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "4d236c10-4fb3-4163-91d7-8f4e8f55726a",
+                                            "id": "432ef515-d712-4ecd-9e31-c89fc53643db",
                                             "name": "Get post metrics",
                                             "request": {
                                                 "name": "Get post metrics",
@@ -1227,7 +1227,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "fb218f78-3aa7-4759-8d52-8d6d61c745e9",
+                                                    "id": "fb1155fb-5dc4-47c4-a44a-0aec96b31dc9",
                                                     "name": "Metrics per platform",
                                                     "originalRequest": {
                                                         "url": {
@@ -1296,7 +1296,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "6eb6d9a1-d7fa-488c-b9ae-b106321635de",
+                                            "id": "320a9922-0452-403c-ae62-a1ffea585760",
                                             "name": "Publish as Story",
                                             "request": {
                                                 "name": "Publish as Story",
@@ -1353,7 +1353,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "1b88c7cb-64d6-40e6-aa6d-0041eece2f13",
+                                                    "id": "f6bc0bd2-0e9f-4db4-baaf-52fc0bf93d80",
                                                     "name": "Story published",
                                                     "originalRequest": {
                                                         "url": {
@@ -1423,7 +1423,7 @@
                                                     "_postman_previewlanguage": "json"
                                                 },
                                                 {
-                                                    "id": "3131e4c1-3dda-4e15-9db3-7c132afc9766",
+                                                    "id": "cdd0a126-34c2-4216-8f08-18ea5473ed82",
                                                     "name": "Invalid platform, no media, or no matching platform entry",
                                                     "originalRequest": {
                                                         "url": {
@@ -1483,7 +1483,7 @@
                                                     "_postman_previewlanguage": "text"
                                                 },
                                                 {
-                                                    "id": "a0e2e334-d6e7-492e-9084-4bf02a3f5401",
+                                                    "id": "5ee31588-88f2-4bbe-b636-45a5ad78efc4",
                                                     "name": "Post not found",
                                                     "originalRequest": {
                                                         "url": {
@@ -1557,7 +1557,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "db05a6ea-11b8-43da-bb9b-e928fe84bff9",
+                                    "id": "364af101-fdfe-44e8-a694-9a16154430bc",
                                     "name": "Bulk actions",
                                     "request": {
                                         "name": "Bulk actions",
@@ -1595,7 +1595,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "ea863fbc-59b5-4796-a6ac-d9fe4e1d2cec",
+                                            "id": "f719714a-fe30-4de3-85d4-4ab87a0ec492",
                                             "name": "Bulk action completed",
                                             "originalRequest": {
                                                 "url": {
@@ -1655,7 +1655,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "efbc6956-b943-41eb-bd82-f25d2bbe4ff9",
+                                    "id": "9e4b6d3f-8d45-4387-a414-3b3ee32d6996",
                                     "name": "Get next available queue slot",
                                     "request": {
                                         "name": "Get next available queue slot",
@@ -1691,7 +1691,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "602e620f-933b-4884-ad3b-43bbc852ae09",
+                                            "id": "8e3c82f4-4fe5-40cb-b30f-e71130d2a044",
                                             "name": "Next available queue slot",
                                             "originalRequest": {
                                                 "url": {
@@ -1750,7 +1750,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "6c0263e9-59af-4e81-bbdc-d63e528b61f2",
+                            "id": "a0941140-456f-4e4c-9261-8951ac7854ea",
                             "name": "List channels",
                             "request": {
                                 "name": "List channels",
@@ -1791,7 +1791,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "8c0023e5-221e-4fe1-894b-02efb9026f34",
+                                    "id": "ce9f2529-e6fb-4a26-9521-b2c4f32660a6",
                                     "name": "Channel list",
                                     "originalRequest": {
                                         "url": {
@@ -1840,7 +1840,7 @@
                                             "value": "application/json"
                                         }
                                     ],
-                                    "body": "{\n  \"channels\": [\n    {\n      \"id\": \"<integer>\",\n      \"platform\": \"facebook\",\n      \"accountName\": \"<string>\",\n      \"accountId\": \"<string>\",\n      \"accountType\": \"<string>\",\n      \"profileImage\": \"<string>\",\n      \"isActive\": \"<boolean>\",\n      \"tokenStatus\": \"expired\",\n      \"tokenExpiresAt\": \"<dateTime>\",\n      \"metadata\": {},\n      \"createdAt\": \"<dateTime>\"\n    },\n    {\n      \"id\": \"<integer>\",\n      \"platform\": \"tiktok\",\n      \"accountName\": \"<string>\",\n      \"accountId\": \"<string>\",\n      \"accountType\": \"<string>\",\n      \"profileImage\": \"<string>\",\n      \"isActive\": \"<boolean>\",\n      \"tokenStatus\": \"expired\",\n      \"tokenExpiresAt\": \"<dateTime>\",\n      \"metadata\": {},\n      \"createdAt\": \"<dateTime>\"\n    }\n  ]\n}",
+                                    "body": "{\n  \"channels\": [\n    {\n      \"id\": \"<integer>\",\n      \"platform\": \"tiktok\",\n      \"accountName\": \"<string>\",\n      \"accountId\": \"<string>\",\n      \"accountType\": \"<string>\",\n      \"profileImage\": \"<string>\",\n      \"isActive\": \"<boolean>\",\n      \"tokenStatus\": \"valid\",\n      \"tokenExpiresAt\": \"<dateTime>\",\n      \"metadata\": {},\n      \"createdAt\": \"<dateTime>\"\n    },\n    {\n      \"id\": \"<integer>\",\n      \"platform\": \"instagram\",\n      \"accountName\": \"<string>\",\n      \"accountId\": \"<string>\",\n      \"accountType\": \"<string>\",\n      \"profileImage\": \"<string>\",\n      \"isActive\": \"<boolean>\",\n      \"tokenStatus\": \"expired\",\n      \"tokenExpiresAt\": \"<dateTime>\",\n      \"metadata\": {},\n      \"createdAt\": \"<dateTime>\"\n    }\n  ]\n}",
                                     "cookie": [],
                                     "_postman_previewlanguage": "json"
                                 }
@@ -1855,7 +1855,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "39d1aa2f-5e18-4d99-aa55-72f752bad11d",
+                                    "id": "1eb0ace0-b7e1-43cb-8e6c-2b507245c07a",
                                     "name": "Get channel",
                                     "request": {
                                         "name": "Get channel",
@@ -1889,7 +1889,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "9f41e92c-f042-4367-8418-ea7f2008213d",
+                                            "id": "6cf14b4d-b293-4c18-bd97-8130a6f8f896",
                                             "name": "Channel details",
                                             "originalRequest": {
                                                 "url": {
@@ -1941,7 +1941,7 @@
                                     }
                                 },
                                 {
-                                    "id": "4b356d32-b7cb-4853-badf-8902f27d59dd",
+                                    "id": "6b1b64a0-e5a0-4587-bd17-671047836f3e",
                                     "name": "Disconnect channel",
                                     "request": {
                                         "name": "Disconnect channel",
@@ -1975,7 +1975,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "29b67375-acd5-43a0-bd97-92846fda1610",
+                                            "id": "3bce7939-0097-4945-9b3b-20edc8a2ef15",
                                             "name": "Disconnected",
                                             "originalRequest": {
                                                 "url": {
@@ -2031,7 +2031,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "2388eb21-adda-4ee5-b064-fb2de93a2210",
+                                            "id": "847c2b10-455b-4bf9-b238-51b8218eb447",
                                             "name": "Check channel health",
                                             "request": {
                                                 "name": "Check channel health",
@@ -2066,7 +2066,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "b343159b-cf27-47a8-97a8-1b582c01fe8c",
+                                                    "id": "c9020e16-2976-458a-acc2-13fc0d129deb",
                                                     "name": "Health status",
                                                     "originalRequest": {
                                                         "url": {
@@ -2137,7 +2137,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "9310d208-6301-469f-8134-8033e3831dd2",
+                                            "id": "32c6b749-80cf-42b1-8903-0c5b2673be8d",
                                             "name": "Connect LinkedIn organization page",
                                             "request": {
                                                 "name": "Connect LinkedIn organization page",
@@ -2179,7 +2179,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "f07ef583-20db-4423-a97b-bb7feebfc949",
+                                                    "id": "f1edbf16-373a-403e-bc9c-901b34284e20",
                                                     "name": "Organization page connected",
                                                     "originalRequest": {
                                                         "url": {
@@ -2228,7 +2228,7 @@
                                                     "_postman_previewlanguage": "text"
                                                 },
                                                 {
-                                                    "id": "86ec6c78-51c5-4e34-b1b8-76acf45e7a36",
+                                                    "id": "b8d1897e-429c-4926-9bbb-6c0580dc0a30",
                                                     "name": "Invalid channel or organization",
                                                     "originalRequest": {
                                                         "url": {
@@ -2277,7 +2277,7 @@
                                                     "_postman_previewlanguage": "text"
                                                 },
                                                 {
-                                                    "id": "041776cb-ea42-49e2-8717-f8c67702c9a0",
+                                                    "id": "a4aa936d-9599-432e-bd4c-c6191293e0ed",
                                                     "name": "Channel not found",
                                                     "originalRequest": {
                                                         "url": {
@@ -2338,7 +2338,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "a31e5456-85fb-4e28-825a-1c626fa9f707",
+                                            "id": "1df1e13c-3025-433b-a5b0-95093bfca1b6",
                                             "name": "Get LinkedIn organizations",
                                             "request": {
                                                 "name": "Get LinkedIn organizations",
@@ -2372,7 +2372,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "bf86783b-713d-4b2b-932d-5f6205af51ce",
+                                                    "id": "e33c5541-af1e-4ebe-b6b0-ce60f39d204c",
                                                     "name": "Organizations",
                                                     "originalRequest": {
                                                         "url": {
@@ -2436,7 +2436,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "78d58aa7-986e-464b-b047-fc1c452ccce8",
+                                            "id": "69a64ce1-461a-4858-bcb5-3327fcce2ad3",
                                             "name": "Get Pinterest boards",
                                             "request": {
                                                 "name": "Get Pinterest boards",
@@ -2470,7 +2470,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "f7e4eb8e-aef2-458c-9dfa-d9ffc2c8ed31",
+                                                    "id": "966c1e7c-cd9e-494f-a6e7-a05f28081b54",
                                                     "name": "Boards list",
                                                     "originalRequest": {
                                                         "url": {
@@ -2534,7 +2534,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "06c4329f-0091-4568-b725-c6df9b10a34a",
+                                            "id": "764558af-8d3b-4d56-8cdf-428409b9be3d",
                                             "name": "Get YouTube playlists",
                                             "request": {
                                                 "name": "Get YouTube playlists",
@@ -2568,7 +2568,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "123011ba-377b-40fa-80eb-385ac6298d31",
+                                                    "id": "ac330e4f-6714-44e5-b57a-1c369c76e3ae",
                                                     "name": "Playlists",
                                                     "originalRequest": {
                                                         "url": {
@@ -2630,7 +2630,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "0962f33b-1c4b-4e55-b440-a89cb7cf62e8",
+                            "id": "f4f3d062-4bc3-403c-b856-7d9b2da32a98",
                             "name": "List media files",
                             "request": {
                                 "name": "List media files",
@@ -2689,7 +2689,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "9c319c61-ea88-44e3-954c-589d77acbf81",
+                                    "id": "e250d286-fdc6-4a3c-8e73-5b183d1c25a7",
                                     "name": "Media list",
                                     "originalRequest": {
                                         "url": {
@@ -2766,7 +2766,7 @@
                             }
                         },
                         {
-                            "id": "cbe7c53c-c3b8-46db-876b-d7fb886a7af5",
+                            "id": "faa73646-cdce-468e-b295-0e8bc063ffae",
                             "name": "Upload media",
                             "request": {
                                 "name": "Upload media",
@@ -2809,7 +2809,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "580cd30d-ba49-470d-838a-5dda2c85a84b",
+                                    "id": "001690e7-c362-4aef-a0f4-fa249ebc1aab",
                                     "name": "File uploaded",
                                     "originalRequest": {
                                         "url": {
@@ -2869,7 +2869,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "8e46fe65-1cff-4278-992d-b018f4f3e2ca",
+                                    "id": "9182057b-98f9-42a8-91e1-abd76ec82cd4",
                                     "name": "Get media file",
                                     "request": {
                                         "name": "Get media file",
@@ -2903,7 +2903,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "e26229c9-0b1d-47e4-a422-134336a2e128",
+                                            "id": "6bb7337f-66b2-43cb-a2fc-4f7d0f5a1a0f",
                                             "name": "Media details",
                                             "originalRequest": {
                                                 "url": {
@@ -2955,7 +2955,7 @@
                                     }
                                 },
                                 {
-                                    "id": "e88f53f2-36d1-4705-99aa-07a6d51d5fe8",
+                                    "id": "4d784543-93e5-4201-be58-98d510b7855c",
                                     "name": "Delete media file",
                                     "request": {
                                         "name": "Delete media file",
@@ -2989,7 +2989,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "e48022ff-45ce-4cec-9fba-54f1c6ddcd3a",
+                                            "id": "811733a0-b2d0-4428-acd5-47b720261c68",
                                             "name": "Deleted",
                                             "originalRequest": {
                                                 "url": {
@@ -3045,7 +3045,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "b66009ff-5803-4329-aeb3-0ca3a05ddfd1",
+                                            "id": "df562e21-38dc-4361-b38a-cdfcc8e1e9c9",
                                             "name": "Get media thumbnail",
                                             "request": {
                                                 "name": "Get media thumbnail",
@@ -3083,7 +3083,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "61f00769-66ba-4339-b057-2820a778ba52",
+                                                    "id": "ea3c7dcc-8902-447d-9773-13a536734a2e",
                                                     "name": "Redirect to thumbnail URL",
                                                     "originalRequest": {
                                                         "url": {
@@ -3130,7 +3130,7 @@
                                                     "_postman_previewlanguage": "text"
                                                 },
                                                 {
-                                                    "id": "1bc06ac9-7a6a-410f-b371-81abe36e55a8",
+                                                    "id": "f9191357-0862-4beb-8dda-6f3550e2a332",
                                                     "name": "Media not found or no thumbnail available",
                                                     "originalRequest": {
                                                         "url": {
@@ -3189,7 +3189,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "7b960711-c988-44fc-b086-66960dedceb1",
+                                            "id": "038a19fa-56bc-4cee-b871-6edd88615e36",
                                             "name": "Get media labels",
                                             "request": {
                                                 "name": "Get media labels",
@@ -3224,7 +3224,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "8a5b5272-7c3f-4a98-8684-904234cd4b16",
+                                                    "id": "1f4a658f-ce49-4c5b-aad6-baa9a9d5d3c4",
                                                     "name": "Labels",
                                                     "originalRequest": {
                                                         "url": {
@@ -3277,7 +3277,7 @@
                                             }
                                         },
                                         {
-                                            "id": "88db7bd6-8682-4469-84ec-1ce78166030c",
+                                            "id": "dc24f859-292d-4dd9-9f80-537bf96a4354",
                                             "name": "Set media labels",
                                             "request": {
                                                 "name": "Set media labels",
@@ -3327,7 +3327,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "82065d91-a3dd-4b3b-a791-a1cef7cb2855",
+                                                    "id": "b9537c7f-6a65-417b-a6b1-d824a4036688",
                                                     "name": "Updated",
                                                     "originalRequest": {
                                                         "url": {
@@ -3407,7 +3407,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "c840d813-8f51-4ff5-ac0c-0c2117e2b45f",
+                                    "id": "1ca9c22c-d0c6-4502-8e53-1dad7d6885d5",
                                     "name": "Summary stats",
                                     "request": {
                                         "name": "Summary stats",
@@ -3452,7 +3452,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "1907079f-17fb-4c1a-baef-a55f1c56bffb",
+                                            "id": "43cb29df-5a7b-4b9a-8a2b-b270390d58e4",
                                             "name": "Summary data",
                                             "originalRequest": {
                                                 "url": {
@@ -3518,7 +3518,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "d3fe3f0f-002b-43fe-a16a-8f0faa4e240a",
+                                    "id": "d9eaded9-8d34-494d-b641-ce0de5bea873",
                                     "name": "Engagement metrics",
                                     "request": {
                                         "name": "Engagement metrics",
@@ -3572,7 +3572,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "a8fd04fb-15d5-4362-9973-08d611f85a93",
+                                            "id": "57609b3b-42a4-4cbd-89c6-7228615278b9",
                                             "name": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts",
                                             "originalRequest": {
                                                 "url": {
@@ -3647,7 +3647,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "7cdb106f-aa6a-4687-9f44-65bfc218f575",
+                                    "id": "35cf937c-8a54-41ea-8d7c-41eb77182e68",
                                     "name": "Trigger metrics sync",
                                     "request": {
                                         "name": "Trigger metrics sync",
@@ -3673,7 +3673,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "0fc39eda-e6d8-46ea-bfbd-19b87e01a975",
+                                            "id": "aafa51d6-d454-4da9-8551-250484eefffe",
                                             "name": "Queued",
                                             "originalRequest": {
                                                 "url": {
@@ -3720,7 +3720,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "fc57d023-c3ae-42d8-a434-90d9c51a486f",
+                                    "id": "9fec7ea8-6c07-48ec-9484-ab503ee4e31b",
                                     "name": "Account-level analytics",
                                     "request": {
                                         "name": "Account-level analytics",
@@ -3780,7 +3780,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "bcf5726b-459e-4776-a67f-bc13f18ea18e",
+                                            "id": "6adc118d-cfe1-4263-abfc-c0f5bcf9b3ec",
                                             "name": "Account metrics with channel list",
                                             "originalRequest": {
                                                 "url": {
@@ -3867,7 +3867,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "c1a988bd-9663-47df-9af5-05072025955e",
+                            "id": "51f55c2c-2fd1-4a55-a121-ca44d801aeff",
                             "name": "List labels",
                             "request": {
                                 "name": "List labels",
@@ -3888,7 +3888,7 @@
                                                 "type": "text/plain"
                                             },
                                             "key": "type",
-                                            "value": "media"
+                                            "value": "post"
                                         }
                                     ],
                                     "variable": []
@@ -3899,7 +3899,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "d9e41c30-4963-439a-a0fd-ab6b0d1ae3d2",
+                                    "id": "b4d4b6e9-2b03-458b-b78d-74bb20b18803",
                                     "name": "Labels",
                                     "originalRequest": {
                                         "url": {
@@ -3918,7 +3918,7 @@
                                                         "type": "text/plain"
                                                     },
                                                     "key": "type",
-                                                    "value": "media"
+                                                    "value": "post"
                                                 }
                                             ],
                                             "variable": []
@@ -3949,7 +3949,7 @@
                             }
                         },
                         {
-                            "id": "a1c21763-0362-4cee-8928-4622842564ee",
+                            "id": "6509bc43-231f-4657-be4b-090c940ffc1c",
                             "name": "Create label",
                             "request": {
                                 "name": "Create label",
@@ -3986,7 +3986,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "5928ace9-d5d9-4b52-a46c-1af6c5453c1c",
+                                    "id": "85cc617c-b8ad-4675-ac96-a642497089d8",
                                     "name": "Created",
                                     "originalRequest": {
                                         "url": {
@@ -4043,7 +4043,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "30de0e52-e17e-49c0-89d5-7ea0e2f23114",
+                                    "id": "c0138f7a-ff73-4115-b0c2-443f70c484b8",
                                     "name": "Update label",
                                     "request": {
                                         "name": "Update label",
@@ -4092,7 +4092,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "936c40fd-0129-4966-99c7-5d318fbe201b",
+                                            "id": "01bb3049-14d0-4a19-9e23-73af4d5039d9",
                                             "name": "Updated",
                                             "originalRequest": {
                                                 "url": {
@@ -4157,7 +4157,7 @@
                                     }
                                 },
                                 {
-                                    "id": "41606642-89f4-4a1a-9836-6039073a5fca",
+                                    "id": "ea088739-6524-4b2e-8a59-018b1bf8cdfa",
                                     "name": "Delete label",
                                     "request": {
                                         "name": "Delete label",
@@ -4191,7 +4191,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "e2a0f857-946d-4420-905b-93008323ebc3",
+                                            "id": "549c8dc5-2e8d-4f84-82a8-a10e388e5cc5",
                                             "name": "Deleted",
                                             "originalRequest": {
                                                 "url": {
@@ -4251,7 +4251,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "295efe23-a78f-4404-9a9a-449d1a560cfb",
+                            "id": "c32b7676-338e-4ea8-84e1-f8e40f005908",
                             "name": "List recurring schedules",
                             "request": {
                                 "name": "List recurring schedules",
@@ -4273,7 +4273,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "624fdb8d-dcef-4201-9607-a409e7793d4e",
+                                    "id": "ec124d36-4787-473b-91e3-b65982c97485",
                                     "name": "Schedules",
                                     "originalRequest": {
                                         "url": {
@@ -4313,7 +4313,7 @@
                             }
                         },
                         {
-                            "id": "bad66324-4fe6-452a-b1ce-dd1d0f6ba693",
+                            "id": "32903b46-e3a9-42da-83b0-0cbe83abb3e1",
                             "name": "Create schedule",
                             "request": {
                                 "name": "Create schedule",
@@ -4350,7 +4350,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "2dea1ae9-c460-4a5f-b679-7a7cf3ddfdd6",
+                                    "id": "ddbea555-5d2d-495a-844a-000c9a429f5a",
                                     "name": "Created",
                                     "originalRequest": {
                                         "url": {
@@ -4407,7 +4407,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "fdb0cf90-b46b-4e00-89d6-ac121e46990a",
+                                    "id": "08983af6-5371-4f66-8368-9556c72d0483",
                                     "name": "Update schedule",
                                     "request": {
                                         "name": "Update schedule",
@@ -4441,7 +4441,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "105a5d46-6e08-4e89-9b23-7aefc799873b",
+                                            "id": "abf369a9-eafd-4ec4-a02f-668e85233769",
                                             "name": "Updated",
                                             "originalRequest": {
                                                 "url": {
@@ -4493,7 +4493,7 @@
                                     }
                                 },
                                 {
-                                    "id": "392ba01b-6e43-4bab-8923-ad15ea8ce136",
+                                    "id": "779e1671-c433-4918-99d2-6c92270cd5a5",
                                     "name": "Delete schedule",
                                     "request": {
                                         "name": "Delete schedule",
@@ -4527,7 +4527,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "1fd8f236-bb48-40b3-99b0-09f5af12a794",
+                                            "id": "d0df1582-39ac-4ef4-83bb-e2a1626587ff",
                                             "name": "Deleted",
                                             "originalRequest": {
                                                 "url": {
@@ -4587,7 +4587,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "8ef7f635-5094-4b4b-b1a8-41c1babf8574",
+                            "id": "66cd52de-c776-4458-a490-abd2fbc99f50",
                             "name": "List webhooks",
                             "request": {
                                 "name": "List webhooks",
@@ -4618,7 +4618,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "3cbfb42f-b772-4c71-b3fb-3bdcdb377058",
+                                    "id": "41a813d1-0c2c-4a1a-a83b-f92e9d000149",
                                     "name": "Webhook list",
                                     "originalRequest": {
                                         "url": {
@@ -4668,7 +4668,7 @@
                             }
                         },
                         {
-                            "id": "19f872d1-6de5-42db-8608-60ea7d12269c",
+                            "id": "b420f614-9003-493e-9eb2-a597a9516a9a",
                             "name": "Create webhook",
                             "request": {
                                 "name": "Create webhook",
@@ -4712,7 +4712,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "e91f2d89-6fcd-4d22-bf1e-7ef5f34e99c4",
+                                    "id": "c61cd15a-005c-416b-a09e-e66341eb27da",
                                     "name": "Webhook created (secret shown once)",
                                     "originalRequest": {
                                         "url": {
@@ -4769,7 +4769,7 @@
                                     "_postman_previewlanguage": "json"
                                 },
                                 {
-                                    "id": "951c8a9a-0e54-406f-a02a-d2560785bfa0",
+                                    "id": "9bd475b7-a613-4db6-82dd-0744693e6572",
                                     "name": "Validation error",
                                     "originalRequest": {
                                         "url": {
@@ -4826,7 +4826,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "7ad45446-fcd5-4712-a42c-1f1e335b9fbb",
+                                    "id": "3db2849b-b8ac-410a-991f-9ca07cc6f0a6",
                                     "name": "Update webhook",
                                     "request": {
                                         "name": "Update webhook",
@@ -4878,7 +4878,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "01d33000-05ba-4b21-8a4b-62fadb772e4a",
+                                            "id": "75d09ed8-40fd-4b79-856e-6417cf12f4d6",
                                             "name": "Webhook updated",
                                             "originalRequest": {
                                                 "url": {
@@ -4937,7 +4937,7 @@
                                             "_postman_previewlanguage": "text"
                                         },
                                         {
-                                            "id": "d6c9c70f-33c7-434b-9207-53d539e27005",
+                                            "id": "9eb4ebd6-587b-4ac4-a111-22407b9cc1cf",
                                             "name": "Webhook not found",
                                             "originalRequest": {
                                                 "url": {
@@ -5002,7 +5002,7 @@
                                     }
                                 },
                                 {
-                                    "id": "1f5c216d-04b0-4a89-a9f1-a6abf34721ce",
+                                    "id": "9f7300b8-1ec5-4553-bfc8-14ff7f866e5b",
                                     "name": "Delete webhook",
                                     "request": {
                                         "name": "Delete webhook",
@@ -5036,7 +5036,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "e6a797df-e3b6-436f-8534-81b129a2ceb9",
+                                            "id": "5d75c1a1-5599-4e0f-8c03-4aa2679a8a62",
                                             "name": "Deleted",
                                             "originalRequest": {
                                                 "url": {
@@ -5082,7 +5082,7 @@
                                             "_postman_previewlanguage": "text"
                                         },
                                         {
-                                            "id": "c4ce240a-f113-4295-846d-e4d356f79054",
+                                            "id": "cd079fa2-748c-42ba-8ef8-55c6281a2737",
                                             "name": "Webhook not found",
                                             "originalRequest": {
                                                 "url": {
@@ -5142,7 +5142,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "ba9e9ec1-ea2e-4300-b895-0ced91902a75",
+                            "id": "67ec93bf-1c60-4d66-8ad7-56c731ee465d",
                             "name": "List API keys",
                             "request": {
                                 "name": "List API keys",
@@ -5164,7 +5164,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "99efb870-b3b2-4513-b975-d6b55d884ced",
+                                    "id": "ebc2294d-ac25-46a9-bda8-03358f86840d",
                                     "name": "API keys (secrets masked)",
                                     "originalRequest": {
                                         "url": {
@@ -5204,7 +5204,7 @@
                             }
                         },
                         {
-                            "id": "95c1b42f-e945-417a-aec8-e2703799fd6f",
+                            "id": "a2a665f8-4fcb-4c01-a984-d2424d9bf59d",
                             "name": "Create API key",
                             "request": {
                                 "name": "Create API key",
@@ -5241,7 +5241,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "8881f6d2-b251-4dd2-9ba1-96179fedd5ba",
+                                    "id": "808874bb-70ca-49b4-b937-bf822a2ae51c",
                                     "name": "Created (full key shown once)",
                                     "originalRequest": {
                                         "url": {
@@ -5298,7 +5298,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "87d8d940-2c5a-4fe7-a3f0-690fec124efb",
+                                    "id": "46adc17d-190d-4fc4-996e-464aedc30a65",
                                     "name": "Delete API key",
                                     "request": {
                                         "name": "Delete API key",
@@ -5332,7 +5332,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "c4631404-78dc-410a-b56a-45153817e427",
+                                            "id": "a2324371-9e48-4388-8c6e-263515050e86",
                                             "name": "Deleted",
                                             "originalRequest": {
                                                 "url": {
@@ -5390,7 +5390,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "4d71e5db-8727-4bf5-beab-126b6ebe3097",
+                                    "id": "08dfdee5-7da1-42f0-aeb3-b1520e3ce816",
                                     "name": "API usage stats",
                                     "request": {
                                         "name": "API usage stats",
@@ -5416,7 +5416,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "55530036-98fe-4b69-89e0-7c9a28402822",
+                                            "id": "8e022442-0445-4934-90cd-6944b23e2b9a",
                                             "name": "Usage data with today's count, limit, plan, and per-key breakdown",
                                             "originalRequest": {
                                                 "url": {
@@ -5461,7 +5461,7 @@
                                     "description": "",
                                     "item": [
                                         {
-                                            "id": "811c0162-5795-4f0b-bb4d-85a79afd6b65",
+                                            "id": "82cd2e0a-970b-4f19-8a47-775fb9612a3f",
                                             "name": "API usage history",
                                             "request": {
                                                 "name": "API usage history",
@@ -5498,7 +5498,7 @@
                                             },
                                             "response": [
                                                 {
-                                                    "id": "0025fc39-da69-4a79-a2c3-53f15b09a392",
+                                                    "id": "73fa5a69-a8ef-42ab-9bd3-ee6085ec2dbb",
                                                     "name": "Array of { date, count } entries",
                                                     "originalRequest": {
                                                         "url": {
@@ -5560,7 +5560,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "86c95988-f511-4e7d-bfad-d140c604f749",
+                            "id": "97106079-96be-4842-917c-07de1c638cb2",
                             "name": "List organizations",
                             "request": {
                                 "name": "List organizations",
@@ -5582,7 +5582,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "8813dd7f-4ebd-4d8c-8a63-13c9d10e650e",
+                                    "id": "40aeecb0-3be1-4c0f-99f9-e7a0369a995c",
                                     "name": "Organizations",
                                     "originalRequest": {
                                         "url": {
@@ -5622,7 +5622,7 @@
                             }
                         },
                         {
-                            "id": "02a5f45a-32ce-416f-8045-cb9d5f2fd68c",
+                            "id": "8e602ca2-f1be-4655-a3bb-dab952f3c933",
                             "name": "Create organization",
                             "request": {
                                 "name": "Create organization",
@@ -5659,7 +5659,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "d7a4cd9d-094e-4a10-81fb-047a566aca2a",
+                                    "id": "d98b9818-a2dc-4d46-9f52-d775d0733b37",
                                     "name": "Created",
                                     "originalRequest": {
                                         "url": {
@@ -5716,7 +5716,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "61b4d7b4-ffe9-4ec2-8323-2b0f6fee042f",
+                                    "id": "9364d518-6827-4bcd-913d-e8203bfd9558",
                                     "name": "Get organization details",
                                     "request": {
                                         "name": "Get organization details",
@@ -5750,7 +5750,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "0b8c4c38-138b-4d42-8aa9-8460a4a0cede",
+                                            "id": "ce8963b2-07c5-4a2c-a9e6-e0ad252affe0",
                                             "name": "Organization details with user role",
                                             "originalRequest": {
                                                 "url": {
@@ -5802,7 +5802,7 @@
                                     }
                                 },
                                 {
-                                    "id": "c545db46-3da4-49e1-a361-56e1a3310657",
+                                    "id": "45a83272-40e4-4d6a-aea5-2f0c88c54d36",
                                     "name": "Rename organization",
                                     "request": {
                                         "name": "Rename organization",
@@ -5854,7 +5854,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "00e25830-d218-48c4-8186-41e0af4e94a5",
+                                            "id": "c1e7f9e9-7a73-470d-b517-373aa196d4af",
                                             "name": "Updated organization",
                                             "originalRequest": {
                                                 "url": {
@@ -5919,7 +5919,7 @@
                                     }
                                 },
                                 {
-                                    "id": "00cb61fb-f46a-4b84-93f4-1eabd34cdf57",
+                                    "id": "e9d96aa5-3437-4caf-bd4b-1c7115d35feb",
                                     "name": "Delete organization",
                                     "request": {
                                         "name": "Delete organization",
@@ -5971,7 +5971,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "52e6947a-12e0-4c35-a830-17e699cb9f3f",
+                                            "id": "fdba80fc-27e9-43f5-b12a-1e4b499909fb",
                                             "name": "Deleted",
                                             "originalRequest": {
                                                 "url": {
@@ -6030,7 +6030,7 @@
                                             "_postman_previewlanguage": "text"
                                         },
                                         {
-                                            "id": "41d34b74-47e8-4355-b305-7ced806a3536",
+                                            "id": "3d866b5c-a01e-494b-8dc5-8ef2ea010479",
                                             "name": "Confirmation required or cannot delete last organization",
                                             "originalRequest": {
                                                 "url": {
@@ -6101,7 +6101,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "0e3d746e-5791-42de-aca6-fc081f7311cc",
+                                    "id": "316deb15-0545-4b0a-94e3-03cba84fb846",
                                     "name": "Switch active organization",
                                     "request": {
                                         "name": "Switch active organization",
@@ -6139,7 +6139,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "ebe61e14-4d8a-4125-8b21-6cb2d882fbf7",
+                                            "id": "e576d295-3768-47c3-9ada-cd29c4bb0002",
                                             "name": "Switched",
                                             "originalRequest": {
                                                 "url": {
@@ -6201,7 +6201,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "3158c565-064a-4439-8e25-80b66a9b4760",
+                            "id": "99507a8f-779d-496e-b8b6-3106e2ec14a5",
                             "name": "List notifications",
                             "request": {
                                 "name": "List notifications",
@@ -6251,7 +6251,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "7c93cf4a-cf08-467b-8f35-4d50da1ed6f8",
+                                    "id": "4a4e3329-21d0-43dd-aefa-91d3ee4ebd14",
                                     "name": "Notifications",
                                     "originalRequest": {
                                         "url": {
@@ -6319,7 +6319,7 @@
                             }
                         },
                         {
-                            "id": "c5d43504-93c4-43b5-893d-2916bf41a70c",
+                            "id": "4bb1981f-f013-4500-a326-2977f5549e6d",
                             "name": "Mark as read",
                             "request": {
                                 "name": "Mark as read",
@@ -6356,7 +6356,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "377dac96-d3a5-4663-b43d-e08390709f53",
+                                    "id": "d4bf3ef9-dc40-488c-b2e3-ba5e961c0151",
                                     "name": "Marked",
                                     "originalRequest": {
                                         "url": {
@@ -6409,7 +6409,7 @@
                             }
                         },
                         {
-                            "id": "e51071a5-fd60-405e-aeb7-8d76b27725b5",
+                            "id": "8824e05f-d05f-4e2d-9543-97495c5985a6",
                             "name": "Delete notifications",
                             "request": {
                                 "name": "Delete notifications",
@@ -6446,7 +6446,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "379f8481-a49f-4098-b423-329e1436e0f1",
+                                    "id": "719bf016-a935-4eaa-9503-9a7e366fbc8c",
                                     "name": "Deleted",
                                     "originalRequest": {
                                         "url": {
@@ -6503,7 +6503,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "2c218842-5ed1-4162-a2a2-c81fa349d76f",
+                                    "id": "4a09b181-ae76-4d33-96fb-2aba9a284944",
                                     "name": "Get notification preferences",
                                     "request": {
                                         "name": "Get notification preferences",
@@ -6526,7 +6526,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "ad8651f7-5f31-45bf-9f8f-4e3f60ef8782",
+                                            "id": "36ad44c8-95c2-4732-905a-5e76c4c63255",
                                             "name": "Preferences",
                                             "originalRequest": {
                                                 "url": {
@@ -6567,7 +6567,7 @@
                                     }
                                 },
                                 {
-                                    "id": "ad4b1307-5531-4ef1-9557-fbc55a8237e9",
+                                    "id": "6f74730b-4f9e-48a7-80ce-a827d41ca223",
                                     "name": "Update preferences",
                                     "request": {
                                         "name": "Update preferences",
@@ -6605,7 +6605,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "41cee9d2-1597-47ab-81d7-24438fe8ae00",
+                                            "id": "70b80468-3eb2-4300-b62a-d07fbf20c211",
                                             "name": "Updated",
                                             "originalRequest": {
                                                 "url": {
@@ -6667,7 +6667,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "52fbbb53-4626-4e4b-9b41-95a2a82fc932",
+                            "id": "b3b597bc-e6aa-4bc1-a576-68eebe02e460",
                             "name": "Preview link metadata",
                             "request": {
                                 "name": "Preview link metadata",
@@ -6702,7 +6702,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "a20068db-f834-4646-af11-3280b44f33a1",
+                                    "id": "d6ed13b2-43a3-4412-93ba-80d31b600d64",
                                     "name": "Link metadata",
                                     "originalRequest": {
                                         "url": {
@@ -6762,7 +6762,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "aff521ea-d0ee-4953-91d8-c6f9c99cf3ff",
+                                    "id": "cf346da1-bcea-4a05-8009-f20cbb6d85b3",
                                     "name": "Get quota usage",
                                     "request": {
                                         "name": "Get quota usage",
@@ -6788,7 +6788,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "39a92e1f-0996-4366-9f7f-eade7ede18e6",
+                                            "id": "8609fa7d-419e-456e-a5e5-1827b65679bf",
                                             "name": "Quota data",
                                             "originalRequest": {
                                                 "url": {
@@ -6837,7 +6837,7 @@
                     "description": "",
                     "item": [
                         {
-                            "id": "5d01530e-541f-4aa3-ac1c-8c2f8fe4b01a",
+                            "id": "e7b432fc-dad1-4eb0-bdea-9d9fb2b0e9ef",
                             "name": "Activity log",
                             "request": {
                                 "name": "Activity log",
@@ -6896,7 +6896,7 @@
                             },
                             "response": [
                                 {
-                                    "id": "59bc1a66-d980-4670-b586-d84a82d27e98",
+                                    "id": "3fd244cb-f208-4ddb-a181-3d75f13e7c56",
                                     "name": "Activities",
                                     "originalRequest": {
                                         "url": {
@@ -6983,7 +6983,7 @@
                             "description": "",
                             "item": [
                                 {
-                                    "id": "5513a29f-2ad6-4b41-a96c-ea4b45e63466",
+                                    "id": "ba46eae5-ff28-46d0-9d32-b5bb7abd3990",
                                     "name": "Search users for @mention",
                                     "request": {
                                         "name": "Search users for @mention",
@@ -7034,7 +7034,7 @@
                                     },
                                     "response": [
                                         {
-                                            "id": "70ce36cf-adfb-42e0-891b-cff8a49bc6e2",
+                                            "id": "766ca1b3-03e5-406b-88d0-1c70f879dfb2",
                                             "name": "Matching users",
                                             "originalRequest": {
                                                 "url": {
@@ -7098,7 +7098,7 @@
                                             "_postman_previewlanguage": "json"
                                         },
                                         {
-                                            "id": "e1067763-1fb3-4ba6-b51b-fc6dff69c921",
+                                            "id": "293e9b3a-bd9b-4fca-89d0-c086335a1835",
                                             "name": "Missing or invalid parameters",
                                             "originalRequest": {
                                                 "url": {
@@ -7152,7 +7152,7 @@
                                             "_postman_previewlanguage": "text"
                                         },
                                         {
-                                            "id": "6ea88ced-5698-4880-a1e2-270ac3a8076a",
+                                            "id": "909d6b85-2907-4c7a-a545-e87d85794ece",
                                             "name": "Unauthorized",
                                             "originalRequest": {
                                                 "url": {
@@ -7206,7 +7206,7 @@
                                             "_postman_previewlanguage": "text"
                                         },
                                         {
-                                            "id": "dedb6647-eed8-4e19-b986-cff35f3a24db",
+                                            "id": "0483a66d-24a9-4dcf-afb8-3b9d750a9266",
                                             "name": "Channel not found or not owned by user",
                                             "originalRequest": {
                                                 "url": {
@@ -7300,7 +7300,7 @@
         }
     ],
     "info": {
-        "_postman_id": "00b70ddd-e4d0-4d50-8da9-b1e8162927a3",
+        "_postman_id": "165464d2-1bc3-4201-bd0d-2351d33373bb",
         "name": "BulkPublish API",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "description": {
