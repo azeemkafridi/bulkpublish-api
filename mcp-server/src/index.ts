@@ -518,6 +518,378 @@ server.tool(
 );
 
 // ---------------------------------------------------------------------------
+// Tool: update_post
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "update_post",
+  "Update an existing post. Can change content, status, schedule, media, labels, and platform-specific settings.",
+  {
+    postId: z.number().describe("The post ID to update."),
+    content: z.string().optional().describe("New post text content."),
+    status: z.string().optional().describe('New status (e.g. "draft", "scheduled").'),
+    scheduledAt: z
+      .string()
+      .optional()
+      .describe("New ISO 8601 scheduled datetime."),
+    timezone: z.string().optional().describe("Timezone for scheduling."),
+    mediaFileIds: z
+      .array(z.number())
+      .optional()
+      .describe("Replace attached media file IDs."),
+    labelIds: z
+      .array(z.number())
+      .optional()
+      .describe("Replace label IDs on the post."),
+    postTypeOverrides: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe("Per-platform post type overrides."),
+    platformSpecific: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe("Platform-specific settings."),
+  },
+  async ({
+    postId,
+    content,
+    status,
+    scheduledAt,
+    timezone,
+    mediaFileIds,
+    labelIds,
+    postTypeOverrides,
+    platformSpecific,
+  }) => {
+    const body: Record<string, unknown> = {};
+    if (content !== undefined) body.content = content;
+    if (status !== undefined) body.status = status;
+    if (scheduledAt !== undefined) body.scheduledAt = scheduledAt;
+    if (timezone !== undefined) body.timezone = timezone;
+    if (mediaFileIds !== undefined) body.mediaFiles = mediaFileIds;
+    if (labelIds !== undefined) body.labels = labelIds;
+    if (postTypeOverrides !== undefined) body.postTypeOverrides = postTypeOverrides;
+    if (platformSpecific !== undefined) body.platformSpecific = platformSpecific;
+
+    const res = await api("PUT", `/api/posts/${postId}`, body);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: delete_post
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "delete_post",
+  "Delete a post by ID. Only draft and failed posts can be deleted.",
+  {
+    postId: z.number().describe("The post ID to delete."),
+  },
+  async ({ postId }) => {
+    const res = await api("DELETE", `/api/posts/${postId}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: get_post_metrics
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "get_post_metrics",
+  "Get engagement metrics for a published post. Returns likes, comments, shares, impressions, and other platform-specific metrics.",
+  {
+    postId: z.number().describe("The post ID to get metrics for."),
+  },
+  async ({ postId }) => {
+    const res = await api("GET", `/api/posts/${postId}/metrics`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: publish_story
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "publish_story",
+  "Publish a post as a story on Facebook or Instagram.",
+  {
+    postId: z.number().describe("The post ID to publish as a story."),
+    platform: z
+      .enum(["facebook", "instagram"])
+      .describe("Platform to publish the story on."),
+  },
+  async ({ postId, platform }) => {
+    const res = await api("POST", `/api/posts/${postId}/story`, { platform });
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: bulk_posts
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "bulk_posts",
+  "Perform a bulk action on multiple posts. Supports deleting or retrying multiple posts at once.",
+  {
+    action: z
+      .enum(["delete", "retry"])
+      .describe('Bulk action: "delete" or "retry".'),
+    postIds: z
+      .array(z.number())
+      .describe("Array of post IDs to perform the action on."),
+  },
+  async ({ action, postIds }) => {
+    const res = await api("POST", "/api/posts/bulk", { action, postIds });
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: get_queue_slot
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "get_queue_slot",
+  "Get the next available queue slot for a channel. Useful for finding optimal scheduling times based on the channel's posting schedule.",
+  {
+    channelId: z.number().describe("The channel ID to get the queue slot for."),
+    date: z
+      .string()
+      .optional()
+      .describe("ISO date to check for slots (defaults to today)."),
+  },
+  async ({ channelId, date }) => {
+    const params = new URLSearchParams({ channelId: String(channelId) });
+    if (date) params.set("date", date);
+    const res = await api("GET", `/api/posts/queue-slot?${params}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: get_channel_health
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "get_channel_health",
+  "Check the health status of a connected channel. Returns token validity, connection status, and any issues.",
+  {
+    channelId: z.number().describe("The channel ID to check health for."),
+  },
+  async ({ channelId }) => {
+    const res = await api("GET", `/api/channels/${channelId}/health`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: get_channel_options
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "get_channel_options",
+  "Get platform-specific options for a channel (e.g. available post types, character limits, media requirements).",
+  {
+    channelId: z.number().describe("The channel ID to get options for."),
+  },
+  async ({ channelId }) => {
+    const res = await api("GET", `/api/channels/${channelId}/options`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: search_mentions
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "search_mentions",
+  "Search for @mention suggestions on a channel. Useful for finding users/pages to mention in posts.",
+  {
+    channelId: z.number().describe("The channel ID to search mentions on."),
+    query: z.string().describe("Search query for the mention lookup."),
+  },
+  async ({ channelId, query }) => {
+    const params = new URLSearchParams({ q: query });
+    const res = await api(
+      "GET",
+      `/api/channels/${channelId}/mentions?${params}`
+    );
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: get_media
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "get_media",
+  "Get details of a single media file by ID. Returns metadata, URL, dimensions, and labels.",
+  {
+    mediaId: z.number().describe("The media file ID."),
+  },
+  async ({ mediaId }) => {
+    const res = await api("GET", `/api/media/${mediaId}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: delete_media
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "delete_media",
+  "Delete a media file by ID. Removes the file from storage and detaches it from any posts.",
+  {
+    mediaId: z.number().describe("The media file ID to delete."),
+  },
+  async ({ mediaId }) => {
+    const res = await api("DELETE", `/api/media/${mediaId}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: update_label
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "update_label",
+  "Update an existing label's name or color.",
+  {
+    labelId: z.number().describe("The label ID to update."),
+    name: z.string().optional().describe("New label name."),
+    color: z.string().optional().describe('New hex color code (e.g. "#ef4444").'),
+  },
+  async ({ labelId, name, color }) => {
+    const body: Record<string, unknown> = {};
+    if (name !== undefined) body.name = name;
+    if (color !== undefined) body.color = color;
+    const res = await api("PUT", `/api/labels/${labelId}`, body);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: delete_label
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "delete_label",
+  "Delete a label by ID. Removes the label from all associated posts or media.",
+  {
+    labelId: z.number().describe("The label ID to delete."),
+  },
+  async ({ labelId }) => {
+    const res = await api("DELETE", `/api/labels/${labelId}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: list_schedules
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "list_schedules",
+  "List all recurring post schedules. Returns schedule name, cron expression, target channels, and active status.",
+  {},
+  async () => {
+    const res = await api("GET", "/api/schedules");
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: create_schedule
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "create_schedule",
+  "Create a new recurring post schedule. Posts will be automatically created and published based on the cron expression.",
+  {
+    name: z.string().describe("Schedule name."),
+    channelIds: z
+      .array(z.number())
+      .describe("Array of channel IDs to post to."),
+    content: z.string().describe("Post content template."),
+    cronExpression: z
+      .string()
+      .describe('Cron expression for the schedule (e.g. "0 9 * * 1-5" for weekdays at 9am).'),
+    timezone: z
+      .string()
+      .optional()
+      .describe('Timezone for the cron schedule (e.g. "America/New_York"). Defaults to UTC.'),
+  },
+  async ({ name, channelIds, content, cronExpression, timezone }) => {
+    const body: Record<string, unknown> = {
+      name,
+      channelIds,
+      content,
+      cronExpression,
+    };
+    if (timezone) body.timezone = timezone;
+    const res = await api("POST", "/api/schedules", body);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: update_schedule
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "update_schedule",
+  "Update an existing recurring schedule. Can change name, content, cron expression, timezone, or active status.",
+  {
+    scheduleId: z.number().describe("The schedule ID to update."),
+    name: z.string().optional().describe("New schedule name."),
+    content: z.string().optional().describe("New post content template."),
+    cronExpression: z
+      .string()
+      .optional()
+      .describe("New cron expression."),
+    timezone: z.string().optional().describe("New timezone."),
+    isActive: z
+      .boolean()
+      .optional()
+      .describe("Enable or disable the schedule."),
+  },
+  async ({ scheduleId, name, content, cronExpression, timezone, isActive }) => {
+    const body: Record<string, unknown> = {};
+    if (name !== undefined) body.name = name;
+    if (content !== undefined) body.content = content;
+    if (cronExpression !== undefined) body.cronExpression = cronExpression;
+    if (timezone !== undefined) body.timezone = timezone;
+    if (isActive !== undefined) body.isActive = isActive;
+    const res = await api("PUT", `/api/schedules/${scheduleId}`, body);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: delete_schedule
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "delete_schedule",
+  "Delete a recurring schedule by ID. Stops all future posts from this schedule.",
+  {
+    scheduleId: z.number().describe("The schedule ID to delete."),
+  },
+  async ({ scheduleId }) => {
+    const res = await api("DELETE", `/api/schedules/${scheduleId}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
 // Start server
 // ---------------------------------------------------------------------------
 
