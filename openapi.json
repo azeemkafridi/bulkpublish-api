@@ -255,8 +255,7 @@
     { "name": "Organizations", "description": "Manage workspaces and teams" },
     { "name": "Notifications", "description": "View and manage in-app notifications" },
     { "name": "Mentions", "description": "Search for users to @mention in posts" },
-    { "name": "Utilities", "description": "Link previews, quotas, activity log" },
-    { "name": "Platform Options", "description": "Platform-specific utilities — boards, playlists, organizations" }
+    { "name": "Utilities", "description": "Link previews, quotas, activity log" }
   ],
   "paths": {
     "/api/posts": {
@@ -482,6 +481,15 @@
         "summary": "Check channel health",
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
         "responses": { "200": { "description": "Health status" } }
+      }
+    },
+    "/api/channels/{id}/options": {
+      "get": {
+        "tags": ["Channels"],
+        "summary": "Get platform-specific options for a channel",
+        "description": "Returns boards (Pinterest), playlists (YouTube), or organizations (LinkedIn) depending on the channel's platform. Returns empty items for platforms without sub-resources.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "description": "Channel ID", "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Platform options", "content": { "application/json": { "schema": { "type": "object", "properties": { "type": { "type": "string", "nullable": true, "enum": ["boards", "playlists", "organizations", null] }, "items": { "type": "array", "items": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" } } } } } } } } } }
       }
     },
     "/api/platforms/linkedin/connect-page": {
@@ -747,15 +755,6 @@
     },
     "/api/activity": {
       "get": { "tags": ["Utilities"], "summary": "Activity log", "parameters": [{ "name": "page", "in": "query", "required": false, "description": "**optional** — Page number (default: 1)", "schema": { "type": "integer" } }, { "name": "limit", "in": "query", "required": false, "description": "**optional** — Items per page (default: 20)", "schema": { "type": "integer" } }, { "name": "action", "in": "query", "required": false, "description": "**optional** — Filter by action type", "schema": { "type": "string" } }, { "name": "resource", "in": "query", "required": false, "description": "**optional** — Filter by resource type", "schema": { "type": "string" } }], "responses": { "200": { "description": "Activities" } } }
-    },
-    "/api/platforms/pinterest/boards": {
-      "get": { "tags": ["Platform Options"], "summary": "Get Pinterest boards", "parameters": [{ "name": "channelId", "in": "query", "required": true, "description": "**required** — Channel ID from GET /api/channels", "schema": { "type": "integer" } }], "responses": { "200": { "description": "Boards list" } } }
-    },
-    "/api/platforms/youtube/playlists": {
-      "get": { "tags": ["Platform Options"], "summary": "Get YouTube playlists", "parameters": [{ "name": "channelId", "in": "query", "required": true, "description": "**required** — Channel ID from GET /api/channels", "schema": { "type": "integer" } }], "responses": { "200": { "description": "Playlists" } } }
-    },
-    "/api/platforms/linkedin/organizations": {
-      "get": { "tags": ["Platform Options"], "summary": "Get LinkedIn organizations", "parameters": [{ "name": "channelId", "in": "query", "required": true, "description": "**required** — Channel ID from GET /api/channels", "schema": { "type": "integer" } }], "responses": { "200": { "description": "Organizations" } } }
     },
     "/api/mentions/search": {
       "get": {
