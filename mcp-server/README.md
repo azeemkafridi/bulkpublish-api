@@ -96,17 +96,41 @@ export BULKPUBLISH_API_KEY=bp_your_api_key_here
 
 | Tool | Description |
 |------|-------------|
-| `list_channels` | List all connected social media channels |
-| `create_post` | Create and optionally schedule a post |
-| `list_posts` | List posts with filters (status, search, date range) |
+| **Posts** | |
+| `create_post` | Create and optionally schedule a post (supports reels, stories, carousels, threads via `postTypeOverrides`) |
+| `update_post` | Update a draft or scheduled post |
 | `get_post` | Get a single post with full details |
+| `list_posts` | List posts with filters (status, search, date range) |
+| `delete_post` | Delete a post |
 | `publish_post` | Publish a draft post immediately |
 | `retry_post` | Retry a failed post |
+| `get_post_metrics` | Get engagement metrics (impressions, likes, comments, shares) |
+| `publish_story` | Publish as a story to Facebook or Instagram |
+| `bulk_posts` | Bulk delete or retry multiple posts |
+| `get_queue_slot` | Get the next optimal time slot for a channel |
+| **Channels** | |
+| `list_channels` | List all connected social media channels |
+| `get_channel_health` | Check channel token health |
+| `get_channel_options` | Get platform-specific options (boards, playlists, orgs) |
+| `search_mentions` | Search users for @mention (X, Bluesky) |
+| **Media** | |
 | `upload_media` | Upload a media file from a URL |
+| `get_media` | Get a media file by ID |
 | `list_media` | List uploaded media files |
-| `get_analytics` | Get analytics summary for a date range |
-| `list_labels` | List all labels |
+| `delete_media` | Delete a media file |
+| **Labels** | |
 | `create_label` | Create a new label |
+| `list_labels` | List all labels |
+| `update_label` | Update a label name or color |
+| `delete_label` | Delete a label |
+| **Analytics** | |
+| `get_analytics` | Get analytics summary for a date range |
+| **Schedules** | |
+| `list_schedules` | List recurring schedules |
+| `create_schedule` | Create a recurring schedule |
+| `update_schedule` | Update a schedule |
+| `delete_schedule` | Delete a schedule |
+| **Quota** | |
 | `get_quota_usage` | Check current plan quota usage |
 
 ## Example Conversation
