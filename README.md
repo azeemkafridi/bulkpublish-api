@@ -339,6 +339,13 @@ See the [rate limits guide](guides/rate-limits.md) for headers, backoff strategi
 - [Platform Options](guides/platforms.md) — Per-platform configuration and quirks
 - [Rate Limits](guides/rate-limits.md) — Burst limits, daily quotas, best practices
 
+## Integrations
+
+| Platform | Package | Install |
+|----------|---------|---------|
+| **n8n** | [n8n-nodes-bulkpublish](https://github.com/azeemkafridi/n8n-nodes-bulkpublish) | Settings > Community Nodes > `n8n-nodes-bulkpublish` |
+| **Homebrew** | [homebrew-bulkpublish](https://github.com/azeemkafridi/homebrew-bulkpublish) | `brew tap azeemkafridi/bulkpublish && brew install bulkpublish` |
+
 ## Links
 
 | Resource | URL |
