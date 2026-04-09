@@ -491,7 +491,7 @@
         "responses": { "200": { "description": "Matching users", "content": { "application/json": { "schema": { "type": "object", "properties": { "users": { "type": "array", "items": { "type": "object", "properties": { "id": { "type": "string" }, "handle": { "type": "string" }, "name": { "type": "string" }, "profileImage": { "type": "string", "nullable": true } } } } } } } } } }
       }
     },
-    "/api/platforms/linkedin/connect-page": {
+    "/api/channels/connect-linkedin-page": {
       "post": {
         "tags": ["Channels"],
         "summary": "Connect LinkedIn organization page",
