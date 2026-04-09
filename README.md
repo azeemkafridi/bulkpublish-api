@@ -344,6 +344,7 @@ See the [rate limits guide](guides/rate-limits.md) for headers, backoff strategi
 
 | Platform | Package | Install |
 |----------|---------|---------|
+| **Zapier** | [BulkPublish on Zapier](https://zapier.com/apps/bulkpublish/integrations) | Search "BulkPublish" in Zapier |
 | **n8n** | [n8n-nodes-bulkpublish](https://github.com/azeemkafridi/n8n-nodes-bulkpublish) | Settings > Community Nodes > `n8n-nodes-bulkpublish` |
 | **Homebrew** | [homebrew-bulkpublish](https://github.com/azeemkafridi/homebrew-bulkpublish) | `brew tap azeemkafridi/bulkpublish && brew install bulkpublish` |
 
