@@ -256,12 +256,13 @@ Authorization: Bearer bp_your_key_here
 | `POST` | `/api/posts/bulk` | Bulk delete or retry |
 | `GET` | `/api/channels` | List connected social media channels |
 | `GET` | `/api/channels/:id/health` | Check channel token health |
+| `GET` | `/api/channels/:id/options` | Get platform options (Pinterest boards, YouTube playlists, LinkedIn orgs) |
+| `GET` | `/api/channels/:id/mentions` | Search users for @mention (X, Bluesky) |
 | `POST` | `/api/media` | Upload a media file (multipart) |
 | `GET` | `/api/media` | List uploaded media |
 | `GET` | `/api/analytics/summary` | Analytics summary for a date range |
 | `GET` | `/api/analytics/engagement` | Engagement data grouped by day/week/month |
 | `POST` | `/api/schedules` | Create a recurring schedule |
-
 | `GET` | `/api/quotas/usage` | Check current plan limits and usage |
 
 See the [OpenAPI spec](openapi.json) for the complete endpoint list.

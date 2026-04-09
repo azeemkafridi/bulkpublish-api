@@ -268,7 +268,7 @@ Pinterest requires a board for each pin. Set the board per channel ID:
 You can fetch available boards for a channel:
 
 ```bash
-curl "https://app.bulkpublish.com/api/platforms/pinterest/boards?channelId=5" \
+curl "https://app.bulkpublish.com/api/channels/5/options" \
   -H "Authorization: Bearer bp_your_key_here"
 ```
 
