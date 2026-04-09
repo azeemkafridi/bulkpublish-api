@@ -223,6 +223,7 @@ More examples in [`examples/`](examples/) — including [Python automation scrip
 - **Bulk operations** — Delete or retry multiple posts in a single request
 - **Threads** — Multi-part thread posts for X, Threads, Bluesky, and Mastodon
 - **Auto first comment** — Automatically add a comment after publishing on any platform
+- **All post types** — Reels, Stories, Carousels, Threads, Shorts, Video — set per-platform via `postTypeOverrides`
 - **Per-platform content** — Customize text and options per platform in a single post
 - **Platform-specific options** — Instagram collaborators, TikTok privacy, YouTube categories, Pinterest boards, and more
 

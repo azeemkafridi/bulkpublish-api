@@ -37,6 +37,18 @@ post = bp.posts.create(
 )
 ```
 
+### Post Type Overrides
+
+```python
+# Post a reel to Instagram
+post = bp.posts.create(
+    content="Check this out!",
+    channels=[{"channelId": 1, "platform": "instagram"}],
+    media_files=[media_id],
+    post_type_overrides={"instagram": "reel"},
+)
+```
+
 ## Built for Automation
 
 BulkPublish is designed for programmatic social media management — no browser sessions, no UI, no OAuth flows at runtime. Connect your accounts once in the dashboard, then automate everything:

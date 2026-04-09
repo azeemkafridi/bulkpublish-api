@@ -37,6 +37,18 @@ const post = await bp.posts.create({
 });
 ```
 
+### Post Type Overrides
+
+```typescript
+// Post a reel to Instagram
+const post = await bp.posts.create({
+  content: 'Check this out!',
+  channels: [{ channelId: 1, platform: 'instagram' }],
+  mediaFiles: [mediaId],
+  postTypeOverrides: { instagram: 'reel' },
+});
+```
+
 ## Built for Automation
 
 BulkPublish is designed for programmatic social media management — no browser sessions, no UI, no OAuth flows at runtime. Connect your accounts once in the dashboard, then automate everything:

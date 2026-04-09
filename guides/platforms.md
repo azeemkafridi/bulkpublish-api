@@ -1,5 +1,37 @@
 # Platform-Specific Options
 
+## Post Types by Platform
+
+Use the `postTypeOverrides` field to set a specific post type per platform:
+
+```json
+{
+  "postTypeOverrides": {
+    "instagram": "reel",
+    "facebook": "story",
+    "youtube": "short"
+  }
+}
+```
+
+| Platform | Available Post Types |
+|----------|---------------------|
+| Instagram | `feed_photo`, `feed_video`, `reel`, `story`, `carousel` |
+| Facebook | `post`, `reel`, `story` |
+| TikTok | `video`, `photo_slideshow` |
+| YouTube | `video`, `short` |
+| LinkedIn | `post`, `multi_image`, `pdf_carousel`, `article` |
+| Pinterest | `pin`, `video_pin`, `carousel` |
+| Threads | `text`, `image`, `video`, `carousel` |
+| X (Twitter) | `tweet` (use `postFormat: "thread"` for threads) |
+| Bluesky | `post` (use `postFormat: "thread"` for threads) |
+| Mastodon | `post` (use `postFormat: "thread"` for threads) |
+| Google Business | `standard`, `event`, `offer` |
+
+If not specified, the platform's default post type is used based on the attached media.
+
+---
+
 Each platform has unique features and requirements. BulkPublish lets you configure per-platform options through the `platformSpecific` field when creating or updating a post.
 
 ## Using platformSpecific
