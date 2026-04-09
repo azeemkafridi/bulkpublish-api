@@ -183,6 +183,15 @@ server.tool(
       .describe(
         "Thread parts array. Required when postFormat is thread (min 2 parts)."
       ),
+    postTypeOverrides: z
+      .record(z.string(), z.string())
+      .optional()
+      .describe(
+        'Per-platform post type override. E.g. { "instagram": "reel", "facebook": "story", "youtube": "short" }. ' +
+        'Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. ' +
+        'TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image. ' +
+        'Pinterest: pin, video_pin, carousel. GMB: standard, event, offer.'
+      ),
   },
   async ({
     content,
@@ -196,6 +205,7 @@ server.tool(
     platformContent,
     postFormat,
     threadParts,
+    postTypeOverrides,
   }) => {
     const body: Record<string, unknown> = {
       content,
@@ -211,6 +221,7 @@ server.tool(
     if (platformContent) body.platformContent = platformContent;
     if (postFormat) body.postFormat = postFormat;
     if (threadParts) body.threadParts = threadParts;
+    if (postTypeOverrides) body.postTypeOverrides = postTypeOverrides;
 
     const res = await api("POST", "/api/posts", body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };

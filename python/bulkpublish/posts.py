@@ -143,6 +143,7 @@ class PostsResource:
         platform_content: Optional[Dict[str, Any]] = None,
         delete_media_after_publish: Optional[bool] = None,
         thread_parts: Optional[List[Dict[str, Any]]] = None,
+        post_type_overrides: Optional[Dict[str, str]] = None,
     ) -> Post:
         """Create a new post.
 
@@ -160,6 +161,7 @@ class PostsResource:
             platform_content: Per-platform content variations.
             delete_media_after_publish: Remove attached media after publishing.
             thread_parts: Parts of a thread post.
+            post_type_overrides: Per-platform post type (e.g. ``{"instagram": "reel", "facebook": "story"}``).
 
         Returns:
             The newly created post object.
@@ -209,6 +211,8 @@ class PostsResource:
             body["deleteMediaAfterPublish"] = delete_media_after_publish
         if thread_parts is not None:
             body["threadParts"] = thread_parts
+        if post_type_overrides is not None:
+            body["postTypeOverrides"] = post_type_overrides
         return self._client._request("POST", "/api/posts", json=body)
 
     # -- Update ---------------------------------------------------------------
@@ -481,6 +485,7 @@ _SNAKE_TO_CAMEL = {
     "platform_content": "platformContent",
     "delete_media_after_publish": "deleteMediaAfterPublish",
     "thread_parts": "threadParts",
+    "post_type_overrides": "postTypeOverrides",
     "channel_id": "channelId",
     "label_id": "labelId",
     "label_mode": "labelMode",
