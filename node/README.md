@@ -42,7 +42,7 @@ const post = await bp.posts.create({
 BulkPublish is designed for programmatic social media management — no browser sessions, no UI, no OAuth flows at runtime. Connect your accounts once in the dashboard, then automate everything:
 
 - **AI agents** — Use with Claude (MCP server), GPT (function calling), LangChain, or any LLM with tool use
-- **Server-side scripts** — Cron jobs, webhooks, CI/CD pipelines, content syndication
+- **Server-side scripts** — Cron jobs, CI/CD pipelines, content syndication
 - **Bulk operations** — Iterate over data and schedule hundreds of posts programmatically
 - **Analytics pipelines** — Pull engagement data into your own dashboards or AI analysis
 
@@ -64,7 +64,6 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 | `bp.analytics` | `summary`, `engagement`, `refresh`, `account` |
 | `bp.labels` | `list`, `create`, `update`, `delete` |
 | `bp.schedules` | `list`, `create`, `update`, `delete` |
-| `bp.webhooks` | `list`, `create`, `update`, `delete` |
 
 ## Supported Platforms
 

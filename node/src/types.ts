@@ -49,15 +49,6 @@ export type LabelType = 'post' | 'media';
 /** Bulk action types for posts. */
 export type BulkAction = 'delete' | 'retry' | 'reschedule';
 
-/** Webhook event types. */
-export type WebhookEvent =
-  | 'post.published'
-  | 'post.failed'
-  | 'post.scheduled'
-  | 'channel.disconnected'
-  | 'token.expiring'
-  | 'token.expired';
-
 // ---------- Client Options ----------
 
 /** Configuration for the BulkPublish client. */
@@ -738,40 +729,6 @@ export interface UpdateScheduleParams {
   contentTemplate?: string;
   postTypeOverrides?: Record<string, string>;
   platformSpecific?: Record<string, Record<string, unknown>>;
-  isActive?: boolean;
-}
-
-// ---------- Webhooks ----------
-
-/** A webhook configuration. */
-export interface Webhook {
-  id: number;
-  userId: string;
-  organizationId: number;
-  url: string;
-  events: string[];
-  isActive: boolean | null;
-  lastTriggeredAt: string | null;
-  failureCount: number | null;
-  createdAt: string;
-  /** Only present on creation response. */
-  secret?: string;
-}
-
-/** Parameters for creating a webhook. */
-export interface CreateWebhookParams {
-  /** The URL to send webhook payloads to. Must be HTTPS. */
-  url: string;
-  /** Array of event types to subscribe to. */
-  events: string[];
-  /** Optional custom secret for HMAC signature verification. Auto-generated if omitted. */
-  secret?: string;
-}
-
-/** Parameters for updating a webhook. */
-export interface UpdateWebhookParams {
-  url?: string;
-  events?: string[];
   isActive?: boolean;
 }
 

@@ -219,7 +219,6 @@ More examples in [`examples/`](examples/) — including [Python automation scrip
 - **Media uploads** — Images (JPEG, PNG, WebP, GIF) and videos (MP4, MOV, WebM) up to 100 MB
 - **Recurring schedules** — Repeat posts daily, weekly, biweekly, or monthly with cron expressions
 - **Analytics** — Track impressions, likes, comments, shares, and engagement across all platforms
-- **Webhooks** — Get notified when posts are published, fail, or are scheduled
 - **Labels** — Organize posts and media with color-coded labels
 - **Bulk operations** — Delete or retry multiple posts in a single request
 - **Threads** — Multi-part thread posts for X, Threads, Bluesky, and Mastodon
@@ -262,7 +261,7 @@ Authorization: Bearer bp_your_key_here
 | `GET` | `/api/analytics/summary` | Analytics summary for a date range |
 | `GET` | `/api/analytics/engagement` | Engagement data grouped by day/week/month |
 | `POST` | `/api/schedules` | Create a recurring schedule |
-| `POST` | `/api/webhooks` | Create a webhook for event notifications |
+
 | `GET` | `/api/quotas/usage` | Check current plan limits and usage |
 
 See the [OpenAPI spec](openapi.json) for the complete endpoint list.
@@ -326,7 +325,7 @@ curl https://app.bulkpublish.com/api/channels \
 | Reads/min | 300 | 300 | 300 |
 | Daily API requests | 100 | 5,000 | 50,000 |
 | API keys | 1 | 5 | 10 |
-| Webhooks | — | 5 | 10 |
+
 | Recurring schedules | — | 10 | Unlimited |
 
 See the [rate limits guide](guides/rate-limits.md) for headers, backoff strategies, and best practices.
@@ -337,7 +336,6 @@ See the [rate limits guide](guides/rate-limits.md) for headers, backoff strategi
 - [Scheduling](guides/scheduling.md) — Scheduled posts, queue slots, recurring schedules, timezones
 - [Media Uploads](guides/media-uploads.md) — File uploads, supported formats, using media in posts
 - [Platform Options](guides/platforms.md) — Per-platform configuration and quirks
-- [Webhooks](guides/webhooks.md) — Real-time event notifications, payloads, signature verification
 - [Rate Limits](guides/rate-limits.md) — Burst limits, daily quotas, best practices
 
 ## Links

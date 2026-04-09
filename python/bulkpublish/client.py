@@ -54,7 +54,6 @@ from .types import (
     Organization,
     QuotaUsage,
 )
-from .webhooks import AsyncWebhooksResource, WebhooksResource
 
 __all__ = ["BulkPublish", "AsyncBulkPublish"]
 
@@ -167,8 +166,6 @@ class BulkPublish(_BaseClient):
         analytics: :class:`~bulkpublish.analytics.AnalyticsResource`
         labels: :class:`~bulkpublish.labels.LabelsResource`
         schedules: :class:`~bulkpublish.schedules.SchedulesResource`
-        webhooks: :class:`~bulkpublish.webhooks.WebhooksResource`
-
     Example::
 
         from bulkpublish import BulkPublish
@@ -220,7 +217,6 @@ class BulkPublish(_BaseClient):
         self.analytics = AnalyticsResource(self)
         self.labels = LabelsResource(self)
         self.schedules = SchedulesResource(self)
-        self.webhooks = WebhooksResource(self)
 
     def close(self) -> None:
         """Close the underlying HTTP connection pool.
@@ -525,7 +521,6 @@ class AsyncBulkPublish(_BaseClient):
         self.analytics = AsyncAnalyticsResource(self)
         self.labels = AsyncLabelsResource(self)
         self.schedules = AsyncSchedulesResource(self)
-        self.webhooks = AsyncWebhooksResource(self)
 
     async def close(self) -> None:
         """Close the underlying async HTTP connection pool.

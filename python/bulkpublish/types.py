@@ -235,23 +235,6 @@ class Schedule(TypedDict, total=False):
 
 
 # ---------------------------------------------------------------------------
-# Webhooks
-# ---------------------------------------------------------------------------
-
-
-class Webhook(TypedDict, total=False):
-    """A webhook subscription."""
-
-    id: str
-    url: str
-    events: List[str]
-    secret: str
-    active: bool
-    createdAt: str
-    updatedAt: str
-
-
-# ---------------------------------------------------------------------------
 # API Keys
 # ---------------------------------------------------------------------------
 

@@ -125,17 +125,6 @@
           "nextRunAt": { "type": "string", "format": "date-time", "nullable": true }
         }
       },
-      "Webhook": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "integer" },
-          "url": { "type": "string", "format": "uri" },
-          "events": { "type": "array", "items": { "type": "string" } },
-          "secret": { "type": "string", "description": "HMAC secret for signature verification (shown once on create)" },
-          "isActive": { "type": "boolean" },
-          "createdAt": { "type": "string", "format": "date-time" }
-        }
-      },
       "Notification": {
         "type": "object",
         "properties": {
@@ -250,8 +239,7 @@
     { "name": "Analytics", "description": "View engagement metrics and performance data" },
     { "name": "Labels", "description": "Organize posts and media with labels" },
     { "name": "Schedules", "description": "Set up recurring post schedules" },
-    { "name": "Webhooks", "description": "Manage webhook subscriptions. Note: webhook delivery for post events is coming soon." },
-    { "name": "API Keys", "description": "Manage API authentication keys. Available on all plans (Free: 1 key, Pro: 5, Business: 10)." },
+{ "name": "API Keys", "description": "Manage API authentication keys. Available on all plans (Free: 1 key, Pro: 5, Business: 10)." },
     { "name": "Organizations", "description": "Manage workspaces and teams" },
     { "name": "Notifications", "description": "View and manage in-app notifications" },
     { "name": "Utilities", "description": "Link previews, quotas, activity log" }
@@ -642,88 +630,6 @@
       "put": { "tags": ["Schedules"], "summary": "Update schedule", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "responses": { "200": { "description": "Updated" } } },
       "delete": { "tags": ["Schedules"], "summary": "Delete schedule", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "responses": { "200": { "description": "Deleted" } } }
     },
-    "/api/webhooks": {
-      "get": {
-        "tags": ["Webhooks"],
-        "summary": "List webhooks",
-        "description": "Returns all webhook subscriptions for the current organization.",
-        "responses": {
-          "200": {
-            "description": "Webhook list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "webhooks": { "type": "array", "items": { "$ref": "#/components/schemas/Webhook" } }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": ["Webhooks"],
-        "summary": "Create webhook",
-        "description": "Create a new webhook subscription. The secret is returned once on creation for HMAC signature verification.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["url", "events"],
-                "properties": {
-                  "url": { "type": "string", "format": "uri", "description": "HTTPS endpoint to receive webhook payloads" },
-                  "events": { "type": "array", "items": { "type": "string" }, "description": "Event types to subscribe to (e.g. post.published, post.failed)" },
-                  "secret": { "type": "string", "description": "Optional. Custom HMAC secret. Auto-generated if omitted." }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": { "description": "Webhook created (secret shown once)", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Webhook" } } } },
-          "400": { "description": "Validation error" }
-        }
-      }
-    },
-    "/api/webhooks/{id}": {
-      "put": {
-        "tags": ["Webhooks"],
-        "summary": "Update webhook",
-        "description": "Update webhook URL, events, or active status.",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "url": { "type": "string", "format": "uri" },
-                  "events": { "type": "array", "items": { "type": "string" } },
-                  "isActive": { "type": "boolean" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": { "description": "Webhook updated" },
-          "404": { "description": "Webhook not found" }
-        }
-      },
-      "delete": {
-        "tags": ["Webhooks"],
-        "summary": "Delete webhook",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
-        "responses": {
-          "200": { "description": "Deleted" },
-          "404": { "description": "Webhook not found" }
-        }
-      }
-    },
     "/api/api-keys": {
       "get": { "tags": ["API Keys"], "summary": "List API keys", "responses": { "200": { "description": "API keys (secrets masked)" } } },
       "post": { "tags": ["API Keys"], "summary": "Create API key", "requestBody": { "content": { "application/json": { "schema": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string" }, "expiresAt": { "type": "string", "format": "date-time" } } } } } }, "responses": { "201": { "description": "Created (full key shown once)" } } }
@@ -766,6 +672,6 @@
     },
     "/api/activity": {
       "get": { "tags": ["Utilities"], "summary": "Activity log", "parameters": [{ "name": "page", "in": "query", "required": false, "description": "**optional** — Page number (default: 1)", "schema": { "type": "integer" } }, { "name": "limit", "in": "query", "required": false, "description": "**optional** — Items per page (default: 20)", "schema": { "type": "integer" } }, { "name": "action", "in": "query", "required": false, "description": "**optional** — Filter by action type", "schema": { "type": "string" } }, { "name": "resource", "in": "query", "required": false, "description": "**optional** — Filter by resource type", "schema": { "type": "string" } }], "responses": { "200": { "description": "Activities" } } }
-    },
+    }
   }
 }

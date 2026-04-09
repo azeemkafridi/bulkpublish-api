@@ -213,18 +213,6 @@ curl -s -X POST -H "$AUTH" -H "Content-Type: application/json" \
 # List recurring schedules
 curl -s -H "$AUTH" "$BASE/api/schedules"
 
-# ── Webhooks ──────────────────────────────────────────────────────────────────
-
-# List webhooks
-curl -s -H "$AUTH" "$BASE/api/webhooks"
-
-# Create a webhook
-curl -s -X POST -H "$AUTH" -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://your-app.com/webhooks/bulkpublish",
-    "events": ["post.published", "post.failed"]
-  }' "$BASE/api/webhooks"
-
 # ── Quotas & Usage ────────────────────────────────────────────────────────────
 
 # Check quota usage (daily/monthly limits, storage, channels)

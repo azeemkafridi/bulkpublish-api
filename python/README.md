@@ -74,7 +74,6 @@ asyncio.run(main())
 | `bp.analytics` | `summary`, `engagement`, `refresh`, `account` |
 | `bp.labels` | `list`, `create`, `update`, `delete` |
 | `bp.schedules` | `list`, `create`, `update`, `delete` |
-| `bp.webhooks` | `list`, `create`, `update`, `delete` |
 
 Every method has docstrings with usage examples — works great with IDE autocomplete and LLM code generation.
 

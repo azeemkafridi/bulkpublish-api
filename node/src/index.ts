@@ -5,7 +5,6 @@ import { MediaResource } from './media.js';
 import { AnalyticsResource } from './analytics.js';
 import { LabelsResource } from './labels.js';
 import { SchedulesResource } from './schedules.js';
-import { WebhooksResource } from './webhooks.js';
 import type { BulkPublishOptions } from './types.js';
 
 /**
@@ -39,7 +38,6 @@ export class BulkPublish {
   readonly analytics: AnalyticsResource;
   readonly labels: LabelsResource;
   readonly schedules: SchedulesResource;
-  readonly webhooks: WebhooksResource;
 
   constructor(options: BulkPublishOptions) {
     const http = new HttpClient(options);
@@ -49,7 +47,6 @@ export class BulkPublish {
     this.analytics = new AnalyticsResource(http);
     this.labels = new LabelsResource(http);
     this.schedules = new SchedulesResource(http);
-    this.webhooks = new WebhooksResource(http);
   }
 }
 
@@ -61,7 +58,6 @@ export { MediaResource } from './media.js';
 export { AnalyticsResource } from './analytics.js';
 export { LabelsResource } from './labels.js';
 export { SchedulesResource } from './schedules.js';
-export { WebhooksResource } from './webhooks.js';
 export {
   BulkPublishError,
   AuthenticationError,

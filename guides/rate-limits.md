@@ -48,7 +48,7 @@ When you exceed the limit, you'll receive a `429 Too Many Requests` response:
 2. **Use exponential backoff** — on 429 responses, wait and retry with increasing delays
 3. **Batch operations** — use `POST /api/posts/bulk` instead of individual delete/retry calls
 4. **Cache channel lists** — channels rarely change, cache `GET /api/channels` for a few minutes
-5. **Use webhooks** — instead of polling for post status, set up webhooks for `post.published` and `post.failed`
+5. **Use efficient polling** — check post status at reasonable intervals rather than hammering the API
 
 ## SDK Handling
 
