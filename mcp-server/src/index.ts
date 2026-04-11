@@ -14,6 +14,18 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { readFileSync, existsSync } from "node:fs";
+import { basename, resolve } from "node:path";
+
+const MIME_TYPES: Record<string, string> = {
+  ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
+  ".webp": "image/webp", ".gif": "image/gif", ".mp4": "video/mp4",
+  ".mov": "video/quicktime", ".webm": "video/webm",
+};
+function mimeFromPath(filePath: string): string {
+  const ext = filePath.toLowerCase().match(/\.[^.]+$/)?.[0] || "";
+  return MIME_TYPES[ext] || "application/octet-stream";
+}
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -340,55 +352,98 @@ server.tool(
 
 server.tool(
   "upload_media",
-  "Upload a media file (image or video) from a URL. The file is downloaded and stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM. Max 100MB.",
+  "Upload a media file (image or video) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM. Max 100MB. Provide either url OR filePath, not both.",
   {
-    url: z.string().describe("Public URL of the media file to upload."),
+    url: z
+      .string()
+      .optional()
+      .describe("Public URL of the media file to upload."),
+    filePath: z
+      .string()
+      .optional()
+      .describe(
+        "Absolute path to a local file to upload (e.g. /Users/me/photo.png)."
+      ),
     filename: z
       .string()
       .optional()
       .describe(
-        "Optional filename. If omitted, derived from the URL."
+        "Optional filename. If omitted, derived from the URL or file path."
       ),
   },
-  async ({ url: mediaUrl, filename }) => {
-    // Download the file from the URL
-    let fileResponse: Response;
-    try {
-      fileResponse = await fetch(mediaUrl);
-      if (!fileResponse.ok) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Error: Failed to download file from URL (HTTP ${fileResponse.status})`,
-            },
-          ],
-        };
-      }
-    } catch (err) {
+  async ({ url: mediaUrl, filePath, filename }) => {
+    if (!mediaUrl && !filePath) {
       return {
         content: [
           {
             type: "text" as const,
-            text: `Error: Failed to fetch URL — ${err instanceof Error ? err.message : String(err)}`,
+            text: "Error: Provide either url or filePath.",
           },
         ],
       };
     }
 
-    const contentType =
-      fileResponse.headers.get("content-type") || "application/octet-stream";
-    const blob = await fileResponse.blob();
+    let blob: Blob;
+    let contentType: string;
+    let derivedFilename: string;
 
-    // Derive filename from URL if not provided
-    const derivedFilename =
-      filename ||
-      mediaUrl.split("/").pop()?.split("?")[0] ||
-      "upload";
+    if (filePath) {
+      // --- Local file upload ---
+      const absPath = resolve(filePath);
+      if (!existsSync(absPath)) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Error: File not found — ${absPath}`,
+            },
+          ],
+        };
+      }
+      const buffer = readFileSync(absPath);
+      contentType = mimeFromPath(absPath);
+      blob = new Blob([buffer], { type: contentType });
+      derivedFilename = filename || basename(absPath);
+    } else {
+      // --- URL upload (existing behavior) ---
+      let fileResponse: Response;
+      try {
+        fileResponse = await fetch(mediaUrl!);
+        if (!fileResponse.ok) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Error: Failed to download file from URL (HTTP ${fileResponse.status})`,
+              },
+            ],
+          };
+        }
+      } catch (err) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Error: Failed to fetch URL — ${err instanceof Error ? err.message : String(err)}`,
+            },
+          ],
+        };
+      }
+      contentType =
+        fileResponse.headers.get("content-type") || "application/octet-stream";
+      blob = await fileResponse.blob();
+      derivedFilename =
+        filename ||
+        mediaUrl!.split("/").pop()?.split("?")[0] ||
+        "upload";
+    }
 
     // Build multipart form data
     const formData = new FormData();
-    formData.append("file", new File([blob], derivedFilename, { type: contentType }));
+    formData.append(
+      "file",
+      new File([blob], derivedFilename, { type: contentType })
+    );
 
     const uploadUrl = `${BASE_URL}/api/media`;
     const uploadRes = await fetch(uploadUrl, {
