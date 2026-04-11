@@ -119,12 +119,105 @@ server.tool(
 );
 
 // ---------------------------------------------------------------------------
+// Platform validation helpers
+// ---------------------------------------------------------------------------
+
+const VIDEO_MIMES = new Set([
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
+  "video/avi",
+  "video/x-msvideo",
+  "video/x-ms-wmv",
+  "video/x-flv",
+]);
+const IMAGE_MIMES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+
+interface MediaInfo {
+  id: number;
+  mimeType: string;
+}
+
+async function getMediaInfoForIds(
+  ids: number[]
+): Promise<{ medias: MediaInfo[]; error?: string }> {
+  if (ids.length === 0) return { medias: [] };
+  const results: MediaInfo[] = [];
+  for (const id of ids) {
+    const res = await api<{ id: number; mimeType: string }>(
+      "GET",
+      `/api/media/${id}`
+    );
+    if (!res.ok) return { medias: [], error: `Media ID ${id} not found` };
+    const d = res.data as { id: number; mimeType: string };
+    results.push({ id: d.id, mimeType: d.mimeType });
+  }
+  return { medias: results };
+}
+
+function validatePlatformRequirements(
+  channels: Array<{ channelId: number; platform: string }>,
+  medias: MediaInfo[],
+  postTypeOverrides?: Record<string, string>
+): string[] {
+  const errors: string[] = [];
+  const hasVideo = medias.some((m) => VIDEO_MIMES.has(m.mimeType));
+  const hasImage = medias.some((m) => IMAGE_MIMES.has(m.mimeType));
+  const hasMedia = medias.length > 0;
+
+  for (const ch of channels) {
+    const postType = postTypeOverrides?.[ch.platform];
+
+    switch (ch.platform) {
+      case "youtube":
+        if (!hasVideo) {
+          errors.push(
+            `YouTube requires a video file. Either remove YouTube from channels or attach a video.`
+          );
+        }
+        break;
+      case "tiktok":
+        if (!hasVideo) {
+          errors.push(
+            `TikTok requires a video file (or images for photo_slideshow). Either remove TikTok or attach a video.`
+          );
+        }
+        break;
+      case "instagram":
+        if (postType === "reel" && !hasVideo)
+          errors.push(`Instagram reel requires a video file.`);
+        if (postType === "feed_video" && !hasVideo)
+          errors.push(`Instagram feed_video requires a video file.`);
+        if (postType === "carousel" && medias.length < 2)
+          errors.push(`Instagram carousel requires at least 2 media files.`);
+        if (!postType && hasMedia && !hasImage && hasVideo)
+          errors.push(
+            `Instagram defaults to feed_photo which requires an image. Set postTypeOverrides.instagram to "reel" or "feed_video" for video content.`
+          );
+        break;
+      case "pinterest":
+        if (postType === "carousel" && medias.length < 2)
+          errors.push(`Pinterest carousel requires 2-5 images.`);
+        break;
+    }
+  }
+  return errors;
+}
+
+// ---------------------------------------------------------------------------
 // Tool: create_post
 // ---------------------------------------------------------------------------
 
 server.tool(
   "create_post",
-  "Create a new social media post. Can be saved as a draft or scheduled for a specific time. Supports platform-specific content overrides, media attachments, labels, and thread format.",
+  "Create a new social media post. Can be saved as a draft or scheduled for a specific time. Supports platform-specific content overrides, media attachments, labels, and thread format. " +
+    "IMPORTANT: YouTube and TikTok REQUIRE video — do not include them when posting images only. " +
+    "Instagram defaults to feed_photo — set postTypeOverrides for video content (reel, feed_video).",
   {
     content: z.string().describe("The post text content."),
     channels: z
@@ -219,6 +312,49 @@ server.tool(
     threadParts,
     postTypeOverrides,
   }) => {
+    // Validate platform requirements before creating
+    if (mediaFileIds && mediaFileIds.length > 0) {
+      const { medias, error: mediaError } = await getMediaInfoForIds(
+        mediaFileIds
+      );
+      if (mediaError) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${mediaError}` }],
+        };
+      }
+      const validationErrors = validatePlatformRequirements(
+        channels,
+        medias,
+        postTypeOverrides
+      );
+      if (validationErrors.length > 0) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Validation errors:\n${validationErrors.map((e) => `- ${e}`).join("\n")}`,
+            },
+          ],
+        };
+      }
+    } else {
+      // No media — check if any platform requires it
+      const videoOnlyPlatforms = channels.filter(
+        (ch) => ch.platform === "youtube" || ch.platform === "tiktok"
+      );
+      if (videoOnlyPlatforms.length > 0) {
+        const names = videoOnlyPlatforms.map((ch) => ch.platform).join(", ");
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Validation error: ${names} requires a video file. Either remove these platforms or attach a video via mediaFileIds.`,
+            },
+          ],
+        };
+      }
+    }
+
     const body: Record<string, unknown> = {
       content,
       channels,
