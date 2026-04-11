@@ -77,9 +77,26 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 | `bp.labels` | `list`, `create`, `update`, `delete` |
 | `bp.schedules` | `list`, `create`, `update`, `delete` |
 
-## Supported Platforms
+## Platform Requirements
 
-Facebook, Instagram, X (Twitter), TikTok, YouTube, Threads, Bluesky, Pinterest, Google Business Profile, LinkedIn, Mastodon
+| Platform | Post Types | Media | Required Fields | Char Limit |
+|---|---|---|---|---|
+| Facebook | `post`, `reel`, `story` | Optional (reel/story need media) | — | 63,206 |
+| Instagram | `feed_photo`, `feed_video`, `reel`, `story`, `carousel` | Required (type-specific) | — | 2,200 |
+| X / Twitter | `tweet` | Optional (max 4 images or 1 video) | — | 280 |
+| YouTube | `video`, `short` | **Video required** | **`platformSpecific.youtube.title`** | 5,000 |
+| TikTok | `video`, `photo_slideshow` | **Video or images required** | — | 2,200 |
+| LinkedIn | `post`, `multi_image`, `pdf_carousel`, `article` | Varies by type | `url` for article | 3,000 |
+| Pinterest | `pin`, `video_pin`, `carousel` | **Required** | **`platformSpecific.pinterest.title`** | 500 |
+| Threads | `text`, `image`, `video`, `carousel` | Optional | — | 500 |
+| Bluesky | `post` | Optional (max 4 images or 1 video) | — | 300 |
+| GMB | `standard`, `event`, `offer` | Optional (image only) | dates for event | 1,500 |
+| Mastodon | `post` | Optional (max 4 images or 1 video) | — | 500 |
+
+**Important:**
+- YouTube and TikTok **only accept video** — do not include them for image-only posts
+- Instagram defaults to `feed_photo` — set `postTypeOverrides` for video content
+- Use `platformContent` for shorter text on low-limit platforms (Bluesky 300, Pinterest 500)
 
 ## Resources
 

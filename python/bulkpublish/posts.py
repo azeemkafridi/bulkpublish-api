@@ -157,11 +157,32 @@ class PostsResource:
             media_files: List of media file IDs to attach.
             label_ids: Label IDs to tag the post with.
             post_format: Format hint (e.g. ``"thread"``, ``"carousel"``).
-            platform_specific: Per-platform overrides keyed by platform name.
-            platform_content: Per-platform content variations.
+            platform_specific: Per-platform settings. Required fields by platform:
+
+                - **youtube**: ``{"title": "..."}`` (required, 1-100 chars).
+                  Optional: ``privacyStatus``, ``categoryId``, ``tags``, ``playlistId``, ``thumbnailUrl``, ``madeForKids``
+                - **pinterest**: ``{"title": "..."}`` (required, 1-100 chars).
+                  Optional: ``boardId``, ``description``, ``link``
+                - **instagram**: Optional: ``collaborators``, ``trialReel``, ``thumbnailTimestamp``
+                - **tiktok**: Optional: ``privacyLevel`` (SELF_ONLY|PUBLIC|FRIENDS), ``disableDuet``, ``disableStitch``
+                - **linkedin**: Optional: ``title``, ``description``, ``url`` (required for article type)
+                - **gmb**: Optional: ``ctaType``, ``ctaUrl``, ``eventTitle``, ``startDate``, ``endDate``
+                - **mastodon**: Optional: ``visibility``, ``spoilerText``, ``language``
+
+            platform_content: Per-platform content overrides for different char limits
+                (bluesky: 300, pinterest/threads/mastodon: 500, etc.).
             delete_media_after_publish: Remove attached media after publishing.
-            thread_parts: Parts of a thread post.
-            post_type_overrides: Per-platform post type (e.g. ``{"instagram": "reel", "facebook": "story"}``).
+            thread_parts: Parts of a thread post (min 2 required).
+            post_type_overrides: Per-platform post type. Valid types:
+
+                - facebook: ``post``, ``reel``, ``story``
+                - instagram: ``feed_photo``, ``feed_video``, ``reel``, ``story``, ``carousel``
+                - youtube: ``video``, ``short`` (video file required)
+                - tiktok: ``video``, ``photo_slideshow``
+                - linkedin: ``post``, ``multi_image``, ``pdf_carousel``, ``article``
+                - pinterest: ``pin``, ``video_pin``, ``carousel``
+                - threads: ``text``, ``image``, ``video``, ``carousel``
+                - gmb: ``standard``, ``event``, ``offer``
 
         Returns:
             The newly created post object.
@@ -169,23 +190,30 @@ class PostsResource:
         Raises:
             ValidationError: If required fields are missing or invalid.
 
+        Important:
+            - **YouTube and TikTok require video files.** Do not include them for image-only posts.
+            - **Instagram defaults to feed_photo.** Set ``post_type_overrides`` for video content.
+            - **Pinterest requires a title** in ``platform_specific``.
+
         Example::
 
             # Simple draft post
             post = bp.posts.create(
                 content="Hello world!",
-                channels=[{"channelId": "ch_1", "platform": "twitter"}],
+                channels=[{"channelId": "1", "platform": "facebook"}],
             )
 
-            # Scheduled post with media
-            media = bp.media.upload("./banner.png")
+            # Video to YouTube + image to Instagram
+            video = bp.media.upload("./video.mp4")
             post = bp.posts.create(
-                content="Big announcement coming!",
-                channels=[{"channelId": "ch_1", "platform": "twitter"}],
-                media_files=[media["file"]["id"]],
-                scheduled_at="2026-04-10T14:00:00Z",
-                timezone="America/New_York",
-                status="scheduled",
+                content="Check this out!",
+                channels=[
+                    {"channelId": "1", "platform": "youtube"},
+                    {"channelId": "2", "platform": "instagram"},
+                ],
+                media_files=[video["file"]["id"]],
+                post_type_overrides={"instagram": "reel"},
+                platform_specific={"youtube": {"title": "My Video Title"}},
             )
         """
         body: Dict[str, Any] = {

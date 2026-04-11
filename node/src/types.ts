@@ -358,11 +358,47 @@ export interface CreatePostParams {
   labels?: number[];
   /** Post format. Default: 'post'. */
   postFormat?: PostFormat;
-  /** Per-platform post type overrides (e.g. `{ instagram: 'reel' }`). */
+  /**
+   * Per-platform post type overrides.
+   *
+   * Valid types per platform:
+   * - facebook: `post`, `reel`, `story`
+   * - instagram: `feed_photo`, `feed_video`, `reel`, `story`, `carousel`
+   * - x: `tweet`
+   * - youtube: `video`, `short` (video file required)
+   * - tiktok: `video`, `photo_slideshow`
+   * - linkedin: `post`, `multi_image`, `pdf_carousel`, `article`
+   * - pinterest: `pin`, `video_pin`, `carousel`
+   * - threads: `text`, `image`, `video`, `carousel`
+   * - bluesky: `post`
+   * - mastodon: `post`
+   * - gmb: `standard`, `event`, `offer`
+   *
+   * @example { instagram: 'reel', facebook: 'story' }
+   */
   postTypeOverrides?: Record<string, string>;
-  /** Per-platform specific settings. */
+  /**
+   * Per-platform specific settings.
+   *
+   * Required fields by platform:
+   * - **youtube**: `{ title }` (required, 1-100 chars). Optional: `privacyStatus`, `categoryId`, `tags`, `playlistId`, `thumbnailUrl`, `madeForKids`
+   * - **pinterest**: `{ title }` (required, 1-100 chars). Optional: `boardId` (or falls back to channel default), `description`, `link`
+   * - **instagram**: Optional: `collaborators`, `trialReel`, `thumbnailTimestamp`
+   * - **tiktok**: Optional: `privacyLevel` (SELF_ONLY|PUBLIC|FRIENDS), `disableDuet`, `disableStitch`, `disableComment`, `isAigc`
+   * - **linkedin**: Optional: `title`, `description`, `url` (required for article type), `carouselTitle`
+   * - **gmb**: Optional: `ctaType`, `ctaUrl`, `eventTitle`, `startDate`, `endDate`, `startTime`, `endTime`, `couponCode`, `redeemOnlineUrl`
+   * - **mastodon**: Optional: `visibility` (public|unlisted|private|direct), `spoilerText`, `language`
+   * - **threads**: Optional: `quotePostId`
+   *
+   * @example { youtube: { title: 'My Video' }, pinterest: { title: 'My Pin', boardId: '123' } }
+   */
   platformSpecific?: Record<string, Record<string, unknown>>;
-  /** Per-platform content overrides. */
+  /**
+   * Per-platform content overrides for different character limits.
+   * Use for platforms with lower limits (bluesky: 300, pinterest/threads/mastodon: 500).
+   *
+   * @example { bluesky: 'Short version', linkedin: 'Longer professional version' }
+   */
   platformContent?: Record<string, string>;
   /** Whether to delete media after publishing. Default: true. */
   deleteMediaAfterPublish?: boolean;
