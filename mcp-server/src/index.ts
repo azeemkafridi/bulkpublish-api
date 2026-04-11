@@ -36,13 +36,7 @@ const BASE_URL = (
   process.env.BULKPUBLISH_BASE_URL || "https://app.bulkpublish.com"
 ).replace(/\/+$/, "");
 
-if (!API_KEY) {
-  console.error(
-    "Error: BULKPUBLISH_API_KEY environment variable is required.\n" +
-      "Get your API key at https://app.bulkpublish.com/developer"
-  );
-  process.exit(1);
-}
+// API_KEY may be absent during Smithery sandbox scanning — tools will error at runtime
 
 // ---------------------------------------------------------------------------
 // HTTP helper
@@ -1081,15 +1075,35 @@ server.tool(
 );
 
 // ---------------------------------------------------------------------------
-// Start server
+// Smithery sandbox export (for tool scanning without real credentials)
 // ---------------------------------------------------------------------------
 
-async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
+export function createSandboxServer() {
+  return server;
 }
 
-main().catch((err) => {
-  console.error("Failed to start MCP server:", err);
-  process.exit(1);
-});
+// ---------------------------------------------------------------------------
+// Start server (only when run directly, not when imported by Smithery)
+// ---------------------------------------------------------------------------
+
+const isDirectRun =
+  !process.env.SMITHERY_SCAN &&
+  process.argv[1] &&
+  (process.argv[1].endsWith("index.js") ||
+    process.argv[1].endsWith("index.ts"));
+
+if (isDirectRun) {
+  if (!API_KEY) {
+    console.error(
+      "Error: BULKPUBLISH_API_KEY environment variable is required.\n" +
+        "Get your API key at https://app.bulkpublish.com/developer"
+    );
+    process.exit(1);
+  }
+
+  const transport = new StdioServerTransport();
+  server.connect(transport).catch((err) => {
+    console.error("Failed to start MCP server:", err);
+    process.exit(1);
+  });
+}

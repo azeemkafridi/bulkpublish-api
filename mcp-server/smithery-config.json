@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "required": ["BULKPUBLISH_API_KEY"],
+  "properties": {
+    "BULKPUBLISH_API_KEY": {
+      "type": "string",
+      "title": "BulkPublish API Key",
+      "description": "Your API key from app.bulkpublish.com/developer (starts with bp_)"
+    }
+  }
+}
