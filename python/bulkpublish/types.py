@@ -110,6 +110,7 @@ class Channel(TypedDict, total=False):
 
     id: str
     platform: str
+    accountType: str  # e.g. "personal" / "organization" (LinkedIn), "page" (Facebook)
     name: str
     username: str
     avatarUrl: str

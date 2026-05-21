@@ -257,7 +257,7 @@ Authorization: Bearer bp_your_key_here
 | `POST` | `/api/posts/bulk` | Bulk delete or retry |
 | `GET` | `/api/channels` | List connected social media channels |
 | `GET` | `/api/channels/:id/health` | Check channel token health |
-| `GET` | `/api/channels/:id/options` | Get platform options (Pinterest boards, YouTube playlists, LinkedIn orgs) |
+| `GET` | `/api/channels/:id/options` | Get platform options (Pinterest boards, YouTube playlists) |
 | `GET` | `/api/channels/:id/mentions` | Search users for @mention (X, Bluesky) |
 | `POST` | `/api/media` | Upload a media file (multipart) |
 | `GET` | `/api/media` | List uploaded media |
@@ -281,7 +281,7 @@ See the [OpenAPI spec](openapi.json) for the complete endpoint list.
 | **Bluesky** | Post, Thread | Images |
 | **Pinterest** | Pin | Images, Videos |
 | **Google Business Profile** | Post, Event, Offer | Images |
-| **LinkedIn** | Post | Images, Videos |
+| **LinkedIn** | Post, Multi-image, PDF Carousel, Article | Images (JPEG, PNG, GIF), Videos (MP4) |
 | **Mastodon** | Post, Thread | Images, Videos |
 
 ## SDKs

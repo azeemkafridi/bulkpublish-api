@@ -441,12 +441,44 @@ curl "https://app.bulkpublish.com/api/channels/5/options" \
 
 ## LinkedIn
 
-No platform-specific options. Standard post creation with text, images, and videos.
+### Post types
+
+Override via `postTypeOverrides.linkedin`:
+
+| Type | Description | Media |
+|------|-------------|-------|
+| `post` (default) | Text post, optionally with a single image or video | 0–1 image OR 0–1 video |
+| `multi_image` | Image gallery | 2–20 images |
+| `pdf_carousel` | Images converted to a swipeable PDF carousel | 2–20 images |
+| `article` | Link share with preview (requires `platformSpecific.linkedin.url`) | 0–1 image (thumbnail) |
+
+### Platform-specific options (`platformSpecific.linkedin`)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `url` | string | **Required** for `article`; the link to share |
+| `title` | string | Article or video title |
+| `description` | string | Article description |
+| `carouselTitle` | string | Title shown on a `pdf_carousel` |
+
+### Media rules
+
+- **Images:** JPEG, PNG, GIF — up to 10 MB each, max 20 per post.
+- **Video:** MP4 — up to 500 MB, 3–1800 s, max 1 per post.
+- **Character limit:** 3,000.
+
+### Account types
+
+A connected LinkedIn channel is one of two `accountType` values, returned by `GET /api/channels`:
+
+- `personal` — a member's personal LinkedIn profile.
+- `organization` — a LinkedIn company page.
 
 ### Notes
 
-- Supports both personal profiles and company pages.
-- Connect organization pages via the dashboard.
+- Connect personal profiles and company pages in the dashboard (each is a one-time
+  LinkedIn authorization). Once connected they behave identically — list them with
+  `GET /api/channels` and post to them by `channelId` like any other channel.
 
 ---
 

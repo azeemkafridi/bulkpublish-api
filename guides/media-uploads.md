@@ -232,7 +232,7 @@ Different platforms have different requirements for media. BulkPublish handles m
 | Facebook | -- | -- | Multiple | Images + videos |
 | X / Twitter | -- | -- | 4 images or 1 video | GIFs supported |
 | Pinterest | -- | -- | 1 | Image or video per pin |
-| LinkedIn | -- | -- | Multiple | Images + videos |
+| LinkedIn | 10 MB (JPEG/PNG/GIF) | 500 MB (MP4) | 20 images or 1 video | Video 3–1800s; 2–20 images for gallery or PDF carousel |
 | Threads | -- | -- | Multiple | Images + videos |
 | Bluesky | -- | -- | 4 | Images only |
 | Mastodon | -- | -- | 4 | Images + videos |

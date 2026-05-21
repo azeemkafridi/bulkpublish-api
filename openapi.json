@@ -33,7 +33,7 @@
           "scheduledAt": { "type": "string", "format": "date-time", "nullable": true },
           "timezone": { "type": "string" },
           "postFormat": { "type": "string", "enum": ["post", "video", "reel", "story", "carousel", "thread"] },
-          "postTypeOverrides": { "type": "object", "description": "Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer." },
+          "postTypeOverrides": { "type": "object", "description": "Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image, pdf_carousel, article. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer." },
           "platformSpecific": {
             "type": "object",
             "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto'), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX'), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus, categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType, ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'mentionedUsers') }. Threads: { quotePostId }. Use _firstComment (string) for auto-posted reply after publish."
@@ -76,7 +76,7 @@
           "platform": { "type": "string", "enum": ["facebook", "instagram", "x", "tiktok", "youtube", "threads", "bluesky", "pinterest", "gmb", "linkedin", "mastodon"] },
           "accountName": { "type": "string" },
           "accountId": { "type": "string" },
-          "accountType": { "type": "string" },
+          "accountType": { "type": "string", "description": "Account kind. LinkedIn: 'personal' or 'organization'. Facebook: 'page'." },
           "profileImage": { "type": "string", "nullable": true },
           "isActive": { "type": "boolean" },
           "tokenStatus": { "type": "string", "enum": ["valid", "expiring_soon", "expired"] },
@@ -289,7 +289,7 @@
                   "timezone": { "type": "string", "default": "UTC", "description": "Optional. IANA timezone (default: UTC)" },
                   "labels": { "type": "array", "items": { "type": "integer" }, "description": "Optional. Label IDs to attach" },
                   "postFormat": { "type": "string", "enum": ["post", "video", "reel", "story", "carousel", "thread"], "default": "post", "description": "Optional. Default: post" },
-                  "postTypeOverrides": { "type": "object", "description": "Optional. Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer." },
+                  "postTypeOverrides": { "type": "object", "description": "Optional. Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image, pdf_carousel, article. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer." },
                   "platformSpecific": { "$ref": "#/components/schemas/PlatformSpecific", "description": "Optional. Platform-specific options" },
                   "platformContent": { "type": "object", "description": "Optional. Per-platform content overrides, e.g. { \"x\": \"Short version\" }" },
                   "deleteMediaAfterPublish": { "type": "boolean", "default": true, "description": "Optional. Delete uploaded media after publishing (default: true)" },
@@ -474,7 +474,7 @@
       "get": {
         "tags": ["Channels"],
         "summary": "Get platform-specific options for a channel",
-        "description": "Returns boards (Pinterest), playlists (YouTube), or organizations (LinkedIn) depending on the channel's platform. Returns empty items for platforms without sub-resources.",
+        "description": "Returns boards (Pinterest) or playlists (YouTube) depending on the channel's platform. Returns empty items for platforms without sub-resources.",
         "parameters": [{ "name": "id", "in": "path", "required": true, "description": "Channel ID", "schema": { "type": "integer" } }],
         "responses": { "200": { "description": "Platform options", "content": { "application/json": { "schema": { "type": "object", "properties": { "type": { "type": "string", "nullable": true, "enum": ["boards", "playlists", "organizations", null] }, "items": { "type": "array", "items": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" } } } } } } } } } }
       }
@@ -489,33 +489,6 @@
           { "name": "q", "in": "query", "required": true, "description": "Search query (max 100 chars)", "schema": { "type": "string" } }
         ],
         "responses": { "200": { "description": "Matching users", "content": { "application/json": { "schema": { "type": "object", "properties": { "users": { "type": "array", "items": { "type": "object", "properties": { "id": { "type": "string" }, "handle": { "type": "string" }, "name": { "type": "string" }, "profileImage": { "type": "string", "nullable": true } } } } } } } } } }
-      }
-    },
-    "/api/channels/connect-linkedin-page": {
-      "post": {
-        "tags": ["Channels"],
-        "summary": "Connect LinkedIn organization page",
-        "description": "Connect a LinkedIn organization page as a new channel. Requires an existing LinkedIn personal channel.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["channelId", "organizationId"],
-                "properties": {
-                  "channelId": { "type": "integer", "description": "ID of the existing LinkedIn personal channel" },
-                  "organizationId": { "type": "string", "description": "LinkedIn organization ID to connect" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": { "description": "Organization page connected" },
-          "400": { "description": "Invalid channel or organization" },
-          "404": { "description": "Channel not found" }
-        }
       }
     },
     "/api/media": {
