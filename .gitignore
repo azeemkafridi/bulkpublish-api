@@ -24,3 +24,6 @@ dist/
 .vscode/
 *.swp
 *.swo
+
+# MCP registry credentials — secrets, never commit
+.mcpregistry_*token

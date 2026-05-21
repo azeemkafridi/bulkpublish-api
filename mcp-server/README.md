@@ -111,7 +111,7 @@ export BULKPUBLISH_API_KEY=bp_your_api_key_here
 | **Channels** | |
 | `list_channels` | List all connected social media channels |
 | `get_channel_health` | Check channel token health |
-| `get_channel_options` | Get platform-specific options (boards, playlists, orgs) |
+| `get_channel_options` | Get platform-specific options (boards, playlists) |
 | `search_mentions` | Search users for @mention (X, Bluesky) |
 | **Media** | |
 | `upload_media` | Upload a media file from a URL |
