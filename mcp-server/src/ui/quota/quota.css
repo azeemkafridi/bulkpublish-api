@@ -1,0 +1,146 @@
+@import "../tokens.css";
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--stone-800);
+  background: var(--surface-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.quota {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.quota__header { display: flex; flex-direction: column; gap: 2px; }
+.quota__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--stone-900);
+}
+.quota__sub { margin: 0; font-size: var(--text-sm); color: var(--stone-400); }
+
+/* ─── row list ─────────────────────────────────────────────────── */
+
+.quota__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.quota-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.quota-row__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.quota-row__label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--stone-700);
+}
+
+.quota-row__value {
+  font-size: var(--text-xs);
+  color: var(--stone-400);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* progress bar */
+.quota-row__track {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--stone-150);
+  overflow: hidden;
+}
+
+.quota-row__fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--accent-500);
+  transition: width var(--transition-base);
+}
+
+.quota-row__fill--danger {
+  background: var(--color-error);
+}
+
+.quota-row__fill--unlimited {
+  /* faint/empty — show a thin accent stripe rather than a real bar */
+  width: 0% !important;
+}
+
+/* ─── fallback key/value table ─────────────────────────────────── */
+
+.quota__kv {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quota__kv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: var(--text-sm);
+}
+
+.quota__kv-key {
+  color: var(--stone-600);
+  font-weight: var(--weight-medium);
+}
+
+.quota__kv-val {
+  color: var(--stone-400);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── empty state ───────────────────────────────────────────────── */
+
+.quota__empty {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--stone-400);
+  text-align: center;
+  padding: 24px 0;
+}
+
+/* ─── busy / loading ────────────────────────────────────────────── */
+
+.quota[aria-busy="true"] .quota__body,
+.quota[aria-busy="true"] .quota__empty {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* ─── dark theme ────────────────────────────────────────────────── */
+
+/* tokens.css handles the palette flips via .theme-dark; only structural
+   overrides that can't be expressed through tokens go here. */
+
+.theme-dark .quota-row__fill--danger {
+  /* slightly softer in dark to avoid harshness */
+  background: var(--color-error-text);
+}

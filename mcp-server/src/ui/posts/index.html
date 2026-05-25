@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>BulkPublish — Posts</title>
+  </head>
+  <body>
+    <main class="posts" aria-busy="true">
+      <header class="posts__header">
+        <h1 class="posts__title">Posts</h1>
+        <p class="posts__sub" id="sub">Loading your posts…</p>
+      </header>
+
+      <div class="posts__list" id="posts-list" role="list"></div>
+
+      <p class="posts__empty" id="posts-empty" hidden>No posts yet.</p>
+    </main>
+    <script type="module" src="./posts.ts"></script>
+  </body>
+</html>

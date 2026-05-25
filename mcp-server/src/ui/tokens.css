@@ -1,7 +1,7 @@
 /* BulkPublish design tokens — synced from webapp/src/styles/global.css (:root).
-   This is the single source of the palette for the composer widget; the rules in
-   composer.css reference only var(--…), never raw hex. If the webapp tokens
-   change, update the values here to keep the widget visually in sync. */
+   Single source of the palette shared by ALL composer/widget views; the per-widget
+   CSS files reference only var(--…), never raw hex. If the webapp tokens change,
+   update the values here to keep the widgets visually in sync. */
 :root {
   /* typography */
   --font-display: 'Inter', system-ui, -apple-system, sans-serif;
@@ -49,10 +49,21 @@
   --accent-900: #663300;
 
   /* semantic */
+  --color-success: #4ADE80;
   --color-success-bg: #F0FDF4;
   --color-success-text: #166534;
+  --color-error: #ff0000;
   --color-error-bg: #FEF7F7;
   --color-error-text: #B91C1C;
+  --color-warning: #FBBF24;
+  --color-warning-bg: #FFFBEB;
+  --color-warning-text: #A16207;
+  --color-info: #60A5FA;
+  --color-info-bg: #EFF6FF;
+  --color-info-text: #1D4ED8;
+  --color-scheduled: #6366F1;
+  --color-scheduled-bg: #F8F8FC;
+  --color-scheduled-text: #4338CA;
 
   /* surfaces */
   --surface-main: #FFFFFF;
@@ -75,6 +86,13 @@
   --transition-base: 180ms ease;
 }
 
+/* The [hidden] attribute must always win, even over component display rules
+   such as `.schedule { display: flex }` — otherwise toggled/empty-state
+   elements stay visible. */
+[hidden] {
+  display: none !important;
+}
+
 /* Dark fallback for hosts that report a dark theme (the webapp itself is light-only). */
 .theme-dark {
   --surface-main: #1A1A1A;
@@ -92,4 +110,7 @@
   --stone-50: #222222;
   --color-success-bg: #0F2417;
   --color-error-bg: #2A1414;
+  --color-scheduled-bg: #1A1A2E;
+  --color-info-bg: #14223A;
+  --color-warning-bg: #2A2410;
 }

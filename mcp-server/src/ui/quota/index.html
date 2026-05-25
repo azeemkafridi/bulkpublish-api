@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>BulkPublish — Quota usage</title>
+  </head>
+  <body>
+    <main class="quota" aria-busy="true">
+      <header class="quota__header">
+        <h1 class="quota__title">Quota usage</h1>
+        <p class="quota__sub" id="sub">Loading your quota…</p>
+      </header>
+
+      <div class="quota__body" id="quota-body">
+        <!-- rows injected by quota.ts -->
+      </div>
+
+      <p class="quota__empty" id="quota-empty" hidden>No quota data</p>
+    </main>
+    <script type="module" src="./quota.ts"></script>
+  </body>
+</html>

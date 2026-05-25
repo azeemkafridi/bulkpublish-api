@@ -15,7 +15,7 @@
   },
   "scripts": {
     "build": "npm run build:ui && tsc",
-    "build:ui": "vite build && node scripts/embed-ui.mjs",
+    "build:ui": "node scripts/build-ui.mjs && node scripts/embed-ui.mjs",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts"
   },

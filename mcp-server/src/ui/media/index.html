@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>BulkPublish — Media library</title>
+  </head>
+  <body>
+    <main class="media" aria-busy="true">
+      <header class="media__header">
+        <h1 class="media__title">Media</h1>
+        <p class="media__sub" id="sub">Loading media…</p>
+      </header>
+
+      <div class="media__grid" id="grid" role="list" aria-label="Media files"></div>
+
+      <p class="media__empty" id="empty" hidden>No media uploaded yet.</p>
+    </main>
+    <script type="module" src="./media.ts"></script>
+  </body>
+</html>

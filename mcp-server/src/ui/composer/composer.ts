@@ -8,7 +8,6 @@
  * credentials — every server call is proxied by the host and runs with the
  * server's API key.
  */
-import "./tokens.css";
 import "./composer.css";
 import {
   App,

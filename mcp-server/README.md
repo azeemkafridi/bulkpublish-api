@@ -135,12 +135,19 @@ export BULKPUBLISH_API_KEY=bp_your_api_key_here
 | `delete_schedule` | Delete a schedule |
 | **Quota** | |
 | `get_quota_usage` | Check current plan quota usage |
+| **Interactive UI (MCP Apps)** | |
+| `compose_post` | Open the interactive post composer (also listed above) |
+| `view_analytics` | Open an interactive analytics dashboard |
+| `view_posts` | Open an interactive posts list |
+| `view_channels` | Open an interactive channels view |
+| `view_media` | Open an interactive media gallery |
+| `view_quota` | Open an interactive quota-usage view |
 
 ## Interactive UI (MCP Apps)
 
 In hosts that support [MCP Apps](https://blog.modelcontextprotocol.io/posts/2025-11-21-mcp-apps/) — Claude, ChatGPT, VS Code, Goose, Postman, and the Smithery playground — the **`compose_post`** tool opens an interactive composer rendered inline in the conversation: pick channels, write content, optionally schedule, then submit. On submit it calls `create_post` through the host bridge, so the sandboxed iframe never holds your API key. Hosts without MCP Apps support simply receive a plain-text summary, so nothing breaks.
 
-The UI is a self-contained widget (`src/ui/composer/`) bundled into a single HTML file with Vite and served from the `ui://bulkpublish/composer` resource. Its styling mirrors the BulkPublish web app via shared design tokens (`src/ui/composer/tokens.css`).
+Several tools render UIs — `compose_post` (composer), `view_analytics`, `view_posts`, `view_channels`, `view_media`, and `view_quota`. Each is a self-contained widget under `src/ui/<name>/`, bundled into a single HTML file with Vite (one single-input pass per widget — see `scripts/build-ui.mjs`) and inlined into the server via `src/ui/widgets.generated.ts`. They share the BulkPublish web app's design tokens (`src/ui/tokens.css`), so the look matches. A View receives its data from the triggering tool's `structuredContent` and can call other tools back through the host bridge — so the sandboxed iframe never holds your API key. Hosts without MCP Apps support simply receive a plain-text summary.
 
 ## Example Conversation
 

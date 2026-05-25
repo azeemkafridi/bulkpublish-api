@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>BulkPublish — Channels</title>
+  </head>
+  <body>
+    <main class="channels-view" aria-busy="true">
+      <header class="channels-view__header">
+        <h1 class="channels-view__title">Channels</h1>
+        <p class="channels-view__sub" id="sub">Loading channels…</p>
+      </header>
+
+      <div class="channel-grid" id="channel-grid" role="list" aria-label="Connected channels"></div>
+
+      <p class="empty-state" id="channels-empty" hidden>
+        No connected channels — connect one in BulkPublish first.
+      </p>
+    </main>
+    <script type="module" src="./channels.ts"></script>
+  </body>
+</html>

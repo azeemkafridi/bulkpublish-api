@@ -21,7 +21,7 @@ import {
   registerAppResource,
   RESOURCE_MIME_TYPE,
 } from "@modelcontextprotocol/ext-apps/server";
-import { COMPOSER_HTML } from "./ui/composer.generated.js";
+import { WIDGET_HTML } from "./ui/widgets.generated.js";
 
 const MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
@@ -1081,52 +1081,98 @@ server.tool(
 );
 
 // ---------------------------------------------------------------------------
-// MCP App: interactive post composer
+// MCP Apps: interactive widgets
 //
-// `compose_post` opens an interactive UI (the ui://bulkpublish/composer
-// resource). It returns the connected channels as structuredContent so the
-// View can render the channel picker; on submit, the View calls the existing
-// `create_post` tool through the host bridge. Hosts without MCP Apps support
-// just receive the text summary, so nothing breaks.
+// Each widget is a self-contained View bundled under src/ui/<widget>/ (see
+// vite.config.ts) and inlined into WIDGET_HTML. registerWidget wires up the
+// pair: an app-tool that fetches data and returns it as structuredContent, plus
+// the ui://bulkpublish/<widget> resource that serves the View. The View calls
+// existing tools (e.g. create_post) back through the host bridge, so the
+// sandboxed iframe never holds credentials. Hosts without MCP Apps support just
+// receive the text summary, so nothing breaks.
 // ---------------------------------------------------------------------------
 
-const COMPOSER_URI = "ui://bulkpublish/composer";
-
-registerAppResource(
-  server,
-  "BulkPublish Composer",
-  COMPOSER_URI,
-  { mimeType: RESOURCE_MIME_TYPE },
-  async () => ({
-    contents: [
-      { uri: COMPOSER_URI, mimeType: RESOURCE_MIME_TYPE, text: COMPOSER_HTML },
-    ],
-  })
-);
-
-registerAppTool(
-  server,
-  "compose_post",
-  {
-    title: "Compose a post",
-    description:
-      "Open an interactive composer to draft or schedule a social media post. " +
-      "Shows the user's connected channels to pick from and pre-fills any provided text. " +
-      "The user finishes in the UI; on submit it creates the post via create_post.",
-    inputSchema: {
-      content: z
-        .string()
-        .optional()
-        .describe("Optional initial text to pre-fill the composer with."),
+function registerWidget(config: {
+  tool: string;
+  widget: string;
+  title: string;
+  description: string;
+  inputSchema: Record<string, z.ZodTypeAny>;
+  load: (
+    args: Record<string, any>
+  ) => Promise<{ text: string; data: Record<string, unknown> }>;
+}): void {
+  const uri = `ui://bulkpublish/${config.widget}`;
+  registerAppResource(
+    server,
+    config.title,
+    uri,
+    { mimeType: RESOURCE_MIME_TYPE },
+    async () => ({
+      contents: [
+        {
+          uri,
+          mimeType: RESOURCE_MIME_TYPE,
+          text: WIDGET_HTML[config.widget] ?? "",
+        },
+      ],
+    })
+  );
+  registerAppTool(
+    server,
+    config.tool,
+    {
+      title: config.title,
+      description: config.description,
+      inputSchema: config.inputSchema,
+      _meta: { ui: { resourceUri: uri } },
     },
-    _meta: { ui: { resourceUri: COMPOSER_URI } },
+    async (args) => {
+      const { text, data } = await config.load(args as Record<string, any>);
+      return {
+        content: [{ type: "text" as const, text }],
+        structuredContent: data,
+      };
+    }
+  );
+}
+
+// Defensive shape helpers — the BulkPublish API responses vary, so widgets read
+// loosely and we refine the contracts after a live test.
+function asArray(data: unknown, ...keys: string[]): unknown[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === "object") {
+    for (const k of keys) {
+      const v = (data as Record<string, unknown>)[k];
+      if (Array.isArray(v)) return v;
+    }
+  }
+  return [];
+}
+function asObject(data: unknown): Record<string, unknown> {
+  return data && typeof data === "object" && !Array.isArray(data)
+    ? (data as Record<string, unknown>)
+    : { value: data };
+}
+
+// --- compose_post → composer ---
+registerWidget({
+  tool: "compose_post",
+  widget: "composer",
+  title: "Compose a post",
+  description:
+    "Open an interactive composer to draft or schedule a social media post. " +
+    "Shows the user's connected channels to pick from and pre-fills any provided text. " +
+    "The user finishes in the UI; on submit it creates the post via create_post.",
+  inputSchema: {
+    content: z
+      .string()
+      .optional()
+      .describe("Optional initial text to pre-fill the composer with."),
   },
-  async ({ content }) => {
+  load: async ({ content }) => {
     const res = await api("GET", "/api/channels?active=true");
-    const raw = Array.isArray(res.data)
-      ? (res.data as unknown[])
-      : ((res.data as { channels?: unknown[] })?.channels ?? []);
-    const channels = (Array.isArray(raw) ? raw : []).map((c) => {
+    const channels = asArray(res.data, "channels", "data").map((c) => {
       const o = c as Record<string, unknown>;
       return {
         channelId: o.channelId ?? o.id,
@@ -1134,15 +1180,236 @@ registerAppTool(
         accountName: o.accountName ?? o.name ?? o.username,
       };
     });
-    const summary = res.ok
-      ? `Opening the composer${content ? ` with your draft` : ""} — ${channels.length} connected channel(s) available.`
-      : formatResponse(res);
     return {
-      content: [{ type: "text" as const, text: summary }],
-      structuredContent: { channels },
+      text: res.ok
+        ? `Opening the composer${content ? " with your draft" : ""} — ${channels.length} connected channel(s) available.`
+        : formatResponse(res),
+      data: { channels },
     };
-  }
-);
+  },
+});
+
+// --- view_analytics → analytics ---
+registerWidget({
+  tool: "view_analytics",
+  widget: "analytics",
+  title: "Analytics dashboard",
+  description:
+    "Open an interactive analytics dashboard for a date range — totals, status " +
+    "breakdown, per-platform stats, and daily post counts.",
+  inputSchema: {
+    from: z
+      .string()
+      .optional()
+      .describe("Start date (ISO, e.g. 2025-01-01). Defaults to 30 days ago."),
+    to: z.string().optional().describe("End date (ISO). Defaults to today."),
+  },
+  load: async ({ from, to }) => {
+    const end = to || new Date().toISOString().slice(0, 10);
+    const start =
+      from || new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+    const res = await api(
+      "GET",
+      `/api/analytics/summary?from=${start}&to=${end}`
+    );
+    // Normalize: API returns byPlatform as an object map and daily counts as
+    // `byDay`; the View expects a byPlatform array and a `daily` array.
+    const s = asObject(res.data);
+    const bp = s.byPlatform;
+    const byPlatform =
+      bp && typeof bp === "object" && !Array.isArray(bp)
+        ? Object.entries(bp as Record<string, any>).map(([platform, v]) => ({
+            platform,
+            count: v?.total ?? v?.count ?? 0,
+            published: v?.published ?? 0,
+            failed: v?.failed ?? 0,
+          }))
+        : asArray(bp);
+    const daily = asArray(s.byDay).length ? asArray(s.byDay) : asArray(s.daily);
+    return {
+      text: res.ok ? `Analytics for ${start} → ${end}.` : formatResponse(res),
+      data: {
+        from: start,
+        to: end,
+        summary: {
+          totalPosts: s.totalPosts ?? s.total,
+          published: s.published,
+          scheduled: s.scheduled,
+          failed: s.failed,
+          partial: s.partial,
+          byPlatform,
+          daily,
+        },
+      },
+    };
+  },
+});
+
+// --- view_posts → posts ---
+registerWidget({
+  tool: "view_posts",
+  widget: "posts",
+  title: "Posts",
+  description:
+    "Open an interactive list of posts with their status, schedule, and channels. " +
+    "Optionally filter by status.",
+  inputSchema: {
+    status: z
+      .enum([
+        "draft",
+        "scheduled",
+        "publishing",
+        "published",
+        "failed",
+        "partial",
+      ])
+      .optional()
+      .describe("Filter by post status."),
+    limit: z.number().optional().describe("Max posts to show (default 20)."),
+  },
+  load: async ({ status, limit }) => {
+    const params = new URLSearchParams();
+    if (status) params.set("status", status);
+    params.set("limit", String(limit ?? 20));
+    const res = await api("GET", `/api/posts?${params}`);
+    // Normalize: platforms live in postPlatforms[]; flatten to a platform list.
+    const posts = asArray(res.data, "posts", "data", "items").map((p) => {
+      const o = p as Record<string, any>;
+      const platforms = Array.isArray(o.postPlatforms)
+        ? o.postPlatforms.map((pp: any) => pp.platform).filter(Boolean)
+        : Array.isArray(o.platforms)
+          ? o.platforms
+          : [];
+      return {
+        id: o.id,
+        content: o.content,
+        status: o.status,
+        scheduledAt: o.scheduledAt,
+        publishedAt: o.publishedAt,
+        createdAt: o.createdAt,
+        platforms,
+      };
+    });
+    return {
+      text: res.ok ? `Showing ${posts.length} post(s).` : formatResponse(res),
+      data: { posts, total: asObject(res.data).total ?? posts.length },
+    };
+  },
+});
+
+// --- view_channels → channels ---
+registerWidget({
+  tool: "view_channels",
+  widget: "channels",
+  title: "Channels",
+  description:
+    "Open an interactive view of connected social channels with platform, account, " +
+    "and connection/token status.",
+  inputSchema: {},
+  load: async () => {
+    const res = await api("GET", "/api/channels");
+    const channels = asArray(res.data, "channels", "data").map((c) => {
+      const o = c as Record<string, any>;
+      const tokenStatus = o.tokenStatus as string | undefined;
+      return {
+        channelId: o.channelId ?? o.id,
+        platform: o.platform,
+        accountName: o.accountName ?? o.name ?? o.username,
+        active: o.isActive ?? o.active,
+        status: o.needsReconnect
+          ? "needs reconnect"
+          : tokenStatus && tokenStatus !== "valid"
+            ? tokenStatus.replace(/_/g, " ")
+            : undefined,
+      };
+    });
+    return {
+      text: res.ok
+        ? `${channels.length} connected channel(s).`
+        : formatResponse(res),
+      data: { channels },
+    };
+  },
+});
+
+// --- view_media → media ---
+registerWidget({
+  tool: "view_media",
+  widget: "media",
+  title: "Media library",
+  description:
+    "Open an interactive gallery of uploaded media files with thumbnails and metadata.",
+  inputSchema: {
+    limit: z.number().optional().describe("Max items to show (default 30)."),
+  },
+  load: async ({ limit }) => {
+    const res = await api("GET", `/api/media?limit=${limit ?? 30}`);
+    // Normalize: array key is `files`; URLs are preview/thumbnail/original.
+    const media = asArray(res.data, "files", "media", "data", "items").map(
+      (m) => {
+        const o = m as Record<string, any>;
+        return {
+          id: o.id,
+          url: o.previewUrl ?? o.thumbnailUrl ?? o.originalUrl ?? o.url,
+          filename: o.fileName ?? o.filename ?? o.name,
+          mimeType: o.mimeType ?? o.type,
+          width: o.width,
+          height: o.height,
+        };
+      }
+    );
+    return {
+      text: res.ok
+        ? `Showing ${media.length} media file(s).`
+        : formatResponse(res),
+      data: { media },
+    };
+  },
+});
+
+// --- view_quota → quota ---
+registerWidget({
+  tool: "view_quota",
+  widget: "quota",
+  title: "Quota usage",
+  description:
+    "Open an interactive view of current plan quota usage — daily/monthly post " +
+    "limits, channel limits, and media storage.",
+  inputSchema: {},
+  load: async () => {
+    const res = await api("GET", "/api/quotas/usage");
+    // Normalize: API returns parallel limits{} + usage{} maps with different
+    // key names; pair them into { label: { used, limit } } for the View.
+    const root = asObject(res.data);
+    const limits = asObject(root.limits);
+    const used = asObject(root.usage);
+    const MB = 1048576;
+    const rows: Array<[string, unknown, unknown]> = [
+      ["Channels", used.channels, limits.channels],
+      ["Posts / day", used.postsToday, limits.postsPerDay],
+      ["Posts / month", used.postsThisMonth, limits.postsPerMonth],
+      ["Pending scheduled", used.pendingScheduled, limits.maxPendingScheduled],
+      ["Recurring schedules", used.recurringSchedules, limits.recurringSchedules],
+      ["Media storage", Number(used.mediaStorageMB) * MB, Number(limits.mediaStorageMB) * MB],
+      ["API keys", used.apiKeys, limits.apiKeys],
+      ["Webhooks", used.webhooks, limits.webhooks],
+      ["Labels", used.labels, limits.maxLabels],
+      ["Org members", used.orgMembers, limits.maxOrgMembers],
+    ];
+    const usage: Record<string, unknown> = {};
+    if (root.plan) usage.plan = root.plan;
+    for (const [label, u, l] of rows) {
+      if (u === undefined && l === undefined) continue;
+      usage[label] = { used: u ?? 0, limit: l ?? null };
+    }
+    return {
+      text: res.ok
+        ? `Plan: ${root.plan ?? "—"} — ${used.channels ?? 0} channels, ${used.postsThisMonth ?? 0} posts this month.`
+        : formatResponse(res),
+      data: { usage },
+    };
+  },
+});
 
 // ---------------------------------------------------------------------------
 // Smithery sandbox export (for tool scanning without real credentials)
