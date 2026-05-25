@@ -94,6 +94,26 @@ Set the environment variable in your shell profile or `.env` file:
 export BULKPUBLISH_API_KEY=bp_your_api_key_here
 ```
 
+## Remote / hosted server (HTTP)
+
+The npx/stdio setup above runs the server locally. Web clients that cannot spawn a local process — **claude.ai custom connectors** and **Smithery's gateway** — connect to a hosted HTTP endpoint instead. Alongside the stdio bin, the server ships a Streamable HTTP transport (`dist/http.js`, run with `npm run start:http`):
+
+| Endpoint | Purpose |
+|----------|---------|
+| `POST /mcp` | MCP Streamable HTTP (stateless) |
+| `GET /.well-known/mcp/server-card.json` | Static metadata so registries can skip scanning |
+| `GET /health` | Liveness check |
+
+It is **multi-tenant** — the process holds no API key. Each caller supplies their own `bp_…` key per request via the connection URL (`?key=bp_…`), a Smithery `?config=` blob, or an `Authorization: Bearer bp_…` / `X-BulkPublish-Key` header. `initialize`, `tools/list`, and `resources/*` need no key (so scans and tool discovery work); a `tools/call` without one returns `401`.
+
+A `Dockerfile` is included:
+
+```bash
+docker build -t bulkpublish-mcp . && docker run -p 8080:8080 bulkpublish-mcp
+```
+
+Once deployed, add it to **claude.ai → Settings → Connectors → Add custom connector** as `https://<host>/mcp?key=bp_…`, or publish the `https://<host>/mcp` URL to Smithery.
+
 ## Available Tools
 
 | Tool | Description |

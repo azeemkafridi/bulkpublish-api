@@ -17,7 +17,9 @@
     "build": "npm run build:ui && tsc",
     "build:ui": "node scripts/build-ui.mjs && node scripts/embed-ui.mjs",
     "start": "node dist/index.js",
-    "dev": "tsx src/index.ts"
+    "start:http": "node dist/http.js",
+    "dev": "tsx src/index.ts",
+    "dev:http": "tsx src/http.ts"
   },
   "keywords": [
     "mcp",

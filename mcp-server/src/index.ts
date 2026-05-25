@@ -16,6 +16,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { readFileSync, existsSync } from "node:fs";
 import { basename, resolve } from "node:path";
+import { AsyncLocalStorage } from "node:async_hooks";
 import {
   registerAppTool,
   registerAppResource,
@@ -44,6 +45,16 @@ const BASE_URL = (
 
 // API_KEY may be absent during Smithery sandbox scanning — tools will error at runtime
 
+// Per-request API key context. In stdio mode there is no active store, so this
+// falls back to the BULKPUBLISH_API_KEY env var — existing behavior, unchanged.
+// The hosted HTTP server (src/http.ts) runs each request inside
+// requestContext.run({ apiKey }), so every tool call uses that caller's key and
+// the process never holds a shared key.
+export const requestContext = new AsyncLocalStorage<{ apiKey?: string }>();
+function activeApiKey(): string | undefined {
+  return requestContext.getStore()?.apiKey ?? API_KEY;
+}
+
 // ---------------------------------------------------------------------------
 // HTTP helper
 // ---------------------------------------------------------------------------
@@ -61,7 +72,7 @@ async function api<T = unknown>(
 ): Promise<ApiResponse<T>> {
   const url = `${BASE_URL}${path}`;
   const headers: Record<string, string> = {
-    Authorization: `Bearer ${API_KEY}`,
+    Authorization: `Bearer ${activeApiKey()}`,
     "Content-Type": "application/json",
   };
 
@@ -89,10 +100,14 @@ function formatResponse(res: ApiResponse): string {
 // MCP Server
 // ---------------------------------------------------------------------------
 
-const server = new McpServer({
-  name: "bulkpublish",
-  version: "1.0.0",
-});
+// Build a fully-registered MCP server instance. Called once for stdio (below)
+// and once per request by the hosted HTTP server, so each HTTP caller gets an
+// isolated server whose tool calls use their own API key via requestContext.
+export function createServer(): McpServer {
+  const server = new McpServer({
+    name: "bulkpublish",
+    version: "1.0.0",
+  });
 
 // ---------------------------------------------------------------------------
 // Tool: list_channels
@@ -585,7 +600,7 @@ server.tool(
     const uploadRes = await fetch(uploadUrl, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${API_KEY}`,
+        Authorization: `Bearer ${activeApiKey()}`,
       },
       body: formData,
     });
@@ -1425,12 +1440,15 @@ registerWidget({
   },
 });
 
+  return server;
+}
+
 // ---------------------------------------------------------------------------
 // Smithery sandbox export (for tool scanning without real credentials)
 // ---------------------------------------------------------------------------
 
-export function createSandboxServer() {
-  return server;
+export function createSandboxServer(): McpServer {
+  return createServer();
 }
 
 // ---------------------------------------------------------------------------
@@ -1454,6 +1472,7 @@ if (isDirectRun) {
     );
   }
 
+  const server = createServer();
   const transport = new StdioServerTransport();
   server.connect(transport).catch((err) => {
     console.error("Failed to start MCP server:", err);
