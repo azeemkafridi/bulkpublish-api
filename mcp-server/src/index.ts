@@ -1118,17 +1118,31 @@ function registerWidget(config: {
   ) => Promise<{ text: string; data: Record<string, unknown> }>;
 }): void {
   const uri = `ui://bulkpublish/${config.widget}`;
+  // Widgets render in a sandboxed iframe with no same-origin server, and the
+  // host blocks any origin we don't declare. The composer + view_media show
+  // media thumbnails served from R2's public CDN (images.bulkpublish.com) and
+  // any legacy app-served media, so allow those as static-resource origins
+  // (maps to CSP img-src). All JS/CSS is inlined, so nothing else is external.
+  const ui = {
+    csp: {
+      resourceDomains: [
+        "https://images.bulkpublish.com",
+        "https://app.bulkpublish.com",
+      ],
+    },
+  };
   registerAppResource(
     server,
     config.title,
     uri,
-    { mimeType: RESOURCE_MIME_TYPE },
+    { mimeType: RESOURCE_MIME_TYPE, _meta: { ui } },
     async () => ({
       contents: [
         {
           uri,
           mimeType: RESOURCE_MIME_TYPE,
           text: WIDGET_HTML[config.widget] ?? "",
+          _meta: { ui },
         },
       ],
     })

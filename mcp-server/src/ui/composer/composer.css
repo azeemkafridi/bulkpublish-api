@@ -157,11 +157,11 @@ body {
 .banner--error { background: var(--color-error-bg); color: var(--color-error-text); }
 .banner--success { background: var(--color-success-bg); color: var(--color-success-text); }
 
-/* actions — all on one row */
+/* actions — all on one row, left-aligned */
 .actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: center;
   gap: 10px;
 }
