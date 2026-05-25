@@ -55,6 +55,13 @@ function activeApiKey(): string | undefined {
   return requestContext.getStore()?.apiKey ?? API_KEY;
 }
 
+// R2 S3 endpoint the composer PUTs presigned uploads to. Declared in the widget
+// CSP (connect-src) so the host's sandbox allows the direct-to-R2 upload. Not a
+// secret — it's the public account endpoint baked into every presigned URL.
+const R2_UPLOAD_ORIGIN =
+  process.env.R2_UPLOAD_ORIGIN ||
+  "https://d46a1bf4b4491a708ec851e1aade51e5.r2.cloudflarestorage.com";
+
 // ---------------------------------------------------------------------------
 // HTTP helper
 // ---------------------------------------------------------------------------
@@ -1125,10 +1132,13 @@ function registerWidget(config: {
   // (maps to CSP img-src). All JS/CSS is inlined, so nothing else is external.
   const ui = {
     csp: {
+      // img-src etc. — media thumbnails load from R2's public CDN.
       resourceDomains: [
         "https://images.bulkpublish.com",
         "https://app.bulkpublish.com",
       ],
+      // connect-src — the composer PUTs presigned uploads straight to R2.
+      connectDomains: [R2_UPLOAD_ORIGIN],
     },
   };
   registerAppResource(
@@ -1453,6 +1463,59 @@ registerWidget({
     };
   },
 });
+
+  // ---------------------------------------------------------------------------
+  // Tools: media upload (presigned direct-to-R2). Paired helpers the composer
+  // uses to upload a file the user picks — reserve a presigned URL, the browser
+  // PUTs the bytes straight to R2, then finalize records the media file. This is
+  // how the sandboxed composer uploads without holding credentials. For scripted
+  // uploads, prefer upload_media (URL or local path).
+  // ---------------------------------------------------------------------------
+
+  server.tool(
+    "create_media_upload",
+    "Reserve a presigned R2 upload URL for a direct browser upload (used by the composer UI). For scripted uploads use upload_media instead.",
+    {
+      contentType: z
+        .string()
+        .describe("File MIME type, e.g. image/png or video/mp4."),
+      sizeBytes: z.number().describe("File size in bytes."),
+    },
+    async ({ contentType, sizeBytes }) => {
+      const res = await api("POST", "/api/media/presign", {
+        contentType,
+        sizeBytes,
+      });
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+
+  server.tool(
+    "finalize_media_upload",
+    "Record an uploaded R2 object as a media file after the browser PUT (pairs with create_media_upload; used by the composer UI).",
+    {
+      r2Key: z.string().describe("The r2Key returned by create_media_upload."),
+      fileName: z.string().describe("Original file name."),
+      mimeType: z.string().describe("File MIME type."),
+      sizeBytes: z.number().describe("File size in bytes."),
+      width: z.number().optional().describe("Pixel width (images/video)."),
+      height: z.number().optional().describe("Pixel height (images/video)."),
+      duration: z.number().optional().describe("Duration in seconds (video)."),
+    },
+    async ({ r2Key, fileName, mimeType, sizeBytes, width, height, duration }) => {
+      const body: Record<string, unknown> = {
+        r2Key,
+        fileName,
+        mimeType,
+        sizeBytes,
+      };
+      if (width !== undefined) body.width = width;
+      if (height !== undefined) body.height = height;
+      if (duration !== undefined) body.duration = duration;
+      const res = await api("POST", "/api/media/finalize", body);
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
 
   return server;
 }

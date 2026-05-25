@@ -53,6 +53,7 @@ const contentEl = $<HTMLTextAreaElement>("content");
 const countEl = $("count");
 const mediaField = $("media-field");
 const mediaGrid = $("media-grid");
+const mediaFileEl = $<HTMLInputElement>("media-file");
 const scheduledAtEl = $<HTMLInputElement>("scheduled-at");
 const tzLabelEl = $("tz-label");
 const errorEl = $("error");
@@ -68,6 +69,7 @@ const selectedMedia = new Set<number>();
 let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 let loaded = false;
 let submitting = false;
+let uploading = false;
 
 /* ----------------------------- helpers ----------------------------- */
 
@@ -149,11 +151,21 @@ function renderChannels(): void {
 
 function renderMedia(): void {
   mediaGrid.innerHTML = "";
-  if (media.length === 0) {
-    mediaField.hidden = true;
-    return;
-  }
   mediaField.hidden = false;
+
+  // Upload tile (always first): opens the file picker, spins while uploading.
+  const up = document.createElement("button");
+  up.type = "button";
+  up.className = "media-tile media-tile--upload";
+  up.disabled = uploading;
+  up.title = uploading ? "Uploading…" : "Upload image or video";
+  up.innerHTML = uploading
+    ? `<span class="media-tile__spin" aria-hidden="true"></span>`
+    : `<span class="media-tile__upload" aria-hidden="true">+</span>`;
+  up.setAttribute("aria-label", up.title);
+  up.addEventListener("click", () => mediaFileEl.click());
+  mediaGrid.appendChild(up);
+
   for (const m of media) {
     const on = selectedMedia.has(m.id);
     const tile = document.createElement("button");
@@ -182,6 +194,127 @@ function renderMedia(): void {
     });
     mediaGrid.appendChild(tile);
   }
+}
+
+/* ----------------------------- media upload ----------------------------- */
+// Presigned direct-to-R2: reserve a URL (create_media_upload) → PUT the bytes
+// straight to R2 from here → record it (finalize_media_upload). The new file is
+// added to the library and auto-selected for this post.
+
+async function handleFiles(files: FileList): Promise<void> {
+  if (uploading || files.length === 0) return;
+  uploading = true;
+  clearBanners();
+  renderMedia();
+  let ok = 0;
+  for (const file of Array.from(files)) {
+    try {
+      await uploadOne(file);
+      ok++;
+    } catch (e) {
+      showError(`${file.name}: ${e instanceof Error ? e.message : "upload failed"}`);
+    }
+  }
+  uploading = false;
+  renderMedia();
+  updateButtons();
+  if (ok > 0) {
+    showSuccess(`Uploaded ${ok} file${ok > 1 ? "s" : ""} ✓ — selected for this post.`);
+  }
+}
+
+async function uploadOne(file: File): Promise<void> {
+  const contentType = file.type || "application/octet-stream";
+  // 1. reserve a presigned R2 URL
+  const pres = parseToolText(
+    await app.callServerTool({
+      name: "create_media_upload",
+      arguments: { contentType, sizeBytes: file.size },
+    }),
+  ) as Record<string, any> | string | undefined;
+  const uploadUrl = typeof pres === "object" ? pres?.uploadUrl : undefined;
+  const r2Key = typeof pres === "object" ? pres?.r2Key : undefined;
+  if (!uploadUrl || !r2Key) {
+    throw new Error(
+      (typeof pres === "object" && (pres?.error?.message || pres?.error)) ||
+        "couldn't start the upload",
+    );
+  }
+  // 2. PUT the bytes straight to R2 (allowed by the widget CSP connect-src)
+  const put = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": contentType },
+    body: file,
+  });
+  if (!put.ok) throw new Error(`R2 upload failed (HTTP ${put.status})`);
+  // 3. best-effort dimensions (optional — helps the saved record)
+  const dims = await readDimensions(file, contentType).catch(() => ({}));
+  // 4. finalize — records the media file (server HEAD/magic-byte-verifies it)
+  const fin = parseToolText(
+    await app.callServerTool({
+      name: "finalize_media_upload",
+      arguments: {
+        r2Key,
+        fileName: file.name,
+        mimeType: contentType,
+        sizeBytes: file.size,
+        ...dims,
+      },
+    }),
+  ) as Record<string, any> | string | undefined;
+  const f = typeof fin === "object" ? fin?.file : undefined;
+  if (!f?.id) {
+    throw new Error(
+      (typeof fin === "object" && (fin?.error?.message || fin?.error)) ||
+        "couldn't save the upload",
+    );
+  }
+  // 5. add to the library + auto-select + show immediately
+  media = media.filter((m) => m.id !== f.id);
+  media.unshift({
+    id: f.id,
+    url: f.previewUrl ?? f.thumbnailUrl ?? f.originalUrl ?? undefined,
+    filename: f.fileName,
+    mimeType: f.mimeType,
+  });
+  selectedMedia.add(f.id);
+  renderMedia();
+}
+
+function readDimensions(
+  file: File,
+  contentType: string,
+): Promise<{ width?: number; height?: number; duration?: number }> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const done = (v: { width?: number; height?: number; duration?: number }) => {
+      URL.revokeObjectURL(url);
+      resolve(v);
+    };
+    const fail = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("decode"));
+    };
+    if (contentType.startsWith("image/")) {
+      const img = new Image();
+      img.onload = () => done({ width: img.naturalWidth, height: img.naturalHeight });
+      img.onerror = fail;
+      img.src = url;
+    } else if (contentType.startsWith("video/")) {
+      const v = document.createElement("video");
+      v.preload = "metadata";
+      v.onloadedmetadata = () =>
+        done({
+          width: v.videoWidth,
+          height: v.videoHeight,
+          duration: Number.isFinite(v.duration) ? Math.round(v.duration) : undefined,
+        });
+      v.onerror = fail;
+      v.src = url;
+    } else {
+      done({});
+    }
+  });
 }
 
 function updateCount(): void {
@@ -303,6 +436,10 @@ contentEl.addEventListener("input", () => {
   updateButtons();
 });
 scheduledAtEl.addEventListener("input", updateButtons);
+mediaFileEl.addEventListener("change", () => {
+  if (mediaFileEl.files && mediaFileEl.files.length) void handleFiles(mediaFileEl.files);
+  mediaFileEl.value = ""; // let the same file be re-picked
+});
 
 function postIdFrom(result: CallToolResult): number | undefined {
   const parsed = parseToolText(result);

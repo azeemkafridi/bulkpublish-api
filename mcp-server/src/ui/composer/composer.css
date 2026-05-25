@@ -147,6 +147,26 @@ body {
 .media-tile--on { box-shadow: 0 0 0 2px var(--accent-500); }
 .media-tile--on .media-tile__check { display: flex; }
 
+/* upload tile (always first in the grid) */
+.media-tile--upload { background: var(--stone-100); }
+.media-tile--upload:hover:not(:disabled) { background: var(--stone-150); }
+.media-tile--upload:disabled { cursor: default; }
+.media-tile__upload {
+  font-size: 26px;
+  font-weight: var(--weight-normal);
+  line-height: 1;
+  color: var(--stone-500);
+}
+.media-tile__spin {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--stone-300);
+  border-top-color: var(--accent-500);
+  animation: composer-spin 0.7s linear infinite;
+}
+@keyframes composer-spin { to { transform: rotate(360deg); } }
+
 /* schedule row */
 .schedule { display: flex; align-items: center; gap: 10px; }
 .schedule .input { max-width: 230px; }

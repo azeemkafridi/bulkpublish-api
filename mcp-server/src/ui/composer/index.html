@@ -42,9 +42,16 @@
         <div class="counter"><span id="count">0</span> characters</div>
       </section>
 
-      <section class="field" id="media-field" hidden>
-        <span class="label">Media <span class="label-hint">from your library</span></span>
+      <section class="field" id="media-field">
+        <span class="label">Media <span class="label-hint">pick or upload</span></span>
         <div class="media-grid" id="media-grid" role="group" aria-label="Media"></div>
+        <input
+          type="file"
+          id="media-file"
+          accept="image/*,video/*"
+          multiple
+          hidden
+        />
       </section>
 
       <div class="banner banner--error" id="error" role="alert" hidden></div>
