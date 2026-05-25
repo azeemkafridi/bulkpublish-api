@@ -149,6 +149,15 @@ function renderChannels(): void {
   }
 }
 
+// A media file whose R2 object is gone (image 404 / video load error) is a dead
+// record — remove it from the grid + selection so it can't be picked or posted.
+function dropDeadMedia(id: number, tile: HTMLElement): void {
+  media = media.filter((x) => x.id !== id);
+  const wasSelected = selectedMedia.delete(id);
+  tile.remove();
+  if (wasSelected) updateButtons();
+}
+
 function renderMedia(): void {
   mediaGrid.innerHTML = "";
   mediaField.hidden = false;
@@ -179,15 +188,19 @@ function renderMedia(): void {
       img.src = m.url;
       img.alt = m.filename ?? "";
       img.loading = "lazy";
-      // If the image 404s, its R2 file was reclaimed by retention — a dead
-      // record we shouldn't offer (it would fail to publish). Drop it.
-      img.addEventListener("error", () => {
-        media = media.filter((x) => x.id !== m.id);
-        const wasSelected = selectedMedia.delete(m.id);
-        tile.remove();
-        if (wasSelected) updateButtons();
-      });
+      // A 404 means the R2 file was reclaimed/missing — a dead record we
+      // shouldn't offer (broken thumbnail + would fail to publish). Drop it.
+      img.addEventListener("error", () => dropDeadMedia(m.id, tile));
       tile.appendChild(img);
+    } else if (isVideo && m.url) {
+      tile.innerHTML = `<span class="media-tile__video">▶</span>`;
+      // Video has no server thumbnail, so probe the file itself — a missing one
+      // is dropped too, instead of leaving an empty ▶ tile that can't publish.
+      const probe = document.createElement("video");
+      probe.preload = "metadata";
+      probe.muted = true;
+      probe.addEventListener("error", () => dropDeadMedia(m.id, tile));
+      probe.src = m.url;
     } else if (isVideo) {
       tile.innerHTML = `<span class="media-tile__video">▶</span>`;
     } else {
