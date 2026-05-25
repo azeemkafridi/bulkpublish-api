@@ -1,0 +1,22 @@
+# Smithery deployment config — https://smithery.ai/docs/build
+# stdio server: Smithery runs the built bin and injects the API key from the
+# user-supplied config, so the server boots with credentials (no 403 on scan).
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - bulkpublishApiKey
+    properties:
+      bulkpublishApiKey:
+        type: string
+        title: BulkPublish API Key
+        description: Your API key from app.bulkpublish.com/developer (starts with bp_)
+  exampleConfig:
+    bulkpublishApiKey: bp_your_api_key_here
+  commandFunction: |-
+    (config) => ({
+      command: 'node',
+      args: ['dist/index.js'],
+      env: { BULKPUBLISH_API_KEY: config.bulkpublishApiKey }
+    })

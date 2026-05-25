@@ -1,6 +1,6 @@
 {
   "name": "@bulkpublish/mcp-server",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Model Context Protocol server for BulkPublish — lets AI assistants manage social media posts, channels, media, and analytics.",
   "mcpName": "io.github.azeemkafridi/bulkpublish",
   "repository": {
@@ -44,6 +44,7 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "smithery.yaml"
   ]
 }

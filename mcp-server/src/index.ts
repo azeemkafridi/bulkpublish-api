@@ -1445,11 +1445,13 @@ const isDirectRun =
 
 if (isDirectRun) {
   if (!API_KEY) {
+    // Don't exit — starting without a key lets registries/hosts (e.g. Smithery)
+    // connect and enumerate tools during their scan. Tool *calls* will fail
+    // until a key is provided, with a clear error.
     console.error(
-      "Error: BULKPUBLISH_API_KEY environment variable is required.\n" +
+      "Warning: BULKPUBLISH_API_KEY is not set — tool calls will fail until it is provided.\n" +
         "Get your API key at https://app.bulkpublish.com/developer"
     );
-    process.exit(1);
   }
 
   const transport = new StdioServerTransport();
