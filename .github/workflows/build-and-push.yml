@@ -1,0 +1,58 @@
+name: Build & Push MCP Image
+
+# Builds the hosted MCP server (mcp-server/Dockerfile) and pushes it to GHCR,
+# mirroring the bulk-publish repo's pipeline. Dokploy pulls the image as a
+# Docker Image provider (same pattern as the Worker). The image runs the HTTP
+# transport (dist/http.js) — the npm package still ships the stdio bin.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mcp-server/**'
+      - '.github/workflows/**'
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-mcp:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: mcp-server
+          file: mcp-server/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/bulkpublish-mcp:latest
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/bulkpublish-mcp:sha-${{ github.sha }}
+          cache-from: type=gha,scope=mcp
+          cache-to: type=gha,mode=max,scope=mcp
+
+      - name: Trigger Dokploy redeploy
+        # No-op until you add the MCP app's deploy webhook as DOKPLOY_WEBHOOK_MCP.
+        env:
+          WEBHOOK: ${{ secrets.DOKPLOY_WEBHOOK_MCP }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "DOKPLOY_WEBHOOK_MCP not set — skipping redeploy trigger."
+            exit 0
+          fi
+          MSG=$(printf '%s' "$COMMIT_MSG" | head -1 | sed 's/"/\\"/g')
+          PAYLOAD="{\"ref\":\"refs/heads/main\",\"head_commit\":{\"id\":\"${{ github.sha }}\",\"message\":\"${MSG}\"}}"
+          curl -s -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$WEBHOOK"
