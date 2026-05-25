@@ -496,8 +496,8 @@ async function submit(mode: "draft" | "scheduled" | "published"): Promise<void> 
         );
         return;
       }
-      showSuccess(`Publishing now ✓ — post #${id}`);
-      tellHost(`Published post #${id}.`);
+      showSuccess(`Publishing #${id}… checking the result.`);
+      await reportPublishResult(id);
     } else if (mode === "scheduled") {
       showSuccess(`Scheduled ✓ — post #${id}`);
       tellHost(`Scheduled post #${id}.`);
@@ -515,6 +515,56 @@ async function submit(mode: "draft" | "scheduled" | "published"): Promise<void> 
 
 function tellHost(text: string): void {
   app.sendMessage({ role: "user", content: [{ type: "text", text }] }).catch(() => {});
+}
+
+const delay = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
+
+// publish_post only QUEUES the post — the worker publishes to each platform
+// async. Poll get_post until it's terminal, then show the real per-platform
+// outcome (success / partial / failure) instead of a misleading "queued ✓".
+async function reportPublishResult(postId: number): Promise<void> {
+  const label = (p: string) => PLATFORM_LABELS[p] ?? p;
+  for (let i = 0; i < 12; i++) {
+    await delay(i === 0 ? 1500 : 2500);
+    let post: Record<string, any> | undefined;
+    try {
+      const r = parseToolText(
+        await app.callServerTool({ name: "get_post", arguments: { postId } }),
+      );
+      post = r && typeof r === "object" ? (r as Record<string, any>) : undefined;
+    } catch {
+      continue;
+    }
+    if (!post) continue;
+    const status = String(post.status ?? "");
+    if (status !== "published" && status !== "failed" && status !== "partial") {
+      continue; // still draft/publishing — keep polling
+    }
+    const plats = arrFrom(post.postPlatforms, "postPlatforms", "platforms") as Array<
+      Record<string, any>
+    >;
+    const ok = plats.filter((p) => p.status === "published").map((p) => label(String(p.platform)));
+    const failed = plats.filter((p) => p.status === "failed");
+    if (failed.length === 0) {
+      showSuccess(`Published ✓ — ${ok.length ? ok.join(", ") : `post #${postId}`}`);
+      tellHost(`Published post #${postId}${ok.length ? ` to ${ok.join(", ")}` : ""}.`);
+    } else {
+      const fails = failed
+        .map((p) => `${label(String(p.platform))}: ${p.errorMessage || "failed"}`)
+        .join(" · ");
+      if (ok.length) {
+        showError(`Partly published — ✓ ${ok.join(", ")}. Failed → ${fails}`);
+        tellHost(`Post #${postId} partly published (ok: ${ok.join(", ")}; failed → ${fails}).`);
+      } else {
+        showError(`Publish failed — ${fails}`);
+        tellHost(`Post #${postId} failed to publish — ${fails}`);
+      }
+    }
+    return;
+  }
+  // Still publishing after the polling window — don't claim success or failure.
+  showSuccess(`Post #${postId} is still publishing — check your dashboard for the result.`);
+  tellHost(`Post #${postId} is still publishing.`);
 }
 
 draftBtn.addEventListener("click", () => submit("draft"));
