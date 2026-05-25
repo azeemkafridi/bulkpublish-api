@@ -104,7 +104,7 @@ BulkPublish ships an MCP server so AI assistants can manage your social media di
 }
 ```
 
-12 tools available: `create_post`, `list_channels`, `upload_media`, `get_analytics`, and more. See [mcp-server/README.md](mcp-server/README.md).
+37 tools available: `create_post`, `list_channels`, `upload_media`, `get_analytics`, the interactive `compose_post` composer (MCP Apps), and more. Runs locally (stdio) or hosted over Streamable HTTP at `https://mcp.bulkpublish.com/mcp`. See [mcp-server/README.md](mcp-server/README.md).
 
 ### LLM Tool Use / Function Calling
 

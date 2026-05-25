@@ -137,10 +137,12 @@ Once deployed, add it to **claude.ai → Settings → Connectors → Add custom 
 | `get_channel_options` | Get platform-specific options (boards, playlists) |
 | `search_mentions` | Search users for @mention (X, Bluesky) |
 | **Media** | |
-| `upload_media` | Upload a media file from a URL |
+| `upload_media` | Upload a media file from a URL (or local path on the stdio server) |
 | `get_media` | Get a media file by ID |
 | `list_media` | List uploaded media files |
 | `delete_media` | Delete a media file |
+| `create_media_upload` | Reserve a presigned R2 URL for a direct browser upload (used by the composer) |
+| `finalize_media_upload` | Record an uploaded object as a media file after the browser PUT (used by the composer) |
 | **Labels** | |
 | `create_label` | Create a new label |
 | `list_labels` | List all labels |
