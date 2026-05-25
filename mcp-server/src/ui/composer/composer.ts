@@ -175,7 +175,19 @@ function renderMedia(): void {
     tile.title = m.filename ?? `#${m.id}`;
     const isVideo = (m.mimeType ?? "").startsWith("video/");
     if (!isVideo && m.url) {
-      tile.innerHTML = `<img src="${escapeHtml(m.url)}" alt="${escapeHtml(m.filename ?? "")}" loading="lazy" />`;
+      const img = document.createElement("img");
+      img.src = m.url;
+      img.alt = m.filename ?? "";
+      img.loading = "lazy";
+      // If the image 404s, its R2 file was reclaimed by retention — a dead
+      // record we shouldn't offer (it would fail to publish). Drop it.
+      img.addEventListener("error", () => {
+        media = media.filter((x) => x.id !== m.id);
+        const wasSelected = selectedMedia.delete(m.id);
+        tile.remove();
+        if (wasSelected) updateButtons();
+      });
+      tile.appendChild(img);
     } else if (isVideo) {
       tile.innerHTML = `<span class="media-tile__video">▶</span>`;
     } else {
