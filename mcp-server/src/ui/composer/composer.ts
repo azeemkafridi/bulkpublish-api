@@ -1,12 +1,12 @@
 /**
  * BulkPublish Composer — MCP App View.
  *
- * Runs inside the host's sandboxed iframe. It receives the connected channels
- * from the `compose_post` tool result (structuredContent), lets the user pick
- * channels / write content / optionally schedule, and on submit calls the
- * server's existing `create_post` tool via the host bridge. The iframe holds no
- * credentials — every server call is proxied by the host and runs with the
- * server's API key.
+ * Runs inside the host's sandboxed iframe. Receives connected channels + the
+ * user's media library from the `compose_post` tool result (structuredContent),
+ * lets the user pick channels, write content, attach media from their library,
+ * and optionally schedule. On submit it calls the server's existing tools via
+ * the host bridge: `create_post` (draft/scheduled) and, for Publish now,
+ * `create_post` then `publish_post`. The iframe holds no credentials.
  */
 import "./composer.css";
 import {
@@ -17,8 +17,15 @@ import {
   type McpUiHostContext,
 } from "@modelcontextprotocol/ext-apps";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { platformIcon, platformBg } from "./platform-icons";
 
 type Channel = { channelId: number; platform: string; accountName?: string };
+type Media = {
+  id: number;
+  url?: string;
+  filename?: string;
+  mimeType?: string;
+};
 
 const PLATFORM_LABELS: Record<string, string> = {
   x: "X",
@@ -44,16 +51,20 @@ const channelsEl = $("channels");
 const channelsEmptyEl = $("channels-empty");
 const contentEl = $<HTMLTextAreaElement>("content");
 const countEl = $("count");
-const scheduleToggle = $<HTMLInputElement>("schedule-toggle");
-const scheduleRow = $("schedule-row");
+const mediaField = $("media-field");
+const mediaGrid = $("media-grid");
 const scheduledAtEl = $<HTMLInputElement>("scheduled-at");
 const tzLabelEl = $("tz-label");
 const errorEl = $("error");
 const successEl = $("success");
-const submitBtn = $<HTMLButtonElement>("submit-btn");
+const draftBtn = $<HTMLButtonElement>("draft-btn");
+const scheduleBtn = $<HTMLButtonElement>("schedule-btn");
+const publishBtn = $<HTMLButtonElement>("publish-btn");
 
 let channels: Channel[] = [];
+let media: Media[] = [];
 const selected = new Set<number>();
+const selectedMedia = new Set<number>();
 let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 let loaded = false;
 let submitting = false;
@@ -68,10 +79,6 @@ function escapeHtml(s: string): string {
         c
       ]!,
   );
-}
-
-function isScheduling(): boolean {
-  return scheduleToggle.checked;
 }
 
 function toLocalInput(d: Date): string {
@@ -93,13 +100,15 @@ function parseToolText(result: CallToolResult): unknown {
   }
 }
 
-function channelsFromAny(data: unknown): unknown {
+function arrFrom(data: unknown, ...keys: string[]): unknown[] {
   if (Array.isArray(data)) return data;
   if (data && typeof data === "object") {
-    const o = data as Record<string, unknown>;
-    return o.channels ?? o.data ?? o.items;
+    for (const k of keys) {
+      const v = (data as Record<string, unknown>)[k];
+      if (Array.isArray(v)) return v;
+    }
   }
-  return undefined;
+  return [];
 }
 
 /* ----------------------------- rendering ----------------------------- */
@@ -116,10 +125,13 @@ function renderChannels(): void {
     const chip = document.createElement("button");
     chip.type = "button";
     chip.className = on ? "chip chip--on" : "chip";
+    chip.style.setProperty("--icon-bg", platformBg(ch.platform));
     chip.setAttribute("aria-pressed", String(on));
     const label = PLATFORM_LABELS[ch.platform] ?? ch.platform;
+    const icon = platformIcon(ch.platform);
     chip.innerHTML =
-      `<span class="chip__dot"></span><span class="chip__label">${escapeHtml(label)}</span>` +
+      `<span class="chip__icon">${icon || `<span class="chip__dot"></span>`}</span>` +
+      `<span class="chip__label">${escapeHtml(label)}</span>` +
       (ch.accountName
         ? `<span class="chip__acct">${escapeHtml(ch.accountName)}</span>`
         : "");
@@ -129,9 +141,46 @@ function renderChannels(): void {
       const nowOn = selected.has(ch.channelId);
       chip.classList.toggle("chip--on", nowOn);
       chip.setAttribute("aria-pressed", String(nowOn));
-      updateSubmitState();
+      updateButtons();
     });
     channelsEl.appendChild(chip);
+  }
+}
+
+function renderMedia(): void {
+  mediaGrid.innerHTML = "";
+  if (media.length === 0) {
+    mediaField.hidden = true;
+    return;
+  }
+  mediaField.hidden = false;
+  for (const m of media) {
+    const on = selectedMedia.has(m.id);
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = on ? "media-tile media-tile--on" : "media-tile";
+    tile.setAttribute("aria-pressed", String(on));
+    tile.title = m.filename ?? `#${m.id}`;
+    const isVideo = (m.mimeType ?? "").startsWith("video/");
+    if (!isVideo && m.url) {
+      tile.innerHTML = `<img src="${escapeHtml(m.url)}" alt="${escapeHtml(m.filename ?? "")}" loading="lazy" />`;
+    } else if (isVideo) {
+      tile.innerHTML = `<span class="media-tile__video">▶</span>`;
+    } else {
+      tile.innerHTML = `<span class="media-tile__file">🖼</span>`;
+    }
+    tile.insertAdjacentHTML(
+      "beforeend",
+      `<span class="media-tile__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>`,
+    );
+    tile.addEventListener("click", () => {
+      if (selectedMedia.has(m.id)) selectedMedia.delete(m.id);
+      else selectedMedia.add(m.id);
+      const nowOn = selectedMedia.has(m.id);
+      tile.classList.toggle("media-tile--on", nowOn);
+      tile.setAttribute("aria-pressed", String(nowOn));
+    });
+    mediaGrid.appendChild(tile);
   }
 }
 
@@ -139,18 +188,14 @@ function updateCount(): void {
   countEl.textContent = String(contentEl.value.length);
 }
 
-function updateSubmitState(): void {
-  const ready =
+function updateButtons(): void {
+  const base =
     !submitting &&
     contentEl.value.trim().length > 0 &&
-    selected.size > 0 &&
-    (!isScheduling() || !!scheduledAtEl.value);
-  submitBtn.disabled = !ready;
-  submitBtn.textContent = submitting
-    ? "Working…"
-    : isScheduling()
-      ? "Schedule post"
-      : "Save draft";
+    selected.size > 0;
+  draftBtn.disabled = !base;
+  publishBtn.disabled = !base;
+  scheduleBtn.disabled = !base || !scheduledAtEl.value;
 }
 
 function showError(msg: string): void {
@@ -172,28 +217,44 @@ function ingestChannels(list: unknown): void {
   loaded = true;
   composerEl.removeAttribute("aria-busy");
   const next: Channel[] = [];
-  if (Array.isArray(list)) {
-    for (const raw of list) {
-      if (!raw || typeof raw !== "object") continue;
-      const o = raw as Record<string, unknown>;
-      const id = Number(o.channelId ?? o.id);
-      const platform = String(o.platform ?? "");
-      if (!Number.isFinite(id) || !platform) continue;
-      next.push({
-        channelId: id,
-        platform,
-        accountName: (o.accountName ?? o.name ?? o.username) as
-          | string
-          | undefined,
-      });
-    }
+  for (const raw of arrFrom(list)) {
+    if (!raw || typeof raw !== "object") continue;
+    const o = raw as Record<string, unknown>;
+    const id = Number(o.channelId ?? o.id);
+    const platform = String(o.platform ?? "");
+    if (!Number.isFinite(id) || !platform) continue;
+    next.push({
+      channelId: id,
+      platform,
+      accountName: (o.accountName ?? o.name ?? o.username) as string | undefined,
+    });
   }
   channels = next;
   subEl.textContent = channels.length
     ? `${channels.length} connected channel${channels.length === 1 ? "" : "s"}`
     : "No connected channels";
   renderChannels();
-  updateSubmitState();
+  updateButtons();
+}
+
+function ingestMedia(list: unknown): void {
+  const next: Media[] = [];
+  for (const raw of arrFrom(list, "media", "files", "data", "items")) {
+    if (!raw || typeof raw !== "object") continue;
+    const o = raw as Record<string, unknown>;
+    const id = Number(o.id);
+    if (!Number.isFinite(id)) continue;
+    next.push({
+      id,
+      url: (o.url ?? o.previewUrl ?? o.thumbnailUrl ?? o.originalUrl) as
+        | string
+        | undefined,
+      filename: (o.filename ?? o.fileName ?? o.name) as string | undefined,
+      mimeType: (o.mimeType ?? o.type) as string | undefined,
+    });
+  }
+  media = next;
+  renderMedia();
 }
 
 /* ----------------------------- app wiring ----------------------------- */
@@ -213,17 +274,13 @@ function applyHostContext(ctx: McpUiHostContext): void {
   }
 }
 
-// The `compose_post` call that opened this view delivers channels (and an
-// optional default timezone) as its structuredContent.
+// compose_post delivers channels + media as its structuredContent.
 app.addEventListener("toolresult", (params) => {
   const sc = params.structuredContent as
-    | { channels?: unknown; defaultTimezone?: string }
+    | { channels?: unknown; media?: unknown }
     | undefined;
-  if (sc?.defaultTimezone) {
-    timeZone = sc.defaultTimezone;
-    tzLabelEl.textContent = timeZone;
-  }
   if (sc && "channels" in sc) ingestChannels(sc.channels);
+  if (sc && "media" in sc) ingestMedia(sc.media);
 });
 
 // If the model passed `content` to compose_post, prefill the textarea.
@@ -232,7 +289,7 @@ app.addEventListener("toolinput", (params) => {
   if (args?.content && !contentEl.value) {
     contentEl.value = args.content;
     updateCount();
-    updateSubmitState();
+    updateButtons();
   }
 });
 
@@ -243,106 +300,124 @@ app.onerror = (e) => console.error("[composer]", e);
 
 contentEl.addEventListener("input", () => {
   updateCount();
-  updateSubmitState();
+  updateButtons();
 });
+scheduledAtEl.addEventListener("input", updateButtons);
 
-scheduleToggle.addEventListener("change", () => {
-  scheduleRow.hidden = !isScheduling();
-  if (isScheduling() && !scheduledAtEl.value) {
-    const d = new Date(Date.now() + 60 * 60 * 1000); // default to +1 hour
-    d.setSeconds(0, 0);
-    scheduledAtEl.value = toLocalInput(d);
+function postIdFrom(result: CallToolResult): number | undefined {
+  const parsed = parseToolText(result);
+  if (parsed && typeof parsed === "object") {
+    const o = parsed as Record<string, any>;
+    const id = o.id ?? o.post?.id;
+    return typeof id === "number" ? id : undefined;
   }
-  updateSubmitState();
-});
+  return undefined;
+}
 
-scheduledAtEl.addEventListener("input", updateSubmitState);
-
-submitBtn.addEventListener("click", async () => {
-  if (submitBtn.disabled) return;
+async function submit(mode: "draft" | "scheduled" | "published"): Promise<void> {
+  if (submitting) return;
   clearBanners();
   submitting = true;
-  updateSubmitState();
+  updateButtons();
 
   const chosen = channels.filter((c) => selected.has(c.channelId));
   const args: Record<string, unknown> = {
     content: contentEl.value.trim(),
     channels: chosen.map((c) => ({ channelId: c.channelId, platform: c.platform })),
-    status: isScheduling() ? "scheduled" : "draft",
+    status: mode === "scheduled" ? "scheduled" : "draft",
   };
-  if (isScheduling()) {
+  if (selectedMedia.size) args.mediaFileIds = [...selectedMedia];
+  if (mode === "scheduled") {
     args.scheduledAt = new Date(scheduledAtEl.value).toISOString();
     args.timezone = timeZone;
   }
 
   try {
-    const result = await app.callServerTool({
-      name: "create_post",
-      arguments: args,
-    });
-    const parsed = parseToolText(result);
-    const obj =
-      parsed && typeof parsed === "object" ? (parsed as Record<string, any>) : null;
-    const id = obj?.id ?? obj?.post?.id;
-
-    if (!result.isError && id != null) {
-      showSuccess(
-        isScheduling()
-          ? `Scheduled ✓ — post #${id}`
-          : `Draft saved ✓ — post #${id}`,
-      );
-      app
-        .sendMessage({
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: isScheduling()
-                ? `Scheduled post #${id}.`
-                : `Saved draft #${id}.`,
-            },
-          ],
-        })
-        .catch(() => {});
-    } else {
+    const res = await app.callServerTool({ name: "create_post", arguments: args });
+    const id = postIdFrom(res);
+    if (res.isError || id == null) {
+      const parsed = parseToolText(res);
       const msg =
         typeof parsed === "string"
           ? parsed
-          : obj?.error?.message || obj?.message || "Could not create the post.";
+          : (parsed as any)?.error?.message ||
+            (parsed as any)?.message ||
+            "Could not create the post.";
       showError(String(msg));
+      return;
+    }
+
+    if (mode === "published") {
+      const pub = await app.callServerTool({
+        name: "publish_post",
+        arguments: { postId: id },
+      });
+      if (pub.isError) {
+        const p = parseToolText(pub);
+        showError(
+          `Draft #${id} saved, but publish failed: ${typeof p === "string" ? p : "see logs"}`,
+        );
+        return;
+      }
+      showSuccess(`Publishing now ✓ — post #${id}`);
+      tellHost(`Published post #${id}.`);
+    } else if (mode === "scheduled") {
+      showSuccess(`Scheduled ✓ — post #${id}`);
+      tellHost(`Scheduled post #${id}.`);
+    } else {
+      showSuccess(`Draft saved ✓ — post #${id}`);
+      tellHost(`Saved draft #${id}.`);
     }
   } catch (e) {
     showError(e instanceof Error ? e.message : "Request failed.");
   } finally {
     submitting = false;
-    updateSubmitState();
+    updateButtons();
   }
-});
+}
+
+function tellHost(text: string): void {
+  app.sendMessage({ role: "user", content: [{ type: "text", text }] }).catch(() => {});
+}
+
+draftBtn.addEventListener("click", () => submit("draft"));
+scheduleBtn.addEventListener("click", () => submit("scheduled"));
+publishBtn.addEventListener("click", () => submit("published"));
 
 /* ----------------------------- connect ----------------------------- */
 
 updateCount();
-updateSubmitState();
+updateButtons();
 tzLabelEl.textContent = timeZone;
+// Scheduling is optional: the Schedule button stays disabled until a time is set.
+scheduledAtEl.min = toLocalInput(new Date());
 
 app.connect().then(() => {
   const ctx = app.getHostContext();
   if (ctx) applyHostContext(ctx);
 
-  // Fallback: if the opening tool-result didn't carry channels, fetch them
-  // directly so the picker still populates.
+  // Fallback: if the opening tool-result didn't carry data, fetch it directly.
   window.setTimeout(async () => {
     if (loaded) return;
     try {
-      const res = await app.callServerTool({
+      const ch = await app.callServerTool({
         name: "list_channels",
         arguments: { active: true },
       });
-      ingestChannels(channelsFromAny(parseToolText(res)));
+      ingestChannels(parseToolText(ch));
     } catch (e) {
       console.error("[composer] list_channels fallback failed", e);
       composerEl.removeAttribute("aria-busy");
       subEl.textContent = "Couldn't load channels";
+    }
+    try {
+      const md = await app.callServerTool({
+        name: "list_media",
+        arguments: { limit: 12 },
+      });
+      ingestMedia(parseToolText(md));
+    } catch {
+      /* media is optional */
     }
   }, 300);
 });

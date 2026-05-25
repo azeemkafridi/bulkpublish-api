@@ -39,7 +39,7 @@ body {
   font-weight: var(--weight-medium);
   color: var(--stone-700);
 }
-
+.label-hint { color: var(--stone-400); font-weight: var(--weight-normal); }
 .hint { margin: 0; font-size: var(--text-sm); color: var(--stone-400); }
 
 /* channel chips */
@@ -48,8 +48,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: var(--control-height-sm);
-  padding: 0 12px;
+  height: 34px;
+  padding: 0 12px 0 5px;
   border: none;
   border-radius: var(--radius-pill);
   background: var(--stone-100);
@@ -63,13 +63,21 @@ body {
 .chip:hover { background: var(--stone-150); }
 .chip--on {
   background: var(--accent-50);
-  color: var(--accent-700);
   box-shadow: inset 0 0 0 1px var(--accent-200);
 }
-.chip__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--stone-400); }
-.chip--on .chip__dot { background: var(--accent-500); }
+.chip__icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--icon-bg, rgba(0, 0, 0, 0.05));
+}
+.chip__icon svg { width: 13px; height: 13px; display: block; }
+.chip__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--stone-400); }
 .chip__acct { color: var(--stone-400); font-weight: var(--weight-normal); }
-.chip--on .chip__acct { color: var(--accent-600); }
 
 /* inputs */
 .textarea,
@@ -88,19 +96,58 @@ body {
 .textarea:focus,
 .input:focus { outline: none; box-shadow: 0 0 0 3px var(--accent-50); }
 .textarea::placeholder { color: var(--stone-400); }
-
 .counter { font-size: var(--text-xs); color: var(--stone-400); text-align: right; }
 
-/* schedule switch */
-.switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  font-size: var(--text-sm);
-  color: var(--stone-700);
+/* media picker (pick from library) */
+.media-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.media-tile {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border: none;
+  padding: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--stone-100);
   cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow var(--transition-base);
 }
-.switch input { width: 16px; height: 16px; accent-color: var(--accent-500); cursor: pointer; }
+.media-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.media-tile__file { font-size: 18px; color: var(--stone-500); }
+.media-tile__video {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #fff;
+  background: var(--stone-800);
+}
+.media-tile__check {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-500);
+  color: #fff;
+  font-size: 10px;
+  line-height: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.media-tile__check svg { width: 11px; height: 11px; }
+.media-tile--on { box-shadow: 0 0 0 2px var(--accent-500); }
+.media-tile--on .media-tile__check { display: flex; }
+
+/* schedule row */
 .schedule { display: flex; align-items: center; gap: 10px; }
 .schedule .input { max-width: 230px; }
 .tz { font-size: var(--text-xs); color: var(--stone-400); }
@@ -110,28 +157,40 @@ body {
 .banner--error { background: var(--color-error-bg); color: var(--color-error-text); }
 .banner--success { background: var(--color-success-bg); color: var(--color-success-text); }
 
-/* actions */
-.actions { display: flex; justify-content: flex-end; gap: 10px; }
+/* actions — all on one row */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   height: var(--control-height-md);
-  padding: 0 22px;
+  padding: 0 18px;
   border: none;
   border-radius: var(--radius-pill);
   font-family: inherit;
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   cursor: pointer;
+  white-space: nowrap;
   transition: all var(--transition-base);
 }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn--ghost { background: transparent; color: var(--stone-600); padding: 0 12px; }
+.btn--ghost:hover:not(:disabled) { background: var(--stone-100); color: var(--stone-800); }
+.btn--secondary { background: var(--stone-100); color: var(--stone-700); }
+.btn--secondary:hover:not(:disabled) { background: var(--stone-150); }
 .btn--primary { background: var(--stone-800); color: #fff; }
 .btn--primary:hover:not(:disabled) { background: var(--stone-700); transform: translateY(-1px); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* In dark mode --stone-800 flips light, so give the primary button an accent fill instead. */
-.theme-dark .btn--primary { background: var(--accent-500); color: #14110C; }
+/* dark theme: keep the brand icons (incl. black ones) visible on a light chip */
+.theme-dark .chip__icon { background: rgba(255, 255, 255, 0.92); }
+.theme-dark .btn--primary { background: var(--accent-500); color: #14110c; }
 .theme-dark .btn--primary:hover:not(:disabled) { background: var(--accent-400); }
 
 .composer[aria-busy="true"] .field,

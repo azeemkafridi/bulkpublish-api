@@ -1171,8 +1171,11 @@ registerWidget({
       .describe("Optional initial text to pre-fill the composer with."),
   },
   load: async ({ content }) => {
-    const res = await api("GET", "/api/channels?active=true");
-    const channels = asArray(res.data, "channels", "data").map((c) => {
+    const [chRes, mdRes] = await Promise.all([
+      api("GET", "/api/channels?active=true"),
+      api("GET", "/api/media?limit=12"),
+    ]);
+    const channels = asArray(chRes.data, "channels", "data").map((c) => {
       const o = c as Record<string, unknown>;
       return {
         channelId: o.channelId ?? o.id,
@@ -1180,11 +1183,22 @@ registerWidget({
         accountName: o.accountName ?? o.name ?? o.username,
       };
     });
+    const media = asArray(mdRes.data, "files", "media", "data", "items").map(
+      (m) => {
+        const o = m as Record<string, any>;
+        return {
+          id: o.id,
+          url: o.previewUrl ?? o.thumbnailUrl ?? o.originalUrl ?? o.url,
+          filename: o.fileName ?? o.filename ?? o.name,
+          mimeType: o.mimeType ?? o.type,
+        };
+      },
+    );
     return {
-      text: res.ok
-        ? `Opening the composer${content ? " with your draft" : ""} — ${channels.length} connected channel(s) available.`
-        : formatResponse(res),
-      data: { channels },
+      text: chRes.ok
+        ? `Opening the composer${content ? " with your draft" : ""} — ${channels.length} channel(s), ${media.length} media file(s) available.`
+        : formatResponse(chRes),
+      data: { channels, media },
     };
   },
 });
