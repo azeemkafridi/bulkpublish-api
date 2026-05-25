@@ -350,7 +350,7 @@ function ingestChannels(list: unknown): void {
   loaded = true;
   composerEl.removeAttribute("aria-busy");
   const next: Channel[] = [];
-  for (const raw of arrFrom(list)) {
+  for (const raw of arrFrom(list, "channels", "data", "items")) {
     if (!raw || typeof raw !== "object") continue;
     const o = raw as Record<string, unknown>;
     const id = Number(o.channelId ?? o.id);
@@ -525,6 +525,7 @@ publishBtn.addEventListener("click", () => submit("published"));
 
 updateCount();
 updateButtons();
+renderMedia(); // show the Upload (+) tile from the start, before media loads
 tzLabelEl.textContent = timeZone;
 // Scheduling is optional: the Schedule button stays disabled until a time is set.
 scheduledAtEl.min = toLocalInput(new Date());
@@ -541,11 +542,14 @@ app.connect().then(() => {
         name: "list_channels",
         arguments: { active: true },
       });
+      if (loaded) return; // tool-result arrived during the await — don't clobber
       ingestChannels(parseToolText(ch));
     } catch (e) {
+      if (loaded) return;
       console.error("[composer] list_channels fallback failed", e);
       composerEl.removeAttribute("aria-busy");
       subEl.textContent = "Couldn't load channels";
+      return;
     }
     try {
       const md = await app.callServerTool({
