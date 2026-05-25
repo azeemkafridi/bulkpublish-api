@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>BulkPublish — New post</title>
+  </head>
+  <body>
+    <main class="composer" aria-busy="true">
+      <header class="composer__header">
+        <h1 class="composer__title">New post</h1>
+        <p class="composer__sub" id="sub">Loading your channels…</p>
+      </header>
+
+      <section class="field">
+        <span class="label">Channels</span>
+        <div class="chips" id="channels" role="group" aria-label="Channels"></div>
+        <p class="hint" id="channels-empty" hidden>
+          No connected channels yet — connect one in BulkPublish first.
+        </p>
+      </section>
+
+      <section class="field">
+        <label class="label" for="content">Content</label>
+        <textarea
+          id="content"
+          class="textarea"
+          rows="5"
+          placeholder="What do you want to share?"
+        ></textarea>
+        <div class="counter"><span id="count">0</span> characters</div>
+      </section>
+
+      <section class="field">
+        <label class="switch">
+          <input type="checkbox" id="schedule-toggle" />
+          <span>Schedule for later</span>
+        </label>
+        <div class="schedule" id="schedule-row" hidden>
+          <input type="datetime-local" id="scheduled-at" class="input" />
+          <span class="tz" id="tz-label"></span>
+        </div>
+      </section>
+
+      <div class="banner banner--error" id="error" role="alert" hidden></div>
+      <div class="banner banner--success" id="success" role="status" hidden></div>
+
+      <footer class="actions">
+        <button class="btn btn--primary" id="submit-btn" type="button" disabled>
+          Save draft
+        </button>
+      </footer>
+    </main>
+    <script type="module" src="./composer.ts"></script>
+  </body>
+</html>

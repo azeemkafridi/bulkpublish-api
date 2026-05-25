@@ -16,6 +16,12 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { readFileSync, existsSync } from "node:fs";
 import { basename, resolve } from "node:path";
+import {
+  registerAppTool,
+  registerAppResource,
+  RESOURCE_MIME_TYPE,
+} from "@modelcontextprotocol/ext-apps/server";
+import { COMPOSER_HTML } from "./ui/composer.generated.js";
 
 const MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
@@ -1071,6 +1077,70 @@ server.tool(
   async ({ scheduleId }) => {
     const res = await api("DELETE", `/api/schedules/${scheduleId}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// MCP App: interactive post composer
+//
+// `compose_post` opens an interactive UI (the ui://bulkpublish/composer
+// resource). It returns the connected channels as structuredContent so the
+// View can render the channel picker; on submit, the View calls the existing
+// `create_post` tool through the host bridge. Hosts without MCP Apps support
+// just receive the text summary, so nothing breaks.
+// ---------------------------------------------------------------------------
+
+const COMPOSER_URI = "ui://bulkpublish/composer";
+
+registerAppResource(
+  server,
+  "BulkPublish Composer",
+  COMPOSER_URI,
+  { mimeType: RESOURCE_MIME_TYPE },
+  async () => ({
+    contents: [
+      { uri: COMPOSER_URI, mimeType: RESOURCE_MIME_TYPE, text: COMPOSER_HTML },
+    ],
+  })
+);
+
+registerAppTool(
+  server,
+  "compose_post",
+  {
+    title: "Compose a post",
+    description:
+      "Open an interactive composer to draft or schedule a social media post. " +
+      "Shows the user's connected channels to pick from and pre-fills any provided text. " +
+      "The user finishes in the UI; on submit it creates the post via create_post.",
+    inputSchema: {
+      content: z
+        .string()
+        .optional()
+        .describe("Optional initial text to pre-fill the composer with."),
+    },
+    _meta: { ui: { resourceUri: COMPOSER_URI } },
+  },
+  async ({ content }) => {
+    const res = await api("GET", "/api/channels?active=true");
+    const raw = Array.isArray(res.data)
+      ? (res.data as unknown[])
+      : ((res.data as { channels?: unknown[] })?.channels ?? []);
+    const channels = (Array.isArray(raw) ? raw : []).map((c) => {
+      const o = c as Record<string, unknown>;
+      return {
+        channelId: o.channelId ?? o.id,
+        platform: o.platform,
+        accountName: o.accountName ?? o.name ?? o.username,
+      };
+    });
+    const summary = res.ok
+      ? `Opening the composer${content ? ` with your draft` : ""} — ${channels.length} connected channel(s) available.`
+      : formatResponse(res);
+    return {
+      content: [{ type: "text" as const, text: summary }],
+      structuredContent: { channels },
+    };
   }
 );
 

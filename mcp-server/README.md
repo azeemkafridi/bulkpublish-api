@@ -31,6 +31,8 @@ npm run build
 node dist/index.js
 ```
 
+> Requires Node ≥ 20.19. `npm run build` bundles the composer UI with Vite (`build:ui`), then compiles the server with `tsc`.
+
 ## Configuration
 
 Set your API key as an environment variable:
@@ -98,6 +100,7 @@ export BULKPUBLISH_API_KEY=bp_your_api_key_here
 |------|-------------|
 | **Posts** | |
 | `create_post` | Create and optionally schedule a post (supports reels, stories, carousels, threads via `postTypeOverrides`) |
+| `compose_post` | Open an interactive composer UI (MCP Apps) to draft/schedule a post; submits via `create_post` |
 | `update_post` | Update a draft or scheduled post |
 | `get_post` | Get a single post with full details |
 | `list_posts` | List posts with filters (status, search, date range) |
@@ -132,6 +135,12 @@ export BULKPUBLISH_API_KEY=bp_your_api_key_here
 | `delete_schedule` | Delete a schedule |
 | **Quota** | |
 | `get_quota_usage` | Check current plan quota usage |
+
+## Interactive UI (MCP Apps)
+
+In hosts that support [MCP Apps](https://blog.modelcontextprotocol.io/posts/2025-11-21-mcp-apps/) — Claude, ChatGPT, VS Code, Goose, Postman, and the Smithery playground — the **`compose_post`** tool opens an interactive composer rendered inline in the conversation: pick channels, write content, optionally schedule, then submit. On submit it calls `create_post` through the host bridge, so the sandboxed iframe never holds your API key. Hosts without MCP Apps support simply receive a plain-text summary, so nothing breaks.
+
+The UI is a self-contained widget (`src/ui/composer/`) bundled into a single HTML file with Vite and served from the `ui://bulkpublish/composer` resource. Its styling mirrors the BulkPublish web app via shared design tokens (`src/ui/composer/tokens.css`).
 
 ## Example Conversation
 

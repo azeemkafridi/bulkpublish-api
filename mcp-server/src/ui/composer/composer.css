@@ -1,0 +1,138 @@
+@import "./tokens.css";
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--stone-800);
+  background: var(--surface-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.composer {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.composer__header { display: flex; flex-direction: column; gap: 2px; }
+.composer__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--stone-900);
+}
+.composer__sub { margin: 0; font-size: var(--text-sm); color: var(--stone-400); }
+
+.field { display: flex; flex-direction: column; gap: 8px; }
+
+.label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--stone-700);
+}
+
+.hint { margin: 0; font-size: var(--text-sm); color: var(--stone-400); }
+
+/* channel chips */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: var(--control-height-sm);
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--stone-100);
+  color: var(--stone-600);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+.chip:hover { background: var(--stone-150); }
+.chip--on {
+  background: var(--accent-50);
+  color: var(--accent-700);
+  box-shadow: inset 0 0 0 1px var(--accent-200);
+}
+.chip__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--stone-400); }
+.chip--on .chip__dot { background: var(--accent-500); }
+.chip__acct { color: var(--stone-400); font-weight: var(--weight-normal); }
+.chip--on .chip__acct { color: var(--accent-600); }
+
+/* inputs */
+.textarea,
+.input {
+  width: 100%;
+  font-family: inherit;
+  font-size: var(--text-base);
+  color: var(--stone-800);
+  background: var(--surface-card);
+  border: none;
+  border-radius: var(--radius-xl);
+  transition: box-shadow var(--transition-base);
+}
+.textarea { padding: 12px 14px; resize: vertical; min-height: 96px; }
+.input { height: 42px; padding: 0 14px; }
+.textarea:focus,
+.input:focus { outline: none; box-shadow: 0 0 0 3px var(--accent-50); }
+.textarea::placeholder { color: var(--stone-400); }
+
+.counter { font-size: var(--text-xs); color: var(--stone-400); text-align: right; }
+
+/* schedule switch */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: var(--text-sm);
+  color: var(--stone-700);
+  cursor: pointer;
+}
+.switch input { width: 16px; height: 16px; accent-color: var(--accent-500); cursor: pointer; }
+.schedule { display: flex; align-items: center; gap: 10px; }
+.schedule .input { max-width: 230px; }
+.tz { font-size: var(--text-xs); color: var(--stone-400); }
+
+/* banners */
+.banner { padding: 10px 14px; border-radius: var(--radius-md); font-size: var(--text-sm); }
+.banner--error { background: var(--color-error-bg); color: var(--color-error-text); }
+.banner--success { background: var(--color-success-bg); color: var(--color-success-text); }
+
+/* actions */
+.actions { display: flex; justify-content: flex-end; gap: 10px; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--control-height-md);
+  padding: 0 22px;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+.btn--primary { background: var(--stone-800); color: #fff; }
+.btn--primary:hover:not(:disabled) { background: var(--stone-700); transform: translateY(-1px); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* In dark mode --stone-800 flips light, so give the primary button an accent fill instead. */
+.theme-dark .btn--primary { background: var(--accent-500); color: #14110C; }
+.theme-dark .btn--primary:hover:not(:disabled) { background: var(--accent-400); }
+
+.composer[aria-busy="true"] .field,
+.composer[aria-busy="true"] .actions { opacity: 0.55; pointer-events: none; }
