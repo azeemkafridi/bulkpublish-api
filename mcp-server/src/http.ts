@@ -225,8 +225,34 @@ app.get("/.well-known/mcp/server-card.json", (_req: Request, res: Response) => {
   res.set("Cache-Control", "public, max-age=300").type("application/json").send(serverCardJson);
 });
 
-app.get(["/health", "/"], (_req: Request, res: Response) => {
+// Square brand icon (same mark as the webapp/marketing favicon.svg). Served so
+// the connector directory's favicon fetch against mcp.bulkpublish.com — and
+// tool-call icons — resolve to the BulkPublish logo instead of a blank globe.
+const FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" fill="none"><path transform="translate(67,213)" d="M69.009 125.779V0H0V258.784C0.116251 304.915 19.0112 348.279 54.3126 379.37C89.3259 410.208 136.018 425.268 186.756 425.268C250.52 425.268 305.156 385.755 335.582 359.846C340.104 355.995 344.417 352.158 348.495 348.4V473.568H417.504V348.4C421.583 352.158 425.896 355.995 430.418 359.846C460.844 385.755 515.48 425.268 579.244 425.268C629.982 425.268 676.674 410.208 711.687 379.37C747.098 348.182 766 304.644 766 258.352C766 212.061 747.098 168.523 711.687 137.335C676.674 106.497 629.982 91.4369 579.244 91.4369C515.48 91.4369 460.844 130.95 430.418 156.859C413.37 171.376 399.302 185.695 389.523 196.318C387.106 198.945 384.926 201.373 383 203.556C381.074 201.373 378.894 198.945 376.477 196.318C366.698 185.695 352.63 171.376 335.582 156.859C305.156 130.95 250.52 91.4369 186.756 91.4369C142.821 91.4369 101.921 102.729 69.009 125.779ZM69.009 258.784V258.352C69.009 204.28 112.199 160.446 186.756 160.446C260.159 160.446 336.599 255.344 338.949 258.283L338.896 258.352L338.949 258.421C336.608 261.35 260.164 356.259 186.756 356.259C121.519 356.259 80.2971 322.699 71.0105 278.084C69.7116 271.846 69.0377 265.392 69.009 258.784ZM427.049 258.283C429.392 255.352 505.838 160.446 579.244 160.446C653.801 160.446 696.991 204.28 696.991 258.352C696.991 312.425 653.801 356.259 579.244 356.259C505.833 356.259 429.384 261.341 427.049 258.421L427.104 258.352L427.049 258.283Z" fill="url(#bp_fav)"/><defs><linearGradient id="bp_fav" x1="0" y1="244" x2="766" y2="550" gradientUnits="userSpaceOnUse"><stop stop-color="#FF5601"/><stop offset="1" stop-color="#FF7834"/></linearGradient></defs></svg>`;
+
+app.get("/favicon.svg", (_req: Request, res: Response) => {
+  res.set("Cache-Control", "public, max-age=86400").type("image/svg+xml").send(FAVICON_SVG);
+});
+app.get("/favicon.ico", (_req: Request, res: Response) => {
+  res.redirect(301, "/favicon.svg");
+});
+
+app.get("/health", (_req: Request, res: Response) => {
   res.json({ ok: true, service: "bulkpublish-mcp", transport: "streamable-http", mcp: MCP_PATH });
+});
+
+// Minimal landing page — carries <link rel="icon"> so favicon crawlers
+// (incl. the one the connector directory uses) discover our brand mark.
+app.get("/", (_req: Request, res: Response) => {
+  res
+    .type("html")
+    .send(
+      `<!doctype html><meta charset="utf-8"><title>BulkPublish MCP</title>` +
+        `<link rel="icon" type="image/svg+xml" href="/favicon.svg">` +
+        `<body style="font-family:system-ui,sans-serif;max-width:40rem;margin:3rem auto;padding:0 1rem;color:#1a1a1a">` +
+        `<h1>BulkPublish MCP</h1><p>Streamable HTTP MCP server at <code>/mcp</code> (OAuth 2.0). ` +
+        `Learn more at <a href="https://www.bulkpublish.com">bulkpublish.com</a>.</p></body>`
+    );
 });
 
 app.all(MCP_PATH, handleMcp);
