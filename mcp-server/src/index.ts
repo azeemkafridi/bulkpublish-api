@@ -229,7 +229,16 @@ export function createServer(): McpServer {
         const ann = TOOL_ANNOTATIONS[args[0] as string];
         if (ann) {
           if (!args[1]) args[1] = ann.title; // tool title (regular tools have none)
-          args[5] = { ...ann, ...((args[5] as object) ?? {}) }; // annotations slot
+          // OpenAI Apps SDK requires every tool to set ALL THREE hints
+          // explicitly. Default them to false; the map's accurate values (and
+          // any explicitly-passed annotations) override.
+          args[5] = {
+            readOnlyHint: false,
+            destructiveHint: false,
+            openWorldHint: false,
+            ...ann,
+            ...((args[5] as object) ?? {}),
+          }; // annotations slot
         }
         const use = TOOL_USE_HINTS[args[0] as string];
         if (use && typeof args[2] === "string" && !(args[2] as string).includes("Use this when")) {
