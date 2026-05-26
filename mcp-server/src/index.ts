@@ -1244,6 +1244,7 @@ function registerWidget(config: {
   title: string;
   description: string;
   inputSchema: Record<string, z.ZodTypeAny>;
+  outputSchema?: Record<string, z.ZodTypeAny>;
   load: (
     args: Record<string, any>
   ) => Promise<{ text: string; data: Record<string, unknown> }>;
@@ -1293,6 +1294,7 @@ function registerWidget(config: {
       title: config.title,
       description: config.description,
       inputSchema: config.inputSchema,
+      outputSchema: config.outputSchema,
       _meta: { ui: { resourceUri: uri } },
     },
     async (args) => {
@@ -1323,6 +1325,15 @@ function asObject(data: unknown): Record<string, unknown> {
     : { value: data };
 }
 
+// Lenient field builders for widget output schemas (the structuredContent shape).
+// Everything is optional + nullable, numeric fields accept string-encoded values,
+// and item objects pass through extras — so the schema documents the shape for
+// the host (ChatGPT/Claude) without ever rejecting real, varied API output.
+const oStr = () => z.string().nullish();
+const oNum = () => z.union([z.number(), z.string()]).nullish();
+const oItem = (shape: Record<string, z.ZodTypeAny>) =>
+  z.object(shape).passthrough();
+
 // --- compose_post → composer ---
 registerWidget({
   tool: "compose_post",
@@ -1337,6 +1348,14 @@ registerWidget({
       .string()
       .optional()
       .describe("Optional initial text to pre-fill the composer with."),
+  },
+  outputSchema: {
+    channels: z
+      .array(oItem({ channelId: oNum(), platform: oStr(), accountName: oStr() }))
+      .nullish(),
+    media: z
+      .array(oItem({ id: oNum(), url: oStr(), filename: oStr(), mimeType: oStr() }))
+      .nullish(),
   },
   load: async ({ content }) => {
     const [chRes, mdRes] = await Promise.all([
@@ -1385,6 +1404,21 @@ registerWidget({
       .optional()
       .describe("Start date (ISO, e.g. 2025-01-01). Defaults to 30 days ago."),
     to: z.string().optional().describe("End date (ISO). Defaults to today."),
+  },
+  outputSchema: {
+    from: oStr(),
+    to: oStr(),
+    summary: oItem({
+      totalPosts: oNum(),
+      published: oNum(),
+      scheduled: oNum(),
+      failed: oNum(),
+      partial: oNum(),
+      byPlatform: z
+        .array(oItem({ platform: oStr(), count: oNum(), published: oNum(), failed: oNum() }))
+        .nullish(),
+      daily: z.array(z.unknown()).nullish(),
+    }).nullish(),
   },
   load: async ({ from, to }) => {
     const end = to || new Date().toISOString().slice(0, 10);
@@ -1449,6 +1483,22 @@ registerWidget({
       .describe("Filter by post status."),
     limit: z.number().optional().describe("Max posts to show (default 20)."),
   },
+  outputSchema: {
+    posts: z
+      .array(
+        oItem({
+          id: oNum(),
+          content: oStr(),
+          status: oStr(),
+          scheduledAt: oStr(),
+          publishedAt: oStr(),
+          createdAt: oStr(),
+          platforms: z.array(z.string()).nullish(),
+        })
+      )
+      .nullish(),
+    total: oNum(),
+  },
   load: async ({ status, limit }) => {
     const params = new URLSearchParams();
     if (status) params.set("status", status);
@@ -1488,6 +1538,19 @@ registerWidget({
     "Open an interactive view of connected social channels with platform, account, " +
     "and connection/token status.",
   inputSchema: {},
+  outputSchema: {
+    channels: z
+      .array(
+        oItem({
+          channelId: oNum(),
+          platform: oStr(),
+          accountName: oStr(),
+          active: z.boolean().nullish(),
+          status: oStr(),
+        })
+      )
+      .nullish(),
+  },
   load: async () => {
     const res = await api("GET", "/api/channels");
     const channels = asArray(res.data, "channels", "data").map((c) => {
@@ -1524,6 +1587,20 @@ registerWidget({
   inputSchema: {
     limit: z.number().optional().describe("Max items to show (default 30)."),
   },
+  outputSchema: {
+    media: z
+      .array(
+        oItem({
+          id: oNum(),
+          url: oStr(),
+          filename: oStr(),
+          mimeType: oStr(),
+          width: oNum(),
+          height: oNum(),
+        })
+      )
+      .nullish(),
+  },
   load: async ({ limit }) => {
     const res = await api("GET", `/api/media?limit=${limit ?? 30}`);
     // Normalize: array key is `files`; URLs are preview/thumbnail/original.
@@ -1558,6 +1635,15 @@ registerWidget({
     "Open an interactive view of current plan quota usage — daily/monthly post " +
     "limits, channel limits, and media storage.",
   inputSchema: {},
+  outputSchema: {
+    // usage maps a label → { used, limit }, plus an optional "plan" string.
+    usage: z
+      .record(
+        z.string(),
+        z.union([z.string(), oItem({ used: oNum(), limit: oNum() })])
+      )
+      .nullish(),
+  },
   load: async () => {
     const res = await api("GET", "/api/quotas/usage");
     // Normalize: API returns parallel limits{} + usage{} maps with different
