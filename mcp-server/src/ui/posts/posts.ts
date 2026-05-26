@@ -319,16 +319,19 @@ function renderPost(post: Post): HTMLElement {
   const platforms = platformsFromPost(post);
   const actions = post.id != null ? actionsFor(status) : [];
 
-  // top row: content (left) + ⋮ menu (right, where the status used to be)
-  const top = document.createElement("div");
-  top.className = "post-card__top";
+  // The ⋮ menu is absolutely positioned (see CSS), not a flex sibling of the
+  // caption — otherwise a short one-line caption gets a row as tall as the 30px
+  // button, inflating the gap down to the icons. Keeping it out of flow lets
+  // content → icons → status stay evenly spaced regardless of caption length.
+  if (actions.length) card.classList.add("post-card--has-menu");
+
   const content = document.createElement("p");
   content.className = "post-card__content";
   const raw = post.content ?? "";
   content.innerHTML = raw
     ? escapeHtml(truncate(raw, CONTENT_MAX))
     : `<span class="post-card__no-content">No content</span>`;
-  top.appendChild(content);
+  card.appendChild(content);
 
   if (actions.length) {
     const menuBtn = document.createElement("button");
@@ -340,9 +343,8 @@ function renderPost(post: Post): HTMLElement {
       e.stopPropagation();
       openActionsMenu(card, post, actions);
     });
-    top.appendChild(menuBtn);
+    card.appendChild(menuBtn);
   }
-  card.appendChild(top);
 
   // platform icons — brand mark only (name kept as tooltip/aria for a11y)
   if (platforms.length) {

@@ -63,13 +63,6 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-/* top row: content preview left, badge right */
-.post-card__top {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
 .post-card__content {
   margin: 0;
   flex: 1;
@@ -77,6 +70,12 @@ body {
   color: var(--stone-700);
   line-height: var(--leading-relaxed);
   word-break: break-word;
+  /* Trim the line-height leading above/below the text so the visual gaps to
+     the icon row and status row equal the 10px flex gap (without trimming, the
+     content's half-leading makes the gap below the text look ~3px larger).
+     Falls back gracefully on browsers without text-box-trim. */
+  text-box-trim: trim-both;
+  text-box-edge: cap alphabetic;
 }
 
 .post-card__no-content {
@@ -126,10 +125,11 @@ body {
 /* ----------------------------- menu button (⋮) ----------------------------- */
 
 .post-card__menu-btn {
-  flex-shrink: 0;
+  position: absolute;
+  top: 9px;
+  right: 10px;
   width: 30px;
   height: 30px;
-  margin: -3px -4px 0 0;
   border: none;
   border-radius: var(--radius-md);
   background: transparent;
@@ -141,6 +141,9 @@ body {
   transition: background var(--transition-base), color var(--transition-base);
 }
 .post-card__menu-btn:hover { background: var(--stone-200); color: var(--stone-700); }
+
+/* reserve room on the right so the caption never runs under the ⋮ button */
+.post-card--has-menu .post-card__content { padding-right: 30px; }
 
 /* ----------------------------- status row (badge + date) ----------------------------- */
 
