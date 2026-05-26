@@ -344,19 +344,22 @@ function renderPost(post: Post): HTMLElement {
   }
   card.appendChild(top);
 
-  // platform chips — brand icon (mirrors the composer) + label
+  // platform icons — brand mark only (name kept as tooltip/aria for a11y)
   if (platforms.length) {
     const chips = document.createElement("div");
     chips.className = "chips chips--sm";
+    chips.setAttribute("aria-label", "Platforms");
     for (const p of platforms) {
-      const chip = document.createElement("span");
-      chip.className = "chip chip--sm";
-      chip.style.setProperty("--icon-bg", platformBg(p));
+      const name = PLATFORM_LABELS[p] ?? p;
       const icon = platformIcon(p);
-      chip.innerHTML =
-        `<span class="chip__icon">${icon || `<span class="chip__dot"></span>`}</span>` +
-        `<span class="chip__label">${escapeHtml(PLATFORM_LABELS[p] ?? p)}</span>`;
-      chips.appendChild(chip);
+      const el = document.createElement("span");
+      el.className = "chip__icon";
+      el.style.setProperty("--icon-bg", platformBg(p));
+      el.title = name;
+      el.setAttribute("role", "img");
+      el.setAttribute("aria-label", name);
+      el.innerHTML = icon || `<span class="chip__dot"></span>`;
+      chips.appendChild(el);
     }
     card.appendChild(chips);
   }

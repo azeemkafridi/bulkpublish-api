@@ -64,19 +64,32 @@ body {
   box-shadow: 0 2px 8px rgba(0 0 0 / 0.1);
 }
 
-/* ── platform row (dot + label) ─────────────────────────────────── */
+/* ── platform row (icon + label) ────────────────────────────────── */
 .channel-card__platform-row {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
 
-.channel-card__dot {
+/* brand icon in a tinted circle — matches the composer + posts widgets */
+.channel-card__icon {
   flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--icon-bg, rgba(0, 0, 0, 0.05));
+}
+.channel-card__icon svg { width: 13px; height: 13px; display: block; }
+
+/* fallback dot for platforms without a brand icon */
+.channel-card__dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--stone-400); /* overridden inline per platform */
+  background: var(--stone-400);
 }
 
 .channel-card__platform {
@@ -151,3 +164,6 @@ body {
 .theme-dark .channel-card:hover {
   box-shadow: 0 2px 8px rgba(0 0 0 / 0.4);
 }
+
+/* keep black brand marks (X, TikTok, Threads) visible on the card */
+.theme-dark .channel-card__icon { background: rgba(255, 255, 255, 0.92); }

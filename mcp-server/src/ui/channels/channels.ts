@@ -14,6 +14,7 @@ import {
   type McpUiHostContext,
 } from "@modelcontextprotocol/ext-apps";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { platformIcon, platformBg } from "../composer/platform-icons";
 
 type Channel = {
   channelId: number;
@@ -36,22 +37,6 @@ const PLATFORM_LABELS: Record<string, string> = {
   google_business: "Google Business",
   gmb: "Google Business",
   mastodon: "Mastodon",
-};
-
-/** Platform dot accent colours keyed by platform slug. Falls back to --stone-400. */
-const PLATFORM_COLORS: Record<string, string> = {
-  x: "#000000",
-  instagram: "#E1306C",
-  linkedin: "#0A66C2",
-  facebook: "#1877F2",
-  tiktok: "#69C9D0",
-  youtube: "#FF0000",
-  pinterest: "#E60023",
-  threads: "#000000",
-  bluesky: "#0085FF",
-  google_business: "#4285F4",
-  gmb: "#4285F4",
-  mastodon: "#6364FF",
 };
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) =>
@@ -148,7 +133,6 @@ function renderChannels(channels: Channel[]): void {
 
   for (const ch of channels) {
     const label = PLATFORM_LABELS[ch.platform] ?? ch.platform;
-    const dotColor = PLATFORM_COLORS[ch.platform] ?? "var(--stone-400)";
     const accountName = ch.accountName ?? "—";
     const accountMuted = !ch.accountName;
 
@@ -156,9 +140,12 @@ function renderChannels(channels: Channel[]): void {
     card.className = "channel-card";
     card.setAttribute("role", "listitem");
 
-    const dot = document.createElement("span");
-    dot.className = "channel-card__dot";
-    dot.style.background = dotColor;
+    const icon = document.createElement("span");
+    icon.className = "channel-card__icon";
+    icon.style.setProperty("--icon-bg", platformBg(ch.platform));
+    icon.setAttribute("role", "img");
+    icon.setAttribute("aria-label", label);
+    icon.innerHTML = platformIcon(ch.platform) || `<span class="channel-card__dot"></span>`;
 
     const platformEl = document.createElement("span");
     platformEl.className = "channel-card__platform";
@@ -166,7 +153,7 @@ function renderChannels(channels: Channel[]): void {
 
     const platformRow = document.createElement("div");
     platformRow.className = "channel-card__platform-row";
-    platformRow.appendChild(dot);
+    platformRow.appendChild(icon);
     platformRow.appendChild(platformEl);
 
     const nameEl = document.createElement("span");
