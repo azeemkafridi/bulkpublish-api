@@ -205,6 +205,21 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
+// OpenAI Apps domain verification — serve the challenge token at the origin-root
+// well-known URL so the Apps SDK can confirm we control this host. Placed before
+// the OAuth router so it resolves directly. Not a secret: it only proves control
+// of this domain (like a search-console verification file). Override via env if
+// OpenAI re-issues a token.
+const OPENAI_APPS_CHALLENGE =
+  process.env.OPENAI_APPS_CHALLENGE_TOKEN ||
+  "gIohLEWyR3YAbMjyCNMyDsZYOYZt_Qoq0QLe83h9o0I";
+app.get(
+  "/.well-known/openai-apps-challenge",
+  (_req: Request, res: Response) => {
+    res.type("text/plain").send(OPENAI_APPS_CHALLENGE);
+  }
+);
+
 // OAuth 2.1 server: /.well-known/oauth-authorization-server, /.well-known/
 // oauth-protected-resource, /authorize, /token, /register, /revoke.
 app.use(
