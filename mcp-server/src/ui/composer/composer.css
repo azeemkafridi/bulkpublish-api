@@ -60,7 +60,7 @@ body {
   cursor: pointer;
   transition: all var(--transition-base);
 }
-.chip:hover { background: var(--stone-150); }
+.chip:hover { background: var(--stone-200); }
 .chip--on {
   background: var(--accent-50);
   box-shadow: inset 0 0 0 1px var(--accent-200);
@@ -149,7 +149,7 @@ body {
 
 /* upload tile (always first in the grid) */
 .media-tile--upload { background: var(--stone-100); }
-.media-tile--upload:hover:not(:disabled) { background: var(--stone-150); }
+.media-tile--upload:hover:not(:disabled) { background: var(--stone-200); }
 .media-tile--upload:disabled { cursor: default; }
 .media-tile__upload {
   font-size: 26px;
@@ -204,7 +204,7 @@ body {
 .btn--ghost { background: transparent; color: var(--stone-600); padding: 0 12px; }
 .btn--ghost:hover:not(:disabled) { background: var(--stone-100); color: var(--stone-800); }
 .btn--secondary { background: var(--stone-100); color: var(--stone-700); }
-.btn--secondary:hover:not(:disabled) { background: var(--stone-150); }
+.btn--secondary:hover:not(:disabled) { background: var(--stone-200); }
 .btn--primary { background: var(--stone-800); color: #fff; }
 .btn--primary:hover:not(:disabled) { background: var(--stone-700); transform: translateY(-1px); }
 

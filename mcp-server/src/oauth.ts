@@ -142,7 +142,7 @@ const clientsStore: OAuthRegisteredClientsStore = {
   },
 };
 
-function consentPage(params: {
+export function consentPage(params: {
   clientId: string;
   clientName?: string;
   redirectUri: string;
@@ -173,12 +173,13 @@ function consentPage(params: {
   input:focus { outline:none; border-color:#d97706; box-shadow:0 0 0 3px rgba(217,119,6,.15); }
   .hint { font-size:12px; color:#78716c; margin:8px 0 20px; }
   .hint a { color:#b45309; }
-  button { width:100%; height:46px; border:none; border-radius:999px; background:#1c1917; color:#fff;
-    font-size:15px; font-weight:600; cursor:pointer; }
-  button:hover { background:#292524; }
+  button { width:100%; height:46px; border:none; border-radius:999px; background:#222; color:#fff;
+    font-size:15px; font-weight:600; cursor:pointer; transition:background .15s ease,transform .15s ease,box-shadow .15s ease; }
+  button:hover { background:#3d3830; transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,.22); }
+  button:active { transform:translateY(0); }
   .err { background:#fef2f2; color:#b91c1c; padding:10px 12px; border-radius:10px; font-size:13px; margin:0 0 16px; }
   @media (prefers-color-scheme: dark){ body{background:#1c1917;color:#fafaf9} .card{background:#292524;box-shadow:none}
-    input[type=text],input[type=password]{background:#1c1917;border-color:#44403c;color:#fafaf9} button{background:#d97706;color:#1c1917} }
+    input[type=text],input[type=password]{background:#1c1917;border-color:#44403c;color:#fafaf9} button{background:#d97706;color:#1c1917} button:hover{background:#ff9a36;box-shadow:0 6px 18px rgba(217,119,6,.4)} }
 </style></head><body>
 <form class="card" method="POST" action="/oauth/consent">
   <h1>Connect BulkPublish</h1>
