@@ -16,6 +16,7 @@ import {
   type McpUiHostContext,
 } from "@modelcontextprotocol/ext-apps";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { platformIcon, platformBg } from "../composer/platform-icons";
 
 /* ----------------------------- types ----------------------------- */
 
@@ -343,15 +344,17 @@ function renderPost(post: Post): HTMLElement {
   }
   card.appendChild(top);
 
-  // platform chips
+  // platform chips — brand icon (mirrors the composer) + label
   if (platforms.length) {
     const chips = document.createElement("div");
     chips.className = "chips chips--sm";
     for (const p of platforms) {
       const chip = document.createElement("span");
       chip.className = "chip chip--sm";
+      chip.style.setProperty("--icon-bg", platformBg(p));
+      const icon = platformIcon(p);
       chip.innerHTML =
-        `<span class="chip__dot"></span>` +
+        `<span class="chip__icon">${icon || `<span class="chip__dot"></span>`}</span>` +
         `<span class="chip__label">${escapeHtml(PLATFORM_LABELS[p] ?? p)}</span>`;
       chips.appendChild(chip);
     }

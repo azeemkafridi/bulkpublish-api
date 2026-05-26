@@ -252,10 +252,24 @@ body {
 
 .chip--sm {
   height: 24px;
-  padding: 0 8px;
+  padding: 0 9px 0 4px;
   font-size: var(--text-xs);
 }
 
+/* brand icon in a tinted circle — mirrors the composer's channel chips */
+.chip__icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--icon-bg, rgba(0, 0, 0, 0.05));
+}
+.chip__icon svg { width: 11px; height: 11px; display: block; }
+
+/* fallback dot for platforms without a brand icon */
 .chip__dot {
   width: 6px;
   height: 6px;
@@ -263,6 +277,9 @@ body {
   background: var(--stone-400);
   flex-shrink: 0;
 }
+
+/* dark theme: keep black brand marks (X, TikTok, Threads) visible on the chip */
+.theme-dark .chip__icon { background: rgba(255, 255, 255, 0.92); }
 
 /* ----------------------------- loading skeleton ----------------------------- */
 
