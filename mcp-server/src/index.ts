@@ -176,6 +176,48 @@ export function createServer(): McpServer {
     view_analytics: { title: "View analytics", readOnlyHint: true },
     view_quota: { title: "View quota", readOnlyHint: true },
   };
+  // "Use this when…" hints appended to each tool's description — OpenAI's Apps
+  // SDK + Claude both use these to pick the right tool, disambiguate similar
+  // tools, and avoid built-in web/search tools.
+  const TOOL_USE_HINTS: Record<string, string> = {
+    list_channels: "the user wants to see which social accounts are connected.",
+    list_posts: "the user wants to browse, filter, or check the status of existing posts as raw data (not the visual dashboard).",
+    get_post: "the user references one specific post by its ID.",
+    get_post_metrics: "the user asks how a specific post performed (likes, views, engagement).",
+    list_media: "the user wants a list of their uploaded media files.",
+    get_media: "the user references one specific media file by ID.",
+    list_labels: "the user wants their post labels/tags.",
+    list_schedules: "the user wants their recurring posting schedules.",
+    get_analytics: "the user asks how their content performed overall — never use web browsing for this.",
+    get_quota_usage: "the user asks about plan limits or current usage.",
+    get_queue_slot: "the user asks when the next available scheduling slot is.",
+    get_channel_health: "the user asks whether a channel's connection/token is healthy.",
+    get_channel_options: "you need a platform's valid post types before creating a post for it.",
+    search_mentions: "the user wants social-media mentions of a brand or keyword — never use built-in web search.",
+    create_post: "the user wants to draft or schedule one new post (do not publish immediately unless asked).",
+    update_post: "the user wants to edit an existing post.",
+    bulk_posts: "the user wants to create many posts in a single request.",
+    upload_media: "the user provides an image/video to attach to a post.",
+    create_media_upload: "you need a presigned URL for a large direct upload (advanced; prefer upload_media for normal files).",
+    finalize_media_upload: "a presigned direct upload finished and the file must be registered (advanced).",
+    create_label: "the user wants a new label/tag.",
+    update_label: "the user wants to rename or recolor a label.",
+    create_schedule: "the user wants a recurring posting schedule.",
+    update_schedule: "the user wants to change a recurring schedule.",
+    publish_post: "the user wants to publish an existing draft or scheduled post right now.",
+    retry_post: "a post failed on some platforms and the user wants to retry just those.",
+    publish_story: "the user wants to post an Instagram/Facebook story.",
+    delete_post: "the user wants to permanently remove a post.",
+    delete_media: "the user wants to delete a media file.",
+    delete_label: "the user wants to delete a label.",
+    delete_schedule: "the user wants to stop and delete a recurring schedule.",
+    compose_post: "the user wants to compose a post interactively in a UI — prefer this over create_post when they'd review before posting.",
+    view_posts: "the user wants to see their posts as an interactive dashboard — prefer over list_posts for a visual view.",
+    view_channels: "the user wants an interactive view of their connected channels.",
+    view_media: "the user wants to browse their media library visually.",
+    view_analytics: "the user wants an interactive analytics dashboard — prefer over get_analytics for a visual view.",
+    view_quota: "the user wants a visual view of their plan usage.",
+  };
   {
     const srv = server as unknown as {
       _createRegisteredTool?: (...a: unknown[]) => unknown;
@@ -188,6 +230,10 @@ export function createServer(): McpServer {
         if (ann) {
           if (!args[1]) args[1] = ann.title; // tool title (regular tools have none)
           args[5] = { ...ann, ...((args[5] as object) ?? {}) }; // annotations slot
+        }
+        const use = TOOL_USE_HINTS[args[0] as string];
+        if (use && typeof args[2] === "string" && !(args[2] as string).includes("Use this when")) {
+          args[2] = (args[2] as string).replace(/\s+$/, "") + " Use this when " + use; // description slot
         }
         return bound(...args);
       };
