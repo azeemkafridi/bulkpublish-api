@@ -11,6 +11,7 @@ on:
     paths:
       - 'mcp-server/**'
       - '.github/workflows/**'
+  workflow_dispatch: {} # manual trigger — rebuild main on demand (e.g. when a push didn't fire CI)
 
 env:
   REGISTRY: ghcr.io
