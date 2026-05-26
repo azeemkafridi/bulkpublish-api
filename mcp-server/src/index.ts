@@ -116,6 +116,84 @@ export function createServer(): McpServer {
     version: "1.0.0",
   });
 
+  // --- Tool annotations (MCP Connectors Directory requirement) -------------
+  // Directory review requires every tool to expose a human-readable `title`
+  // plus the applicable readOnly/destructive hint. Both registration paths —
+  // regular tools (server.tool) and widgets (registerAppTool →
+  // server.registerTool) — funnel through the SDK's internal
+  // _createRegisteredTool(name, title, description, inputSchema, outputSchema,
+  // annotations, …), so we inject annotations there by tool name from this one
+  // map instead of threading an argument through ~37 call sites. Guarded so it
+  // degrades to "no annotations" (rather than crashing) if the SDK changes.
+  type ToolAnn = {
+    title: string;
+    readOnlyHint?: boolean;
+    destructiveHint?: boolean;
+    idempotentHint?: boolean;
+    openWorldHint?: boolean;
+  };
+  const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
+    // Read-only
+    list_channels: { title: "List channels", readOnlyHint: true },
+    list_posts: { title: "List posts", readOnlyHint: true },
+    get_post: { title: "Get post", readOnlyHint: true },
+    get_post_metrics: { title: "Get post metrics", readOnlyHint: true },
+    list_media: { title: "List media", readOnlyHint: true },
+    get_media: { title: "Get media file", readOnlyHint: true },
+    list_labels: { title: "List labels", readOnlyHint: true },
+    list_schedules: { title: "List recurring schedules", readOnlyHint: true },
+    get_analytics: { title: "Get analytics", readOnlyHint: true },
+    get_quota_usage: { title: "Get quota usage", readOnlyHint: true },
+    get_queue_slot: { title: "Get next queue slot", readOnlyHint: true },
+    get_channel_health: { title: "Get channel health", readOnlyHint: true },
+    get_channel_options: { title: "Get channel post-type options", readOnlyHint: true },
+    search_mentions: { title: "Search mentions", readOnlyHint: true, openWorldHint: true },
+    // Create / update (non-destructive writes)
+    create_post: { title: "Create post", readOnlyHint: false, destructiveHint: false },
+    update_post: { title: "Update post", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+    bulk_posts: { title: "Bulk-create posts", readOnlyHint: false, destructiveHint: false },
+    upload_media: { title: "Upload media", readOnlyHint: false, destructiveHint: false },
+    create_media_upload: { title: "Start media upload", readOnlyHint: false, destructiveHint: false },
+    finalize_media_upload: { title: "Finalize media upload", readOnlyHint: false, destructiveHint: false },
+    create_label: { title: "Create label", readOnlyHint: false, destructiveHint: false },
+    update_label: { title: "Update label", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+    create_schedule: { title: "Create recurring schedule", readOnlyHint: false, destructiveHint: false },
+    update_schedule: { title: "Update recurring schedule", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+    // Publishing (writes out to external platforms)
+    publish_post: { title: "Publish post now", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    retry_post: { title: "Retry failed post", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    publish_story: { title: "Publish story", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    // Destructive
+    delete_post: { title: "Delete post", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    delete_media: { title: "Delete media", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    delete_label: { title: "Delete label", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    delete_schedule: { title: "Delete recurring schedule", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    // Interactive widgets (App tools)
+    compose_post: { title: "Compose a post", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    view_posts: { title: "View posts", readOnlyHint: true },
+    view_channels: { title: "View channels", readOnlyHint: true },
+    view_media: { title: "View media", readOnlyHint: true },
+    view_analytics: { title: "View analytics", readOnlyHint: true },
+    view_quota: { title: "View quota", readOnlyHint: true },
+  };
+  {
+    const srv = server as unknown as {
+      _createRegisteredTool?: (...a: unknown[]) => unknown;
+    };
+    const original = srv._createRegisteredTool;
+    if (typeof original === "function") {
+      const bound = original.bind(server);
+      srv._createRegisteredTool = (...args: unknown[]) => {
+        const ann = TOOL_ANNOTATIONS[args[0] as string];
+        if (ann) {
+          if (!args[1]) args[1] = ann.title; // tool title (regular tools have none)
+          args[5] = { ...ann, ...((args[5] as object) ?? {}) }; // annotations slot
+        }
+        return bound(...args);
+      };
+    }
+  }
+
 // ---------------------------------------------------------------------------
 // Tool: list_channels
 // ---------------------------------------------------------------------------
