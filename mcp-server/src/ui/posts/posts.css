@@ -49,6 +49,7 @@ body {
 /* ----------------------------- post card ----------------------------- */
 
 .post-card {
+  position: relative;
   background: var(--surface-card);
   border-radius: var(--radius-xl);
   padding: 14px 16px;
@@ -122,20 +123,113 @@ body {
   color: var(--stone-500);
 }
 
-/* ----------------------------- meta row ----------------------------- */
+/* ----------------------------- menu button (⋮) ----------------------------- */
 
-.post-card__meta {
+.post-card__menu-btn {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  margin: -3px -4px 0 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--stone-400);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition-base), color var(--transition-base);
+}
+.post-card__menu-btn:hover { background: var(--stone-200); color: var(--stone-700); }
+
+/* ----------------------------- status row (badge + date) ----------------------------- */
+
+.post-card__status-row {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
-.post-card__time {
+.post-card__date {
+  margin-left: auto;
   font-size: var(--text-xs);
   color: var(--stone-400);
-  margin-left: auto;
+  white-space: nowrap;
 }
+
+/* ----------------------------- actions menu ----------------------------- */
+
+.post-menu {
+  position: absolute;
+  top: 42px;
+  right: 12px;
+  z-index: 10;
+  min-width: 170px;
+  padding: 6px;
+  background: var(--surface-card);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.theme-dark .post-menu {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  outline: 1px solid var(--stone-200);
+}
+.post-menu__item {
+  appearance: none;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 9px 10px;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--stone-700);
+  cursor: pointer;
+  transition: background var(--transition-base);
+}
+.post-menu__item:hover { background: var(--stone-200); }
+.post-menu__item--danger { color: var(--color-error-text); }
+.post-menu__item--danger:hover { background: var(--color-error-bg); }
+.post-menu--schedule { padding: 8px; gap: 8px; }
+.post-menu__input {
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--stone-200);
+  border-radius: var(--radius-md);
+  background: var(--surface-main);
+  color: var(--stone-800);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+.post-menu__set { background: var(--stone-100); text-align: center; }
+.post-menu__set:hover { background: var(--stone-200); }
+
+/* ----------------------------- toast ----------------------------- */
+
+.posts__toast {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translate(-50%, 16px);
+  max-width: 92%;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-base), transform var(--transition-base);
+  z-index: 50;
+}
+.posts__toast.show { opacity: 1; transform: translate(-50%, 0); }
+.posts__toast--ok { background: var(--stone-800); color: #fff; }
+.posts__toast--error { background: var(--color-error-bg); color: var(--color-error-text); }
+.theme-dark .posts__toast--ok { background: var(--accent-500); color: #1a1a1a; }
 
 /* ----------------------------- platform chips (read-only) ----------------------------- */
 
