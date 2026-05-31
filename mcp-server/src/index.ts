@@ -1265,11 +1265,12 @@ function registerWidget(config: {
   // any legacy app-served media, so allow those as static-resource origins
   // (maps to CSP img-src). All JS/CSS is inlined, so nothing else is external.
   const ui = {
-    // Unique app domain — required for OpenAI/ChatGPT app submission. ChatGPT
-    // sandboxes the widget under <domain>.web-sandbox.oaiusercontent.com.
-    // Same value for every widget ("unique per app", not per widget). Harmless
-    // for Claude/MCP Apps, which ignores unknown _meta.ui fields.
-    domain: "https://bulkpublish.com",
+    // Unique app domain — bare hostname, no scheme. ChatGPT sandboxes the widget
+    // under <domain>.web-sandbox.oaiusercontent.com and Claude under
+    // <hash>.claudemcpcontent.com; with a scheme present both prefix the URL and
+    // the resulting sandbox host is malformed (Claude's validator rejects it
+    // outright). Same value for every widget — "unique per app", not per widget.
+    domain: "bulkpublish.com",
     csp: {
       // img-src etc. — media thumbnails load from R2's public CDN.
       resourceDomains: [
