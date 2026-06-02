@@ -1264,35 +1264,39 @@ function registerWidget(config: {
   // media thumbnails served from R2's public CDN (images.bulkpublish.com) and
   // any legacy app-served media, so allow those as static-resource origins
   // (maps to CSP img-src). All JS/CSS is inlined, so nothing else is external.
-  const ui = {
-    // Unique app domain — bare hostname, no scheme. ChatGPT sandboxes the widget
-    // under <domain>.web-sandbox.oaiusercontent.com and Claude under
-    // <hash>.claudemcpcontent.com; with a scheme present both prefix the URL and
-    // the resulting sandbox host is malformed (Claude's validator rejects it
-    // outright). Same value for every widget — "unique per app", not per widget.
-    domain: "bulkpublish.com",
-    csp: {
-      // img-src etc. — media thumbnails load from R2's public CDN.
-      resourceDomains: [
-        "https://images.bulkpublish.com",
-        "https://app.bulkpublish.com",
-      ],
-      // connect-src — the composer PUTs presigned uploads straight to R2.
-      connectDomains: [R2_UPLOAD_ORIGIN],
-    },
+  // CSP for the sandbox iframe — read by both Claude (under _meta.ui.csp) and
+  // ChatGPT (under _meta["openai/widgetCSP"]). Image thumbnails come from R2's
+  // public CDN; the composer PUTs presigned uploads directly to R2.
+  const csp = {
+    resourceDomains: [
+      "https://images.bulkpublish.com",
+      "https://app.bulkpublish.com",
+    ],
+    connectDomains: [R2_UPLOAD_ORIGIN],
+  };
+  // _meta.ui.domain is Claude's slot — it must be a "<hash>.claudemcpcontent.com"
+  // subdomain that Claude assigns, so we MUST NOT set it ourselves (the validator
+  // rejects any other value, including a bare app hostname). ChatGPT's app domain
+  // lives under the OpenAI-namespaced key "openai/widgetDomain" — Claude ignores
+  // namespaced keys, ChatGPT ignores plain `ui.*`, so the two clients don't
+  // collide.
+  const meta = {
+    ui: { csp },
+    "openai/widgetDomain": "bulkpublish.com",
+    "openai/widgetCSP": csp,
   };
   registerAppResource(
     server,
     config.title,
     uri,
-    { mimeType: RESOURCE_MIME_TYPE, _meta: { ui } },
+    { mimeType: RESOURCE_MIME_TYPE, _meta: meta },
     async () => ({
       contents: [
         {
           uri,
           mimeType: RESOURCE_MIME_TYPE,
           text: WIDGET_HTML[config.widget] ?? "",
-          _meta: { ui },
+          _meta: meta,
         },
       ],
     })
