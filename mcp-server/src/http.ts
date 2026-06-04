@@ -279,8 +279,25 @@ app.get("/", (_req: Request, res: Response) => {
     );
 });
 
-app.all(MCP_PATH, handleMcp);
-app.post("/", handleMcp);
+// The MCP SDK's StreamableHTTPServerTransport requires every request to advertise
+// BOTH `application/json` AND `text/event-stream` in Accept, otherwise it returns
+// 406 "Not Acceptable". OpenAI's app scanner (and a lot of curl-style probes)
+// send only one of those, which surfaces in the OpenAI dashboard as
+// "Tool scan failed: Internal service error". Normalize the header here so any
+// reasonable Accept passes through to the SDK. We only touch /mcp and /; the
+// well-known and health endpoints aren't affected.
+function normalizeMcpAccept(req: Request, _res: Response, next: NextFunction): void {
+  const accept = String(req.headers.accept ?? "").toLowerCase();
+  const wantsJson = accept.includes("application/json") || accept.includes("*/*") || accept === "";
+  const wantsSse = accept.includes("text/event-stream");
+  if (wantsJson || wantsSse) {
+    req.headers.accept = "application/json, text/event-stream";
+  }
+  next();
+}
+
+app.all(MCP_PATH, normalizeMcpAccept, handleMcp);
+app.post("/", normalizeMcpAccept, handleMcp);
 
 buildServerCard()
   .then((json) => {
