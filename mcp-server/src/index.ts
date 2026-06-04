@@ -69,6 +69,146 @@ const R2_UPLOAD_ORIGIN =
 const HIDE_BILLING_TOOLS = process.env.BULKPUBLISH_HIDE_BILLING === "1";
 
 // ---------------------------------------------------------------------------
+// Shared input schemas — typed so OpenAI's "Unclear Arguments" review doesn't
+// flag create_post/update_post for free-string platform / status / nested
+// objects. Shapes mirror webapp/src/components/compose/PlatformOptions.tsx;
+// per-platform sub-objects use .passthrough() so undeclared advanced fields
+// still flow through to the API.
+// ---------------------------------------------------------------------------
+
+const PLATFORM_ENUM = z.enum([
+  "facebook",
+  "instagram",
+  "x",
+  "tiktok",
+  "youtube",
+  "threads",
+  "bluesky",
+  "pinterest",
+  "linkedin",
+  "mastodon",
+  "google_business",
+]);
+
+const POST_STATUS_ENUM = z.enum(["draft", "scheduled", "published"]);
+
+const POST_TYPE_OVERRIDES_SCHEMA = z
+  .object({
+    instagram: z
+      .enum(["feed_photo", "feed_video", "reel", "story", "carousel"])
+      .optional(),
+    facebook: z.enum(["post", "reel", "story"]).optional(),
+    tiktok: z.enum(["video", "photo_slideshow"]).optional(),
+    youtube: z.enum(["video", "short"]).optional(),
+    linkedin: z.enum(["post", "multi_image"]).optional(),
+    pinterest: z.enum(["pin", "video_pin", "carousel"]).optional(),
+    google_business: z.enum(["standard", "event", "offer"]).optional(),
+  })
+  .optional()
+  .describe(
+    'Per-platform post type override. E.g. { "instagram": "reel", "youtube": "short" }.'
+  );
+
+const PLATFORM_SPECIFIC_SCHEMA = z
+  .object({
+    youtube: z
+      .object({
+        title: z.string().optional(),
+        privacyStatus: z.enum(["public", "private", "unlisted"]).optional(),
+        categoryId: z.string().optional(),
+        madeForKids: z.boolean().optional(),
+        playlistId: z.string().optional(),
+        thumbnailUrl: z.string().optional(),
+      })
+      .passthrough()
+      .optional(),
+    pinterest: z
+      .object({
+        title: z.string().optional(),
+        description: z.string().optional(),
+        link: z.string().optional(),
+      })
+      .passthrough()
+      .optional(),
+    google_business: z
+      .object({
+        ctaType: z.string().optional(),
+        ctaUrl: z.string().optional(),
+        eventTitle: z.string().optional(),
+        startDate: z.string().optional(),
+        startTime: z.string().optional(),
+        endDate: z.string().optional(),
+        endTime: z.string().optional(),
+        couponCode: z.string().optional(),
+        redeemOnlineUrl: z.string().optional(),
+        termsConditions: z.string().optional(),
+      })
+      .passthrough()
+      .optional(),
+    tiktok: z
+      .object({
+        privacyLevel: z.string().optional(),
+        disableDuet: z.boolean().optional(),
+        disableStitch: z.boolean().optional(),
+        disableComment: z.boolean().optional(),
+        isAigc: z.boolean().optional(),
+        brandContentToggle: z.boolean().optional(),
+        brandOrganicToggle: z.boolean().optional(),
+        thumbnailTimestamp: z.number().optional(),
+      })
+      .passthrough()
+      .optional(),
+    x: z
+      .object({ replySettings: z.string().optional() })
+      .passthrough()
+      .optional(),
+    facebook: z
+      .object({ shareToStory: z.boolean().optional() })
+      .passthrough()
+      .optional(),
+    instagram: z
+      .object({
+        collaborators: z.string().optional(),
+        shareToStory: z.boolean().optional(),
+        trialReel: z.boolean().optional(),
+        graduationStrategy: z.enum(["manual", "auto"]).optional(),
+        thumbnailTimestamp: z.number().optional(),
+      })
+      .passthrough()
+      .optional(),
+    threads: z
+      .object({ quotePostId: z.string().optional() })
+      .passthrough()
+      .optional(),
+    linkedin: z.object({}).passthrough().optional(),
+    bluesky: z.object({}).passthrough().optional(),
+    mastodon: z.object({}).passthrough().optional(),
+  })
+  .optional()
+  .describe(
+    'Platform-specific settings, e.g. { "youtube": { "title": "…", "privacyStatus": "public" } }.'
+  );
+
+const PLATFORM_CONTENT_SCHEMA = z
+  .object({
+    facebook: z.string().optional(),
+    instagram: z.string().optional(),
+    x: z.string().optional(),
+    tiktok: z.string().optional(),
+    youtube: z.string().optional(),
+    threads: z.string().optional(),
+    bluesky: z.string().optional(),
+    pinterest: z.string().optional(),
+    linkedin: z.string().optional(),
+    mastodon: z.string().optional(),
+    google_business: z.string().optional(),
+  })
+  .optional()
+  .describe(
+    'Per-platform content overrides, e.g. { "x": "Short tweet", "linkedin": "Longer LinkedIn post" }.'
+  );
+
+// ---------------------------------------------------------------------------
 // HTTP helper
 // ---------------------------------------------------------------------------
 
@@ -385,11 +525,9 @@ server.tool(
       .array(
         z.object({
           channelId: z.number().describe("Channel ID to post to."),
-          platform: z
-            .string()
-            .describe(
-              'Platform name: "x", "instagram", "linkedin", "facebook", "tiktok", "youtube", "pinterest", "threads", "bluesky", "google_business".'
-            ),
+          platform: PLATFORM_ENUM.describe(
+            "Platform name. One of the supported BulkPublish platforms."
+          ),
         })
       )
       .describe(
@@ -419,18 +557,8 @@ server.tool(
       .array(z.number())
       .optional()
       .describe("Array of label IDs to tag the post with."),
-    platformSpecific: z
-      .record(z.string(), z.unknown())
-      .optional()
-      .describe(
-        'Platform-specific settings, e.g. { "instagram": { "postType": "reel" } }.'
-      ),
-    platformContent: z
-      .record(z.string(), z.string())
-      .optional()
-      .describe(
-        'Per-platform content overrides, e.g. { "x": "Short tweet", "linkedin": "Longer LinkedIn post" }.'
-      ),
+    platformSpecific: PLATFORM_SPECIFIC_SCHEMA,
+    platformContent: PLATFORM_CONTENT_SCHEMA,
     postFormat: z
       .enum(["post", "thread"])
       .optional()
@@ -449,15 +577,7 @@ server.tool(
       .describe(
         "Thread parts array. Required when postFormat is thread (min 2 parts)."
       ),
-    postTypeOverrides: z
-      .record(z.string(), z.string())
-      .optional()
-      .describe(
-        'Per-platform post type override. E.g. { "instagram": "reel", "facebook": "story", "youtube": "short" }. ' +
-        'Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. ' +
-        'TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image. ' +
-        'Pinterest: pin, video_pin, carousel. GMB: standard, event, offer.'
-      ),
+    postTypeOverrides: POST_TYPE_OVERRIDES_SCHEMA,
   },
   async ({
     content,
@@ -883,7 +1003,9 @@ server.tool(
   {
     postId: z.number().describe("The post ID to update."),
     content: z.string().optional().describe("New post text content."),
-    status: z.string().optional().describe('New status (e.g. "draft", "scheduled").'),
+    status: POST_STATUS_ENUM
+      .optional()
+      .describe('New status: "draft", "scheduled", or "published".'),
     scheduledAt: z
       .string()
       .optional()
@@ -897,14 +1019,8 @@ server.tool(
       .array(z.number())
       .optional()
       .describe("Replace label IDs on the post."),
-    postTypeOverrides: z
-      .record(z.string(), z.unknown())
-      .optional()
-      .describe("Per-platform post type overrides."),
-    platformSpecific: z
-      .record(z.string(), z.unknown())
-      .optional()
-      .describe("Platform-specific settings."),
+    postTypeOverrides: POST_TYPE_OVERRIDES_SCHEMA,
+    platformSpecific: PLATFORM_SPECIFIC_SCHEMA,
   },
   async ({
     postId,
