@@ -155,15 +155,15 @@ Once deployed, add it to **claude.ai → Settings → Connectors → Add custom 
 | `create_schedule` | Create a recurring schedule |
 | `update_schedule` | Update a schedule |
 | `delete_schedule` | Delete a schedule |
-| **Quota** | |
-| `get_quota_usage` | Check current plan quota usage |
+| **Account** | |
+| `get_quota_usage` | Check current account usage (hidden when `BULKPUBLISH_HIDE_BILLING=1`) |
 | **Interactive UI (MCP Apps)** | |
 | `compose_post` | Open the interactive post composer (also listed above) |
 | `view_analytics` | Open an interactive analytics dashboard |
 | `view_posts` | Open an interactive posts list |
 | `view_channels` | Open an interactive channels view |
 | `view_media` | Open an interactive media gallery |
-| `view_quota` | Open an interactive quota-usage view |
+| `view_quota` | Open an interactive account-usage view (hidden when `BULKPUBLISH_HIDE_BILLING=1`) |
 
 ## Interactive UI (MCP Apps)
 

@@ -62,6 +62,12 @@ const R2_UPLOAD_ORIGIN =
   process.env.R2_UPLOAD_ORIGIN ||
   "https://d46a1bf4b4491a708ec851e1aade51e5.r2.cloudflarestorage.com";
 
+// When set, the quota tool + widget (which surface plan name and paid-tier
+// limits) are dropped from registration. Used for the ChatGPT Apps submission
+// where OpenAI's Commerce & Purchasing policy disallows surfacing digital
+// subscriptions. Default off — Claude / Anthropic Directory keep the tools.
+const HIDE_BILLING_TOOLS = process.env.BULKPUBLISH_HIDE_BILLING === "1";
+
 // ---------------------------------------------------------------------------
 // HTTP helper
 // ---------------------------------------------------------------------------
@@ -850,18 +856,22 @@ server.tool(
 );
 
 // ---------------------------------------------------------------------------
-// Tool: get_quota_usage
+// Tool: get_quota_usage — gated behind HIDE_BILLING_TOOLS so it doesn't appear
+// in tools/list when the server is run for the ChatGPT submission, which is
+// subject to OpenAI's no-digital-subscriptions policy.
 // ---------------------------------------------------------------------------
 
-server.tool(
-  "get_quota_usage",
-  "Check current quota usage for your BulkPublish plan. Returns daily/monthly post limits, scheduled post limits, channel limits, media storage usage, and more.",
-  {},
-  async () => {
-    const res = await api("GET", "/api/quotas/usage");
-    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
-  }
-);
+if (!HIDE_BILLING_TOOLS) {
+  server.tool(
+    "get_quota_usage",
+    "Check current account usage. Returns daily/monthly post counts, scheduled post counts, channel counts, and media storage usage.",
+    {},
+    async () => {
+      const res = await api("GET", "/api/quotas/usage");
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Tool: update_post
@@ -1641,57 +1651,62 @@ registerWidget({
 });
 
 // --- view_quota → quota ---
-registerWidget({
-  tool: "view_quota",
-  widget: "quota",
-  title: "Quota usage",
-  description:
-    "Open an interactive view of current plan quota usage — daily/monthly post " +
-    "limits, channel limits, and media storage.",
-  inputSchema: {},
-  outputSchema: {
-    // usage maps a label → { used, limit }, plus an optional "plan" string.
-    usage: z
-      .record(
-        z.string(),
-        z.union([z.string(), oItem({ used: oNum(), limit: oNum() })])
-      )
-      .nullish(),
-  },
-  load: async () => {
-    const res = await api("GET", "/api/quotas/usage");
-    // Normalize: API returns parallel limits{} + usage{} maps with different
-    // key names; pair them into { label: { used, limit } } for the View.
-    const root = asObject(res.data);
-    const limits = asObject(root.limits);
-    const used = asObject(root.usage);
-    const MB = 1048576;
-    const rows: Array<[string, unknown, unknown]> = [
-      ["Channels", used.channels, limits.channels],
-      ["Posts / day", used.postsToday, limits.postsPerDay],
-      ["Posts / month", used.postsThisMonth, limits.postsPerMonth],
-      ["Pending scheduled", used.pendingScheduled, limits.maxPendingScheduled],
-      ["Recurring schedules", used.recurringSchedules, limits.recurringSchedules],
-      ["Media storage", Number(used.mediaStorageMB) * MB, Number(limits.mediaStorageMB) * MB],
-      ["API keys", used.apiKeys, limits.apiKeys],
-      ["Webhooks", used.webhooks, limits.webhooks],
-      ["Labels", used.labels, limits.maxLabels],
-      ["Org members", used.orgMembers, limits.maxOrgMembers],
-    ];
-    const usage: Record<string, unknown> = {};
-    if (root.plan) usage.plan = root.plan;
-    for (const [label, u, l] of rows) {
-      if (u === undefined && l === undefined) continue;
-      usage[label] = { used: u ?? 0, limit: l ?? null };
-    }
-    return {
-      text: res.ok
-        ? `Plan: ${root.plan ?? "—"} — ${used.channels ?? 0} channels, ${used.postsThisMonth ?? 0} posts this month.`
-        : formatResponse(res),
-      data: { usage },
-    };
-  },
-});
+// Same HIDE_BILLING_TOOLS gate as get_quota_usage — this widget is the most
+// explicit "you're on a paid SaaS" surface in the app (renders the plan name
+// and progress bars against paid-tier limits), so it's the first to drop.
+if (!HIDE_BILLING_TOOLS) {
+  registerWidget({
+    tool: "view_quota",
+    widget: "quota",
+    title: "Account usage",
+    description:
+      "Open an interactive view of current account usage — daily/monthly post " +
+      "counts, channel counts, and media storage.",
+    inputSchema: {},
+    outputSchema: {
+      // usage maps a label → { used, limit }, plus an optional "plan" string.
+      usage: z
+        .record(
+          z.string(),
+          z.union([z.string(), oItem({ used: oNum(), limit: oNum() })])
+        )
+        .nullish(),
+    },
+    load: async () => {
+      const res = await api("GET", "/api/quotas/usage");
+      // Normalize: API returns parallel limits{} + usage{} maps with different
+      // key names; pair them into { label: { used, limit } } for the View.
+      const root = asObject(res.data);
+      const limits = asObject(root.limits);
+      const used = asObject(root.usage);
+      const MB = 1048576;
+      const rows: Array<[string, unknown, unknown]> = [
+        ["Channels", used.channels, limits.channels],
+        ["Posts / day", used.postsToday, limits.postsPerDay],
+        ["Posts / month", used.postsThisMonth, limits.postsPerMonth],
+        ["Pending scheduled", used.pendingScheduled, limits.maxPendingScheduled],
+        ["Recurring schedules", used.recurringSchedules, limits.recurringSchedules],
+        ["Media storage", Number(used.mediaStorageMB) * MB, Number(limits.mediaStorageMB) * MB],
+        ["API keys", used.apiKeys, limits.apiKeys],
+        ["Webhooks", used.webhooks, limits.webhooks],
+        ["Labels", used.labels, limits.maxLabels],
+        ["Org members", used.orgMembers, limits.maxOrgMembers],
+      ];
+      const usage: Record<string, unknown> = {};
+      if (root.plan) usage.plan = root.plan;
+      for (const [label, u, l] of rows) {
+        if (u === undefined && l === undefined) continue;
+        usage[label] = { used: u ?? 0, limit: l ?? null };
+      }
+      return {
+        text: res.ok
+          ? `${used.channels ?? 0} channels, ${used.postsThisMonth ?? 0} posts this month.`
+          : formatResponse(res),
+        data: { usage },
+      };
+    },
+  });
+}
 
   // ---------------------------------------------------------------------------
   // Tools: media upload (presigned direct-to-R2). Paired helpers the composer

@@ -149,7 +149,7 @@ async function handleMcp(req: Request, res: Response): Promise<void> {
         error: {
           code: -32001,
           message:
-            "Authorization required. Connect via OAuth, or append ?key=bp_… to the URL. Get a key at https://app.bulkpublish.com/developer",
+            "Authorization required. Connect via OAuth to sign in to BulkPublish.",
         },
         id: firstId(body),
       });
