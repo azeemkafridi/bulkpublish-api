@@ -19,7 +19,8 @@
     "start": "node dist/index.js",
     "start:http": "node dist/http.js",
     "dev": "tsx src/index.ts",
-    "dev:http": "tsx src/http.ts"
+    "dev:http": "tsx src/http.ts",
+    "preview": "npm run build:ui && tsc && node .harness/build.mjs && node .harness/serve.mjs"
   },
   "keywords": [
     "mcp",
@@ -33,6 +34,8 @@
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "^1.7.2",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@types/compression": "^1.8.1",
+    "compression": "^1.8.1",
     "express": "^5.2.1"
   },
   "devDependencies": {

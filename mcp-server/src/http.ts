@@ -27,6 +27,7 @@
  */
 
 import express, { type Request, type Response, type NextFunction } from "express";
+import compression from "compression";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { mcpAuthRouter } from "@modelcontextprotocol/sdk/server/auth/router.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -186,6 +187,21 @@ async function handleMcp(req: Request, res: Response): Promise<void> {
 
 const app = express();
 app.disable("x-powered-by");
+// gzip every response — most importantly the widget HTML payloads from
+// resources/read (~350 KB each, 5 widgets = ~1.75 MB uncompressed). Compresses
+// to ~70 KB per widget, which stays well clear of any upstream/proxy payload
+// caps. Threshold 1 KB skips small JSON-RPC error responses where compression
+// would add overhead. SSE responses are left alone so streaming still works.
+app.use(
+  compression({
+    threshold: 1024,
+    filter: (req, res) => {
+      const ct = String(res.getHeader("Content-Type") ?? "");
+      if (ct.startsWith("text/event-stream")) return false;
+      return compression.filter(req, res);
+    },
+  })
+);
 app.use(express.json({ limit: "8mb" }));
 app.use(express.urlencoded({ extended: true }));
 
