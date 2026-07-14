@@ -450,12 +450,16 @@ async function getMediaInfoForIds(
   if (ids.length === 0) return { medias: [] };
   const results: MediaInfo[] = [];
   for (const id of ids) {
-    const res = await api<{ id: number; mimeType: string }>(
+    const res = await api<{ file?: { id: number; mimeType: string } }>(
       "GET",
       `/api/media/${id}`
     );
     if (!res.ok) return { medias: [], error: `Media ID ${id} not found` };
-    const d = res.data as { id: number; mimeType: string };
+    // The API nests the record under `file` — reading mimeType off the top level
+    // made hasVideo/hasImage always false and blocked every TikTok/YouTube video post.
+    const d =
+      (res.data as { file?: { id: number; mimeType: string } }).file ??
+      (res.data as unknown as { id: number; mimeType: string });
     results.push({ id: d.id, mimeType: d.mimeType });
   }
   return { medias: results };
