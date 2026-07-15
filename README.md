@@ -217,7 +217,7 @@ More examples in [`examples/`](examples/) — including [Python automation scrip
 - **11 platforms** — Facebook, Instagram, X/Twitter, TikTok, YouTube, Threads, Bluesky, Pinterest, Google Business Profile, LinkedIn, Mastodon
 - **Scheduling** — Schedule posts for any future time with timezone support, or let queue slots pick optimal times
 - **Media uploads** — Images (JPEG, PNG, WebP, GIF) and videos (MP4, MOV, WebM) up to 100 MB
-- **Recurring schedules** — Repeat posts daily, weekly, biweekly, or monthly with cron expressions
+- **Recurring schedules** — Repeat posts daily, weekly, biweekly, or monthly at a set time of day
 - **Analytics** — Track impressions, likes, comments, shares, and engagement across all platforms
 - **Labels** — Organize posts and media with color-coded labels
 - **Bulk operations** — Delete or retry multiple posts in a single request

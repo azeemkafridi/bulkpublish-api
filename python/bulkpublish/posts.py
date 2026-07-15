@@ -228,7 +228,7 @@ class PostsResource:
         if media_files is not None:
             body["mediaFiles"] = media_files
         if label_ids is not None:
-            body["labelIds"] = label_ids
+            body["labels"] = label_ids
         if post_format is not None:
             body["postFormat"] = post_format
         if platform_specific is not None:
@@ -408,26 +408,24 @@ class PostsResource:
     def queue_slot(
         self,
         *,
-        channel_id: str,
-        date: Optional[str] = None,
+        timezone: Optional[str] = None,
     ) -> QueueSlot:
-        """Get the next optimal publishing time slot for a channel.
+        """Get the organization's next optimal publishing time slot.
 
         Args:
-            channel_id: The channel to check.
-            date: ISO-8601 date to find a slot on (defaults to today).
+            timezone: IANA timezone for the slot calculation (defaults to UTC).
 
         Returns:
-            Dict with ``suggestedTime`` and ``channelId``.
+            Dict with ``suggestedTime`` and ``timezone``.
 
         Example::
 
-            slot = bp.posts.queue_slot(channel_id="ch_1")
+            slot = bp.posts.queue_slot(timezone="America/New_York")
             print(f"Best time to post: {slot['suggestedTime']}")
         """
-        params: Dict[str, Any] = {"channelId": channel_id}
-        if date is not None:
-            params["date"] = date
+        params: Dict[str, Any] = {}
+        if timezone is not None:
+            params["timezone"] = timezone
         return self._client._request("GET", "/api/posts/queue-slot", params=params)
 
 
@@ -492,11 +490,11 @@ class AsyncPostsResource:
             body["scheduledAt"] = scheduled_at
         return await self._client._request("POST", "/api/posts/bulk", json=body)
 
-    async def queue_slot(self, *, channel_id: str, date: Optional[str] = None) -> QueueSlot:
+    async def queue_slot(self, *, timezone: Optional[str] = None) -> QueueSlot:
         """Queue slot — see :meth:`PostsResource.queue_slot`."""
-        params: Dict[str, Any] = {"channelId": channel_id}
-        if date is not None:
-            params["date"] = date
+        params: Dict[str, Any] = {}
+        if timezone is not None:
+            params["timezone"] = timezone
         return await self._client._request("GET", "/api/posts/queue-slot", params=params)
 
 
@@ -507,7 +505,7 @@ class AsyncPostsResource:
 _SNAKE_TO_CAMEL = {
     "scheduled_at": "scheduledAt",
     "media_files": "mediaFiles",
-    "label_ids": "labelIds",
+    "label_ids": "labels",
     "post_format": "postFormat",
     "platform_specific": "platformSpecific",
     "platform_content": "platformContent",

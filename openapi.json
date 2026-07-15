@@ -12,7 +12,9 @@
     }
   ],
   "security": [
-    { "apiKey": [] }
+    {
+      "apiKey": []
+    }
   ],
   "components": {
     "securitySchemes": {
@@ -27,113 +29,349 @@
       "Post": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer" },
-          "content": { "type": "string" },
-          "status": { "type": "string", "enum": ["draft", "scheduled", "publishing", "published", "failed", "partial"] },
-          "scheduledAt": { "type": "string", "format": "date-time", "nullable": true },
-          "timezone": { "type": "string" },
-          "postFormat": { "type": "string", "enum": ["post", "video", "reel", "story", "carousel", "thread"] },
-          "postTypeOverrides": { "type": "object", "description": "Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image, pdf_carousel, article. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer." },
+          "id": {
+            "type": "integer"
+          },
+          "content": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "scheduled",
+              "publishing",
+              "published",
+              "processing",
+              "failed",
+              "partial"
+            ]
+          },
+          "scheduledAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "postFormat": {
+            "type": "string",
+            "enum": [
+              "post",
+              "video",
+              "reel",
+              "story",
+              "carousel",
+              "thread"
+            ]
+          },
+          "postTypeOverrides": {
+            "type": "object",
+            "description": "Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer."
+          },
           "platformSpecific": {
             "type": "object",
             "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto'), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX'), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus, categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType, ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'mentionedUsers') }. Threads: { quotePostId }. Use _firstComment (string) for auto-posted reply after publish."
           },
-          "platformContent": { "type": "object", "description": "Per-platform content overrides, e.g. { \"x\": \"Short version\" }" },
-          "deleteMediaAfterPublish": { "type": "boolean" },
-          "autoPlugEnabled": { "type": "boolean" },
-          "autoPlugText": { "type": "string", "nullable": true },
-          "autoPlugThreshold": { "type": "integer" },
-          "autoPlugFired": { "type": "boolean" },
-          "autoRepostEnabled": { "type": "boolean" },
-          "autoRepostThreshold": { "type": "integer" },
-          "autoRepostFired": { "type": "boolean" },
-          "recurringScheduleId": { "type": "integer", "nullable": true },
-          "recurringSchedule": { "type": "object", "nullable": true, "description": "Full recurring schedule details when linked" },
-          "mediaFiles": { "type": "array", "items": { "$ref": "#/components/schemas/MediaFile" } },
-          "postPlatforms": { "type": "array", "items": { "$ref": "#/components/schemas/PostPlatform" } },
-          "labels": { "type": "array", "items": { "$ref": "#/components/schemas/Label" } },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "publishedAt": { "type": "string", "format": "date-time", "nullable": true }
+          "platformContent": {
+            "type": "object",
+            "description": "Per-platform content overrides, e.g. { \"x\": \"Short version\" }"
+          },
+          "deleteMediaAfterPublish": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether uploaded media is deleted right after publishing. Defaults to false \u2014 media is kept and reclaimed by the 3-month retention sweep. Always false for recurring-schedule posts and bulk-created posts."
+          },
+          "autoPlugEnabled": {
+            "type": "boolean"
+          },
+          "autoPlugText": {
+            "type": "string",
+            "nullable": true
+          },
+          "autoPlugThreshold": {
+            "type": "integer"
+          },
+          "autoPlugFired": {
+            "type": "boolean"
+          },
+          "autoRepostEnabled": {
+            "type": "boolean"
+          },
+          "autoRepostThreshold": {
+            "type": "integer"
+          },
+          "autoRepostFired": {
+            "type": "boolean"
+          },
+          "recurringScheduleId": {
+            "type": "integer",
+            "nullable": true
+          },
+          "recurringSchedule": {
+            "type": "object",
+            "nullable": true,
+            "description": "Full recurring schedule details when linked"
+          },
+          "mediaFiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MediaFile"
+            }
+          },
+          "postPlatforms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PostPlatform"
+            }
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Label"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
         }
       },
       "PostPlatform": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer" },
-          "channelId": { "type": "integer" },
-          "platform": { "type": "string" },
-          "status": { "type": "string" },
-          "platformPostId": { "type": "string", "nullable": true },
-          "platformUrl": { "type": "string", "nullable": true },
-          "errorMessage": { "type": "string", "nullable": true },
-          "retryCount": { "type": "integer" }
+          "id": {
+            "type": "integer"
+          },
+          "channelId": {
+            "type": "integer"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "platformPostId": {
+            "type": "string",
+            "nullable": true
+          },
+          "platformUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "retryCount": {
+            "type": "integer"
+          }
         }
       },
       "Channel": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer" },
-          "platform": { "type": "string", "enum": ["facebook", "instagram", "x", "tiktok", "youtube", "threads", "bluesky", "pinterest", "gmb", "linkedin", "mastodon"] },
-          "accountName": { "type": "string" },
-          "accountId": { "type": "string" },
-          "accountType": { "type": "string", "description": "Account kind. LinkedIn: 'personal' or 'organization'. Facebook: 'page'." },
-          "profileImage": { "type": "string", "nullable": true },
-          "isActive": { "type": "boolean" },
-          "tokenStatus": { "type": "string", "enum": ["valid", "expiring_soon", "expired"] },
-          "tokenExpiresAt": { "type": "string", "format": "date-time", "nullable": true },
-          "metadata": { "type": "object" },
-          "createdAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "integer"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "facebook",
+              "instagram",
+              "x",
+              "tiktok",
+              "youtube",
+              "threads",
+              "bluesky",
+              "pinterest",
+              "gmb",
+              "linkedin",
+              "mastodon",
+              "reddit",
+              "discord",
+              "telegram"
+            ]
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "accountType": {
+            "type": "string"
+          },
+          "profileImage": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "tokenStatus": {
+            "type": "string",
+            "enum": [
+              "valid",
+              "expiring_soon",
+              "expired"
+            ]
+          },
+          "tokenExpiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "MediaFile": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer" },
-          "fileName": { "type": "string" },
-          "mimeType": { "type": "string" },
-          "sizeBytes": { "type": "integer" },
-          "width": { "type": "integer", "nullable": true },
-          "height": { "type": "integer", "nullable": true },
-          "duration": { "type": "number", "nullable": true },
-          "originalUrl": { "type": "string" },
-          "thumbnailUrl": { "type": "string", "nullable": true }
+          "id": {
+            "type": "integer"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer"
+          },
+          "width": {
+            "type": "integer",
+            "nullable": true
+          },
+          "height": {
+            "type": "integer",
+            "nullable": true
+          },
+          "duration": {
+            "type": "number",
+            "nullable": true
+          },
+          "originalUrl": {
+            "type": "string"
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "nullable": true
+          }
         }
       },
       "Label": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer" },
-          "name": { "type": "string" },
-          "color": { "type": "string" },
-          "type": { "type": "string", "enum": ["post", "media"] },
-          "createdAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "post",
+              "media"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "Schedule": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer" },
-          "name": { "type": "string" },
-          "frequency": { "type": "string", "enum": ["daily", "weekly", "biweekly", "monthly"] },
-          "dayOfWeek": { "type": "integer", "nullable": true },
-          "dayOfMonth": { "type": "integer", "nullable": true },
-          "timeOfDay": { "type": "string" },
-          "timezone": { "type": "string" },
-          "channelIds": { "type": "array", "items": { "type": "integer" } },
-          "contentTemplate": { "type": "string" },
-          "isActive": { "type": "boolean" },
-          "nextRunAt": { "type": "string", "format": "date-time", "nullable": true }
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "daily",
+              "weekly",
+              "biweekly",
+              "monthly"
+            ]
+          },
+          "dayOfWeek": {
+            "type": "integer",
+            "nullable": true
+          },
+          "dayOfMonth": {
+            "type": "integer",
+            "nullable": true
+          },
+          "timeOfDay": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "channelIds": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "contentTemplate": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "nextRunAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
         }
       },
       "Notification": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer" },
-          "type": { "type": "string" },
-          "title": { "type": "string" },
-          "message": { "type": "string" },
-          "isRead": { "type": "boolean" },
-          "createdAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "isRead": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "Error": {
@@ -142,8 +380,12 @@
           "error": {
             "type": "object",
             "properties": {
-              "message": { "type": "string" },
-              "code": { "type": "string" }
+              "message": {
+                "type": "string"
+              },
+              "code": {
+                "type": "string"
+              }
             }
           }
         }
@@ -155,77 +397,195 @@
           "facebook": {
             "type": "object",
             "properties": {
-              "shareToStory": { "type": "boolean", "description": "Also share to Facebook Story" }
+              "shareToStory": {
+                "type": "boolean",
+                "description": "Also share to Facebook Story"
+              }
             }
           },
           "x": {
             "type": "object",
             "properties": {
-              "replySettings": { "type": "string", "enum": ["everyone", "following", "mentionedUsers"], "description": "Who can reply to this tweet" }
+              "replySettings": {
+                "type": "string",
+                "enum": [
+                  "everyone",
+                  "following",
+                  "mentionedUsers"
+                ],
+                "description": "Who can reply to this tweet"
+              }
             }
           },
           "tiktok": {
             "type": "object",
             "properties": {
-              "privacyLevel": { "type": "string", "enum": ["PUBLIC_TO_EVERYONE", "MUTUAL_FOLLOW_FRIENDS", "FOLLOWER_OF_CREATOR", "SELF_ONLY", "SEND_TO_USER_INBOX"] },
-              "disableDuet": { "type": "boolean" },
-              "disableStitch": { "type": "boolean" },
-              "disableComment": { "type": "boolean" },
-              "isAigc": { "type": "boolean", "description": "AI-generated content disclosure" },
-              "brandContentToggle": { "type": "boolean", "description": "Paid partnership" },
-              "brandOrganicToggle": { "type": "boolean", "description": "Brand promotional content" },
-              "thumbnailTimestamp": { "type": "number", "description": "Thumbnail timestamp in seconds" }
+              "privacyLevel": {
+                "type": "string",
+                "enum": [
+                  "PUBLIC_TO_EVERYONE",
+                  "MUTUAL_FOLLOW_FRIENDS",
+                  "FOLLOWER_OF_CREATOR",
+                  "SELF_ONLY",
+                  "SEND_TO_USER_INBOX"
+                ]
+              },
+              "disableDuet": {
+                "type": "boolean"
+              },
+              "disableStitch": {
+                "type": "boolean"
+              },
+              "disableComment": {
+                "type": "boolean"
+              },
+              "isAigc": {
+                "type": "boolean",
+                "description": "AI-generated content disclosure"
+              },
+              "brandContentToggle": {
+                "type": "boolean",
+                "description": "Paid partnership"
+              },
+              "brandOrganicToggle": {
+                "type": "boolean",
+                "description": "Brand promotional content"
+              },
+              "thumbnailTimestamp": {
+                "type": "number",
+                "description": "Thumbnail timestamp in seconds"
+              }
             }
           },
           "youtube": {
             "type": "object",
             "properties": {
-              "title": { "type": "string" },
-              "privacyStatus": { "type": "string", "enum": ["public", "unlisted", "private"] },
-              "categoryId": { "type": "string" },
-              "madeForKids": { "type": "boolean" },
-              "playlistId": { "type": "string" },
-              "thumbnailUrl": { "type": "string", "description": "URL of custom thumbnail image" }
+              "title": {
+                "type": "string"
+              },
+              "privacyStatus": {
+                "type": "string",
+                "enum": [
+                  "public",
+                  "unlisted",
+                  "private"
+                ]
+              },
+              "categoryId": {
+                "type": "string"
+              },
+              "madeForKids": {
+                "type": "boolean"
+              },
+              "playlistId": {
+                "type": "string"
+              },
+              "thumbnailUrl": {
+                "type": "string",
+                "description": "URL of custom thumbnail image"
+              }
             }
           },
           "pinterest": {
             "type": "object",
             "properties": {
-              "title": { "type": "string" },
-              "description": { "type": "string" },
-              "link": { "type": "string", "description": "Destination URL" },
-              "dominantColor": { "type": "string", "description": "Hex color e.g. #FF5733" }
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "link": {
+                "type": "string",
+                "description": "Destination URL"
+              },
+              "dominantColor": {
+                "type": "string",
+                "description": "Hex color e.g. #FF5733"
+              }
             }
           },
           "gmb": {
             "type": "object",
             "properties": {
-              "ctaType": { "type": "string", "enum": ["LEARN_MORE", "BOOK", "ORDER", "SHOP", "SIGN_UP", "CALL"] },
-              "ctaUrl": { "type": "string" },
-              "eventTitle": { "type": "string" },
-              "startDate": { "type": "string", "description": "YYYY-MM-DD" },
-              "startTime": { "type": "string", "description": "HH:MM" },
-              "endDate": { "type": "string" },
-              "endTime": { "type": "string" },
-              "couponCode": { "type": "string" },
-              "redeemOnlineUrl": { "type": "string" },
-              "termsConditions": { "type": "string" }
+              "ctaType": {
+                "type": "string",
+                "enum": [
+                  "LEARN_MORE",
+                  "BOOK",
+                  "ORDER",
+                  "SHOP",
+                  "SIGN_UP",
+                  "CALL"
+                ]
+              },
+              "ctaUrl": {
+                "type": "string"
+              },
+              "eventTitle": {
+                "type": "string"
+              },
+              "startDate": {
+                "type": "string",
+                "description": "YYYY-MM-DD"
+              },
+              "startTime": {
+                "type": "string",
+                "description": "HH:MM"
+              },
+              "endDate": {
+                "type": "string"
+              },
+              "endTime": {
+                "type": "string"
+              },
+              "couponCode": {
+                "type": "string"
+              },
+              "redeemOnlineUrl": {
+                "type": "string"
+              },
+              "termsConditions": {
+                "type": "string"
+              }
             }
           },
           "instagram": {
             "type": "object",
             "properties": {
-              "collaborators": { "type": "string", "description": "Comma-separated usernames without @" },
-              "shareToStory": { "type": "boolean", "description": "Also share to Instagram Story" },
-              "trialReel": { "type": "boolean", "description": "Post as trial reel" },
-              "graduationStrategy": { "type": "string", "enum": ["manual", "auto"], "description": "Trial reel graduation strategy" },
-              "thumbnailTimestamp": { "type": "number", "description": "Thumbnail timestamp in seconds" }
+              "collaborators": {
+                "type": "string",
+                "description": "Comma-separated usernames without @"
+              },
+              "shareToStory": {
+                "type": "boolean",
+                "description": "Also share to Instagram Story"
+              },
+              "trialReel": {
+                "type": "boolean",
+                "description": "Post as trial reel"
+              },
+              "graduationStrategy": {
+                "type": "string",
+                "enum": [
+                  "manual",
+                  "auto"
+                ],
+                "description": "Trial reel graduation strategy"
+              },
+              "thumbnailTimestamp": {
+                "type": "number",
+                "description": "Thumbnail timestamp in seconds"
+              }
             }
           },
           "threads": {
             "type": "object",
             "properties": {
-              "quotePostId": { "type": "string", "description": "Threads post ID to quote" }
+              "quotePostId": {
+                "type": "string",
+                "description": "Threads post ID to quote"
+              }
             }
           }
         }
@@ -233,44 +593,232 @@
     }
   },
   "tags": [
-    { "name": "Posts", "description": "Create, schedule, publish, and manage posts across platforms" },
-    { "name": "Channels", "description": "Connect and manage social media accounts" },
-    { "name": "Media", "description": "Upload and manage images and videos" },
-    { "name": "Analytics", "description": "View engagement metrics and performance data" },
-    { "name": "Labels", "description": "Organize posts and media with labels" },
-    { "name": "Schedules", "description": "Set up recurring post schedules" },
-{ "name": "API Keys", "description": "Manage API authentication keys. Available on all plans (Free: 1 key, Pro: 5, Business: 10)." },
-    { "name": "Organizations", "description": "Manage workspaces and teams" },
-    { "name": "Notifications", "description": "View and manage in-app notifications" },
-    { "name": "Utilities", "description": "Link previews, quotas, activity log" }
+    {
+      "name": "Posts",
+      "description": "Create, schedule, publish, and manage posts across platforms"
+    },
+    {
+      "name": "Channels",
+      "description": "Connect and manage social media accounts"
+    },
+    {
+      "name": "Media",
+      "description": "Upload and manage images and videos"
+    },
+    {
+      "name": "Analytics",
+      "description": "View engagement metrics and performance data"
+    },
+    {
+      "name": "Labels",
+      "description": "Organize posts and media with labels"
+    },
+    {
+      "name": "Schedules",
+      "description": "Set up recurring post schedules"
+    },
+    {
+      "name": "Organizations",
+      "description": "Manage workspaces and teams"
+    },
+    {
+      "name": "Notifications",
+      "description": "View and manage in-app notifications"
+    },
+    {
+      "name": "API Keys",
+      "description": "Manage API authentication keys. Available on all plans (Free: 1 key, Pro: 5, Business: 10)."
+    },
+    {
+      "name": "Utilities",
+      "description": "Link previews, quotas, activity log"
+    }
   ],
   "paths": {
     "/api/posts": {
       "get": {
-        "tags": ["Posts"],
+        "tags": [
+          "Posts"
+        ],
         "summary": "List posts",
         "description": "Retrieve posts with pagination, filtering, and search.",
         "parameters": [
-          { "name": "page", "in": "query", "required": false, "description": "**optional** — Page number (default: 1)", "schema": { "type": "integer", "default": 1 } },
-          { "name": "limit", "in": "query", "required": false, "description": "**optional** — Items per page, max 100 (default: 20)", "schema": { "type": "integer", "default": 20, "maximum": 100 } },
-          { "name": "status", "in": "query", "required": false, "description": "**optional** — Filter by post status", "schema": { "type": "string", "enum": ["draft", "scheduled", "publishing", "published", "failed", "partial"] } },
-          { "name": "channelId", "in": "query", "required": false, "description": "**optional** — Filter by channel ID", "schema": { "type": "integer" } },
-          { "name": "labelIds", "in": "query", "required": false, "description": "**optional** — Comma-separated label IDs to filter by", "schema": { "type": "string" } },
-          { "name": "labelId", "in": "query", "required": false, "description": "**optional** — Filter by single label ID (legacy, prefer labelIds)", "schema": { "type": "integer" } },
-          { "name": "labelMode", "in": "query", "required": false, "description": "**optional** — How to combine label filters (default: or)", "schema": { "type": "string", "enum": ["or", "and"], "default": "or" } },
-          { "name": "search", "in": "query", "required": false, "description": "**optional** — Search in post content", "schema": { "type": "string" } },
-          { "name": "from", "in": "query", "required": false, "description": "**optional** — Filter posts created on or after this date", "schema": { "type": "string", "format": "date" } },
-          { "name": "to", "in": "query", "required": false, "description": "**optional** — Filter posts created on or before this date", "schema": { "type": "string", "format": "date" } },
-          { "name": "scheduledFrom", "in": "query", "required": false, "description": "**optional** — Filter posts scheduled on or after this date", "schema": { "type": "string", "format": "date" } },
-          { "name": "scheduledTo", "in": "query", "required": false, "description": "**optional** — Filter posts scheduled on or before this date", "schema": { "type": "string", "format": "date" } },
-          { "name": "recurring", "in": "query", "required": false, "description": "**optional** — Set to \"true\" to filter recurring posts only", "schema": { "type": "string" } }
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Page number (default: 1)",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Items per page, max 500 (default: 20)",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 500
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Filter by post status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "scheduled",
+                "publishing",
+                "published",
+                "processing",
+                "failed",
+                "partial"
+              ]
+            }
+          },
+          {
+            "name": "channelId",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Filter by channel ID",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "labelIds",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Comma-separated label IDs to filter by",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelId",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Filter by single label ID (legacy, prefer labelIds)",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "labelMode",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 How to combine label filters (default: or)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "or",
+                "and"
+              ],
+              "default": "or"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Search in post content",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Filter posts created on or after this date",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Filter posts created on or before this date",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "scheduledFrom",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Filter posts scheduled on or after this date",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "scheduledTo",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Filter posts scheduled on or before this date",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "recurring",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Set to \"true\" to filter recurring posts only",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
-          "200": { "description": "Posts list with pagination", "content": { "application/json": { "schema": { "type": "object", "properties": { "posts": { "type": "array", "items": { "$ref": "#/components/schemas/Post" } }, "total": { "type": "integer" }, "page": { "type": "integer" }, "limit": { "type": "integer" }, "totalPages": { "type": "integer" } } } } } }
+          "200": {
+            "description": "Posts list with pagination",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "posts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Post"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "totalPages": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "post": {
-        "tags": ["Posts"],
+        "tags": [
+          "Posts"
+        ],
         "summary": "Create post",
         "description": "Create a new post as draft or scheduled. Validates character limits per platform, media ownership, channel ownership, and plan quotas.\n\n**Character limits:** X: 280, Bluesky: 300, Threads: 500, Mastodon: 500, Pinterest: 500, GMB: 1500, Instagram: 2200, TikTok: 2200, LinkedIn: 3000, YouTube: 5000, Facebook: 63206",
         "requestBody": {
@@ -279,158 +827,867 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["channels"],
+                "required": [
+                  "channels"
+                ],
                 "properties": {
-                  "content": { "type": "string", "description": "Post text content (optional if media attached)" },
-                  "channels": { "type": "array", "description": "Required. Target channels to publish to", "items": { "type": "object", "properties": { "channelId": { "type": "integer", "description": "Channel ID from GET /api/channels" }, "platform": { "type": "string", "description": "Platform name" } }, "required": ["channelId", "platform"] } },
-                  "status": { "type": "string", "enum": ["draft", "scheduled"], "default": "draft", "description": "Optional. Default: draft" },
-                  "mediaFiles": { "type": "array", "items": { "type": "integer" }, "description": "Optional. Media file IDs from POST /api/media" },
-                  "scheduledAt": { "type": "string", "format": "date-time", "description": "Optional. Required when status is 'scheduled'" },
-                  "timezone": { "type": "string", "default": "UTC", "description": "Optional. IANA timezone (default: UTC)" },
-                  "labels": { "type": "array", "items": { "type": "integer" }, "description": "Optional. Label IDs to attach" },
-                  "postFormat": { "type": "string", "enum": ["post", "video", "reel", "story", "carousel", "thread"], "default": "post", "description": "Optional. Default: post" },
-                  "postTypeOverrides": { "type": "object", "description": "Optional. Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image, pdf_carousel, article. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer." },
-                  "platformSpecific": { "$ref": "#/components/schemas/PlatformSpecific", "description": "Optional. Platform-specific options" },
-                  "platformContent": { "type": "object", "description": "Optional. Per-platform content overrides, e.g. { \"x\": \"Short version\" }" },
-                  "deleteMediaAfterPublish": { "type": "boolean", "default": true, "description": "Optional. Delete uploaded media after publishing (default: true)" },
-                  "threadParts": { "type": "array", "items": { "type": "object", "properties": { "content": { "type": "string" }, "mediaFileIds": { "type": "array", "items": { "type": "integer" } } } }, "description": "Optional. Required when postFormat is 'thread' (min 2 parts)" },
-                  "platformThreadParts": { "type": "object", "description": "Optional. Per-platform thread overrides, e.g. { \"x\": [{ \"content\": \"Part 1\" }] }" },
-                  "repeatSchedule": { "type": "object", "description": "Optional. Recurring schedule config", "properties": { "frequency": { "type": "string", "enum": ["daily", "weekly", "biweekly", "monthly"] }, "daysOfWeek": { "type": "array", "items": { "type": "integer" }, "description": "0=Sun, 6=Sat" }, "dayOfMonth": { "type": "integer" }, "timeOfDay": { "type": "string", "description": "HH:MM format" }, "timezone": { "type": "string" } } },
-                  "autoPlugEnabled": { "type": "boolean", "default": false, "description": "Optional. Auto-post a comment when the post reaches a like threshold" },
-                  "autoPlugText": { "type": "string", "description": "Optional. The promotional comment text for auto-plug" },
-                  "autoPlugThreshold": { "type": "integer", "default": 50, "description": "Optional. Number of likes to trigger auto-plug (default: 50)" },
-                  "autoRepostEnabled": { "type": "boolean", "default": false, "description": "Optional. Auto-repost/reshare when the post reaches a like threshold" },
-                  "autoRepostThreshold": { "type": "integer", "default": 100, "description": "Optional. Number of likes to trigger auto-repost (default: 100)" }
+                  "content": {
+                    "type": "string",
+                    "description": "Post text content (optional if media attached)"
+                  },
+                  "channels": {
+                    "type": "array",
+                    "description": "Required. Target channels to publish to",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "channelId": {
+                          "type": "integer",
+                          "description": "Channel ID from GET /api/channels"
+                        },
+                        "platform": {
+                          "type": "string",
+                          "description": "Platform name. Optional \u2014 the server always resolves the platform from the channel record; a supplied value is ignored."
+                        }
+                      },
+                      "required": [
+                        "channelId"
+                      ]
+                    }
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "scheduled"
+                    ],
+                    "default": "draft",
+                    "description": "Optional. Default: draft"
+                  },
+                  "mediaFiles": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "Optional. Media file IDs from POST /api/media"
+                  },
+                  "scheduledAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Optional. Required when status is 'scheduled'"
+                  },
+                  "timezone": {
+                    "type": "string",
+                    "default": "UTC",
+                    "description": "Optional. IANA timezone (default: UTC)"
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "Optional. Label IDs to attach"
+                  },
+                  "postFormat": {
+                    "type": "string",
+                    "enum": [
+                      "post",
+                      "video",
+                      "reel",
+                      "story",
+                      "carousel",
+                      "thread"
+                    ],
+                    "default": "post",
+                    "description": "Optional. Default: post"
+                  },
+                  "postTypeOverrides": {
+                    "type": "object",
+                    "description": "Optional. Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer."
+                  },
+                  "platformSpecific": {
+                    "$ref": "#/components/schemas/PlatformSpecific",
+                    "description": "Optional. Platform-specific options"
+                  },
+                  "platformContent": {
+                    "type": "object",
+                    "description": "Optional. Per-platform content overrides, e.g. { \"x\": \"Short version\" }"
+                  },
+                  "deleteMediaAfterPublish": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Optional. Delete uploaded media right after publishing (default: false \u2014 media is kept and reclaimed by the 3-month retention sweep). Forced to false when the post has a repeatSchedule."
+                  },
+                  "threadParts": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "content": {
+                          "type": "string"
+                        },
+                        "mediaFileIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "description": "Optional. Required when postFormat is 'thread' (min 2 parts)"
+                  },
+                  "platformThreadParts": {
+                    "type": "object",
+                    "description": "Optional. Per-platform thread overrides, e.g. { \"x\": [{ \"content\": \"Part 1\" }] }"
+                  },
+                  "repeatSchedule": {
+                    "type": "object",
+                    "description": "Optional. Recurring schedule config",
+                    "properties": {
+                      "frequency": {
+                        "type": "string",
+                        "enum": [
+                          "daily",
+                          "weekly",
+                          "biweekly",
+                          "monthly"
+                        ]
+                      },
+                      "daysOfWeek": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer"
+                        },
+                        "description": "0=Sun, 6=Sat"
+                      },
+                      "dayOfMonth": {
+                        "type": "integer"
+                      },
+                      "timeOfDay": {
+                        "type": "string",
+                        "description": "HH:MM format"
+                      },
+                      "timezone": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "autoPlugEnabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Optional. Auto-post a comment when the post reaches a like threshold"
+                  },
+                  "autoPlugText": {
+                    "type": "string",
+                    "description": "Optional. The promotional comment text for auto-plug"
+                  },
+                  "autoPlugThreshold": {
+                    "type": "integer",
+                    "default": 50,
+                    "description": "Optional. Number of likes to trigger auto-plug (default: 50)"
+                  },
+                  "autoRepostEnabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Optional. Auto-repost/reshare when the post reaches a like threshold"
+                  },
+                  "autoRepostThreshold": {
+                    "type": "integer",
+                    "default": 100,
+                    "description": "Optional. Number of likes to trigger auto-repost (default: 100)"
+                  }
                 }
               },
               "examples": {
                 "simple": {
                   "summary": "Simple text post to X",
-                  "value": { "content": "Hello world!", "channels": [{ "channelId": 1, "platform": "x" }], "status": "draft" }
+                  "value": {
+                    "content": "Hello world!",
+                    "channels": [
+                      {
+                        "channelId": 1,
+                        "platform": "x"
+                      }
+                    ],
+                    "status": "draft"
+                  }
                 },
                 "scheduled-multi": {
                   "summary": "Scheduled post to multiple platforms",
-                  "value": { "content": "Check out our new feature!", "mediaFiles": [1, 2], "status": "scheduled", "scheduledAt": "2026-03-27T14:00:00Z", "timezone": "America/New_York", "channels": [{ "channelId": 1, "platform": "x" }, { "channelId": 3, "platform": "linkedin" }] }
+                  "value": {
+                    "content": "Check out our new feature!",
+                    "mediaFiles": [
+                      1,
+                      2
+                    ],
+                    "status": "scheduled",
+                    "scheduledAt": "2026-03-27T14:00:00Z",
+                    "timezone": "America/New_York",
+                    "channels": [
+                      {
+                        "channelId": 1,
+                        "platform": "x"
+                      },
+                      {
+                        "channelId": 3,
+                        "platform": "linkedin"
+                      }
+                    ]
+                  }
                 },
                 "linkedin-carousel": {
                   "summary": "LinkedIn PDF carousel",
-                  "value": { "content": "10 tips for social media growth", "mediaFiles": [10, 11, 12, 13, 14], "channels": [{ "channelId": 3, "platform": "linkedin" }], "postTypeOverrides": { "linkedin": "pdf_carousel" }, "platformSpecific": { "linkedin": { "carouselTitle": "10 Tips" } }, "status": "draft" }
+                  "value": {
+                    "content": "10 tips for social media growth",
+                    "mediaFiles": [
+                      10,
+                      11,
+                      12,
+                      13,
+                      14
+                    ],
+                    "channels": [
+                      {
+                        "channelId": 3,
+                        "platform": "linkedin"
+                      }
+                    ],
+                    "postTypeOverrides": {
+                      "linkedin": "pdf_carousel"
+                    },
+                    "platformSpecific": {
+                      "linkedin": {
+                        "carouselTitle": "10 Tips"
+                      }
+                    },
+                    "status": "draft"
+                  }
                 },
                 "tiktok-with-controls": {
                   "summary": "TikTok video with content controls",
-                  "value": { "content": "Tutorial video", "mediaFiles": [20], "channels": [{ "channelId": 5, "platform": "tiktok" }], "platformSpecific": { "tiktok": { "privacyLevel": "PUBLIC_TO_EVERYONE", "disableComment": false, "disableDuet": true, "disableStitch": true, "isAigc": false, "brandContentToggle": false, "brandOrganicToggle": false } }, "status": "scheduled", "scheduledAt": "2026-03-28T18:00:00Z" }
+                  "value": {
+                    "content": "Tutorial video",
+                    "mediaFiles": [
+                      20
+                    ],
+                    "channels": [
+                      {
+                        "channelId": 5,
+                        "platform": "tiktok"
+                      }
+                    ],
+                    "platformSpecific": {
+                      "tiktok": {
+                        "privacyLevel": "PUBLIC_TO_EVERYONE",
+                        "disableComment": false,
+                        "disableDuet": true,
+                        "disableStitch": true,
+                        "isAigc": false,
+                        "brandContentToggle": false,
+                        "brandOrganicToggle": false
+                      }
+                    },
+                    "status": "scheduled",
+                    "scheduledAt": "2026-03-28T18:00:00Z"
+                  }
                 }
               }
             }
           }
         },
         "responses": {
-          "201": { "description": "Post created" },
-          "400": { "description": "Validation error (character limit, missing fields)", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "403": { "description": "Forbidden (media/channel/label ownership)" },
-          "422": { "description": "Quota exceeded" }
+          "201": {
+            "description": "Post created"
+          },
+          "400": {
+            "description": "Validation error (character limit, missing fields)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden (media/channel/label ownership)"
+          },
+          "422": {
+            "description": "Quota exceeded"
+          }
         }
       }
     },
     "/api/posts/{id}": {
       "get": {
-        "tags": ["Posts"],
+        "tags": [
+          "Posts"
+        ],
         "summary": "Get post",
         "description": "Returns full post details including recurringScheduleId and recurringSchedule when the post is linked to a recurring schedule.",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Post details",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Post" }
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                }
               }
             }
           },
-          "404": { "description": "Not found" }
+          "404": {
+            "description": "Not found"
+          }
         }
       },
       "put": {
-        "tags": ["Posts"],
+        "tags": [
+          "Posts"
+        ],
         "summary": "Update post",
-        "description": "Update a draft, scheduled, failed, or partial post.",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": { "content": { "type": "string" }, "mediaFiles": { "type": "array", "items": { "type": "integer" } }, "scheduledAt": { "type": "string", "format": "date-time" }, "channels": { "type": "array" }, "labels": { "type": "array", "items": { "type": "integer" } }, "platformSpecific": { "type": "object" } } } } } },
-        "responses": { "200": { "description": "Updated post" }, "400": { "description": "Validation error" } }
+        "description": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged \u2014 send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a failed or partial post silently resets its status to draft and clears failed platform results (they revert to pending). The post's status cannot be changed via this endpoint \u2014 a status field in the body is ignored; use POST /api/posts/{id}/publish or the scheduledAt field instead.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string"
+                  },
+                  "mediaFiles": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "scheduledAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "channels": {
+                    "type": "array"
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "platformSpecific": {
+                    "type": "object",
+                    "description": "Per-platform options, keyed by platform. Replaced wholesale on update (not merged)."
+                  },
+                  "platformContent": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Per-platform content overrides, keyed by platform. Replaced wholesale on update."
+                  },
+                  "postTypeOverrides": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Per-platform post type overrides, keyed by platform. Replaced wholesale on update."
+                  },
+                  "postFormat": {
+                    "type": "string",
+                    "enum": [
+                      "post",
+                      "thread"
+                    ],
+                    "description": "Post format. Defaults to 'post'."
+                  },
+                  "threadParts": {
+                    "type": "array",
+                    "description": "Thread segments (required when postFormat is 'thread'; at least 2). Each part: { content, mediaFileIds }.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "content": {
+                          "type": "string"
+                        },
+                        "mediaFileIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated post"
+          },
+          "400": {
+            "description": "Validation error"
+          }
+        }
       },
       "delete": {
-        "tags": ["Posts"],
+        "tags": [
+          "Posts"
+        ],
         "summary": "Delete post",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
-        "responses": { "200": { "description": "Deleted" } }
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
       }
     },
     "/api/posts/{id}/publish": {
       "post": {
-        "tags": ["Posts"],
+        "tags": [
+          "Posts"
+        ],
         "summary": "Publish immediately",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
-        "responses": { "200": { "description": "Publishing started" } }
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Publishing started"
+          }
+        }
       }
     },
     "/api/posts/{id}/retry": {
       "post": {
-        "tags": ["Posts"],
+        "tags": [
+          "Posts"
+        ],
         "summary": "Retry failed platforms",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
-        "responses": { "200": { "description": "Retry queued" } }
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Retry queued"
+          }
+        }
       }
     },
     "/api/posts/{id}/metrics": {
       "get": {
-        "tags": ["Posts"],
+        "tags": [
+          "Posts"
+        ],
         "summary": "Get post metrics",
         "description": "Per-platform engagement metrics with history snapshots.",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
-        "responses": { "200": { "description": "Metrics per platform", "content": { "application/json": { "schema": { "type": "object", "properties": { "postId": { "type": "integer" }, "platforms": { "type": "array" }, "totals": { "type": "object" } } } } } } }
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Metrics per platform",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "postId": {
+                      "type": "integer"
+                    },
+                    "platforms": {
+                      "type": "array"
+                    },
+                    "totals": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/posts/{id}/engagement": {
+      "get": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Get post engagement (commenters + reactors)",
+        "description": "Returns per-platform lists of the people/pages who commented on or reacted to a published post \u2014 with name, handle/headline, profile photo and profile URL when the platform exposes them. Platforms that only expose aggregate counts (e.g. Instagram likers, YouTube likers) populate `comments` only and set a `notice` field. Platforms with no engagement API at all (e.g. TikTok) return `unsupported: true`.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "commentsLimit",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Max commenters per platform (default 25, max 100)",
+            "schema": {
+              "type": "integer",
+              "default": 25
+            }
+          },
+          {
+            "name": "reactionsLimit",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Max reactors per platform (default 25, max 100)",
+            "schema": {
+              "type": "integer",
+              "default": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Engagement per platform",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "postId": {
+                      "type": "integer"
+                    },
+                    "platforms": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "platform": {
+                            "type": "string"
+                          },
+                          "platformPostId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "platformUrl": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "engagement": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "comments": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "text": {
+                                      "type": "string"
+                                    },
+                                    "createdAt": {
+                                      "type": "string"
+                                    },
+                                    "likeCount": {
+                                      "type": "integer"
+                                    },
+                                    "actor": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "handle": {
+                                          "type": "string"
+                                        },
+                                        "headline": {
+                                          "type": "string"
+                                        },
+                                        "profileImage": {
+                                          "type": "string"
+                                        },
+                                        "profileUrl": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "reactions": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    },
+                                    "createdAt": {
+                                      "type": "string"
+                                    },
+                                    "actor": {
+                                      "type": "object"
+                                    }
+                                  }
+                                }
+                              },
+                              "hasMoreComments": {
+                                "type": "boolean"
+                              },
+                              "hasMoreReactions": {
+                                "type": "boolean"
+                              },
+                              "unsupported": {
+                                "type": "boolean"
+                              },
+                              "notice": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "error": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
       }
     },
     "/api/posts/{id}/story": {
       "post": {
-        "tags": ["Posts"],
+        "tags": [
+          "Posts"
+        ],
         "summary": "Publish as Story",
         "description": "Publish the post's first media as a Facebook or Instagram Story (disappears after 24h). The post must have media and a published platform entry for the target platform.",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object", "required": ["platform"], "properties": { "platform": { "type": "string", "enum": ["facebook", "instagram"], "description": "**required** — Target platform for the story" } } } } } },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "platform"
+                ],
+                "properties": {
+                  "platform": {
+                    "type": "string",
+                    "enum": [
+                      "facebook",
+                      "instagram"
+                    ],
+                    "description": "**required** \u2014 Target platform for the story"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
-          "200": { "description": "Story published", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "postId": { "type": "string" }, "url": { "type": "string" }, "error": { "type": "string" } } } } } },
-          "400": { "description": "Invalid platform, no media, or no matching platform entry" },
-          "404": { "description": "Post not found" }
+          "200": {
+            "description": "Story published",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "postId": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid platform, no media, or no matching platform entry"
+          },
+          "404": {
+            "description": "Post not found"
+          }
         }
       }
     },
     "/api/posts/bulk": {
       "post": {
-        "tags": ["Posts"],
+        "tags": [
+          "Posts"
+        ],
         "summary": "Bulk actions",
-        "requestBody": { "content": { "application/json": { "schema": { "type": "object", "required": ["action", "postIds"], "properties": { "action": { "type": "string", "enum": ["delete", "retry", "reschedule"] }, "postIds": { "type": "array", "items": { "type": "integer" } }, "scheduledAt": { "type": "string", "format": "date-time" } } } } } },
-        "responses": { "200": { "description": "Bulk action completed" } }
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "action",
+                  "postIds"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "delete",
+                      "retry",
+                      "reschedule"
+                    ]
+                  },
+                  "postIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "scheduledAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk action completed"
+          }
+        }
       }
     },
     "/api/posts/queue-slot": {
       "get": {
-        "tags": ["Posts"],
+        "tags": [
+          "Posts"
+        ],
         "summary": "Get next available queue slot",
         "description": "Returns the next available time slot for scheduling a post based on your queue settings.",
         "parameters": [
-          { "name": "timezone", "in": "query", "required": false, "description": "**optional** — IANA timezone (default: UTC)", "schema": { "type": "string" } }
+          {
+            "name": "timezone",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 IANA timezone (default: UTC)",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
-          "200": { "description": "Next available queue slot" }
+          "200": {
+            "description": "Next available queue slot"
+          }
         }
       }
     },
     "/api/channels": {
       "get": {
-        "tags": ["Channels"],
+        "tags": [
+          "Channels"
+        ],
         "summary": "List channels",
         "description": "Returns all connected channels including tokenExpiresAt and metadata per channel.",
-        "parameters": [{ "name": "active", "in": "query", "required": false, "description": "**optional** — Filter by active status (default: true)", "schema": { "type": "boolean", "default": true } }],
+        "parameters": [
+          {
+            "name": "active",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Filter by active status (default: true)",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Channel list",
@@ -439,7 +1696,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "channels": { "type": "array", "items": { "$ref": "#/components/schemas/Channel" } }
+                    "channels": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Channel"
+                      }
+                    }
                   }
                 }
               }
@@ -450,124 +1712,662 @@
     },
     "/api/channels/{id}": {
       "get": {
-        "tags": ["Channels"],
+        "tags": [
+          "Channels"
+        ],
         "summary": "Get channel",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
-        "responses": { "200": { "description": "Channel details" } }
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Channel details"
+          }
+        }
       },
       "delete": {
-        "tags": ["Channels"],
+        "tags": [
+          "Channels"
+        ],
         "summary": "Disconnect channel",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
-        "responses": { "200": { "description": "Disconnected" } }
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Disconnected"
+          }
+        }
       }
     },
     "/api/channels/{id}/health": {
       "get": {
-        "tags": ["Channels"],
+        "tags": [
+          "Channels"
+        ],
         "summary": "Check channel health",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
-        "responses": { "200": { "description": "Health status" } }
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Health status"
+          }
+        }
       }
     },
     "/api/channels/{id}/options": {
       "get": {
-        "tags": ["Channels"],
+        "tags": [
+          "Channels"
+        ],
         "summary": "Get platform-specific options for a channel",
-        "description": "Returns boards (Pinterest) or playlists (YouTube) depending on the channel's platform. Returns empty items for platforms without sub-resources.",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "description": "Channel ID", "schema": { "type": "integer" } }],
-        "responses": { "200": { "description": "Platform options", "content": { "application/json": { "schema": { "type": "object", "properties": { "type": { "type": "string", "nullable": true, "enum": ["boards", "playlists", "organizations", null] }, "items": { "type": "array", "items": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" } } } } } } } } } }
+        "description": "Returns boards (Pinterest), playlists (YouTube), or organizations (LinkedIn) depending on the channel's platform. Returns empty items for platforms without sub-resources.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Channel ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Platform options",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "boards",
+                        "playlists",
+                        "organizations",
+                        null
+                      ]
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/channels/{id}/mentions": {
       "get": {
-        "tags": ["Channels"],
+        "tags": [
+          "Channels"
+        ],
         "summary": "Search users for @mention",
         "description": "Search for users on a channel's platform to @mention in post content. Currently supported on X (Twitter) and Bluesky. Other platforms return an empty array.",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "description": "Channel ID", "schema": { "type": "integer" } },
-          { "name": "q", "in": "query", "required": true, "description": "Search query (max 100 chars)", "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Channel ID",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "description": "Search query (max 100 chars)",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "responses": { "200": { "description": "Matching users", "content": { "application/json": { "schema": { "type": "object", "properties": { "users": { "type": "array", "items": { "type": "object", "properties": { "id": { "type": "string" }, "handle": { "type": "string" }, "name": { "type": "string" }, "profileImage": { "type": "string", "nullable": true } } } } } } } } } }
+        "responses": {
+          "200": {
+            "description": "Matching users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "handle": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "profileImage": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/media": {
       "get": {
-        "tags": ["Media"],
+        "tags": [
+          "Media"
+        ],
         "summary": "List media files",
         "parameters": [
-          { "name": "page", "in": "query", "required": false, "description": "**optional** — Page number (default: 1)", "schema": { "type": "integer", "default": 1 } },
-          { "name": "limit", "in": "query", "required": false, "description": "**optional** — Items per page (default: 20)", "schema": { "type": "integer", "default": 20 } },
-          { "name": "search", "in": "query", "required": false, "description": "**optional** — Search by filename", "schema": { "type": "string" } },
-          { "name": "labelIds", "in": "query", "required": false, "description": "**optional** — Comma-separated label IDs", "schema": { "type": "string" } }
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Page number (default: 1)",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Items per page (default: 20)",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Search by filename",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelIds",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Comma-separated label IDs",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "responses": { "200": { "description": "Media list" } }
+        "responses": {
+          "200": {
+            "description": "Media list"
+          }
+        }
       },
       "post": {
-        "tags": ["Media"],
-        "summary": "Upload media",
-        "description": "Upload an image or video file. Max 100MB. Formats: JPEG, PNG, WebP, GIF, MP4, QuickTime, WebM.",
-        "requestBody": { "content": { "multipart/form-data": { "schema": { "type": "object", "properties": { "file": { "type": "string", "format": "binary" } } } } } },
-        "responses": { "201": { "description": "File uploaded" } }
+        "tags": [
+          "Media"
+        ],
+        "summary": "Upload media (single request)",
+        "description": "Upload an image or video file in one multipart request (server relays to storage). Max 100MB. Formats: JPEG, PNG, WebP, GIF, MP4, QuickTime, WebM. Browser clients should prefer the faster direct-to-storage flow: POST /api/media/presign then PUT the file to the returned URL then POST /api/media/finalize.",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "File uploaded"
+          }
+        }
+      }
+    },
+    "/api/media/presign": {
+      "post": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Get a direct upload URL",
+        "description": "Step 1 of the direct-to-storage upload. Checks the storage quota and returns a presigned PUT URL plus the object key. PUT the file (max 100MB) to `uploadUrl` with a matching `Content-Type` header, then call POST /api/media/finalize.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "contentType",
+                  "sizeBytes"
+                ],
+                "properties": {
+                  "contentType": {
+                    "type": "string",
+                    "description": "MIME type (JPEG, PNG, WebP, GIF, MP4, QuickTime, WebM)"
+                  },
+                  "sizeBytes": {
+                    "type": "integer",
+                    "description": "Size of the file to upload in bytes"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Presigned URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uploadUrl": {
+                      "type": "string"
+                    },
+                    "r2Key": {
+                      "type": "string"
+                    },
+                    "expiresIn": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid type or size"
+          },
+          "403": {
+            "description": "Storage quota exceeded"
+          }
+        }
+      }
+    },
+    "/api/media/finalize": {
+      "post": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Finalize a direct upload",
+        "description": "Step 2 of the direct-to-storage upload. After the file is PUT to the presigned URL, this records the media file and queues thumbnail generation. The stored object is verified server-side (existence, size, magic bytes) before the record is created.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "r2Key",
+                  "fileName",
+                  "mimeType",
+                  "sizeBytes"
+                ],
+                "properties": {
+                  "r2Key": {
+                    "type": "string",
+                    "description": "Object key returned by /api/media/presign"
+                  },
+                  "fileName": {
+                    "type": "string"
+                  },
+                  "mimeType": {
+                    "type": "string"
+                  },
+                  "sizeBytes": {
+                    "type": "integer"
+                  },
+                  "width": {
+                    "type": "integer",
+                    "description": "**optional** \u2014 image/video width"
+                  },
+                  "height": {
+                    "type": "integer",
+                    "description": "**optional** \u2014 image/video height"
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "description": "**optional** \u2014 video duration in seconds"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Media file created"
+          },
+          "400": {
+            "description": "Invalid key, missing object, or content mismatch"
+          },
+          "403": {
+            "description": "Storage quota exceeded"
+          }
+        }
       }
     },
     "/api/media/{id}": {
-      "get": { "tags": ["Media"], "summary": "Get media file", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "responses": { "200": { "description": "Media details" } } },
-      "delete": { "tags": ["Media"], "summary": "Delete media file", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "responses": { "200": { "description": "Deleted" } } }
+      "get": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Get media file",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Media details"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Delete media file",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
     },
     "/api/media/{id}/thumbnail": {
       "get": {
-        "tags": ["Media"],
+        "tags": [
+          "Media"
+        ],
         "summary": "Get media thumbnail",
         "description": "Redirects to the thumbnail URL for the given media file.",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
-          "302": { "description": "Redirect to thumbnail URL" },
-          "404": { "description": "Media not found or no thumbnail available" }
+          "302": {
+            "description": "Redirect to thumbnail URL"
+          },
+          "404": {
+            "description": "Media not found or no thumbnail available"
+          }
         }
       }
     },
     "/api/media/{id}/labels": {
-      "get": { "tags": ["Media"], "summary": "Get media labels", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "responses": { "200": { "description": "Labels" } } },
-      "put": { "tags": ["Media"], "summary": "Set media labels", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": { "labelIds": { "type": "array", "items": { "type": "integer" } } } } } } }, "responses": { "200": { "description": "Updated" } } }
+      "get": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Get media labels",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Labels"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Set media labels",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "labelIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      }
     },
     "/api/analytics/summary": {
       "get": {
-        "tags": ["Analytics"],
-        "summary": "Summary stats",
-        "description": "Post counts by status, platform, and day.",
-        "parameters": [
-          { "name": "from", "in": "query", "required": true, "description": "**required** — Start date (YYYY-MM-DD)", "schema": { "type": "string", "format": "date" } },
-          { "name": "to", "in": "query", "required": true, "description": "**required** — End date (YYYY-MM-DD)", "schema": { "type": "string", "format": "date" } }
+        "tags": [
+          "Analytics"
         ],
-        "responses": { "200": { "description": "Summary data" } }
+        "summary": "Summary stats",
+        "description": "Post counts by status, platform, and day. The date window is capped at 30 days: `from` is silently clamped so that it is never more than 30 days before `to`.",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "description": "**required** \u2014 Start date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "description": "**required** \u2014 End date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Summary data"
+          }
+        }
       }
     },
     "/api/analytics/engagement": {
       "get": {
-        "tags": ["Analytics"],
-        "summary": "Engagement metrics",
-        "description": "Impressions, reach, likes, comments, shares, saves, clicks, video views with per-platform breakdown and top posts. Results are cached for 5 minutes.",
-        "parameters": [
-          { "name": "from", "in": "query", "required": true, "description": "**required** — Start date (YYYY-MM-DD)", "schema": { "type": "string", "format": "date" } },
-          { "name": "to", "in": "query", "required": true, "description": "**required** — End date (YYYY-MM-DD)", "schema": { "type": "string", "format": "date" } },
-          { "name": "channelId", "in": "query", "required": false, "description": "**optional** — Filter to a single channel", "schema": { "type": "integer" } }
+        "tags": [
+          "Analytics"
         ],
-        "responses": { "200": { "description": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts" } }
+        "summary": "Engagement metrics",
+        "description": "Impressions, reach, likes, comments, shares, saves, clicks, video views with per-platform breakdown and top posts. Results are cached for 5 minutes. The date window is capped at 30 days: `from` is silently clamped so that it is never more than 30 days before `to`.",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "description": "**required** \u2014 Start date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "description": "**required** \u2014 End date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "channelId",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Filter to a single channel",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts"
+          }
+        }
       }
     },
     "/api/analytics/refresh": {
-      "post": { "tags": ["Analytics"], "summary": "Trigger metrics sync", "description": "Queue a background job to fetch latest metrics from all platforms and invalidate analytics cache.", "responses": { "200": { "description": "Queued" } } }
+      "post": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Trigger metrics sync",
+        "description": "Queue a background job to fetch latest metrics from all platforms and invalidate analytics cache.",
+        "responses": {
+          "200": {
+            "description": "Queued"
+          }
+        }
+      }
     },
     "/api/analytics/account": {
       "get": {
-        "tags": ["Analytics"],
+        "tags": [
+          "Analytics"
+        ],
         "summary": "Account-level analytics",
         "description": "Daily snapshots of followers, impressions, reach, and profile views per connected channel. Data is synced automatically every 4 hours.",
         "parameters": [
-          { "name": "channelId", "in": "query", "required": false, "description": "**optional** — Filter to a single channel", "schema": { "type": "integer" } },
-          { "name": "from", "in": "query", "required": false, "description": "**optional** — Start date (YYYY-MM-DD, default 30 days ago)", "schema": { "type": "string", "format": "date" } },
-          { "name": "to", "in": "query", "required": false, "description": "**optional** — End date (YYYY-MM-DD, default today)", "schema": { "type": "string", "format": "date" } }
+          {
+            "name": "channelId",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Filter to a single channel",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Start date (YYYY-MM-DD, default 30 days ago). Clamped to at most 30 days before the end date.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 End date (YYYY-MM-DD, default today)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -577,8 +2377,61 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "metrics": { "type": "array", "items": { "type": "object", "properties": { "date": { "type": "string" }, "channelId": { "type": "integer" }, "platform": { "type": "string" }, "followers": { "type": "integer" }, "following": { "type": "integer" }, "impressions": { "type": "integer" }, "reach": { "type": "integer" }, "profileViews": { "type": "integer" }, "websiteClicks": { "type": "integer" }, "engagementRate": { "type": "integer" } } } },
-                    "channels": { "type": "array", "items": { "type": "object", "properties": { "id": { "type": "integer" }, "platform": { "type": "string" }, "accountName": { "type": "string" } } } }
+                    "metrics": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "date": {
+                            "type": "string"
+                          },
+                          "channelId": {
+                            "type": "integer"
+                          },
+                          "platform": {
+                            "type": "string"
+                          },
+                          "followers": {
+                            "type": "integer"
+                          },
+                          "following": {
+                            "type": "integer"
+                          },
+                          "impressions": {
+                            "type": "integer"
+                          },
+                          "reach": {
+                            "type": "integer"
+                          },
+                          "profileViews": {
+                            "type": "integer"
+                          },
+                          "websiteClicks": {
+                            "type": "integer"
+                          },
+                          "engagementRate": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "channels": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "platform": {
+                            "type": "string"
+                          },
+                          "accountName": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -588,63 +2441,1090 @@
       }
     },
     "/api/labels": {
-      "get": { "tags": ["Labels"], "summary": "List labels", "parameters": [{ "name": "type", "in": "query", "required": false, "description": "**optional** — Filter by label type", "schema": { "type": "string", "enum": ["post", "media"] } }], "responses": { "200": { "description": "Labels" } } },
-      "post": { "tags": ["Labels"], "summary": "Create label", "requestBody": { "content": { "application/json": { "schema": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string" }, "color": { "type": "string", "default": "#6366f1" }, "type": { "type": "string", "enum": ["post", "media"], "default": "post" } } } } } }, "responses": { "201": { "description": "Created" } } }
+      "get": {
+        "tags": [
+          "Labels"
+        ],
+        "summary": "List labels",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Filter by label type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "post",
+                "media"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Labels"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Labels"
+        ],
+        "summary": "Create label",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "color": {
+                    "type": "string",
+                    "default": "#6366f1"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "post",
+                      "media"
+                    ],
+                    "default": "post"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
     },
     "/api/labels/{id}": {
-      "put": { "tags": ["Labels"], "summary": "Update label", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": { "name": { "type": "string" }, "color": { "type": "string" } } } } } }, "responses": { "200": { "description": "Updated" } } },
-      "delete": { "tags": ["Labels"], "summary": "Delete label", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "responses": { "200": { "description": "Deleted" } } }
+      "put": {
+        "tags": [
+          "Labels"
+        ],
+        "summary": "Update label",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "color": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Labels"
+        ],
+        "summary": "Delete label",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
     },
     "/api/schedules": {
-      "get": { "tags": ["Schedules"], "summary": "List recurring schedules", "responses": { "200": { "description": "Schedules" } } },
-      "post": { "tags": ["Schedules"], "summary": "Create schedule", "requestBody": { "content": { "application/json": { "schema": { "type": "object", "required": ["name", "frequency", "timeOfDay", "timezone", "channelIds"], "properties": { "name": { "type": "string" }, "frequency": { "type": "string", "enum": ["daily", "weekly", "biweekly", "monthly"] }, "dayOfWeek": { "type": "integer", "minimum": 0, "maximum": 6 }, "dayOfMonth": { "type": "integer", "minimum": 1, "maximum": 31 }, "timeOfDay": { "type": "string", "description": "HH:MM format" }, "timezone": { "type": "string" }, "channelIds": { "type": "array", "items": { "type": "integer" } }, "contentTemplate": { "type": "string" }, "isActive": { "type": "boolean", "default": true } } } } } }, "responses": { "201": { "description": "Created" } } }
+      "get": {
+        "tags": [
+          "Schedules"
+        ],
+        "summary": "List recurring schedules",
+        "responses": {
+          "200": {
+            "description": "Schedules"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Schedules"
+        ],
+        "summary": "Create schedule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "frequency",
+                  "timeOfDay",
+                  "channelIds"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "frequency": {
+                    "type": "string",
+                    "enum": [
+                      "daily",
+                      "weekly",
+                      "biweekly",
+                      "monthly"
+                    ]
+                  },
+                  "dayOfWeek": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 6
+                  },
+                  "dayOfMonth": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 31
+                  },
+                  "timeOfDay": {
+                    "type": "string",
+                    "description": "HH:MM format"
+                  },
+                  "timezone": {
+                    "type": "string"
+                  },
+                  "channelIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "contentTemplate": {
+                    "type": "string"
+                  },
+                  "isActive": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "postFormat": {
+                    "type": "string",
+                    "enum": [
+                      "post",
+                      "thread"
+                    ],
+                    "description": "Post format. Defaults to 'post'."
+                  },
+                  "threadParts": {
+                    "type": "array",
+                    "description": "Thread segments (required when postFormat is 'thread'; at least 2). Each part: { content, mediaFileIds }.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "content": {
+                          "type": "string"
+                        },
+                        "mediaFileIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "mediaFileIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "Media file IDs to attach to each generated post."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
     },
     "/api/schedules/{id}": {
-      "put": { "tags": ["Schedules"], "summary": "Update schedule", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "responses": { "200": { "description": "Updated" } } },
-      "delete": { "tags": ["Schedules"], "summary": "Delete schedule", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "responses": { "200": { "description": "Deleted" } } }
-    },
-    "/api/api-keys": {
-      "get": { "tags": ["API Keys"], "summary": "List API keys", "responses": { "200": { "description": "API keys (secrets masked)" } } },
-      "post": { "tags": ["API Keys"], "summary": "Create API key", "requestBody": { "content": { "application/json": { "schema": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string" }, "expiresAt": { "type": "string", "format": "date-time" } } } } } }, "responses": { "201": { "description": "Created (full key shown once)" } } }
-    },
-    "/api/api-keys/{id}": {
-      "delete": { "tags": ["API Keys"], "summary": "Delete API key", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "responses": { "200": { "description": "Deleted" } } }
-    },
-    "/api/api-keys/usage": {
-      "get": { "tags": ["API Keys"], "summary": "API usage stats", "description": "Returns today's API call count, daily limit based on plan, and per-key breakdown. Daily limits: Free 100, Pro 5,000, Business 50,000.", "responses": { "200": { "description": "Usage data with today's count, limit, plan, and per-key breakdown" } } }
-    },
-    "/api/api-keys/usage/history": {
-      "get": { "tags": ["API Keys"], "summary": "API usage history", "description": "Returns daily API call counts for the last N days (default 30, max 90). Includes today's live count from Redis + historical data from DB.", "parameters": [{ "name": "days", "in": "query", "required": false, "description": "Number of days (default 30, max 90)", "schema": { "type": "integer" } }], "responses": { "200": { "description": "Array of { date, count } entries" } } }
+      "put": {
+        "tags": [
+          "Schedules"
+        ],
+        "summary": "Update schedule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "frequency": {
+                    "type": "string",
+                    "enum": [
+                      "daily",
+                      "weekly",
+                      "biweekly",
+                      "monthly"
+                    ]
+                  },
+                  "dayOfWeek": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 6
+                  },
+                  "dayOfMonth": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 31
+                  },
+                  "timeOfDay": {
+                    "type": "string",
+                    "description": "HH:MM format"
+                  },
+                  "timezone": {
+                    "type": "string"
+                  },
+                  "channelIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "contentTemplate": {
+                    "type": "string"
+                  },
+                  "isActive": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "postFormat": {
+                    "type": "string",
+                    "enum": [
+                      "post",
+                      "thread"
+                    ],
+                    "description": "Post format. Defaults to 'post'."
+                  },
+                  "threadParts": {
+                    "type": "array",
+                    "description": "Thread segments (required when postFormat is 'thread'; at least 2). Each part: { content, mediaFileIds }.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "content": {
+                          "type": "string"
+                        },
+                        "mediaFileIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "mediaFileIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "Media file IDs to attach to each generated post."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Schedules"
+        ],
+        "summary": "Delete schedule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
     },
     "/api/organizations": {
-      "get": { "tags": ["Organizations"], "summary": "List organizations", "responses": { "200": { "description": "Organizations" } } },
-      "post": { "tags": ["Organizations"], "summary": "Create organization", "requestBody": { "content": { "application/json": { "schema": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string", "maxLength": 100 } } } } } }, "responses": { "201": { "description": "Created" } } }
+      "get": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "List organizations",
+        "responses": {
+          "200": {
+            "description": "Organizations"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Create organization",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
     },
     "/api/organizations/{id}": {
-      "get": { "tags": ["Organizations"], "summary": "Get organization details", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "responses": { "200": { "description": "Organization details with user role" } } },
-      "put": { "tags": ["Organizations"], "summary": "Rename organization", "description": "Owner only. Updates the organization name.", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "requestBody": { "content": { "application/json": { "schema": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string", "maxLength": 100 } } } } } }, "responses": { "200": { "description": "Updated organization" } } },
-      "delete": { "tags": ["Organizations"], "summary": "Delete organization", "description": "Owner only. Requires confirmation by sending the organization name in the request body. Permanently deletes the organization and all associated data (posts, media, channels, schedules, metrics). Cannot delete the user's last organization. Does NOT cancel Polar subscription.", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["confirmName"], "properties": { "confirmName": { "type": "string", "description": "Must exactly match the organization name" } } } } } }, "responses": { "200": { "description": "Deleted" }, "400": { "description": "Confirmation required or cannot delete last organization" } } }
+      "get": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Get organization details",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organization details with user role"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Rename organization",
+        "description": "Owner only. Updates the organization name.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated organization"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Delete organization",
+        "description": "Owner only. Requires confirmation by sending the organization name in the request body. Permanently deletes the organization and all associated data (posts, media, channels, schedules, metrics). Cannot delete the user's last organization. Does NOT cancel Polar subscription.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "confirmName"
+                ],
+                "properties": {
+                  "confirmName": {
+                    "type": "string",
+                    "description": "Must exactly match the organization name"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "400": {
+            "description": "Confirmation required or cannot delete last organization"
+          }
+        }
+      }
     },
     "/api/organizations/switch": {
-      "post": { "tags": ["Organizations"], "summary": "Switch active organization", "requestBody": { "content": { "application/json": { "schema": { "type": "object", "required": ["organizationId"], "properties": { "organizationId": { "type": "integer" } } } } } }, "responses": { "200": { "description": "Switched" } } }
+      "post": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Switch active organization",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "organizationId"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Switched"
+          }
+        }
+      }
     },
     "/api/notifications": {
-      "get": { "tags": ["Notifications"], "summary": "List notifications", "parameters": [{ "name": "page", "in": "query", "required": false, "description": "**optional** — Page number (default: 1)", "schema": { "type": "integer" } }, { "name": "limit", "in": "query", "required": false, "description": "**optional** — Items per page (default: 20)", "schema": { "type": "integer" } }, { "name": "unreadOnly", "in": "query", "required": false, "description": "**optional** — Show only unread notifications", "schema": { "type": "boolean" } }], "responses": { "200": { "description": "Notifications" } } },
-      "patch": { "tags": ["Notifications"], "summary": "Mark as read", "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": { "ids": { "type": "array", "items": { "type": "integer" } }, "all": { "type": "boolean" } } } } } }, "responses": { "200": { "description": "Marked" } } },
-      "delete": { "tags": ["Notifications"], "summary": "Delete notifications", "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": { "ids": { "type": "array", "items": { "type": "integer" } }, "all": { "type": "boolean" } } } } } }, "responses": { "200": { "description": "Deleted" } } }
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "List notifications",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Page number (default: 1)",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Items per page (default: 20)",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "unreadOnly",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Show only unread notifications",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notifications"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Mark as read",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "all": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Marked"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Delete notifications",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "all": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
     },
     "/api/notifications/preferences": {
-      "get": { "tags": ["Notifications"], "summary": "Get notification preferences", "responses": { "200": { "description": "Preferences" } } },
-      "put": { "tags": ["Notifications"], "summary": "Update preferences", "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": { "emailOnFailure": { "type": "boolean" }, "emailDailyDigest": { "type": "boolean" }, "emailOnTokenExpiry": { "type": "boolean" }, "inAppPublished": { "type": "boolean" }, "inAppFailed": { "type": "boolean" }, "inAppScheduleReminder": { "type": "boolean" }, "inAppTokenExpiry": { "type": "boolean" } } } } } }, "responses": { "200": { "description": "Updated" } } }
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Get notification preferences",
+        "responses": {
+          "200": {
+            "description": "Preferences"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Update preferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "emailOnFailure": {
+                    "type": "boolean"
+                  },
+                  "emailDailyDigest": {
+                    "type": "boolean"
+                  },
+                  "emailOnTokenExpiry": {
+                    "type": "boolean"
+                  },
+                  "inAppPublished": {
+                    "type": "boolean"
+                  },
+                  "inAppFailed": {
+                    "type": "boolean"
+                  },
+                  "inAppScheduleReminder": {
+                    "type": "boolean"
+                  },
+                  "inAppTokenExpiry": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      }
     },
     "/api/link-preview": {
-      "get": { "tags": ["Utilities"], "summary": "Preview link metadata", "description": "Fetch OpenGraph metadata from a URL. SSRF-protected.", "parameters": [{ "name": "url", "in": "query", "required": true, "description": "**required** — HTTP/HTTPS URL to preview", "schema": { "type": "string", "format": "uri" } }], "responses": { "200": { "description": "Link metadata" } } }
+      "get": {
+        "tags": [
+          "Utilities"
+        ],
+        "summary": "Preview link metadata",
+        "description": "Fetch OpenGraph metadata from a URL. SSRF-protected.",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "**required** \u2014 HTTP/HTTPS URL to preview",
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Link metadata"
+          }
+        }
+      }
     },
     "/api/quotas/usage": {
-      "get": { "tags": ["Utilities"], "summary": "Get quota usage", "description": "Current usage vs limits for all resource types on your plan.", "responses": { "200": { "description": "Quota data" } } }
+      "get": {
+        "tags": [
+          "Utilities"
+        ],
+        "summary": "Get quota usage",
+        "description": "Current usage vs limits for all resource types on your plan.",
+        "responses": {
+          "200": {
+            "description": "Quota data"
+          }
+        }
+      }
+    },
+    "/api/quotas/x-usage": {
+      "get": {
+        "tags": [
+          "Utilities"
+        ],
+        "summary": "X (Twitter) API spend",
+        "description": "Per-org X API call costs (writes count toward monthly budget; reads are absorbed). Returns today's breakdown, monthly budget status, and 30-day history.",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 History window in days (default 30, max 90)",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "X usage data"
+          }
+        }
+      }
+    },
+    "/api/quotas/x-credits/checkout": {
+      "post": {
+        "tags": [
+          "Utilities"
+        ],
+        "summary": "Create X credits checkout",
+        "description": "Create a Polar checkout session to top up X (Twitter) API credits. The user pays the chosen amount; the `onOrderPaid` webhook increments their credit balance 1:1.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "amountCents"
+                ],
+                "properties": {
+                  "amountCents": {
+                    "type": "integer",
+                    "description": "Amount to charge in USD cents. Minimum 500 ($5), maximum 100000 ($1000)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Checkout URL"
+          }
+        }
+      }
+    },
+    "/api/quotas/ai-credits/checkout": {
+      "post": {
+        "tags": [
+          "Utilities"
+        ],
+        "summary": "Create AI credits checkout",
+        "description": "Create a Polar checkout session to top up AI caption credits. The user pays the chosen amount; the `onOrderPaid` webhook increments their credit balance 1:1 (1 cent = 1 AI run).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "amountCents"
+                ],
+                "properties": {
+                  "amountCents": {
+                    "type": "integer",
+                    "description": "Amount to charge in USD cents. Minimum 500 ($5), maximum 100000 ($1000)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Checkout URL"
+          }
+        }
+      }
+    },
+    "/api/ai/caption": {
+      "post": {
+        "tags": [
+          "Utilities"
+        ],
+        "summary": "Generate an AI caption",
+        "description": "Generate, rephrase, improve, shorten, expand, or restyle a caption \u2014 or caption an image via vision (Cloudflare Workers AI). Consumes one AI run-unit (image = 2) from the plan's monthly allowance, then from purchased credits. Returns up to several variants plus a usage snapshot.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "action"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "generate",
+                      "improve",
+                      "rephrase",
+                      "shorten",
+                      "expand",
+                      "hashtags",
+                      "emojis",
+                      "fix",
+                      "tone",
+                      "image"
+                    ],
+                    "description": "What to do."
+                  },
+                  "text": {
+                    "type": "string",
+                    "description": "Working caption draft (context for generate; target for edit actions)."
+                  },
+                  "selection": {
+                    "type": "string",
+                    "description": "Selected substring to act on (Wordtune-style)."
+                  },
+                  "prompt": {
+                    "type": "string",
+                    "description": "Topic/instruction. Required for action=generate."
+                  },
+                  "platform": {
+                    "type": "string",
+                    "description": "Target platform key (drives tone + character budget)."
+                  },
+                  "tone": {
+                    "type": "string",
+                    "enum": [
+                      "professional",
+                      "casual",
+                      "funny",
+                      "inspirational",
+                      "informative"
+                    ],
+                    "description": "Required for action=tone."
+                  },
+                  "imageUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Public image URL. Required for action=image."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Caption variants + usage"
+          },
+          "402": {
+            "description": "Out of AI runs \u2014 buy credits"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
     },
     "/api/activity": {
-      "get": { "tags": ["Utilities"], "summary": "Activity log", "parameters": [{ "name": "page", "in": "query", "required": false, "description": "**optional** — Page number (default: 1)", "schema": { "type": "integer" } }, { "name": "limit", "in": "query", "required": false, "description": "**optional** — Items per page (default: 20)", "schema": { "type": "integer" } }, { "name": "action", "in": "query", "required": false, "description": "**optional** — Filter by action type", "schema": { "type": "string" } }, { "name": "resource", "in": "query", "required": false, "description": "**optional** — Filter by resource type", "schema": { "type": "string" } }], "responses": { "200": { "description": "Activities" } } }
+      "get": {
+        "tags": [
+          "Utilities"
+        ],
+        "summary": "Activity log",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Page number (default: 1)",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Items per page (default: 20)",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Filter by action type",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "resource",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Filter by resource type",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Activities"
+          }
+        }
+      }
+    },
+    "/api/api-keys": {
+      "get": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "List API keys",
+        "responses": {
+          "200": {
+            "description": "API keys (secrets masked)"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "Create API key",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created (full key shown once)"
+          }
+        }
+      }
+    },
+    "/api/api-keys/{id}": {
+      "delete": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "Delete API key",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/api/api-keys/usage": {
+      "get": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "API usage stats",
+        "description": "Returns today's API call count, daily limit based on plan, and per-key breakdown. Daily limits: Free 100, Pro 5,000, Business 50,000.",
+        "responses": {
+          "200": {
+            "description": "Usage data with today's count, limit, plan, and per-key breakdown"
+          }
+        }
+      }
+    },
+    "/api/api-keys/usage/history": {
+      "get": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "API usage history",
+        "description": "Returns daily API call counts for the last N days (default 30, max 90). Includes today's live count from Redis + historical data from DB.",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "description": "Number of days (default 30, max 90)",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of { date, count } entries"
+          }
+        }
+      }
     }
   }
 }

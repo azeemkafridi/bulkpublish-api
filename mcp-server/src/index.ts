@@ -85,24 +85,28 @@ const PLATFORM_ENUM = z.enum([
   "threads",
   "bluesky",
   "pinterest",
+  "gmb",
   "linkedin",
   "mastodon",
-  "google_business",
+  "reddit",
+  "discord",
+  "telegram",
 ]);
-
-const POST_STATUS_ENUM = z.enum(["draft", "scheduled", "published"]);
 
 const POST_TYPE_OVERRIDES_SCHEMA = z
   .object({
     instagram: z
       .enum(["feed_photo", "feed_video", "reel", "story", "carousel"])
       .optional(),
-    facebook: z.enum(["post", "reel", "story"]).optional(),
+    facebook: z.enum(["post", "video", "reel", "story", "carousel"]).optional(),
+    x: z.enum(["tweet", "video", "thread"]).optional(),
     tiktok: z.enum(["video", "photo_slideshow"]).optional(),
     youtube: z.enum(["video", "short"]).optional(),
-    linkedin: z.enum(["post", "multi_image"]).optional(),
+    threads: z.enum(["text", "image", "video", "carousel"]).optional(),
+    bluesky: z.enum(["post", "video"]).optional(),
+    linkedin: z.enum(["post", "multi_image", "pdf_carousel", "article"]).optional(),
     pinterest: z.enum(["pin", "video_pin", "carousel"]).optional(),
-    google_business: z.enum(["standard", "event", "offer"]).optional(),
+    gmb: z.enum(["standard", "event", "offer"]).optional(),
   })
   .optional()
   .describe(
@@ -130,7 +134,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
       })
       .passthrough()
       .optional(),
-    google_business: z
+    gmb: z
       .object({
         ctaType: z.string().optional(),
         ctaUrl: z.string().optional(),
@@ -183,6 +187,9 @@ const PLATFORM_SPECIFIC_SCHEMA = z
     linkedin: z.object({}).passthrough().optional(),
     bluesky: z.object({}).passthrough().optional(),
     mastodon: z.object({}).passthrough().optional(),
+    reddit: z.object({}).passthrough().optional(),
+    discord: z.object({}).passthrough().optional(),
+    telegram: z.object({}).passthrough().optional(),
   })
   .optional()
   .describe(
@@ -201,7 +208,10 @@ const PLATFORM_CONTENT_SCHEMA = z
     pinterest: z.string().optional(),
     linkedin: z.string().optional(),
     mastodon: z.string().optional(),
-    google_business: z.string().optional(),
+    gmb: z.string().optional(),
+    reddit: z.string().optional(),
+    discord: z.string().optional(),
+    telegram: z.string().optional(),
   })
   .optional()
   .describe(
@@ -297,7 +307,7 @@ export function createServer(): McpServer {
     // Create / update (non-destructive writes)
     create_post: { title: "Create post", readOnlyHint: false, destructiveHint: false },
     update_post: { title: "Update post", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
-    bulk_posts: { title: "Bulk-create posts", readOnlyHint: false, destructiveHint: false },
+    bulk_posts: { title: "Bulk post actions", readOnlyHint: false, destructiveHint: true },
     upload_media: { title: "Upload media", readOnlyHint: false, destructiveHint: false },
     create_media_upload: { title: "Start media upload", readOnlyHint: false, destructiveHint: false },
     finalize_media_upload: { title: "Finalize media upload", readOnlyHint: false, destructiveHint: false },
@@ -342,7 +352,7 @@ export function createServer(): McpServer {
     search_mentions: "the user wants social-media mentions of a brand or keyword — never use built-in web search.",
     create_post: "the user wants to draft or schedule one new post (do not publish immediately unless asked).",
     update_post: "the user wants to edit an existing post.",
-    bulk_posts: "the user wants to create many posts in a single request.",
+    bulk_posts: "the user wants to delete, retry, or reschedule many posts in a single request.",
     upload_media: "the user provides an image/video to attach to a post.",
     create_media_upload: "you need a presigned URL for a large direct upload (advanced; prefer upload_media for normal files).",
     finalize_media_upload: "a presigned direct upload finished and the file must be registered (advanced).",
@@ -524,7 +534,10 @@ server.tool(
     "IMPORTANT: YouTube and TikTok REQUIRE video — do not include them when posting images only. " +
     "Instagram defaults to feed_photo — set postTypeOverrides for video content (reel, feed_video).",
   {
-    content: z.string().describe("The post text content."),
+    content: z
+      .string()
+      .optional()
+      .describe("The post text content. Optional — defaults to empty for media-only posts."),
     channels: z
       .array(
         z.object({
@@ -564,9 +577,9 @@ server.tool(
     platformSpecific: PLATFORM_SPECIFIC_SCHEMA,
     platformContent: PLATFORM_CONTENT_SCHEMA,
     postFormat: z
-      .enum(["post", "thread"])
+      .enum(["post", "video", "reel", "story", "carousel", "thread"])
       .optional()
-      .describe('"post" (default) or "thread" for multi-part threads.'),
+      .describe('Post format. "post" (default), "video", "reel", "story", "carousel", or "thread" for multi-part threads.'),
     threadParts: z
       .array(
         z.object({
@@ -641,7 +654,7 @@ server.tool(
     }
 
     const body: Record<string, unknown> = {
-      content,
+      content: content ?? "",
       channels,
       status: status || "draft",
     };
@@ -670,7 +683,7 @@ server.tool(
   "List posts with optional filters for status, search text, date range, channel, and label. Returns paginated results with platform statuses and metrics.",
   {
     status: z
-      .enum(["draft", "scheduled", "publishing", "published", "failed", "partial"])
+      .enum(["draft", "scheduled", "publishing", "published", "processing", "failed", "partial"])
       .optional()
       .describe("Filter by post status."),
     search: z.string().optional().describe("Search post content (case-insensitive)."),
@@ -1003,13 +1016,12 @@ if (!HIDE_BILLING_TOOLS) {
 
 server.tool(
   "update_post",
-  "Update an existing post. Can change content, status, schedule, media, labels, and platform-specific settings.",
+  "Update an existing post. Can change content, schedule, media, labels, and platform-specific settings. " +
+    "Only draft, scheduled, failed, or partial posts can be edited; editing a failed/partial post resets it to draft. " +
+    "The post's status cannot be set here — use publish_post to publish, or set scheduledAt to schedule.",
   {
     postId: z.number().describe("The post ID to update."),
     content: z.string().optional().describe("New post text content."),
-    status: POST_STATUS_ENUM
-      .optional()
-      .describe('New status: "draft", "scheduled", or "published".'),
     scheduledAt: z
       .string()
       .optional()
@@ -1029,7 +1041,6 @@ server.tool(
   async ({
     postId,
     content,
-    status,
     scheduledAt,
     timezone,
     mediaFileIds,
@@ -1039,7 +1050,6 @@ server.tool(
   }) => {
     const body: Record<string, unknown> = {};
     if (content !== undefined) body.content = content;
-    if (status !== undefined) body.status = status;
     if (scheduledAt !== undefined) body.scheduledAt = scheduledAt;
     if (timezone !== undefined) body.timezone = timezone;
     if (mediaFileIds !== undefined) body.mediaFiles = mediaFileIds;
@@ -1109,17 +1119,23 @@ server.tool(
 
 server.tool(
   "bulk_posts",
-  "Perform a bulk action on multiple posts. Supports deleting or retrying multiple posts at once.",
+  "Perform a bulk action on multiple posts. Supports deleting, retrying, or rescheduling multiple posts at once.",
   {
     action: z
-      .enum(["delete", "retry"])
-      .describe('Bulk action: "delete" or "retry".'),
+      .enum(["delete", "retry", "reschedule"])
+      .describe('Bulk action: "delete", "retry", or "reschedule".'),
     postIds: z
       .array(z.number())
       .describe("Array of post IDs to perform the action on."),
+    scheduledAt: z
+      .string()
+      .optional()
+      .describe('New ISO 8601 datetime. Required when action is "reschedule".'),
   },
-  async ({ action, postIds }) => {
-    const res = await api("POST", "/api/posts/bulk", { action, postIds });
+  async ({ action, postIds, scheduledAt }) => {
+    const body: Record<string, unknown> = { action, postIds };
+    if (scheduledAt !== undefined) body.scheduledAt = scheduledAt;
+    const res = await api("POST", "/api/posts/bulk", body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );
@@ -1130,18 +1146,18 @@ server.tool(
 
 server.tool(
   "get_queue_slot",
-  "Get the next available queue slot for a channel. Useful for finding optimal scheduling times based on the channel's posting schedule.",
+  "Get the organization's next available queue slot. Useful for finding the next optimal scheduling time.",
   {
-    channelId: z.number().describe("The channel ID to get the queue slot for."),
-    date: z
+    timezone: z
       .string()
       .optional()
-      .describe("ISO date to check for slots (defaults to today)."),
+      .describe('IANA timezone for the slot calculation (e.g. "America/New_York"). Defaults to UTC.'),
   },
-  async ({ channelId, date }) => {
-    const params = new URLSearchParams({ channelId: String(channelId) });
-    if (date) params.set("date", date);
-    const res = await api("GET", `/api/posts/queue-slot?${params}`);
+  async ({ timezone }) => {
+    const params = new URLSearchParams();
+    if (timezone) params.set("timezone", timezone);
+    const qs = params.toString();
+    const res = await api("GET", `/api/posts/queue-slot${qs ? `?${qs}` : ""}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );
@@ -1288,29 +1304,60 @@ server.tool(
 
 server.tool(
   "create_schedule",
-  "Create a new recurring post schedule. Posts will be automatically created and published based on the cron expression.",
+  "Create a new recurring post schedule. Posts are automatically created and published on the chosen frequency.",
   {
     name: z.string().describe("Schedule name."),
     channelIds: z
       .array(z.number())
       .describe("Array of channel IDs to post to."),
-    content: z.string().describe("Post content template."),
-    cronExpression: z
+    frequency: z
+      .enum(["daily", "weekly", "biweekly", "monthly"])
+      .describe("How often the schedule runs."),
+    timeOfDay: z
       .string()
-      .describe('Cron expression for the schedule (e.g. "0 9 * * 1-5" for weekdays at 9am).'),
+      .describe('Time of day to post, 24h "HH:MM" (e.g. "09:00").'),
+    dayOfWeek: z
+      .number()
+      .min(0)
+      .max(6)
+      .optional()
+      .describe("Day of week (0=Sunday..6=Saturday). Required for weekly/biweekly."),
+    dayOfMonth: z
+      .number()
+      .min(1)
+      .max(31)
+      .optional()
+      .describe("Day of month (1-31). Required for monthly."),
+    contentTemplate: z
+      .string()
+      .optional()
+      .describe("Post content template. Defaults to empty."),
+    mediaFileIds: z
+      .array(z.number())
+      .optional()
+      .describe("Media file IDs re-used for every generated post."),
     timezone: z
       .string()
       .optional()
-      .describe('Timezone for the cron schedule (e.g. "America/New_York"). Defaults to UTC.'),
+      .describe('IANA timezone (e.g. "America/New_York"). Defaults to UTC.'),
+    isActive: z
+      .boolean()
+      .optional()
+      .describe("Whether the schedule starts active. Defaults to true."),
   },
-  async ({ name, channelIds, content, cronExpression, timezone }) => {
+  async ({ name, channelIds, frequency, timeOfDay, dayOfWeek, dayOfMonth, contentTemplate, mediaFileIds, timezone, isActive }) => {
     const body: Record<string, unknown> = {
       name,
       channelIds,
-      content,
-      cronExpression,
+      frequency,
+      timeOfDay,
     };
+    if (dayOfWeek !== undefined) body.dayOfWeek = dayOfWeek;
+    if (dayOfMonth !== undefined) body.dayOfMonth = dayOfMonth;
+    if (contentTemplate !== undefined) body.contentTemplate = contentTemplate;
+    if (mediaFileIds !== undefined) body.mediaFileIds = mediaFileIds;
     if (timezone) body.timezone = timezone;
+    if (isActive !== undefined) body.isActive = isActive;
     const res = await api("POST", "/api/schedules", body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
@@ -1322,26 +1369,47 @@ server.tool(
 
 server.tool(
   "update_schedule",
-  "Update an existing recurring schedule. Can change name, content, cron expression, timezone, or active status.",
+  "Update an existing recurring schedule. Can change name, content template, frequency/timing, timezone, media, or active status. The next run time is recomputed by the server when timing changes.",
   {
     scheduleId: z.number().describe("The schedule ID to update."),
     name: z.string().optional().describe("New schedule name."),
-    content: z.string().optional().describe("New post content template."),
-    cronExpression: z
-      .string()
+    contentTemplate: z.string().optional().describe("New post content template."),
+    frequency: z
+      .enum(["daily", "weekly", "biweekly", "monthly"])
       .optional()
-      .describe("New cron expression."),
-    timezone: z.string().optional().describe("New timezone."),
+      .describe("New frequency."),
+    timeOfDay: z.string().optional().describe('New time of day, 24h "HH:MM".'),
+    dayOfWeek: z
+      .number()
+      .min(0)
+      .max(6)
+      .optional()
+      .describe("New day of week (0=Sunday..6=Saturday) for weekly/biweekly."),
+    dayOfMonth: z
+      .number()
+      .min(1)
+      .max(31)
+      .optional()
+      .describe("New day of month (1-31) for monthly."),
+    mediaFileIds: z
+      .array(z.number())
+      .optional()
+      .describe("Replace the media file IDs used for generated posts."),
+    timezone: z.string().optional().describe("New IANA timezone."),
     isActive: z
       .boolean()
       .optional()
       .describe("Enable or disable the schedule."),
   },
-  async ({ scheduleId, name, content, cronExpression, timezone, isActive }) => {
+  async ({ scheduleId, name, contentTemplate, frequency, timeOfDay, dayOfWeek, dayOfMonth, mediaFileIds, timezone, isActive }) => {
     const body: Record<string, unknown> = {};
     if (name !== undefined) body.name = name;
-    if (content !== undefined) body.content = content;
-    if (cronExpression !== undefined) body.cronExpression = cronExpression;
+    if (contentTemplate !== undefined) body.contentTemplate = contentTemplate;
+    if (frequency !== undefined) body.frequency = frequency;
+    if (timeOfDay !== undefined) body.timeOfDay = timeOfDay;
+    if (dayOfWeek !== undefined) body.dayOfWeek = dayOfWeek;
+    if (dayOfMonth !== undefined) body.dayOfMonth = dayOfMonth;
+    if (mediaFileIds !== undefined) body.mediaFileIds = mediaFileIds;
     if (timezone !== undefined) body.timezone = timezone;
     if (isActive !== undefined) body.isActive = isActive;
     const res = await api("PUT", `/api/schedules/${scheduleId}`, body);

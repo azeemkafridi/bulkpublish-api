@@ -16,13 +16,24 @@ export type Platform =
   | 'pinterest'
   | 'gmb'
   | 'linkedin'
-  | 'mastodon';
+  | 'mastodon'
+  | 'reddit'
+  | 'discord'
+  | 'telegram';
 
 /** Supported post formats. */
 export type PostFormat = 'post' | 'video' | 'reel' | 'story' | 'carousel' | 'thread';
 
 /** Possible post statuses. */
-export type PostStatus = 'draft' | 'scheduled' | 'publishing' | 'published' | 'failed' | 'partial';
+export type PostStatus =
+  | 'draft'
+  | 'scheduled'
+  | 'publishing'
+  | 'published'
+  /** All platform entries are published or still processing asynchronously (e.g. TikTok/Instagram video). */
+  | 'processing'
+  | 'failed'
+  | 'partial';
 
 /** Possible per-platform statuses on a post. */
 export type PlatformStatus = 'pending' | 'publishing' | 'published' | 'failed' | 'processing';
@@ -400,7 +411,11 @@ export interface CreatePostParams {
    * @example { bluesky: 'Short version', linkedin: 'Longer professional version' }
    */
   platformContent?: Record<string, string>;
-  /** Whether to delete media after publishing. Default: true. */
+  /**
+   * Whether to delete uploaded media right after publishing. Default: false —
+   * media is kept and reclaimed by the server's 3-month retention sweep.
+   * Forced to false by the server when the post has a repeatSchedule.
+   */
   deleteMediaAfterPublish?: boolean;
   /** Recurring schedule configuration. */
   repeatSchedule?: RepeatScheduleConfig;

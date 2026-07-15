@@ -178,17 +178,17 @@ curl -X DELETE https://app.bulkpublish.com/api/media/42 \
   -H "Authorization: Bearer bp_your_key_here"
 ```
 
-### Auto-Deletion After Publish
+### Media Retention
 
-By default, the original media file is cleaned up after a post is successfully published to all platforms. You can control this with the `deleteMediaAfterPublish` field when creating a post:
+By default, media is **kept** after publishing (`deleteMediaAfterPublish: false`) and reclaimed later by a 3-month retention sweep, so recurring schedules and reposts can reuse the same files. Opt in to immediate cleanup with the `deleteMediaAfterPublish` field when creating a post:
 
 ```json
 {
-  "deleteMediaAfterPublish": false
+  "deleteMediaAfterPublish": true
 }
 ```
 
-Set to `false` to keep the original file for reuse. Thumbnails and previews are always retained.
+The server forces this to `false` for posts attached to a recurring schedule (the schedule re-uses the media on every run) and for bulk-created posts.
 
 ## Media Labels
 

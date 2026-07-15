@@ -39,7 +39,7 @@ class SchedulesResource:
 
             schedules = bp.schedules.list()
             for s in schedules:
-                print(f"{s['name']} — {s['cronExpression']} ({s['timezone']})")
+                print(f"{s['name']} — {s['frequency']} at {s['timeOfDay']} ({s['timezone']})")
         """
         return self._client._request("GET", "/api/schedules")
 
@@ -47,9 +47,12 @@ class SchedulesResource:
         """Create a new recurring schedule.
 
         Args:
-            **fields: Schedule fields.  Common keys include ``name``,
-                ``channelIds``, ``cronExpression``, ``timezone``,
-                ``content``, ``active``.
+            **fields: Schedule fields.  Required: ``name``, ``frequency``
+                (daily|weekly|biweekly|monthly), ``timeOfDay`` (24h "HH:MM"),
+                ``channelIds``.  Optional: ``dayOfWeek`` (0=Sunday..6=Saturday,
+                for weekly/biweekly), ``dayOfMonth`` (1-31, for monthly),
+                ``timezone`` (default UTC), ``contentTemplate``,
+                ``mediaFileIds``, ``isActive`` (default True).
 
         Returns:
             The newly created schedule object.
@@ -58,11 +61,11 @@ class SchedulesResource:
 
             schedule = bp.schedules.create(
                 name="Daily motivation",
-                cronExpression="0 9 * * *",
+                frequency="daily",
+                timeOfDay="09:00",
                 timezone="America/New_York",
-                channelIds=["ch_1"],
-                content="Stay focused! #motivation",
-                active=True,
+                channelIds=[1],
+                contentTemplate="Stay focused! #motivation",
             )
             print(schedule["id"])
         """
@@ -83,7 +86,7 @@ class SchedulesResource:
 
         Example::
 
-            bp.schedules.update("sched_abc123", active=False)
+            bp.schedules.update(123, isActive=False)
         """
         return self._client._request(
             "PUT", f"/api/schedules/{schedule_id}", json=fields

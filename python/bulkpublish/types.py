@@ -23,41 +23,71 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 
-class ChannelTarget(TypedDict):
-    """Channel reference used when creating/updating a post."""
+class ChannelTarget(TypedDict, total=False):
+    """Channel reference used when creating/updating a post.
 
-    channelId: str
+    ``platform`` is optional — the server always resolves the platform from
+    the channel record and ignores a supplied value on create.
+    """
+
+    channelId: int
     platform: str
 
 
-class PlatformResult(TypedDict, total=False):
-    """Per-platform result included in a post's ``platformResults``."""
+class PostPlatform(TypedDict, total=False):
+    """Per-platform entry included in a post's ``postPlatforms``.
 
+    ``status`` is one of ``pending``, ``publishing``, ``published``,
+    ``processing``, or ``failed``.
+    """
+
+    id: int
+    channelId: int
     platform: str
-    platformPostId: str
-    url: str
     status: str
-    error: str
+    platformPostId: Optional[str]
+    platformUrl: Optional[str]
+    errorMessage: Optional[str]
+    retryCount: int
+
+
+# Backwards-compat alias for the old (incorrect) name.
+PlatformResult = PostPlatform
 
 
 class Post(TypedDict, total=False):
-    """A social-media post object."""
+    """A social-media post object.
 
-    id: str
+    ``status`` is one of ``draft``, ``scheduled``, ``publishing``,
+    ``published``, ``processing``, ``failed``, or ``partial``.
+    ``deleteMediaAfterPublish`` defaults to ``False`` — media is kept and
+    reclaimed by the server's 3-month retention sweep.
+    """
+
+    id: int
     content: str
     status: str
     scheduledAt: Optional[str]
     publishedAt: Optional[str]
     timezone: str
-    channels: List[ChannelTarget]
-    mediaFiles: List[str]
-    labelIds: List[str]
     postFormat: str
+    postTypeOverrides: Dict[str, Any]
     platformSpecific: Dict[str, Any]
     platformContent: Dict[str, Any]
-    platformResults: List[PlatformResult]
+    platformThreadParts: Dict[str, Any]
     deleteMediaAfterPublish: bool
-    threadParts: List[Dict[str, Any]]
+    threadParts: Optional[List[Dict[str, Any]]]
+    autoPlugEnabled: bool
+    autoPlugText: Optional[str]
+    autoPlugThreshold: int
+    autoPlugFired: bool
+    autoRepostEnabled: bool
+    autoRepostThreshold: int
+    autoRepostFired: bool
+    recurringScheduleId: Optional[int]
+    mediaFiles: List["MediaFile"]
+    postPlatforms: List[PostPlatform]
+    labels: List["Label"]
     createdAt: str
     updatedAt: str
 
@@ -89,7 +119,7 @@ class QueueSlot(TypedDict, total=False):
     """Next optimal publishing slot."""
 
     suggestedTime: str
-    channelId: str
+    timezone: str
 
 
 class BulkOperationResult(TypedDict, total=False):
@@ -106,15 +136,20 @@ class BulkOperationResult(TypedDict, total=False):
 
 
 class Channel(TypedDict, total=False):
-    """A connected social-media channel."""
+    """A connected social-media channel.
 
-    id: str
+    ``tokenStatus`` is one of ``valid``, ``expiring_soon``, or ``expired``.
+    """
+
+    id: int
     platform: str
     accountType: str  # e.g. "personal" / "organization" (LinkedIn), "page" (Facebook)
-    name: str
-    username: str
-    avatarUrl: str
-    active: bool
+    accountName: str
+    accountId: str
+    profileImage: Optional[str]
+    isActive: bool
+    tokenStatus: str
+    tokenExpiresAt: Optional[str]
     createdAt: str
     updatedAt: str
 
@@ -133,17 +168,23 @@ class ChannelHealth(TypedDict, total=False):
 
 
 class MediaFile(TypedDict, total=False):
-    """An uploaded media file."""
+    """An uploaded media file.
 
-    id: str
-    filename: str
+    ``width``/``height``/``duration``/``thumbnailUrl``/``previewUrl`` can be
+    ``None`` (e.g. before async processing finishes).
+    """
+
+    id: int
+    fileName: str
     mimeType: str
-    size: int
-    url: str
-    thumbnailUrl: str
-    width: int
-    height: int
-    labelIds: List[str]
+    sizeBytes: int
+    originalUrl: str
+    thumbnailUrl: Optional[str]
+    previewUrl: Optional[str]
+    width: Optional[int]
+    height: Optional[int]
+    duration: Optional[float]
+    labels: List["Label"]
     createdAt: str
 
 
@@ -206,11 +247,15 @@ class AccountMetrics(TypedDict, total=False):
 
 
 class Label(TypedDict, total=False):
-    """A label (tag) for organizing posts and media."""
+    """A label (tag) for organizing posts and media.
 
-    id: str
+    ``type`` is ``post`` or ``media``. ``color`` defaults to ``#6366f1``.
+    """
+
+    id: int
     name: str
     color: str
+    type: str
     createdAt: str
     updatedAt: str
 
@@ -221,16 +266,30 @@ class Label(TypedDict, total=False):
 
 
 class Schedule(TypedDict, total=False):
-    """A recurring publishing schedule."""
+    """A recurring publishing schedule.
 
-    id: str
+    ``frequency`` is one of ``daily``, ``weekly``, ``biweekly``, ``monthly``.
+    ``timeOfDay`` is 24h ``"HH:MM"``. ``dayOfWeek`` (0=Sunday..6=Saturday)
+    applies to weekly/biweekly; ``dayOfMonth`` (1-31) to monthly.
+    ``nextRunAt`` is always computed by the server.
+    """
+
+    id: int
     name: str
-    channelIds: List[str]
-    cronExpression: str
+    channelIds: List[int]
+    frequency: str
+    dayOfWeek: Optional[int]
+    dayOfMonth: Optional[int]
+    timeOfDay: str
     timezone: str
-    active: bool
-    content: str
-    templateId: str
+    isActive: bool
+    contentTemplate: str
+    mediaFileIds: List[int]
+    postTypeOverrides: Dict[str, Any]
+    platformSpecific: Dict[str, Any]
+    postFormat: str
+    threadParts: Optional[List[Dict[str, Any]]]
+    nextRunAt: Optional[str]
     createdAt: str
     updatedAt: str
 
