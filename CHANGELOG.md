@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (2026-07-16) — contract-drift audit
+## 2026-07-16 — contract-drift audit (mcp-server 1.4.0, node SDK 1.1.0, python SDK 0.2.0, MCP registry 1.2.0)
 
 ### Fixed
 

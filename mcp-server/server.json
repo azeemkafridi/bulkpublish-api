@@ -1,0 +1,30 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.azeemkafridi/bulkpublish",
+  "description": "Publish, schedule, and manage social media across 14 platforms via MCP.",
+  "repository": {
+    "url": "https://github.com/azeemkafridi/bulkpublish-api",
+    "source": "github",
+    "subfolder": "mcp-server"
+  },
+  "version": "1.2.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@bulkpublish/mcp-server",
+      "version": "1.2.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "description": "Your BulkPublish API key (starts with bp_)",
+          "isRequired": true,
+          "format": "string",
+          "isSecret": true,
+          "name": "BULKPUBLISH_API_KEY"
+        }
+      ]
+    }
+  ]
+}
