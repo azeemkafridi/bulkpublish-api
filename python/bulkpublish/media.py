@@ -14,7 +14,14 @@ from typing import TYPE_CHECKING, Any, BinaryIO, Dict, List, Optional, Union
 if TYPE_CHECKING:
     from .client import _BaseClient
 
-from .types import Label, MediaFile, MediaList, MediaUploadResponse
+from .types import (
+    Label,
+    MediaFile,
+    MediaList,
+    MediaUploadResponse,
+    MultipartPart,
+    MultipartUpload,
+)
 
 
 class MediaResource:
@@ -226,6 +233,115 @@ class MediaResource:
             "PUT", f"/api/media/{media_id}/labels", json={"labelIds": label_ids}
         )
 
+    def create_multipart(
+        self, *, content_type: str, size_bytes: int
+    ) -> MultipartUpload:
+        """Start a chunked (multipart) direct-to-storage upload for large
+        files — videos up to 1GB, images up to 100MB.
+
+        Step 1 of a three-step flow. Returns an ``uploadId``, the fixed
+        ``partSize`` (10485760 bytes = 10MB), and one presigned PUT URL per
+        part in ``partUrls``. PUT each 10MB slice of the file to its URL and
+        collect the ``ETag`` response header of every part — a failed part can
+        be retried on its own, so a network drop never restarts the whole
+        file. Then call :meth:`complete_multipart` with the collected parts
+        (or :meth:`abort_multipart` to cancel). Part URLs expire after
+        ``expiresIn`` seconds (3600).
+
+        Args:
+            content_type: One of the allowed media MIME types.
+            size_bytes: Exact file size in bytes.
+
+        Raises:
+            ValidationError: Disallowed type or file too large.
+            RateLimitError: Storage quota exceeded.
+
+        Example::
+
+            up = bp.media.create_multipart(
+                content_type="video/mp4", size_bytes=size,
+            )
+            parts = []
+            with open("promo.mp4", "rb") as f:
+                for i, url in enumerate(up["partUrls"]):
+                    chunk = f.read(up["partSize"])
+                    resp = httpx.put(url, content=chunk)
+                    parts.append({"partNumber": i + 1, "etag": resp.headers["etag"]})
+            result = bp.media.complete_multipart(
+                r2_key=up["r2Key"], upload_id=up["uploadId"], parts=parts,
+                file_name="promo.mp4", mime_type="video/mp4", size_bytes=size,
+            )
+        """
+        return self._client._request(
+            "POST",
+            "/api/media/multipart/create",
+            json={"contentType": content_type, "sizeBytes": size_bytes},
+        )
+
+    def complete_multipart(
+        self,
+        *,
+        r2_key: str,
+        upload_id: str,
+        parts: List[MultipartPart],
+        file_name: str,
+        mime_type: str,
+        size_bytes: int,
+        width: Optional[int] = None,
+        height: Optional[int] = None,
+        duration: Optional[int] = None,
+    ) -> MediaUploadResponse:
+        """Complete a multipart upload.
+
+        The server assembles the uploaded parts, verifies the stored object
+        (existence, size, content magic bytes, storage quota) and records the
+        media file — same verification and response shape as the single-PUT
+        finalize endpoint. A failed assembly automatically aborts the upload.
+
+        Args:
+            r2_key: The ``r2Key`` from :meth:`create_multipart`.
+            upload_id: The ``uploadId`` from :meth:`create_multipart`.
+            parts: Every uploaded part as ``{"partNumber": n, "etag": "..."}``
+                (at least 1).
+            file_name: Original file name.
+            mime_type: File MIME type.
+            size_bytes: File size in bytes.
+            width: Pixel width (images/video).
+            height: Pixel height (images/video).
+            duration: Duration in seconds (video).
+
+        Returns:
+            The recorded media file, wrapped as ``{"file": ...}``.
+        """
+        body: Dict[str, Any] = {
+            "r2Key": r2_key,
+            "uploadId": upload_id,
+            "parts": parts,
+            "fileName": file_name,
+            "mimeType": mime_type,
+            "sizeBytes": size_bytes,
+        }
+        if width is not None:
+            body["width"] = width
+        if height is not None:
+            body["height"] = height
+        if duration is not None:
+            body["duration"] = duration
+        return self._client._request("POST", "/api/media/multipart/complete", json=body)
+
+    def abort_multipart(self, *, r2_key: str, upload_id: str) -> Dict[str, Any]:
+        """Abort an in-progress multipart upload and free its stored parts.
+
+        Args:
+            r2_key: The ``r2Key`` from :meth:`create_multipart`.
+            upload_id: The ``uploadId`` from :meth:`create_multipart`.
+        """
+        return self._client._request(
+            "POST",
+            "/api/media/multipart/abort",
+            json={"r2Key": r2_key, "uploadId": upload_id},
+        )
+
 
 class AsyncMediaResource:
     """Async version of :class:`MediaResource`.
@@ -321,4 +437,54 @@ class AsyncMediaResource:
         """Set media labels — see :meth:`MediaResource.set_labels`."""
         return await self._client._request(
             "PUT", f"/api/media/{media_id}/labels", json={"labelIds": label_ids}
+        )
+
+    async def create_multipart(
+        self, *, content_type: str, size_bytes: int
+    ) -> MultipartUpload:
+        """Start a multipart upload — see :meth:`MediaResource.create_multipart`."""
+        return await self._client._request(
+            "POST",
+            "/api/media/multipart/create",
+            json={"contentType": content_type, "sizeBytes": size_bytes},
+        )
+
+    async def complete_multipart(
+        self,
+        *,
+        r2_key: str,
+        upload_id: str,
+        parts: List[MultipartPart],
+        file_name: str,
+        mime_type: str,
+        size_bytes: int,
+        width: Optional[int] = None,
+        height: Optional[int] = None,
+        duration: Optional[int] = None,
+    ) -> MediaUploadResponse:
+        """Complete a multipart upload — see :meth:`MediaResource.complete_multipart`."""
+        body: Dict[str, Any] = {
+            "r2Key": r2_key,
+            "uploadId": upload_id,
+            "parts": parts,
+            "fileName": file_name,
+            "mimeType": mime_type,
+            "sizeBytes": size_bytes,
+        }
+        if width is not None:
+            body["width"] = width
+        if height is not None:
+            body["height"] = height
+        if duration is not None:
+            body["duration"] = duration
+        return await self._client._request(
+            "POST", "/api/media/multipart/complete", json=body
+        )
+
+    async def abort_multipart(self, *, r2_key: str, upload_id: str) -> Dict[str, Any]:
+        """Abort a multipart upload — see :meth:`MediaResource.abort_multipart`."""
+        return await self._client._request(
+            "POST",
+            "/api/media/multipart/abort",
+            json={"r2Key": r2_key, "uploadId": upload_id},
         )

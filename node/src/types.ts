@@ -894,3 +894,121 @@ export interface ListActivityResponse {
   activities: ActivityLog[];
   pagination: PaginationMeta;
 }
+
+// ---------- Channel Sets ----------
+
+/** A saved channel grouping for one-click multi-channel targeting. */
+export interface ChannelSet {
+  id: number;
+  userId: string;
+  organizationId: number;
+  name: string;
+  channelIds: number[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Parameters for creating a channel set. */
+export interface CreateChannelSetParams {
+  /** Set name (max 100 chars, unique per organization). */
+  name: string;
+  /** IDs of channels in your organization (at least 1). */
+  channelIds: number[];
+}
+
+/** Parameters for updating a channel set. At least one field is required. */
+export interface UpdateChannelSetParams {
+  /** New set name (max 100 chars, unique per organization). */
+  name?: string;
+  /** Replacement channel IDs (at least 1). */
+  channelIds?: number[];
+}
+
+// ---------- RSS Autopost ----------
+
+/** An RSS/Atom feed polled every 15 minutes; new items become posts. */
+export interface RssFeed {
+  id: number;
+  userId: string;
+  organizationId: number;
+  name: string;
+  feedUrl: string;
+  channelIds: number[];
+  /** 'draft' = new items become drafts for review; 'publish' = auto-published. */
+  mode: 'draft' | 'publish';
+  enabled: boolean;
+  lastCheckedAt: string | null;
+  lastError: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Parameters for adding an RSS feed. */
+export interface CreateRssFeedParams {
+  /** Feed name (max 100 chars). */
+  name: string;
+  /** Public RSS 2.0 or Atom feed URL (validated as reachable). */
+  feedUrl: string;
+  /** IDs of channels new items are posted to (at least 1). */
+  channelIds: number[];
+  /**
+   * 'draft' = new items land as draft posts for review; 'publish' = auto-published.
+   * Defaults to 'draft'.
+   */
+  mode?: 'draft' | 'publish';
+}
+
+/** Parameters for updating an RSS feed (partial update). */
+export interface UpdateRssFeedParams {
+  name?: string;
+  /**
+   * New feed URL. Note: changing feedUrl re-baselines the feed — only items
+   * published after the change are posted (the backlog is not flooded).
+   */
+  feedUrl?: string;
+  channelIds?: number[];
+  mode?: 'draft' | 'publish';
+  enabled?: boolean;
+}
+
+// ---------- Media multipart upload ----------
+
+/** Parameters for starting a chunked (multipart) upload. */
+export interface CreateMultipartUploadParams {
+  /** One of the allowed media MIME types. */
+  contentType: string;
+  /** Exact file size in bytes. Videos up to 1GB; images up to 100MB. */
+  sizeBytes: number;
+}
+
+/** Response from starting a multipart upload. */
+export interface CreateMultipartUploadResponse {
+  r2Key: string;
+  uploadId: string;
+  /** Fixed part size: 10485760 bytes (10MB). Every part except the last is exactly this size. */
+  partSize: number;
+  /** One presigned PUT URL per part, in order. */
+  partUrls: string[];
+  /** Seconds until the part URLs expire (3600). */
+  expiresIn: number;
+}
+
+/** One uploaded part: its 1-based number and the ETag response header from its PUT. */
+export interface MultipartUploadPart {
+  partNumber: number;
+  etag: string;
+}
+
+/** Parameters for completing a multipart upload. */
+export interface CompleteMultipartUploadParams {
+  r2Key: string;
+  uploadId: string;
+  /** All uploaded parts with their ETags (at least 1). */
+  parts: MultipartUploadPart[];
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  width?: number;
+  height?: number;
+  duration?: number;
+}

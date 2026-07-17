@@ -27,6 +27,7 @@ from typing import Any, Dict, List, Optional, Union
 import httpx
 
 from .analytics import AnalyticsResource, AsyncAnalyticsResource
+from .channel_sets import AsyncChannelSetsResource, ChannelSetsResource
 from .channels import AsyncChannelsResource, ChannelsResource
 from .exceptions import (
     AuthenticationError,
@@ -42,6 +43,7 @@ from .exceptions import (
 from .labels import AsyncLabelsResource, LabelsResource
 from .media import AsyncMediaResource, MediaResource
 from .posts import AsyncPostsResource, PostsResource
+from .rss_feeds import AsyncRssFeedsResource, RssFeedsResource
 from .schedules import AsyncSchedulesResource, SchedulesResource
 from .types import (
     ActivityEntry,
@@ -166,6 +168,8 @@ class BulkPublish(_BaseClient):
         analytics: :class:`~bulkpublish.analytics.AnalyticsResource`
         labels: :class:`~bulkpublish.labels.LabelsResource`
         schedules: :class:`~bulkpublish.schedules.SchedulesResource`
+        channel_sets: :class:`~bulkpublish.channel_sets.ChannelSetsResource`
+        rss_feeds: :class:`~bulkpublish.rss_feeds.RssFeedsResource`
     Example::
 
         from bulkpublish import BulkPublish
@@ -217,6 +221,8 @@ class BulkPublish(_BaseClient):
         self.analytics = AnalyticsResource(self)
         self.labels = LabelsResource(self)
         self.schedules = SchedulesResource(self)
+        self.channel_sets = ChannelSetsResource(self)
+        self.rss_feeds = RssFeedsResource(self)
 
     def close(self) -> None:
         """Close the underlying HTTP connection pool.
@@ -521,6 +527,8 @@ class AsyncBulkPublish(_BaseClient):
         self.analytics = AsyncAnalyticsResource(self)
         self.labels = AsyncLabelsResource(self)
         self.schedules = AsyncSchedulesResource(self)
+        self.channel_sets = AsyncChannelSetsResource(self)
+        self.rss_feeds = AsyncRssFeedsResource(self)
 
     async def close(self) -> None:
         """Close the underlying async HTTP connection pool.

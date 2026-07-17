@@ -82,10 +82,12 @@ asyncio.run(main())
 |----------|---------|
 | `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `bulk`, `queue_slot` |
 | `bp.channels` | `list`, `get`, `delete`, `health` |
-| `bp.media` | `upload`, `list`, `get`, `delete` |
+| `bp.media` | `upload`, `list`, `get`, `delete`, `get_labels`, `set_labels`, `create_multipart`, `complete_multipart`, `abort_multipart` |
 | `bp.analytics` | `summary`, `engagement`, `refresh`, `account` |
 | `bp.labels` | `list`, `create`, `update`, `delete` |
 | `bp.schedules` | `list`, `create`, `update`, `delete` |
+| `bp.channel_sets` | `list`, `create`, `update`, `delete` — saved channel groups for one-click targeting |
+| `bp.rss_feeds` | `list`, `create`, `update`, `delete` — RSS/Atom autopost feeds (new items become posts) |
 
 Every method has docstrings with usage examples — works great with IDE autocomplete and LLM code generation.
 

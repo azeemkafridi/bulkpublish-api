@@ -602,6 +602,14 @@
       "description": "Connect and manage social media accounts"
     },
     {
+      "name": "Channel Sets",
+      "description": "Saved channel groups for one-click targeting"
+    },
+    {
+      "name": "RSS Autopost",
+      "description": "Turn RSS/Atom feed items into posts automatically"
+    },
+    {
       "name": "Media",
       "description": "Upload and manage images and videos"
     },
@@ -1899,6 +1907,296 @@
         }
       }
     },
+    "/api/channel-sets": {
+      "get": {
+        "tags": [
+          "Channel Sets"
+        ],
+        "summary": "List channel sets",
+        "description": "Saved channel groupings for one-click multi-channel targeting.",
+        "responses": {
+          "200": {
+            "description": "Channel sets"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Channel Sets"
+        ],
+        "summary": "Create channel set",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "channelIds"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "channelIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "minItems": 1,
+                    "description": "IDs of channels in your organization"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Invalid name or channelIds"
+          },
+          "409": {
+            "description": "Duplicate name"
+          }
+        }
+      }
+    },
+    "/api/channel-sets/{id}": {
+      "put": {
+        "tags": [
+          "Channel Sets"
+        ],
+        "summary": "Update channel set",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "channelIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "minItems": 1,
+                    "description": "IDs of channels in your organization"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Duplicate name"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Channel Sets"
+        ],
+        "summary": "Delete channel set",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rss-feeds": {
+      "get": {
+        "tags": [
+          "RSS Autopost"
+        ],
+        "summary": "List RSS feeds",
+        "description": "RSS/Atom feeds polled every 15 minutes; new items become posts.",
+        "responses": {
+          "200": {
+            "description": "Feeds"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "RSS Autopost"
+        ],
+        "summary": "Add RSS feed",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "feedUrl",
+                  "channelIds"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "feedUrl": {
+                    "type": "string",
+                    "description": "Public RSS 2.0 or Atom feed URL"
+                  },
+                  "channelIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "minItems": 1
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "publish"
+                    ],
+                    "default": "draft",
+                    "description": "draft = new items become drafts for review; publish = auto-published"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/api/rss-feeds/{id}": {
+      "put": {
+        "tags": [
+          "RSS Autopost"
+        ],
+        "summary": "Update RSS feed",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "feedUrl": {
+                    "type": "string",
+                    "description": "Public RSS 2.0 or Atom feed URL"
+                  },
+                  "channelIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "minItems": 1
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "publish"
+                    ],
+                    "default": "draft",
+                    "description": "draft = new items become drafts for review; publish = auto-published"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RSS Autopost"
+        ],
+        "summary": "Delete RSS feed",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
     "/api/media": {
       "get": {
         "tags": [
@@ -2100,6 +2398,162 @@
           },
           "403": {
             "description": "Storage quota exceeded"
+          }
+        }
+      }
+    },
+    "/api/media/multipart/create": {
+      "post": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Start multipart upload (large videos, up to 1GB)",
+        "description": "Step 1 of the chunked direct-to-storage upload for large files. Returns an uploadId, the fixed part size (10MB), and a presigned PUT URL per part. Upload each 10MB slice of the file to its URL (a failed part can be retried on its own \u2014 a network drop never restarts the whole file), collect each response's ETag header, then call /api/media/multipart/complete.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "contentType",
+                  "sizeBytes"
+                ],
+                "properties": {
+                  "contentType": {
+                    "type": "string",
+                    "description": "One of the allowed media MIME types"
+                  },
+                  "sizeBytes": {
+                    "type": "integer",
+                    "description": "Exact file size. Videos up to 1GB; images up to 100MB."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "uploadId, r2Key, partSize, and presigned partUrls"
+          },
+          "400": {
+            "description": "Disallowed type or file too large"
+          }
+        }
+      }
+    },
+    "/api/media/multipart/complete": {
+      "post": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Complete multipart upload",
+        "description": "Step 2: assembles the uploaded parts, verifies the stored object (existence, size, content magic bytes, storage quota) and records the media file. Same verification and response shape as /api/media/finalize.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "r2Key",
+                  "uploadId",
+                  "parts",
+                  "fileName",
+                  "mimeType",
+                  "sizeBytes"
+                ],
+                "properties": {
+                  "r2Key": {
+                    "type": "string"
+                  },
+                  "uploadId": {
+                    "type": "string"
+                  },
+                  "parts": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "partNumber",
+                        "etag"
+                      ],
+                      "properties": {
+                        "partNumber": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "etag": {
+                          "type": "string",
+                          "description": "ETag response header from the part PUT"
+                        }
+                      }
+                    }
+                  },
+                  "fileName": {
+                    "type": "string"
+                  },
+                  "mimeType": {
+                    "type": "string"
+                  },
+                  "sizeBytes": {
+                    "type": "integer"
+                  },
+                  "width": {
+                    "type": "integer"
+                  },
+                  "height": {
+                    "type": "integer"
+                  },
+                  "duration": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Media file recorded"
+          },
+          "400": {
+            "description": "Assembly or verification failed"
+          }
+        }
+      }
+    },
+    "/api/media/multipart/abort": {
+      "post": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Abort multipart upload",
+        "description": "Cancel an in-progress chunked upload and free its stored parts.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "r2Key",
+                  "uploadId"
+                ],
+                "properties": {
+                  "r2Key": {
+                    "type": "string"
+                  },
+                  "uploadId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Aborted"
           }
         }
       }

@@ -104,7 +104,7 @@ BulkPublish ships an MCP server so AI assistants can manage your social media di
 }
 ```
 
-37 tools available: `create_post`, `list_channels`, `upload_media`, `get_analytics`, the interactive `compose_post` composer (MCP Apps), and more. Runs locally (stdio) or hosted over Streamable HTTP at `https://mcp.bulkpublish.com/mcp`. See [mcp-server/README.md](mcp-server/README.md).
+48 tools available: `create_post`, `list_channels`, `upload_media`, `get_analytics`, the interactive `compose_post` composer (MCP Apps), and more. Runs locally (stdio) or hosted over Streamable HTTP at `https://mcp.bulkpublish.com/mcp`. See [mcp-server/README.md](mcp-server/README.md).
 
 ### LLM Tool Use / Function Calling
 
@@ -259,7 +259,11 @@ Authorization: Bearer bp_your_key_here
 | `GET` | `/api/channels/:id/health` | Check channel token health |
 | `GET` | `/api/channels/:id/options` | Get platform options (Pinterest boards, YouTube playlists) |
 | `GET` | `/api/channels/:id/mentions` | Search users for @mention (X, Bluesky) |
-| `POST` | `/api/media` | Upload a media file (multipart) |
+| `GET`/`POST` | `/api/channel-sets` | Saved channel groups for one-click targeting (update/delete via `/api/channel-sets/:id`) |
+| `GET`/`POST` | `/api/rss-feeds` | RSS/Atom autopost feeds — new items become posts (update/delete via `/api/rss-feeds/:id`) |
+| `POST` | `/api/media` | Upload a media file (multipart form, up to 100MB) |
+| `POST` | `/api/media/multipart/create` | Start a chunked upload for large media (videos up to 1GB, 10MB parts) |
+| `POST` | `/api/media/multipart/complete` | Assemble uploaded parts and record the media file |
 | `GET` | `/api/media` | List uploaded media |
 | `GET` | `/api/analytics/summary` | Analytics summary for a date range |
 | `GET` | `/api/analytics/engagement` | Engagement data grouped by day/week/month |

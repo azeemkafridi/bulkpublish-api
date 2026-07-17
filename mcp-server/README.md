@@ -136,6 +136,16 @@ Once deployed, add it to **claude.ai → Settings → Connectors → Add custom 
 | `get_channel_health` | Check channel token health |
 | `get_channel_options` | Get platform-specific options (boards, playlists) |
 | `search_mentions` | Search users for @mention (X, Bluesky) |
+| **Channel Sets** | |
+| `list_channel_sets` | List saved channel groups for one-click multi-channel targeting |
+| `create_channel_set` | Save a named group of channels (max 50 per org, names unique per org) |
+| `update_channel_set` | Rename a set or change its channels |
+| `delete_channel_set` | Delete a channel set |
+| **RSS Autopost** | |
+| `list_rss_feeds` | List RSS/Atom feeds polled every 15 minutes (new items become posts) |
+| `create_rss_feed` | Add a feed (max 20 per org); `mode` = `draft` (default, items become drafts) or `publish` (auto-published) |
+| `update_rss_feed` | Change, pause, or re-point a feed (changing `feedUrl` re-baselines it — the backlog is not flooded) |
+| `delete_rss_feed` | Stop and remove a feed |
 | **Media** | |
 | `upload_media` | Upload a media file from a URL (or local path on the stdio server) |
 | `get_media` | Get a media file by ID |
@@ -143,6 +153,9 @@ Once deployed, add it to **claude.ai → Settings → Connectors → Add custom 
 | `delete_media` | Delete a media file |
 | `create_media_upload` | Reserve a presigned R2 URL for a direct browser upload (used by the composer) |
 | `finalize_media_upload` | Record an uploaded object as a media file after the browser PUT (used by the composer) |
+| `create_multipart_upload` | Start a chunked upload for large media (videos up to 1GB) — presigned URLs for fixed 10MB parts |
+| `complete_multipart_upload` | Assemble the uploaded parts (partNumber + ETag each) and record the media file |
+| `abort_multipart_upload` | Cancel an in-progress chunked upload and free its stored parts |
 | **Labels** | |
 | `create_label` | Create a new label |
 | `list_labels` | List all labels |

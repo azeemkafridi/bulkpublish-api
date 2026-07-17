@@ -6,6 +6,9 @@ import type {
   ListMediaResponse,
   UploadMediaResponse,
   GetMediaResponse,
+  CreateMultipartUploadParams,
+  CreateMultipartUploadResponse,
+  CompleteMultipartUploadParams,
 } from './types.js';
 
 /**
@@ -14,8 +17,9 @@ import type {
  * Access via `client.media`.
  *
  * Supports uploading images (JPEG, PNG, WebP, GIF) and videos (MP4, QuickTime, WebM)
- * up to 100 MB. Uploaded files are stored on Cloudflare R2 and automatically
- * generate thumbnails and preview variants.
+ * up to 100 MB per single-request upload; larger videos (up to 1GB) can be sent in
+ * chunks via {@link MediaResource.createMultipart}. Uploaded files are stored on
+ * Cloudflare R2 and automatically generate thumbnails and preview variants.
  *
  * @example
  * ```typescript
@@ -156,5 +160,63 @@ export class MediaResource {
    */
   setLabels(id: number, labelIds: number[]): Promise<{ ok: boolean }> {
     return this.http.put<{ ok: boolean }>(`/api/media/${id}/labels`, { labelIds });
+  }
+
+  /**
+   * Start a chunked (multipart) direct-to-storage upload for large files —
+   * videos up to 1GB, images up to 100MB.
+   *
+   * Step 1 of a three-step flow. Returns an `uploadId`, the fixed `partSize`
+   * (10485760 bytes = 10MB), and one presigned PUT URL per part in `partUrls`.
+   * PUT each 10MB slice of the file to its URL and collect the `ETag` response
+   * header of every part — a failed part can be retried on its own, so a
+   * network drop never restarts the whole file. Then call
+   * {@link completeMultipart} with the collected parts (or
+   * {@link abortMultipart} to cancel). Part URLs expire after `expiresIn`
+   * seconds (3600).
+   *
+   * @example
+   * ```typescript
+   * const { r2Key, uploadId, partSize, partUrls } =
+   *   await bp.media.createMultipart({ contentType: 'video/mp4', sizeBytes: stat.size });
+   * const parts = [];
+   * for (let i = 0; i < partUrls.length; i++) {
+   *   const chunk = buffer.subarray(i * partSize, (i + 1) * partSize);
+   *   const res = await fetch(partUrls[i], { method: 'PUT', body: chunk });
+   *   parts.push({ partNumber: i + 1, etag: res.headers.get('etag')! });
+   * }
+   * const { file } = await bp.media.completeMultipart({
+   *   r2Key, uploadId, parts,
+   *   fileName: 'promo.mp4', mimeType: 'video/mp4', sizeBytes: stat.size,
+   * });
+   * ```
+   */
+  createMultipart(params: CreateMultipartUploadParams): Promise<CreateMultipartUploadResponse> {
+    return this.http.post<CreateMultipartUploadResponse>('/api/media/multipart/create', params);
+  }
+
+  /**
+   * Complete a multipart upload. The server assembles the uploaded parts,
+   * verifies the stored object (existence, size, content magic bytes, storage
+   * quota) and records the media file — same verification and response shape
+   * as the single-PUT finalize endpoint. A failed assembly automatically
+   * aborts the upload.
+   *
+   * @param params - The `r2Key`/`uploadId` from {@link createMultipart}, every
+   * uploaded part's number + ETag, and the file metadata.
+   * @returns The recorded media file.
+   */
+  completeMultipart(params: CompleteMultipartUploadParams): Promise<UploadMediaResponse> {
+    return this.http.post<UploadMediaResponse>('/api/media/multipart/complete', params);
+  }
+
+  /**
+   * Abort an in-progress multipart upload and free its stored parts.
+   *
+   * @param r2Key - The `r2Key` from {@link createMultipart}.
+   * @param uploadId - The `uploadId` from {@link createMultipart}.
+   */
+  abortMultipart(r2Key: string, uploadId: string): Promise<{ success: boolean }> {
+    return this.http.post<{ success: boolean }>('/api/media/multipart/abort', { r2Key, uploadId });
   }
 }

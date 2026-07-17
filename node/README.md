@@ -72,10 +72,12 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 |----------|---------|
 | `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `bulk`, `queueSlot`, `metrics`, `story` |
 | `bp.channels` | `list`, `get`, `delete`, `health` |
-| `bp.media` | `upload`, `list`, `get`, `delete` |
+| `bp.media` | `upload`, `list`, `get`, `delete`, `getLabels`, `setLabels`, `createMultipart`, `completeMultipart`, `abortMultipart` |
 | `bp.analytics` | `summary`, `engagement`, `refresh`, `account` |
 | `bp.labels` | `list`, `create`, `update`, `delete` |
 | `bp.schedules` | `list`, `create`, `update`, `delete` |
+| `bp.channelSets` | `list`, `create`, `update`, `delete` — saved channel groups for one-click targeting |
+| `bp.rssFeeds` | `list`, `create`, `update`, `delete` — RSS/Atom autopost feeds (new items become posts) |
 
 ## Platform Requirements
 

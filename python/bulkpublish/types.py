@@ -410,3 +410,73 @@ class ActivityEntry(TypedDict, total=False):
     resourceId: str
     details: Dict[str, Any]
     createdAt: str
+
+
+# ---------------------------------------------------------------------------
+# Channel Sets
+# ---------------------------------------------------------------------------
+
+
+class ChannelSet(TypedDict, total=False):
+    """A saved channel grouping for one-click multi-channel targeting."""
+
+    id: int
+    userId: str
+    organizationId: int
+    name: str
+    channelIds: List[int]
+    createdAt: str
+    updatedAt: str
+
+
+# ---------------------------------------------------------------------------
+# RSS Autopost
+# ---------------------------------------------------------------------------
+
+
+class RssFeed(TypedDict, total=False):
+    """An RSS/Atom feed polled every 15 minutes; new items become posts.
+
+    ``mode`` is ``"draft"`` (new items become draft posts for review) or
+    ``"publish"`` (auto-published).
+    """
+
+    id: int
+    userId: str
+    organizationId: int
+    name: str
+    feedUrl: str
+    channelIds: List[int]
+    mode: str
+    enabled: bool
+    lastCheckedAt: Optional[str]
+    lastError: Optional[str]
+    createdAt: str
+    updatedAt: str
+
+
+# ---------------------------------------------------------------------------
+# Media multipart upload
+# ---------------------------------------------------------------------------
+
+
+class MultipartUpload(TypedDict, total=False):
+    """Handle for a chunked (multipart) upload in progress.
+
+    ``partSize`` is fixed at 10485760 bytes (10MB); ``partUrls`` holds one
+    presigned PUT URL per part, in order; ``expiresIn`` is the URL lifetime
+    in seconds (3600).
+    """
+
+    r2Key: str
+    uploadId: str
+    partSize: int
+    partUrls: List[str]
+    expiresIn: int
+
+
+class MultipartPart(TypedDict):
+    """One uploaded part: its 1-based number and the ETag from its PUT response."""
+
+    partNumber: int
+    etag: str

@@ -5,6 +5,8 @@ import { MediaResource } from './media.js';
 import { AnalyticsResource } from './analytics.js';
 import { LabelsResource } from './labels.js';
 import { SchedulesResource } from './schedules.js';
+import { ChannelSetsResource } from './channel-sets.js';
+import { RssFeedsResource } from './rss-feeds.js';
 import type { BulkPublishOptions } from './types.js';
 
 /**
@@ -38,6 +40,8 @@ export class BulkPublish {
   readonly analytics: AnalyticsResource;
   readonly labels: LabelsResource;
   readonly schedules: SchedulesResource;
+  readonly channelSets: ChannelSetsResource;
+  readonly rssFeeds: RssFeedsResource;
 
   constructor(options: BulkPublishOptions) {
     const http = new HttpClient(options);
@@ -47,6 +51,8 @@ export class BulkPublish {
     this.analytics = new AnalyticsResource(http);
     this.labels = new LabelsResource(http);
     this.schedules = new SchedulesResource(http);
+    this.channelSets = new ChannelSetsResource(http);
+    this.rssFeeds = new RssFeedsResource(http);
   }
 }
 
@@ -58,6 +64,8 @@ export { MediaResource } from './media.js';
 export { AnalyticsResource } from './analytics.js';
 export { LabelsResource } from './labels.js';
 export { SchedulesResource } from './schedules.js';
+export { ChannelSetsResource } from './channel-sets.js';
+export { RssFeedsResource } from './rss-feeds.js';
 export {
   BulkPublishError,
   AuthenticationError,

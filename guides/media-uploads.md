@@ -81,7 +81,7 @@ Any other file types are rejected with a `400` error.
 
 ## File Size Limit
 
-Maximum file size: **100 MB**
+Maximum size for a single-request upload (`POST /api/media`): **100 MB**
 
 Files exceeding this limit receive:
 
@@ -89,6 +89,53 @@ Files exceeding this limit receive:
 {
   "error": "File too large (max 100MB)"
 }
+```
+
+Larger videos — up to **1 GB** — can be uploaded in chunks with the multipart flow below (images stay capped at 100 MB).
+
+## Multipart Uploads (large videos, up to 1GB)
+
+For big files, use the chunked direct-to-storage flow. The file is uploaded in fixed **10 MB parts** (`partSize` = 10485760 bytes), each to its own presigned URL — a failed part can be retried on its own, so a network drop never restarts the whole file.
+
+**Step 1 — create.** `POST /api/media/multipart/create` with `contentType` and the exact `sizeBytes`. Returns `r2Key`, `uploadId`, `partSize`, `expiresIn` (3600 seconds), and `partUrls` — one presigned PUT URL per part, in order.
+
+**Step 2 — upload parts + complete.** PUT each 10 MB slice of the file to its `partUrls[i]` and record the `ETag` response header of every part. Then `POST /api/media/multipart/complete` with `r2Key`, `uploadId`, the `parts` array (`{ partNumber, etag }`, 1-based), and the file metadata (`fileName`, `mimeType`, `sizeBytes`, optional `width`/`height`/`duration`). The server assembles the parts, runs the same verification as `/api/media/finalize` (existence, size, magic bytes, storage quota), and records the media file — the response has the same shape as a normal upload. A failed assembly automatically aborts the upload.
+
+**Abort.** `POST /api/media/multipart/abort` with `r2Key` + `uploadId` cancels an in-progress upload and frees the stored parts.
+
+**Python**
+
+```python
+up = client.media.create_multipart(content_type="video/mp4", size_bytes=size)
+parts = []
+with open("promo.mp4", "rb") as f:
+    for i, url in enumerate(up["partUrls"]):
+        chunk = f.read(up["partSize"])
+        resp = httpx.put(url, content=chunk)
+        parts.append({"partNumber": i + 1, "etag": resp.headers["etag"]})
+result = client.media.complete_multipart(
+    r2_key=up["r2Key"], upload_id=up["uploadId"], parts=parts,
+    file_name="promo.mp4", mime_type="video/mp4", size_bytes=size,
+)
+```
+
+**Node.js**
+
+```javascript
+const { r2Key, uploadId, partSize, partUrls } = await client.media.createMultipart({
+  contentType: "video/mp4",
+  sizeBytes: buffer.length,
+});
+const parts = [];
+for (let i = 0; i < partUrls.length; i++) {
+  const chunk = buffer.subarray(i * partSize, (i + 1) * partSize);
+  const res = await fetch(partUrls[i], { method: "PUT", body: chunk });
+  parts.push({ partNumber: i + 1, etag: res.headers.get("etag") });
+}
+const { file } = await client.media.completeMultipart({
+  r2Key, uploadId, parts,
+  fileName: "promo.mp4", mimeType: "video/mp4", sizeBytes: buffer.length,
+});
 ```
 
 ## Content Validation

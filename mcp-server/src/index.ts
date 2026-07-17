@@ -304,6 +304,8 @@ export function createServer(): McpServer {
     get_channel_health: { title: "Get channel health", readOnlyHint: true },
     get_channel_options: { title: "Get channel post-type options", readOnlyHint: true },
     search_mentions: { title: "Search mentions", readOnlyHint: true, openWorldHint: true },
+    list_channel_sets: { title: "List channel sets", readOnlyHint: true },
+    list_rss_feeds: { title: "List RSS feeds", readOnlyHint: true },
     // Create / update (non-destructive writes)
     create_post: { title: "Create post", readOnlyHint: false, destructiveHint: false },
     update_post: { title: "Update post", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
@@ -311,6 +313,13 @@ export function createServer(): McpServer {
     upload_media: { title: "Upload media", readOnlyHint: false, destructiveHint: false },
     create_media_upload: { title: "Start media upload", readOnlyHint: false, destructiveHint: false },
     finalize_media_upload: { title: "Finalize media upload", readOnlyHint: false, destructiveHint: false },
+    create_multipart_upload: { title: "Start chunked media upload", readOnlyHint: false, destructiveHint: false },
+    complete_multipart_upload: { title: "Complete chunked media upload", readOnlyHint: false, destructiveHint: false },
+    abort_multipart_upload: { title: "Abort chunked media upload", readOnlyHint: false, destructiveHint: false },
+    create_channel_set: { title: "Create channel set", readOnlyHint: false, destructiveHint: false },
+    update_channel_set: { title: "Update channel set", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+    create_rss_feed: { title: "Add RSS feed", readOnlyHint: false, destructiveHint: false },
+    update_rss_feed: { title: "Update RSS feed", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
     create_label: { title: "Create label", readOnlyHint: false, destructiveHint: false },
     update_label: { title: "Update label", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
     create_schedule: { title: "Create recurring schedule", readOnlyHint: false, destructiveHint: false },
@@ -324,6 +333,8 @@ export function createServer(): McpServer {
     delete_media: { title: "Delete media", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     delete_label: { title: "Delete label", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     delete_schedule: { title: "Delete recurring schedule", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    delete_channel_set: { title: "Delete channel set", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    delete_rss_feed: { title: "Delete RSS feed", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     // Interactive widgets (App tools)
     compose_post: { title: "Compose a post", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     view_posts: { title: "View posts", readOnlyHint: true },
@@ -356,6 +367,17 @@ export function createServer(): McpServer {
     upload_media: "the user provides an image/video to attach to a post.",
     create_media_upload: "you need a presigned URL for a large direct upload (advanced; prefer upload_media for normal files).",
     finalize_media_upload: "a presigned direct upload finished and the file must be registered (advanced).",
+    create_multipart_upload: "a file is too large for a single upload (e.g. a video over 100MB, up to 1GB) and must be sent in 10MB chunks.",
+    complete_multipart_upload: "all parts of a chunked upload are PUT and their ETags collected.",
+    abort_multipart_upload: "a chunked upload should be cancelled and its stored parts freed.",
+    list_channel_sets: "the user wants their saved channel groups (channel sets).",
+    create_channel_set: "the user wants to save a group of channels for one-click targeting.",
+    update_channel_set: "the user wants to rename a channel set or change its channels.",
+    delete_channel_set: "the user wants to remove a saved channel set.",
+    list_rss_feeds: "the user wants their RSS autopost feeds.",
+    create_rss_feed: "the user wants new items from an RSS/Atom feed to become posts automatically.",
+    update_rss_feed: "the user wants to change, pause, or re-point an RSS autopost feed.",
+    delete_rss_feed: "the user wants to stop and remove an RSS autopost feed.",
     create_label: "the user wants a new label/tag.",
     update_label: "the user wants to rename or recolor a label.",
     create_schedule: "the user wants a recurring posting schedule.",
@@ -1429,6 +1451,262 @@ server.tool(
   },
   async ({ scheduleId }) => {
     const res = await api("DELETE", `/api/schedules/${scheduleId}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: list_channel_sets
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "list_channel_sets",
+  "List saved channel sets — named channel groupings for one-click multi-channel targeting. Returns id, name, and channelIds for each set, ordered by name.",
+  {},
+  async () => {
+    const res = await api("GET", "/api/channel-sets");
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: create_channel_set
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "create_channel_set",
+  "Create a channel set — a saved channel grouping for one-click multi-channel targeting. Names are unique per organization (a duplicate fails with a 409, code DUPLICATE_NAME); an organization can have up to 50 sets.",
+  {
+    name: z.string().max(100).describe("Set name (max 100 chars, unique per organization)."),
+    channelIds: z
+      .array(z.number())
+      .min(1)
+      .describe("IDs of channels in your organization (at least 1)."),
+  },
+  async ({ name, channelIds }) => {
+    const res = await api("POST", "/api/channel-sets", { name, channelIds });
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: update_channel_set
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "update_channel_set",
+  "Update a channel set's name and/or channels (partial update — at least one field is required). A name that collides with another set fails with a 409, code DUPLICATE_NAME.",
+  {
+    setId: z.number().describe("The channel set ID to update."),
+    name: z.string().max(100).optional().describe("New set name (max 100 chars, unique per organization)."),
+    channelIds: z
+      .array(z.number())
+      .min(1)
+      .optional()
+      .describe("Replacement channel IDs (at least 1)."),
+  },
+  async ({ setId, name, channelIds }) => {
+    const body: Record<string, unknown> = {};
+    if (name !== undefined) body.name = name;
+    if (channelIds !== undefined) body.channelIds = channelIds;
+    const res = await api("PUT", `/api/channel-sets/${setId}`, body);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: delete_channel_set
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "delete_channel_set",
+  "Delete a channel set by ID. Does not affect the channels themselves.",
+  {
+    setId: z.number().describe("The channel set ID to delete."),
+  },
+  async ({ setId }) => {
+    const res = await api("DELETE", `/api/channel-sets/${setId}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: list_rss_feeds
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "list_rss_feeds",
+  "List RSS autopost feeds — RSS/Atom feeds polled every 15 minutes whose new items automatically become posts. Returns name, feedUrl, channelIds, mode, enabled, lastCheckedAt, and lastError for each feed.",
+  {},
+  async () => {
+    const res = await api("GET", "/api/rss-feeds");
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: create_rss_feed
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "create_rss_feed",
+  "Add an RSS autopost feed. The feed is polled every 15 minutes and new items become posts on the chosen channels. The server validates that feedUrl is a reachable public RSS 2.0 or Atom feed. An organization can have up to 20 feeds.",
+  {
+    name: z.string().max(100).describe("Feed name (max 100 chars)."),
+    feedUrl: z.string().describe("Public RSS 2.0 or Atom feed URL."),
+    channelIds: z
+      .array(z.number())
+      .min(1)
+      .describe("IDs of channels new items are posted to (at least 1)."),
+    mode: z
+      .enum(["draft", "publish"])
+      .optional()
+      .describe(
+        "draft = new items become draft posts for review (the default); publish = auto-published."
+      ),
+  },
+  async ({ name, feedUrl, channelIds, mode }) => {
+    const body: Record<string, unknown> = { name, feedUrl, channelIds };
+    if (mode !== undefined) body.mode = mode;
+    const res = await api("POST", "/api/rss-feeds", body);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: update_rss_feed
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "update_rss_feed",
+  "Update an RSS autopost feed (partial update). Note: changing feedUrl re-baselines the feed — its check state resets and only items published after the change are posted, so the new feed's backlog is not flooded.",
+  {
+    feedId: z.number().describe("The RSS feed ID to update."),
+    name: z.string().max(100).optional().describe("New feed name."),
+    feedUrl: z
+      .string()
+      .optional()
+      .describe(
+        "New feed URL. Changing it re-baselines the feed (only items newer than the change are posted)."
+      ),
+    channelIds: z
+      .array(z.number())
+      .min(1)
+      .optional()
+      .describe("Replacement channel IDs (at least 1)."),
+    mode: z
+      .enum(["draft", "publish"])
+      .optional()
+      .describe("draft = new items become drafts for review; publish = auto-published."),
+    enabled: z.boolean().optional().describe("Enable or disable polling of this feed."),
+  },
+  async ({ feedId, name, feedUrl, channelIds, mode, enabled }) => {
+    const body: Record<string, unknown> = {};
+    if (name !== undefined) body.name = name;
+    if (feedUrl !== undefined) body.feedUrl = feedUrl;
+    if (channelIds !== undefined) body.channelIds = channelIds;
+    if (mode !== undefined) body.mode = mode;
+    if (enabled !== undefined) body.enabled = enabled;
+    const res = await api("PUT", `/api/rss-feeds/${feedId}`, body);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: delete_rss_feed
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "delete_rss_feed",
+  "Delete an RSS autopost feed by ID. Stops polling; already-created posts are kept.",
+  {
+    feedId: z.number().describe("The RSS feed ID to delete."),
+  },
+  async ({ feedId }) => {
+    const res = await api("DELETE", `/api/rss-feeds/${feedId}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tools: media multipart upload (chunked direct-to-storage, videos up to 1GB)
+//
+// Three-step flow complementing create_media_upload/finalize_media_upload
+// (which are single-PUT): create returns one presigned PUT URL per fixed 10MB
+// part; the caller PUTs each slice and collects the ETag response header of
+// every part (a failed part can be retried alone — a network drop never
+// restarts the whole file); complete assembles + verifies and records the
+// media file; abort cancels and frees stored parts.
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "create_multipart_upload",
+  "Start a chunked (multipart) direct-to-storage upload for large media — videos up to 1GB, images up to 100MB. Returns r2Key, uploadId, the fixed partSize (10485760 bytes = 10MB), and one presigned PUT URL per part (valid 3600s). PUT each 10MB slice to its URL, collect each response's ETag header, then call complete_multipart_upload. For ordinary files prefer upload_media.",
+  {
+    contentType: z
+      .string()
+      .describe("File MIME type, e.g. video/mp4 or image/png."),
+    sizeBytes: z
+      .number()
+      .describe("Exact file size in bytes. Videos up to 1GB; images up to 100MB."),
+  },
+  async ({ contentType, sizeBytes }) => {
+    const res = await api("POST", "/api/media/multipart/create", {
+      contentType,
+      sizeBytes,
+    });
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "complete_multipart_upload",
+  "Complete a chunked upload: the server assembles the uploaded parts, verifies the stored object (existence, size, magic bytes, storage quota) and records the media file — same verification and response shape as finalize_media_upload. A failed assembly automatically aborts the upload.",
+  {
+    r2Key: z.string().describe("The r2Key returned by create_multipart_upload."),
+    uploadId: z.string().describe("The uploadId returned by create_multipart_upload."),
+    parts: z
+      .array(
+        z.object({
+          partNumber: z.number().min(1).describe("1-based part number."),
+          etag: z.string().describe("ETag response header from the part PUT."),
+        })
+      )
+      .min(1)
+      .describe("Every uploaded part with its ETag."),
+    fileName: z.string().describe("Original file name."),
+    mimeType: z.string().describe("File MIME type."),
+    sizeBytes: z.number().describe("File size in bytes."),
+    width: z.number().optional().describe("Pixel width (images/video)."),
+    height: z.number().optional().describe("Pixel height (images/video)."),
+    duration: z.number().optional().describe("Duration in seconds (video)."),
+  },
+  async ({ r2Key, uploadId, parts, fileName, mimeType, sizeBytes, width, height, duration }) => {
+    const body: Record<string, unknown> = {
+      r2Key,
+      uploadId,
+      parts,
+      fileName,
+      mimeType,
+      sizeBytes,
+    };
+    if (width !== undefined) body.width = width;
+    if (height !== undefined) body.height = height;
+    if (duration !== undefined) body.duration = duration;
+    const res = await api("POST", "/api/media/multipart/complete", body);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "abort_multipart_upload",
+  "Abort an in-progress chunked upload and free its stored parts.",
+  {
+    r2Key: z.string().describe("The r2Key returned by create_multipart_upload."),
+    uploadId: z.string().describe("The uploadId returned by create_multipart_upload."),
+  },
+  async ({ r2Key, uploadId }) => {
+    const res = await api("POST", "/api/media/multipart/abort", { r2Key, uploadId });
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );

@@ -10,7 +10,7 @@ import {
 
 const DEFAULT_BASE_URL = 'https://app.bulkpublish.com';
 const DEFAULT_TIMEOUT = 30_000;
-const SDK_VERSION = '1.0.0';
+const SDK_VERSION = '1.2.0';
 
 /**
  * Low-level HTTP client used by all resource classes.
