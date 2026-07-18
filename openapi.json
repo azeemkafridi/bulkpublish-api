@@ -2181,7 +2181,8 @@
           "400": {
             "description": "Invalid input"
           }
-        }
+        },
+        "description": "Create an RSS/Atom feed. Plan-gated: max feeds per org (Free 1, Pro 10, Business 50) and auto-publish mode (`mode: \"publish\"`) is paid-only \u2014 Free is draft-only and a `publish` request returns 403. Over the feed limit returns 403. Feed poll cadence is also per-plan (Free 60 min, Pro 30 min, Business 15 min)."
       }
     },
     "/api/rss-feeds/{id}": {
