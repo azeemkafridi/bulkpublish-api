@@ -949,8 +949,9 @@ export interface RssMappingChannelOverride {
 export interface RssFieldMapping {
   /**
    * Caption template (max 2000 chars). Tokens: {title} {link} {description}
-   * {content} {author} {categories} {feedName}. A line whose tokens all render
-   * empty is dropped. Default "{title}\n\n{link}".
+   * {content} {author} {categories} {feedName}, plus any extra leaf field on
+   * the feed item as {fieldName} (lowercased localName). A line whose tokens
+   * all render empty is dropped. Default "{title}\n\n{link}".
    */
   template: string;
   /**

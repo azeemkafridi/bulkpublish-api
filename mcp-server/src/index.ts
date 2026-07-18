@@ -1557,7 +1557,7 @@ const rssFieldMappingSchema = z
       .string()
       .max(2000)
       .describe(
-        'Caption template (default "{title}\\n\\n{link}"). Tokens: {title} {link} {description} {content} {author} {categories} {feedName}. A line whose tokens all render empty is dropped.'
+        'Caption template (default "{title}\\n\\n{link}"). Standard tokens: {title} {link} {description} {content} {author} {categories} {feedName}. Any extra leaf field on the feed item also works as {fieldName} (lowercased localName). A line whose tokens all render empty is dropped.'
       ),
     mediaField: z
       .enum(["none", "image", "video", "auto"])

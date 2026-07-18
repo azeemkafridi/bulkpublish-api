@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-18 — RSS custom-field caption tokens (docs) (mcp-server 1.6.1, node SDK 1.3.1, python SDK 0.4.1)
+
+### Changed
+
+- **openapi.json / mcp-server / node + python SDK types**: Documented that a feed item's own extra leaf fields (namespaced or not) can be used as `{fieldName}` caption tokens in addition to the standard set — the webapp editor surfaces a feed's real fields as pills after a preview. Docs/prose only; the `template` string is forwarded unchanged.
+
 ## 2026-07-18 — RSS polling hardening + link-card behavior docs (docs only, no SDK code changes)
 
 ### Changed

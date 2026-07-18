@@ -2105,7 +2105,7 @@
                         "type": "string",
                         "maxLength": 2000,
                         "default": "{title}\n\n{link}",
-                        "description": "Caption template. Tokens: {title} {link} {description} {content} {author} {categories} {feedName}. A line whose tokens all render empty is dropped."
+                        "description": "Caption template. Standard tokens: {title} {link} {description} {content} {author} {categories} {feedName}. Any extra leaf field on the feed item (namespaced or not, e.g. {publisher}) can also be used as {fieldName} (lowercased localName); the editor surfaces the feed's real fields as pills after a preview. A line whose tokens all render empty is dropped."
                       },
                       "mediaField": {
                         "type": "string",
@@ -2245,7 +2245,7 @@
                         "type": "string",
                         "maxLength": 2000,
                         "default": "{title}\n\n{link}",
-                        "description": "Caption template. Tokens: {title} {link} {description} {content} {author} {categories} {feedName}. A line whose tokens all render empty is dropped."
+                        "description": "Caption template. Standard tokens: {title} {link} {description} {content} {author} {categories} {feedName}. Any extra leaf field on the feed item (namespaced or not, e.g. {publisher}) can also be used as {fieldName} (lowercased localName); the editor surfaces the feed's real fields as pills after a preview. A line whose tokens all render empty is dropped."
                       },
                       "mediaField": {
                         "type": "string",

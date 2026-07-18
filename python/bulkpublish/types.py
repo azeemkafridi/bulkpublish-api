@@ -453,7 +453,8 @@ class RssFieldMapping(TypedDict, total=False):
 
     ``template`` (default ``"{title}\n\n{link}"``, max 2000 chars) supports
     the tokens ``{title} {link} {description} {content} {author} {categories}
-    {feedName}``; a line whose tokens all render empty is dropped.
+    {feedName}`` plus any extra leaf field on the feed item as ``{fieldName}``
+    (lowercased localName); a line whose tokens all render empty is dropped.
     ``mediaField`` selects the item enclosure to import and attach: ``"none"``
     (default), ``"image"``, ``"video"``, or ``"auto"`` (video, else image) —
     the file is re-hosted to your media library, and channels whose platform
