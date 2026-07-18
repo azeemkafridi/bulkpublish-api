@@ -828,7 +828,7 @@
           "Posts"
         ],
         "summary": "Create post",
-        "description": "Create a new post as draft or scheduled. Validates character limits per platform, media ownership, channel ownership, and plan quotas.\n\n**Character limits:** X: 280, Bluesky: 300, Threads: 500, Mastodon: 500, Pinterest: 500, GMB: 1500, Instagram: 2200, TikTok: 2200, LinkedIn: 3000, YouTube: 5000, Facebook: 63206",
+        "description": "Create a new post as draft or scheduled. Validates character limits per platform, media ownership, channel ownership, and plan quotas.\n\n**Character limits:** X: 280, Bluesky: 300, Threads: 500, Mastodon: 500, Pinterest: 500, GMB: 1500, Instagram: 2200, TikTok: 2200, LinkedIn: 3000, YouTube: 5000, Facebook: 63206. On X and Mastodon every URL counts as a flat 23 characters (t.co wrapping / Mastodon link counting), regardless of its real length.\n\n**Link cards:** for a text-only post (no media) containing a URL, the first URL is unfurled at publish time. Facebook receives it as the `link` param, Bluesky as an external embed (with thumbnail), and LinkedIn as a `content.article` card (LinkedIn's API never scrapes URLs itself; if the page yields no title, the post publishes as plain text without a card). Other platforms unfurl the URL themselves or render it as plain text (links in Instagram/TikTok captions are not clickable).",
         "requestBody": {
           "required": true,
           "content": {
@@ -2047,7 +2047,7 @@
           "RSS Autopost"
         ],
         "summary": "List RSS feeds",
-        "description": "RSS/Atom feeds polled every 15 minutes; new items become posts.",
+        "description": "RSS/Atom feeds polled every 15 minutes; new items become posts. Polling uses conditional GET (ETag/Last-Modified) and exponential backoff on errors (15 minutes doubling to 24 hours); a feed is automatically disabled after 20 consecutive failed polls (`enabled` becomes false and `lastError` explains why). The first successful poll baselines the feed's existing backlog without posting it.",
         "responses": {
           "200": {
             "description": "Feeds"

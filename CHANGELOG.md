@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-18 — RSS polling hardening + link-card behavior docs (docs only, no SDK code changes)
+
+### Changed
+
+- **openapi.json prose** (mirrors the webapp copy):
+  - `POST /api/posts` — documented that X and Mastodon count every URL as a flat 23 characters (server-side validation now measures content this way), and documented publish-time link-card behavior for text-only posts with a URL: Facebook `link` param, Bluesky external embed, LinkedIn `content.article` (no card if the page yields no title; LinkedIn's API never scrapes URLs), other platforms self-unfurl or render plain text (Instagram/TikTok caption links are not clickable).
+  - `GET /api/rss-feeds` — documented polling behavior: conditional GET (ETag/Last-Modified), exponential error backoff (15 min → 24 h), auto-disable after 20 consecutive failed polls (`enabled` flips to false, `lastError` explains), and first-successful-poll backlog baselining.
+- No request/response shapes changed; SDKs and MCP server are unaffected.
+
 ## 2026-07-18 — RSS field mapping (mcp-server 1.6.0, node SDK 1.3.0, python SDK 0.4.0)
 
 ### Added
