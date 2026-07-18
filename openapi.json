@@ -2093,6 +2093,81 @@
                     ],
                     "default": "draft",
                     "description": "draft = new items become drafts for review; publish = auto-published"
+                  },
+                  "fieldMapping": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "description": "Per-feed field mapping controlling how an RSS/Atom item becomes post content. null (default) uses the built-in mapping: template \"{title}\\n\\n{link}\", no media, stripHtml true, smart truncation. Media selection is post-level (media attaches to the post, not a single channel); per-channel overrides cover text only, and channels on the same platform share one rendered text (written to the post's platformContent, as in the composer). Channels whose platform requires media (e.g. Instagram, TikTok, YouTube) are skipped for items lacking a usable enclosure, with the reason recorded in the activity log.",
+                    "properties": {
+                      "template": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "default": "{title}\n\n{link}",
+                        "description": "Caption template. Tokens: {title} {link} {description} {content} {author} {categories} {feedName}. A line whose tokens all render empty is dropped."
+                      },
+                      "mediaField": {
+                        "type": "string",
+                        "enum": [
+                          "none",
+                          "image",
+                          "video",
+                          "auto"
+                        ],
+                        "default": "none",
+                        "description": "Which item enclosure to import and attach: none, the item image, the item video, or auto (video if present, else image). The file is re-hosted to your media library; if the import fails the post is created without media."
+                      },
+                      "stripHtml": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Strip HTML tags/entities from {title}/{description}/{content}."
+                      },
+                      "truncate": {
+                        "type": "string",
+                        "enum": [
+                          "smart",
+                          "hard",
+                          "skip"
+                        ],
+                        "default": "smart",
+                        "description": "When rendered text exceeds the platform character limit: smart = trim at a word boundary keeping a trailing link line; hard = cut at the limit; skip = don't post to that channel."
+                      },
+                      "hashtags": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "default": "",
+                        "description": "Appended after the rendered template."
+                      },
+                      "channelOverrides": {
+                        "type": "object",
+                        "description": "Per-channel text overrides keyed by channel id (as a string). Each override may set template, hashtags, stripHtml, truncate; mediaField cannot be overridden per channel.",
+                        "additionalProperties": {
+                          "type": "object",
+                          "properties": {
+                            "template": {
+                              "type": "string",
+                              "maxLength": 2000
+                            },
+                            "hashtags": {
+                              "type": "string",
+                              "maxLength": 500
+                            },
+                            "stripHtml": {
+                              "type": "boolean"
+                            },
+                            "truncate": {
+                              "type": "string",
+                              "enum": [
+                                "smart",
+                                "hard",
+                                "skip"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -2157,6 +2232,81 @@
                   },
                   "enabled": {
                     "type": "boolean"
+                  },
+                  "fieldMapping": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "description": "Per-feed field mapping controlling how an RSS/Atom item becomes post content. null (default) uses the built-in mapping: template \"{title}\\n\\n{link}\", no media, stripHtml true, smart truncation. Media selection is post-level (media attaches to the post, not a single channel); per-channel overrides cover text only, and channels on the same platform share one rendered text (written to the post's platformContent, as in the composer). Channels whose platform requires media (e.g. Instagram, TikTok, YouTube) are skipped for items lacking a usable enclosure, with the reason recorded in the activity log. Pass null to clear back to the default mapping.",
+                    "properties": {
+                      "template": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "default": "{title}\n\n{link}",
+                        "description": "Caption template. Tokens: {title} {link} {description} {content} {author} {categories} {feedName}. A line whose tokens all render empty is dropped."
+                      },
+                      "mediaField": {
+                        "type": "string",
+                        "enum": [
+                          "none",
+                          "image",
+                          "video",
+                          "auto"
+                        ],
+                        "default": "none",
+                        "description": "Which item enclosure to import and attach: none, the item image, the item video, or auto (video if present, else image). The file is re-hosted to your media library; if the import fails the post is created without media."
+                      },
+                      "stripHtml": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Strip HTML tags/entities from {title}/{description}/{content}."
+                      },
+                      "truncate": {
+                        "type": "string",
+                        "enum": [
+                          "smart",
+                          "hard",
+                          "skip"
+                        ],
+                        "default": "smart",
+                        "description": "When rendered text exceeds the platform character limit: smart = trim at a word boundary keeping a trailing link line; hard = cut at the limit; skip = don't post to that channel."
+                      },
+                      "hashtags": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "default": "",
+                        "description": "Appended after the rendered template."
+                      },
+                      "channelOverrides": {
+                        "type": "object",
+                        "description": "Per-channel text overrides keyed by channel id (as a string). Each override may set template, hashtags, stripHtml, truncate; mediaField cannot be overridden per channel.",
+                        "additionalProperties": {
+                          "type": "object",
+                          "properties": {
+                            "template": {
+                              "type": "string",
+                              "maxLength": 2000
+                            },
+                            "hashtags": {
+                              "type": "string",
+                              "maxLength": 500
+                            },
+                            "stripHtml": {
+                              "type": "boolean"
+                            },
+                            "truncate": {
+                              "type": "string",
+                              "enum": [
+                                "smart",
+                                "hard",
+                                "skip"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
                   }
                 }
               }

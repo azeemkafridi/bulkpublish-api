@@ -434,11 +434,52 @@ class ChannelSet(TypedDict, total=False):
 # ---------------------------------------------------------------------------
 
 
+class RssMappingChannelOverride(TypedDict, total=False):
+    """Per-channel text override inside an RSS field mapping.
+
+    Text-only — ``mediaField`` cannot be overridden per channel, and channels
+    on the same platform share one rendered text (written to the post's
+    per-platform content, like composer overrides).
+    """
+
+    template: str
+    hashtags: str
+    stripHtml: bool
+    truncate: str
+
+
+class RssFieldMapping(TypedDict, total=False):
+    """How an RSS/Atom item becomes post content.
+
+    ``template`` (default ``"{title}\n\n{link}"``, max 2000 chars) supports
+    the tokens ``{title} {link} {description} {content} {author} {categories}
+    {feedName}``; a line whose tokens all render empty is dropped.
+    ``mediaField`` selects the item enclosure to import and attach: ``"none"``
+    (default), ``"image"``, ``"video"``, or ``"auto"`` (video, else image) —
+    the file is re-hosted to your media library, and channels whose platform
+    requires media (Instagram, TikTok, YouTube, Pinterest) are skipped for
+    items lacking a usable enclosure. ``stripHtml`` (default True) strips
+    HTML from item text. ``truncate`` handles text over the platform char
+    limit: ``"smart"`` (default, word-boundary trim keeping a trailing link),
+    ``"hard"`` (cut at the limit), or ``"skip"`` (drop that channel).
+    ``hashtags`` (max 500 chars) is appended after the template.
+    ``channelOverrides`` maps channel id strings to per-channel overrides.
+    """
+
+    template: str
+    mediaField: str
+    stripHtml: bool
+    truncate: str
+    hashtags: str
+    channelOverrides: Dict[str, RssMappingChannelOverride]
+
+
 class RssFeed(TypedDict, total=False):
     """An RSS/Atom feed polled every 15 minutes; new items become posts.
 
     ``mode`` is ``"draft"`` (new items become draft posts for review) or
-    ``"publish"`` (auto-published).
+    ``"publish"`` (auto-published). ``fieldMapping`` controls item → post
+    rendering; ``None`` means the built-in default mapping.
     """
 
     id: int
@@ -448,6 +489,7 @@ class RssFeed(TypedDict, total=False):
     feedUrl: str
     channelIds: List[int]
     mode: str
+    fieldMapping: Optional[RssFieldMapping]
     enabled: bool
     lastCheckedAt: Optional[str]
     lastError: Optional[str]

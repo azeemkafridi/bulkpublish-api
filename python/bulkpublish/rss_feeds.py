@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 if TYPE_CHECKING:
     from .client import _BaseClient
 
-from .types import RssFeed
+from .types import RssFeed, RssFieldMapping
 
 
 class RssFeedsResource:
@@ -44,6 +44,7 @@ class RssFeedsResource:
         feed_url: str,
         channel_ids: List[int],
         mode: Optional[str] = None,
+        field_mapping: Optional[RssFieldMapping] = None,
     ) -> RssFeed:
         """Add an RSS feed.
 
@@ -54,6 +55,10 @@ class RssFeedsResource:
             channel_ids: IDs of channels new items are posted to (at least 1).
             mode: ``"draft"`` (new items become draft posts for review — the
                 default) or ``"publish"`` (auto-published).
+            field_mapping: How each item becomes a post (caption template,
+                media selection, truncation, hashtags, per-channel overrides —
+                see :class:`~bulkpublish.types.RssFieldMapping`). Omit for the
+                built-in default (``"{title}\n\n{link}"``, no media).
 
         Returns:
             The newly created feed.
@@ -76,6 +81,8 @@ class RssFeedsResource:
         }
         if mode is not None:
             body["mode"] = mode
+        if field_mapping is not None:
+            body["fieldMapping"] = field_mapping
         return self._client._request("POST", "/api/rss-feeds", json=body)
 
     def update(
@@ -86,6 +93,8 @@ class RssFeedsResource:
         feed_url: Optional[str] = None,
         channel_ids: Optional[List[int]] = None,
         mode: Optional[str] = None,
+        field_mapping: Optional[RssFieldMapping] = None,
+        clear_field_mapping: bool = False,
         enabled: Optional[bool] = None,
     ) -> RssFeed:
         """Update an RSS feed (partial update).
@@ -101,6 +110,10 @@ class RssFeedsResource:
             feed_url: New feed URL (see the re-baseline note above).
             channel_ids: Replacement channel IDs (at least 1).
             mode: ``"draft"`` or ``"publish"``.
+            field_mapping: New field mapping (see
+                :class:`~bulkpublish.types.RssFieldMapping`).
+            clear_field_mapping: Set True to clear the mapping back to the
+                built-in default (sends ``fieldMapping: null``).
             enabled: Enable or disable polling of this feed.
 
         Raises:
@@ -115,6 +128,10 @@ class RssFeedsResource:
             body["channelIds"] = channel_ids
         if mode is not None:
             body["mode"] = mode
+        if clear_field_mapping:
+            body["fieldMapping"] = None
+        elif field_mapping is not None:
+            body["fieldMapping"] = field_mapping
         if enabled is not None:
             body["enabled"] = enabled
         return self._client._request("PUT", f"/api/rss-feeds/{feed_id}", json=body)
@@ -154,6 +171,7 @@ class AsyncRssFeedsResource:
         feed_url: str,
         channel_ids: List[int],
         mode: Optional[str] = None,
+        field_mapping: Optional[RssFieldMapping] = None,
     ) -> RssFeed:
         """Add an RSS feed — see :meth:`RssFeedsResource.create`."""
         body: Dict[str, Any] = {
@@ -163,6 +181,8 @@ class AsyncRssFeedsResource:
         }
         if mode is not None:
             body["mode"] = mode
+        if field_mapping is not None:
+            body["fieldMapping"] = field_mapping
         return await self._client._request("POST", "/api/rss-feeds", json=body)
 
     async def update(
@@ -173,6 +193,8 @@ class AsyncRssFeedsResource:
         feed_url: Optional[str] = None,
         channel_ids: Optional[List[int]] = None,
         mode: Optional[str] = None,
+        field_mapping: Optional[RssFieldMapping] = None,
+        clear_field_mapping: bool = False,
         enabled: Optional[bool] = None,
     ) -> RssFeed:
         """Update an RSS feed — see :meth:`RssFeedsResource.update`."""
@@ -185,6 +207,10 @@ class AsyncRssFeedsResource:
             body["channelIds"] = channel_ids
         if mode is not None:
             body["mode"] = mode
+        if clear_field_mapping:
+            body["fieldMapping"] = None
+        elif field_mapping is not None:
+            body["fieldMapping"] = field_mapping
         if enabled is not None:
             body["enabled"] = enabled
         return await self._client._request(

@@ -1536,7 +1536,7 @@ server.tool(
 
 server.tool(
   "list_rss_feeds",
-  "List RSS autopost feeds — RSS/Atom feeds polled every 15 minutes whose new items automatically become posts. Returns name, feedUrl, channelIds, mode, enabled, lastCheckedAt, and lastError for each feed.",
+  "List RSS autopost feeds — RSS/Atom feeds polled every 15 minutes whose new items automatically become posts. Returns name, feedUrl, channelIds, mode, fieldMapping (how items are rendered into posts; null = default), enabled, lastCheckedAt, and lastError for each feed.",
   {},
   async () => {
     const res = await api("GET", "/api/rss-feeds");
@@ -1547,6 +1547,51 @@ server.tool(
 // ---------------------------------------------------------------------------
 // Tool: create_rss_feed
 // ---------------------------------------------------------------------------
+
+// How an RSS item becomes post content (rss_feeds.fieldMapping). Omitted/null
+// = the built-in default: template "{title}\n\n{link}", no media, stripHtml
+// true, smart truncation.
+const rssFieldMappingSchema = z
+  .object({
+    template: z
+      .string()
+      .max(2000)
+      .describe(
+        'Caption template (default "{title}\\n\\n{link}"). Tokens: {title} {link} {description} {content} {author} {categories} {feedName}. A line whose tokens all render empty is dropped.'
+      ),
+    mediaField: z
+      .enum(["none", "image", "video", "auto"])
+      .optional()
+      .describe(
+        "Which item enclosure to import and attach: none (default), image, video, or auto (video if present, else image). The file is re-hosted to the media library; channels whose platform requires media (Instagram, TikTok, YouTube, Pinterest) are skipped for items lacking a usable enclosure."
+      ),
+    stripHtml: z
+      .boolean()
+      .optional()
+      .describe("Strip HTML tags/entities from item text. Default true."),
+    truncate: z
+      .enum(["smart", "hard", "skip"])
+      .optional()
+      .describe(
+        "When rendered text exceeds the platform char limit: smart (default) trims at a word boundary keeping a trailing link line; hard cuts at the limit; skip drops that channel for the item."
+      ),
+    hashtags: z.string().max(500).optional().describe("Appended after the rendered template."),
+    channelOverrides: z
+      .record(
+        z.string(),
+        z.object({
+          template: z.string().max(2000).optional(),
+          hashtags: z.string().max(500).optional(),
+          stripHtml: z.boolean().optional(),
+          truncate: z.enum(["smart", "hard", "skip"]).optional(),
+        })
+      )
+      .optional()
+      .describe(
+        "Per-channel text overrides keyed by channel id (as a string). Media selection cannot be overridden per channel; channels on the same platform share one rendered text."
+      ),
+  })
+  .describe("Field mapping controlling how each feed item becomes a post.");
 
 server.tool(
   "create_rss_feed",
@@ -1564,10 +1609,12 @@ server.tool(
       .describe(
         "draft = new items become draft posts for review (the default); publish = auto-published."
       ),
+    fieldMapping: rssFieldMappingSchema.optional(),
   },
-  async ({ name, feedUrl, channelIds, mode }) => {
+  async ({ name, feedUrl, channelIds, mode, fieldMapping }) => {
     const body: Record<string, unknown> = { name, feedUrl, channelIds };
     if (mode !== undefined) body.mode = mode;
+    if (fieldMapping !== undefined) body.fieldMapping = fieldMapping;
     const res = await api("POST", "/api/rss-feeds", body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
@@ -1598,14 +1645,19 @@ server.tool(
       .enum(["draft", "publish"])
       .optional()
       .describe("draft = new items become drafts for review; publish = auto-published."),
+    fieldMapping: rssFieldMappingSchema
+      .nullable()
+      .optional()
+      .describe("New field mapping; pass null to clear back to the built-in default."),
     enabled: z.boolean().optional().describe("Enable or disable polling of this feed."),
   },
-  async ({ feedId, name, feedUrl, channelIds, mode, enabled }) => {
+  async ({ feedId, name, feedUrl, channelIds, mode, fieldMapping, enabled }) => {
     const body: Record<string, unknown> = {};
     if (name !== undefined) body.name = name;
     if (feedUrl !== undefined) body.feedUrl = feedUrl;
     if (channelIds !== undefined) body.channelIds = channelIds;
     if (mode !== undefined) body.mode = mode;
+    if (fieldMapping !== undefined) body.fieldMapping = fieldMapping;
     if (enabled !== undefined) body.enabled = enabled;
     const res = await api("PUT", `/api/rss-feeds/${feedId}`, body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };

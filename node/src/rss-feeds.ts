@@ -16,6 +16,13 @@ import type { RssFeed, CreateRssFeedParams, UpdateRssFeedParams } from './types.
  *   feedUrl: 'https://example.com/rss.xml',
  *   channelIds: [1, 2],
  *   // mode defaults to 'draft'
+ *   // Optional field mapping — how each item becomes a post:
+ *   fieldMapping: {
+ *     template: '{title}\n\n{link}',
+ *     mediaField: 'auto',          // attach the item's video, else image
+ *     hashtags: '#blog',
+ *     channelOverrides: { '2': { template: '{title} — {description}\n{link}' } },
+ *   },
  * });
  * ```
  */

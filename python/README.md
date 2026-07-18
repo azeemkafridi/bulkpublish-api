@@ -87,7 +87,7 @@ asyncio.run(main())
 | `bp.labels` | `list`, `create`, `update`, `delete` |
 | `bp.schedules` | `list`, `create`, `update`, `delete` |
 | `bp.channel_sets` | `list`, `create`, `update`, `delete` — saved channel groups for one-click targeting |
-| `bp.rss_feeds` | `list`, `create`, `update`, `delete` — RSS/Atom autopost feeds (new items become posts) |
+| `bp.rss_feeds` | `list`, `create`, `update`, `delete` — RSS/Atom autopost feeds (new items become posts; optional `field_mapping` controls caption template, media, truncation, per-channel overrides) |
 
 Every method has docstrings with usage examples — works great with IDE autocomplete and LLM code generation.
 

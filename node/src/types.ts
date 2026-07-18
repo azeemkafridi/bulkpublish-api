@@ -926,6 +926,55 @@ export interface UpdateChannelSetParams {
 
 // ---------- RSS Autopost ----------
 
+/**
+ * Per-channel override inside an RSS field mapping. Text-only — media
+ * selection (`mediaField`) cannot be overridden per channel, and channels on
+ * the same platform share one rendered text (it is written to the post's
+ * per-platform content, like composer overrides).
+ */
+export interface RssMappingChannelOverride {
+  /** Caption template for this channel (max 2000 chars). */
+  template?: string;
+  /** Hashtags appended for this channel (max 500 chars). */
+  hashtags?: string;
+  stripHtml?: boolean;
+  truncate?: 'smart' | 'hard' | 'skip';
+}
+
+/**
+ * How an RSS/Atom item becomes post content. `null` on a feed means the
+ * built-in default: template `"{title}\n\n{link}"`, no media, stripHtml true,
+ * smart truncation, no hashtags.
+ */
+export interface RssFieldMapping {
+  /**
+   * Caption template (max 2000 chars). Tokens: {title} {link} {description}
+   * {content} {author} {categories} {feedName}. A line whose tokens all render
+   * empty is dropped. Default "{title}\n\n{link}".
+   */
+  template: string;
+  /**
+   * Which item enclosure to import and attach to the post: 'none' (default),
+   * 'image', 'video', or 'auto' (video if present, else image). The file is
+   * re-hosted to your media library; if the import fails the post is created
+   * without media. Channels whose platform requires media (e.g. Instagram,
+   * TikTok, YouTube) are skipped for items lacking a usable enclosure.
+   */
+  mediaField?: 'none' | 'image' | 'video' | 'auto';
+  /** Strip HTML tags/entities from {title}/{description}/{content}. Default true. */
+  stripHtml?: boolean;
+  /**
+   * When rendered text exceeds the platform character limit: 'smart' (default)
+   * trims at a word boundary keeping a trailing link line; 'hard' cuts at the
+   * limit; 'skip' drops that channel for the item.
+   */
+  truncate?: 'smart' | 'hard' | 'skip';
+  /** Hashtags appended after the rendered template (max 500 chars). Default "". */
+  hashtags?: string;
+  /** Per-channel text overrides keyed by channel id (as a string). */
+  channelOverrides?: Record<string, RssMappingChannelOverride>;
+}
+
 /** An RSS/Atom feed polled every 15 minutes; new items become posts. */
 export interface RssFeed {
   id: number;
@@ -936,6 +985,8 @@ export interface RssFeed {
   channelIds: number[];
   /** 'draft' = new items become drafts for review; 'publish' = auto-published. */
   mode: 'draft' | 'publish';
+  /** Field mapping controlling item → post rendering; null = built-in default. */
+  fieldMapping: RssFieldMapping | null;
   enabled: boolean;
   lastCheckedAt: string | null;
   lastError: string | null;
@@ -956,6 +1007,12 @@ export interface CreateRssFeedParams {
    * Defaults to 'draft'.
    */
   mode?: 'draft' | 'publish';
+  /**
+   * Field mapping controlling how each item becomes a post (caption template,
+   * media selection, truncation, hashtags, per-channel overrides). Omit for
+   * the built-in default ("{title}\n\n{link}", no media).
+   */
+  fieldMapping?: RssFieldMapping;
 }
 
 /** Parameters for updating an RSS feed (partial update). */
@@ -968,6 +1025,8 @@ export interface UpdateRssFeedParams {
   feedUrl?: string;
   channelIds?: number[];
   mode?: 'draft' | 'publish';
+  /** New field mapping; pass null to clear back to the built-in default. */
+  fieldMapping?: RssFieldMapping | null;
   enabled?: boolean;
 }
 

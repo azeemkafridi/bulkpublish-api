@@ -143,7 +143,7 @@ Once deployed, add it to **claude.ai → Settings → Connectors → Add custom 
 | `delete_channel_set` | Delete a channel set |
 | **RSS Autopost** | |
 | `list_rss_feeds` | List RSS/Atom feeds polled every 15 minutes (new items become posts) |
-| `create_rss_feed` | Add a feed (max 20 per org); `mode` = `draft` (default, items become drafts) or `publish` (auto-published) |
+| `create_rss_feed` | Add a feed (max 20 per org); `mode` = `draft` (default, items become drafts) or `publish` (auto-published); optional `fieldMapping` controls how items render (caption template, media pick, truncation, per-channel overrides) |
 | `update_rss_feed` | Change, pause, or re-point a feed (changing `feedUrl` re-baselines it — the backlog is not flooded) |
 | `delete_rss_feed` | Stop and remove a feed |
 | **Media** | |
