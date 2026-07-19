@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-19 — post update accepts `status` (mcp-server 1.6.2, node SDK 1.3.2, python SDK 0.4.2)
+
+### Changed
+
+- **`PUT /api/posts/{id}` now accepts an optional `status` (`'draft'` | `'scheduled'`)** to move a post between draft and scheduled. Previously a `status` field in the update body was ignored. Setting `'scheduled'` requires a future `scheduledAt` (in the request or already stored) and at least one channel; setting `'draft'` unschedules the post. Any other value is rejected (400). Omit `status` to leave it unchanged (failed/partial posts still auto-reset to draft on edit). To publish immediately, use `POST /api/posts/{id}/publish`.
+- openapi.json (+ Postman collection) requestBody and endpoint prose updated (removed the "status is ignored / cannot be changed" note). Node SDK: `status` added to `UpdatePostParams` + an `update()` example. Python SDK: `status` documented on `posts.update()`. MCP: `status` enum input added to the `update_post` tool.
+
 ## 2026-07-18 — RSS custom-field caption tokens (docs) (mcp-server 1.6.1, node SDK 1.3.1, python SDK 0.4.1)
 
 ### Changed

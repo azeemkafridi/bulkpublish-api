@@ -255,7 +255,14 @@ class PostsResource:
             post_id: The post's unique identifier.
             **fields: Fields to update.  Use snake_case names — they are
                 converted to camelCase automatically (e.g.
-                ``scheduled_at`` becomes ``scheduledAt``).
+                ``scheduled_at`` becomes ``scheduledAt``).  Pass
+                ``status="draft"`` or ``status="scheduled"`` to move the post
+                between those states — ``"scheduled"`` requires a future
+                ``scheduled_at`` (in this call or already stored) and at least
+                one channel; ``"draft"`` unschedules it.  Any other status
+                value is rejected.  Omit ``status`` to leave it unchanged
+                (failed/partial posts still auto-reset to draft on edit).  To
+                publish immediately, use :meth:`publish` instead.
 
         Returns:
             The updated post object.

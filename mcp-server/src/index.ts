@@ -1038,12 +1038,18 @@ if (!HIDE_BILLING_TOOLS) {
 
 server.tool(
   "update_post",
-  "Update an existing post. Can change content, schedule, media, labels, and platform-specific settings. " +
+  "Update an existing post. Can change content, schedule, media, labels, status, and platform-specific settings. " +
     "Only draft, scheduled, failed, or partial posts can be edited; editing a failed/partial post resets it to draft. " +
-    "The post's status cannot be set here — use publish_post to publish, or set scheduledAt to schedule.",
+    "Set status to 'draft' or 'scheduled' to move the post between those states — use publish_post to publish immediately.",
   {
     postId: z.number().describe("The post ID to update."),
     content: z.string().optional().describe("New post text content."),
+    status: z
+      .enum(["draft", "scheduled"])
+      .optional()
+      .describe(
+        "Move the post between draft and scheduled. 'scheduled' requires a future scheduledAt (in this call or already stored) and at least one channel; 'draft' unschedules it. Any other value is rejected. Omit to leave the status unchanged. To publish immediately, use publish_post instead."
+      ),
     scheduledAt: z
       .string()
       .optional()
@@ -1063,6 +1069,7 @@ server.tool(
   async ({
     postId,
     content,
+    status,
     scheduledAt,
     timezone,
     mediaFileIds,
@@ -1072,6 +1079,7 @@ server.tool(
   }) => {
     const body: Record<string, unknown> = {};
     if (content !== undefined) body.content = content;
+    if (status !== undefined) body.status = status;
     if (scheduledAt !== undefined) body.scheduledAt = scheduledAt;
     if (timezone !== undefined) body.timezone = timezone;
     if (mediaFileIds !== undefined) body.mediaFiles = mediaFileIds;

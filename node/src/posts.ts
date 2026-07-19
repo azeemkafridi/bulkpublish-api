@@ -131,6 +131,12 @@ export class PostsResource {
    * const updated = await bp.posts.update(42, {
    *   channels: [{ channelId: 3, platform: 'threads' }],
    * });
+   *
+   * // Schedule a draft: requires a future scheduledAt and at least one channel
+   * const scheduled = await bp.posts.update(42, {
+   *   status: 'scheduled',
+   *   scheduledAt: '2026-04-12T10:00:00Z',
+   * });
    * ```
    */
   update(id: number, params: UpdatePostParams): Promise<Post> {

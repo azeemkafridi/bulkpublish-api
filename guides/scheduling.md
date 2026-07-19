@@ -59,6 +59,26 @@ curl -X POST https://app.bulkpublish.com/api/posts/POST_ID/publish \
   -H "Authorization: Bearer bp_your_key_here"
 ```
 
+### Moving a Post Between Draft and Scheduled
+
+You can move an existing post between the two states with `PUT /api/posts/:id` by sending a `status` field:
+
+```bash
+# Schedule a draft (requires a future scheduledAt and at least one channel)
+curl -X PUT https://app.bulkpublish.com/api/posts/POST_ID \
+  -H "Authorization: Bearer bp_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{ "status": "scheduled", "scheduledAt": "2026-04-15T10:00:00Z" }'
+
+# Unschedule (back to draft)
+curl -X PUT https://app.bulkpublish.com/api/posts/POST_ID \
+  -H "Authorization: Bearer bp_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{ "status": "draft" }'
+```
+
+`status` accepts only `"draft"` or `"scheduled"` (any other value is rejected). Setting `"scheduled"` requires a future `scheduledAt` (in the request or already stored) and at least one channel. Omit `status` to leave it unchanged. To publish immediately, use `POST /api/posts/:id/publish` instead.
+
 ## Queue Slots
 
 Queue slots help you find optimal posting times. Request an available slot for a specific channel:

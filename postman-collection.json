@@ -726,7 +726,7 @@
           "request": {
             "name": "Update post",
             "description": {
-              "content": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged \u2014 send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a failed or partial post silently resets its status to draft and clears failed platform results (they revert to pending). The post's status cannot be changed via this endpoint \u2014 a status field in the body is ignored; use POST /api/posts/{id}/publish or the scheduledAt field instead.",
+              "content": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged \u2014 send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a failed or partial post silently resets its status to draft and clears failed platform results (they revert to pending). Send the optional status field ('draft' or 'scheduled') to move a post between draft and scheduled; other status values are rejected. To publish immediately, use POST /api/posts/{id}/publish instead.",
               "type": "text/plain"
             },
             "url": {
@@ -761,7 +761,7 @@
             "method": "PUT",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"content\": \"<string>\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"channels\": \"<array>\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"platformSpecific\": {},\n  \"platformContent\": {\n    \"key_0\": \"<string>\"\n  },\n  \"postTypeOverrides\": {\n    \"key_0\": \"<string>\",\n    \"key_1\": \"<string>\"\n  },\n  \"postFormat\": \"post\",\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ]\n}",
+              "raw": "{\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"channels\": \"<array>\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"platformSpecific\": {},\n  \"platformContent\": {\n    \"key_0\": \"<string>\"\n  },\n  \"postTypeOverrides\": {\n    \"key_0\": \"<string>\",\n    \"key_1\": \"<string>\"\n  },\n  \"postFormat\": \"post\",\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -816,7 +816,7 @@
                 "method": "PUT",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"content\": \"<string>\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"channels\": \"<array>\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"platformSpecific\": {},\n  \"platformContent\": {\n    \"key_0\": \"<string>\"\n  },\n  \"postTypeOverrides\": {\n    \"key_0\": \"<string>\",\n    \"key_1\": \"<string>\"\n  },\n  \"postFormat\": \"post\",\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ]\n}",
+                  "raw": "{\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"channels\": \"<array>\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"platformSpecific\": {},\n  \"platformContent\": {\n    \"key_0\": \"<string>\"\n  },\n  \"postTypeOverrides\": {\n    \"key_0\": \"<string>\",\n    \"key_1\": \"<string>\"\n  },\n  \"postFormat\": \"post\",\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -875,7 +875,7 @@
                 "method": "PUT",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"content\": \"<string>\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"channels\": \"<array>\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"platformSpecific\": {},\n  \"platformContent\": {\n    \"key_0\": \"<string>\"\n  },\n  \"postTypeOverrides\": {\n    \"key_0\": \"<string>\",\n    \"key_1\": \"<string>\"\n  },\n  \"postFormat\": \"post\",\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ]\n}",
+                  "raw": "{\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"channels\": \"<array>\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"platformSpecific\": {},\n  \"platformContent\": {\n    \"key_0\": \"<string>\"\n  },\n  \"postTypeOverrides\": {\n    \"key_0\": \"<string>\",\n    \"key_1\": \"<string>\"\n  },\n  \"postFormat\": \"post\",\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",

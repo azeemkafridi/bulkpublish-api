@@ -1164,7 +1164,7 @@
           "Posts"
         ],
         "summary": "Update post",
-        "description": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged \u2014 send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a failed or partial post silently resets its status to draft and clears failed platform results (they revert to pending). The post's status cannot be changed via this endpoint \u2014 a status field in the body is ignored; use POST /api/posts/{id}/publish or the scheduledAt field instead.",
+        "description": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged \u2014 send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a failed or partial post silently resets its status to draft and clears failed platform results (they revert to pending). Send the optional status field ('draft' or 'scheduled') to move a post between draft and scheduled; other status values are rejected. To publish immediately, use POST /api/posts/{id}/publish instead.",
         "parameters": [
           {
             "name": "id",
@@ -1246,6 +1246,14 @@
                         }
                       }
                     }
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "scheduled"
+                    ],
+                    "description": "Move the post between draft and scheduled. Setting 'scheduled' requires a future scheduledAt (in this body or already stored) and at least one channel; setting 'draft' unschedules it. Any other value is rejected. Omit to leave the status unchanged (failed/partial posts still auto-reset to draft on edit). To publish immediately, use POST /api/posts/{id}/publish instead."
                   }
                 }
               }

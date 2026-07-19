@@ -439,6 +439,14 @@ export interface CreatePostParams {
 export interface UpdatePostParams {
   content?: string;
   mediaFiles?: number[];
+  /**
+   * Move the post between draft and scheduled. Setting 'scheduled' requires a
+   * future scheduledAt (in this request or already stored) and at least one
+   * channel; setting 'draft' unschedules it. Any other value is rejected. Omit
+   * to leave the status unchanged (failed/partial posts still auto-reset to
+   * draft on edit). To publish immediately, use posts.publish() instead.
+   */
+  status?: 'draft' | 'scheduled';
   scheduledAt?: string | null;
   timezone?: string;
   channels?: PostChannelEntry[];
