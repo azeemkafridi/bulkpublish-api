@@ -81,7 +81,7 @@
           "deleteMediaAfterPublish": {
             "type": "boolean",
             "default": false,
-            "description": "Whether uploaded media is deleted right after publishing. Defaults to false \u2014 media is kept and reclaimed by the 3-month retention sweep. Always false for recurring-schedule posts and bulk-created posts."
+            "description": "Whether uploaded media is deleted right after publishing. Defaults to false — media is kept and reclaimed by the 3-month retention sweep. Always false for recurring-schedule posts and bulk-created posts."
           },
           "autoPlugEnabled": {
             "type": "boolean"
@@ -223,7 +223,8 @@
               "mastodon",
               "reddit",
               "discord",
-              "telegram"
+              "telegram",
+              "tumblr"
             ]
           },
           "accountName": {
@@ -261,6 +262,24 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "platformAvailable": {
+            "type": "boolean",
+            "description": "Whether this channel's platform can publish right now. `false` means the platform is switched off server-side — the channel itself is healthy, but its scheduled posts are being held."
+          },
+          "platformState": {
+            "type": "string",
+            "enum": [
+              "on",
+              "connect_off",
+              "off"
+            ],
+            "description": "Current availability of the platform, controlled by the `PLATFORM_<NAME>` environment flag on the server.\n\n- `on` — fully available.\n- `connect_off` — new channels cannot be connected, but channels already connected keep publishing normally (used while a platform app review is pending).\n- `off` — kill switch: the platform is unavailable, and posts targeting it are **held**, not failed. They publish automatically once the platform is switched back on."
+          },
+          "platformMessage": {
+            "type": "string",
+            "nullable": true,
+            "description": "User-facing explanation when the platform is not fully available; `null` otherwise."
           }
         }
       },
@@ -377,7 +396,7 @@
           "requireApproval": {
             "type": "boolean",
             "default": false,
-            "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
+            "description": "Optional. Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
           }
         }
       },
@@ -423,7 +442,7 @@
       },
       "PlatformSpecific": {
         "type": "object",
-        "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto'), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX'), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus, categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType, ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'mentionedUsers') }. Threads: { quotePostId }. Use _firstComment (string) for auto-posted reply after publish.",
+        "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto'), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX'), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus, categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType, ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'mentionedUsers') }. Threads: { quotePostId }. Reddit: { [channelId]: { subreddit (required), title (required), flairId, type, url, thumbnailUrl } }. Discord: { [channelId]: { channelId } } — the target Discord channel id. Tumblr: { [channelId]: { blogName, title, tags (array of strings, no leading '#'), link, sourceUrl } }; blogName defaults to the blog the channel was connected as. Use _firstComment (string) for auto-posted reply after publish.",
         "properties": {
           "facebook": {
             "type": "object",
@@ -620,6 +639,83 @@
             }
           }
         }
+      },
+      "PlatformAvailability": {
+        "type": "object",
+        "description": "Availability of one social platform. Disabled platforms are always included in responses with `enabled: false` — never omitted — so clients can tell \"switched off right now\" apart from \"not supported\".",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "enum": [
+              "facebook",
+              "instagram",
+              "x",
+              "tiktok",
+              "youtube",
+              "threads",
+              "bluesky",
+              "pinterest",
+              "gmb",
+              "linkedin",
+              "mastodon",
+              "reddit",
+              "discord",
+              "telegram",
+              "tumblr"
+            ]
+          },
+          "displayName": {
+            "type": "string",
+            "example": "LinkedIn"
+          },
+          "color": {
+            "type": "string",
+            "nullable": true,
+            "description": "Brand colour hex, for UI rendering.",
+            "example": "#0A66C2"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Convenience flag; equivalent to `state == \"on\"`."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "on",
+              "connect_off",
+              "off"
+            ],
+            "description": "Current availability of the platform, controlled by the `PLATFORM_<NAME>` environment flag on the server.\n\n- `on` — fully available.\n- `connect_off` — new channels cannot be connected, but channels already connected keep publishing normally (used while a platform app review is pending).\n- `off` — kill switch: the platform is unavailable, and posts targeting it are **held**, not failed. They publish automatically once the platform is switched back on."
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "enabled",
+              "flag_connect_off",
+              "flag_off",
+              "unconfigured"
+            ],
+            "description": "Why the platform is in this state. `unconfigured` means the server has no OAuth app credentials for it yet."
+          },
+          "canConnect": {
+            "type": "boolean",
+            "description": "Whether a NEW channel can be connected right now."
+          },
+          "canPublish": {
+            "type": "boolean",
+            "description": "Whether already-connected channels can publish right now."
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "description": "User-facing explanation. `null` when the platform is fully enabled."
+          },
+          "envVar": {
+            "type": "string",
+            "description": "The server env var controlling this platform. Only returned to organization owners and admins.",
+            "example": "PLATFORM_LINKEDIN"
+          }
+        }
       }
     }
   },
@@ -686,7 +782,7 @@
             "name": "page",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Page number (default: 1)",
+            "description": "**optional** — Page number (default: 1)",
             "schema": {
               "type": "integer",
               "default": 1
@@ -696,7 +792,7 @@
             "name": "limit",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Items per page, max 500 (default: 20)",
+            "description": "**optional** — Items per page, max 500 (default: 20)",
             "schema": {
               "type": "integer",
               "default": 20,
@@ -707,7 +803,7 @@
             "name": "status",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter by post status",
+            "description": "**optional** — Filter by post status",
             "schema": {
               "type": "string",
               "enum": [
@@ -725,7 +821,7 @@
             "name": "channelId",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter by channel ID",
+            "description": "**optional** — Filter by channel ID",
             "schema": {
               "type": "integer"
             }
@@ -734,7 +830,7 @@
             "name": "labelIds",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Comma-separated label IDs to filter by",
+            "description": "**optional** — Comma-separated label IDs to filter by",
             "schema": {
               "type": "string"
             }
@@ -743,7 +839,7 @@
             "name": "labelId",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter by single label ID (legacy, prefer labelIds)",
+            "description": "**optional** — Filter by single label ID (legacy, prefer labelIds)",
             "schema": {
               "type": "integer"
             }
@@ -752,7 +848,7 @@
             "name": "labelMode",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 How to combine label filters (default: or)",
+            "description": "**optional** — How to combine label filters (default: or)",
             "schema": {
               "type": "string",
               "enum": [
@@ -766,7 +862,7 @@
             "name": "search",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Search in post content",
+            "description": "**optional** — Search in post content",
             "schema": {
               "type": "string"
             }
@@ -775,7 +871,7 @@
             "name": "from",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter posts created on or after this date",
+            "description": "**optional** — Filter posts created on or after this date",
             "schema": {
               "type": "string",
               "format": "date"
@@ -785,7 +881,7 @@
             "name": "to",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter posts created on or before this date",
+            "description": "**optional** — Filter posts created on or before this date",
             "schema": {
               "type": "string",
               "format": "date"
@@ -795,7 +891,7 @@
             "name": "scheduledFrom",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter posts scheduled on or after this date",
+            "description": "**optional** — Filter posts scheduled on or after this date",
             "schema": {
               "type": "string",
               "format": "date"
@@ -805,7 +901,7 @@
             "name": "scheduledTo",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter posts scheduled on or before this date",
+            "description": "**optional** — Filter posts scheduled on or before this date",
             "schema": {
               "type": "string",
               "format": "date"
@@ -815,7 +911,7 @@
             "name": "recurring",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Set to \"true\" to filter recurring posts only",
+            "description": "**optional** — Set to \"true\" to filter recurring posts only",
             "schema": {
               "type": "string"
             }
@@ -874,7 +970,7 @@
           "Posts"
         ],
         "summary": "Create post",
-        "description": "Create a new post as draft or scheduled. Validates character limits per platform, media ownership, channel ownership, and plan quotas.\n\n**Character limits:** X: 280, Bluesky: 300, Threads: 500, Mastodon: 500, Pinterest: 500, GMB: 1500, Instagram: 2200, TikTok: 2200, LinkedIn: 3000, YouTube: 5000, Facebook: 63206. On X and Mastodon every URL counts as a flat 23 characters (t.co wrapping / Mastodon link counting), regardless of its real length.\n\n**Link cards:** for a text-only post (no media) containing a URL, the first URL is unfurled at publish time. Facebook receives it as the `link` param, Bluesky as an external embed (with thumbnail), and LinkedIn as a `content.article` card (LinkedIn's API never scrapes URLs itself; if the page yields no title, the post publishes as plain text without a card). Other platforms unfurl the URL themselves or render it as plain text (links in Instagram/TikTok captions are not clickable).",
+        "description": "Create a new post as draft or scheduled. Validates character limits per platform, media ownership, channel ownership, and plan quotas.\n\n**Character limits:** X: 280, Bluesky: 300, Threads: 500, Mastodon: 500, Pinterest: 500, GMB: 1500, Instagram: 2200, TikTok: 2200, LinkedIn: 3000, YouTube: 5000, Facebook: 63206. On X and Mastodon every URL counts as a flat 23 characters (t.co wrapping / Mastodon link counting), regardless of its real length.\n\n**Link cards:** for a text-only post (no media) containing a URL, the first URL is unfurled at publish time. Facebook receives it as the `link` param, Bluesky as an external embed (with thumbnail), and LinkedIn as a `content.article` card (LinkedIn's API never scrapes URLs itself; if the page yields no title, the post publishes as plain text without a card). Other platforms unfurl the URL themselves or render it as plain text (links in Instagram/TikTok captions are not clickable).\n\nReturns **403** with `code: \"PLATFORM_DISABLED\"` when a target channel's platform has been switched off server-side (`PLATFORM_<NAME>=off`). This is distinct from `FEATURE_DISABLED`, which means the platform is not on the organization's plan. Check `GET /api/platforms` for current availability.",
         "requestBody": {
           "required": true,
           "content": {
@@ -901,7 +997,7 @@
                         },
                         "platform": {
                           "type": "string",
-                          "description": "Platform name. Optional \u2014 the server always resolves the platform from the channel record; a supplied value is ignored."
+                          "description": "Platform name. Optional — the server always resolves the platform from the channel record; a supplied value is ignored."
                         }
                       },
                       "required": [
@@ -970,7 +1066,7 @@
                   "deleteMediaAfterPublish": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Optional. Delete uploaded media right after publishing (default: false \u2014 media is kept and reclaimed by the 3-month retention sweep). Forced to false when the post has a repeatSchedule."
+                    "description": "Optional. Delete uploaded media right after publishing (default: false — media is kept and reclaimed by the 3-month retention sweep). Forced to false when the post has a repeatSchedule."
                   },
                   "threadParts": {
                     "type": "array",
@@ -1169,7 +1265,14 @@
             }
           },
           "403": {
-            "description": "Forbidden (media/channel/label ownership)"
+            "description": "Platform not on the plan (`FEATURE_DISABLED`) or switched off server-side (`PLATFORM_DISABLED`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "422": {
             "description": "Quota exceeded"
@@ -1215,7 +1318,7 @@
           "Posts"
         ],
         "summary": "Update post",
-        "description": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged \u2014 send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a failed or partial post silently resets its status to draft and clears failed platform results (they revert to pending). Send the optional status field ('draft' or 'scheduled') to move a post between draft and scheduled; other status values are rejected. To publish immediately, use POST /api/posts/{id}/publish instead.",
+        "description": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged — send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a failed or partial post silently resets its status to draft and clears failed platform results (they revert to pending). Send the optional status field ('draft' or 'scheduled') to move a post between draft and scheduled; other status values are rejected. To publish immediately, use POST /api/posts/{id}/publish instead.",
         "parameters": [
           {
             "name": "id",
@@ -1325,6 +1428,66 @@
           }
         }
       },
+      "patch": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Attach or detach a post's recurring schedule",
+        "description": "Narrow companion to PUT. This endpoint ONLY accepts `recurringScheduleId` — passing `null` detaches the post from its repeat schedule (and deactivates that schedule if it is left orphaned).\n\nAny other field (including `status` and `scheduledAt`) is rejected with **400** and `unsupportedFields` listing what was sent. **To edit a post — including moving a draft to `scheduled` — use `PUT /api/posts/{id}` with `{ \"status\": \"scheduled\", \"scheduledAt\": \"<future ISO 8601>\" }`.**",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "recurringScheduleId": {
+                    "type": "integer",
+                    "nullable": true,
+                    "description": "Repeat-schedule id to attach, or null to detach."
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated post",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A field other than recurringScheduleId was sent; use PUT instead",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      },
       "delete": {
         "tags": [
           "Posts"
@@ -1366,9 +1529,19 @@
         "responses": {
           "200": {
             "description": "Publishing started"
+          },
+          "403": {
+            "description": "Role cannot publish, or a target platform is switched off server-side (`PLATFORM_DISABLED`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
-        "description": "Requires a role with post:publish \u2014 contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). Publishing a pending/rejected post as an approver implicitly approves it."
+        "description": "Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). Publishing a pending/rejected post as an approver implicitly approves it.\n\nReturns **403** with `code: \"PLATFORM_DISABLED\"` when one of the post's platforms has been switched off server-side (`PLATFORM_<NAME>=off`); the post is left untouched. Check `GET /api/platforms` for current availability."
       }
     },
     "/api/posts/{id}/retry": {
@@ -1541,7 +1714,7 @@
           "Posts"
         ],
         "summary": "Get post engagement (commenters + reactors)",
-        "description": "Returns per-platform lists of the people/pages who commented on or reacted to a published post \u2014 with name, handle/headline, profile photo and profile URL when the platform exposes them. Platforms that only expose aggregate counts (e.g. Instagram likers, YouTube likers) populate `comments` only and set a `notice` field. Platforms with no engagement API at all (e.g. TikTok) return `unsupported: true`.",
+        "description": "Returns per-platform lists of the people/pages who commented on or reacted to a published post — with name, handle/headline, profile photo and profile URL when the platform exposes them. Platforms that only expose aggregate counts (e.g. Instagram likers, YouTube likers) populate `comments` only and set a `notice` field. Platforms with no engagement API at all (e.g. TikTok) return `unsupported: true`.",
         "parameters": [
           {
             "name": "id",
@@ -1555,7 +1728,7 @@
             "name": "commentsLimit",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Max commenters per platform (default 25, max 100)",
+            "description": "**optional** — Max commenters per platform (default 25, max 100)",
             "schema": {
               "type": "integer",
               "default": 25
@@ -1565,7 +1738,7 @@
             "name": "reactionsLimit",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Max reactors per platform (default 25, max 100)",
+            "description": "**optional** — Max reactors per platform (default 25, max 100)",
             "schema": {
               "type": "integer",
               "default": 25
@@ -1729,7 +1902,7 @@
                       "facebook",
                       "instagram"
                     ],
-                    "description": "**required** \u2014 Target platform for the story"
+                    "description": "**required** — Target platform for the story"
                   }
                 }
               }
@@ -1828,7 +2001,7 @@
             "name": "timezone",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 IANA timezone (default: UTC)",
+            "description": "**optional** — IANA timezone (default: UTC)",
             "schema": {
               "type": "string"
             }
@@ -1853,7 +2026,7 @@
             "name": "active",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter by active status (default: true)",
+            "description": "**optional** — Filter by active status (default: true)",
             "schema": {
               "type": "boolean",
               "default": true
@@ -2336,7 +2509,7 @@
                   "requireApproval": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Optional. Hold items auto-published from this feed for team approval \u2014 each generated post lands with approvalStatus 'pending' and waits for POST /api/posts/{id}/approve. Only meaningful when mode is 'publish' (draft items never publish on their own). Default false."
+                    "description": "Optional. Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for POST /api/posts/{id}/approve. Only meaningful when mode is 'publish' (draft items never publish on their own). Default false."
                   }
                 }
               }
@@ -2351,7 +2524,7 @@
             "description": "Invalid input"
           }
         },
-        "description": "Create an RSS/Atom feed. Plan-gated: max feeds per org (Free 1, Pro 10, Business 50) and auto-publish mode (`mode: \"publish\"`) is paid-only \u2014 Free is draft-only and a `publish` request returns 403. Over the feed limit returns 403. Feed poll cadence is also per-plan (Free 60 min, Pro 30 min, Business 15 min)."
+        "description": "Create an RSS/Atom feed. Plan-gated: max feeds per org (Free 1, Pro 10, Business 50) and auto-publish mode (`mode: \"publish\"`) is paid-only — Free is draft-only and a `publish` request returns 403. Over the feed limit returns 403. Feed poll cadence is also per-plan (Free 60 min, Pro 30 min, Business 15 min)."
       }
     },
     "/api/rss-feeds/{id}": {
@@ -2481,7 +2654,7 @@
                   "requireApproval": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Optional. Hold items auto-published from this feed for team approval \u2014 each generated post lands with approvalStatus 'pending' and waits for POST /api/posts/{id}/approve. Only meaningful when mode is 'publish' (draft items never publish on their own). Default false."
+                    "description": "Optional. Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for POST /api/posts/{id}/approve. Only meaningful when mode is 'publish' (draft items never publish on their own). Default false."
                   }
                 }
               }
@@ -2533,7 +2706,7 @@
             "name": "page",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Page number (default: 1)",
+            "description": "**optional** — Page number (default: 1)",
             "schema": {
               "type": "integer",
               "default": 1
@@ -2543,7 +2716,7 @@
             "name": "limit",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Items per page (default: 20)",
+            "description": "**optional** — Items per page (default: 20)",
             "schema": {
               "type": "integer",
               "default": 20
@@ -2553,7 +2726,7 @@
             "name": "search",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Search by filename",
+            "description": "**optional** — Search by filename",
             "schema": {
               "type": "string"
             }
@@ -2562,7 +2735,7 @@
             "name": "labelIds",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Comma-separated label IDs",
+            "description": "**optional** — Comma-separated label IDs",
             "schema": {
               "type": "string"
             }
@@ -2699,15 +2872,15 @@
                   },
                   "width": {
                     "type": "integer",
-                    "description": "**optional** \u2014 image/video width"
+                    "description": "**optional** — image/video width"
                   },
                   "height": {
                     "type": "integer",
-                    "description": "**optional** \u2014 image/video height"
+                    "description": "**optional** — image/video height"
                   },
                   "duration": {
                     "type": "integer",
-                    "description": "**optional** \u2014 video duration in seconds"
+                    "description": "**optional** — video duration in seconds"
                   }
                 }
               }
@@ -2733,7 +2906,7 @@
           "Media"
         ],
         "summary": "Start multipart upload (large videos, up to 1GB)",
-        "description": "Step 1 of the chunked direct-to-storage upload for large files. Returns an uploadId, the fixed part size (10MB), and a presigned PUT URL per part. Upload each 10MB slice of the file to its URL (a failed part can be retried on its own \u2014 a network drop never restarts the whole file), collect each response's ETag header, then call /api/media/multipart/complete.",
+        "description": "Step 1 of the chunked direct-to-storage upload for large files. Returns an uploadId, the fixed part size (10MB), and a presigned PUT URL per part. Upload each 10MB slice of the file to its URL (a failed part can be retried on its own — a network drop never restarts the whole file), collect each response's ETag header, then call /api/media/multipart/complete.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3027,7 +3200,7 @@
             "name": "from",
             "in": "query",
             "required": true,
-            "description": "**required** \u2014 Start date (YYYY-MM-DD)",
+            "description": "**required** — Start date (YYYY-MM-DD)",
             "schema": {
               "type": "string",
               "format": "date"
@@ -3037,7 +3210,7 @@
             "name": "to",
             "in": "query",
             "required": true,
-            "description": "**required** \u2014 End date (YYYY-MM-DD)",
+            "description": "**required** — End date (YYYY-MM-DD)",
             "schema": {
               "type": "string",
               "format": "date"
@@ -3063,7 +3236,7 @@
             "name": "from",
             "in": "query",
             "required": true,
-            "description": "**required** \u2014 Start date (YYYY-MM-DD)",
+            "description": "**required** — Start date (YYYY-MM-DD)",
             "schema": {
               "type": "string",
               "format": "date"
@@ -3073,7 +3246,7 @@
             "name": "to",
             "in": "query",
             "required": true,
-            "description": "**required** \u2014 End date (YYYY-MM-DD)",
+            "description": "**required** — End date (YYYY-MM-DD)",
             "schema": {
               "type": "string",
               "format": "date"
@@ -3083,7 +3256,7 @@
             "name": "channelId",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter to a single channel",
+            "description": "**optional** — Filter to a single channel",
             "schema": {
               "type": "integer"
             }
@@ -3122,7 +3295,7 @@
             "name": "channelId",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter to a single channel",
+            "description": "**optional** — Filter to a single channel",
             "schema": {
               "type": "integer"
             }
@@ -3131,7 +3304,7 @@
             "name": "from",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Start date (YYYY-MM-DD, default 30 days ago). Clamped to at most 30 days before the end date.",
+            "description": "**optional** — Start date (YYYY-MM-DD, default 30 days ago). Clamped to at most 30 days before the end date.",
             "schema": {
               "type": "string",
               "format": "date"
@@ -3141,7 +3314,7 @@
             "name": "to",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 End date (YYYY-MM-DD, default today)",
+            "description": "**optional** — End date (YYYY-MM-DD, default today)",
             "schema": {
               "type": "string",
               "format": "date"
@@ -3230,7 +3403,7 @@
             "name": "type",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter by label type",
+            "description": "**optional** — Filter by label type",
             "schema": {
               "type": "string",
               "enum": [
@@ -3455,7 +3628,7 @@
                   "requireApproval": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
+                    "description": "Optional. Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
                   }
                 }
               }
@@ -3574,7 +3747,7 @@
                   "requireApproval": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
+                    "description": "Optional. Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
                   }
                 }
               }
@@ -3794,7 +3967,7 @@
             "name": "page",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Page number (default: 1)",
+            "description": "**optional** — Page number (default: 1)",
             "schema": {
               "type": "integer"
             }
@@ -3803,7 +3976,7 @@
             "name": "limit",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Items per page (default: 20)",
+            "description": "**optional** — Items per page (default: 20)",
             "schema": {
               "type": "integer"
             }
@@ -3812,7 +3985,7 @@
             "name": "unreadOnly",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Show only unread notifications",
+            "description": "**optional** — Show only unread notifications",
             "schema": {
               "type": "boolean"
             }
@@ -3955,7 +4128,7 @@
             "name": "url",
             "in": "query",
             "required": true,
-            "description": "**required** \u2014 HTTP/HTTPS URL to preview",
+            "description": "**required** — HTTP/HTTPS URL to preview",
             "schema": {
               "type": "string",
               "format": "uri"
@@ -3995,7 +4168,7 @@
             "name": "days",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 History window in days (default 30, max 90)",
+            "description": "**optional** — History window in days (default 30, max 90)",
             "schema": {
               "type": "integer"
             }
@@ -4080,7 +4253,7 @@
           "Utilities"
         ],
         "summary": "Generate an AI caption",
-        "description": "Generate, rephrase, improve, shorten, expand, or restyle a caption \u2014 or caption an image via vision (Cloudflare Workers AI). Consumes one AI run-unit (image = 2) from the plan's monthly allowance, then from purchased credits. Returns up to several variants plus a usage snapshot.",
+        "description": "Generate, rephrase, improve, shorten, expand, or restyle a caption — or caption an image via vision (Cloudflare Workers AI). Consumes one AI run-unit (image = 2) from the plan's monthly allowance, then from purchased credits. Returns up to several variants plus a usage snapshot.",
         "requestBody": {
           "required": true,
           "content": {
@@ -4149,7 +4322,7 @@
             "description": "Caption variants + usage"
           },
           "402": {
-            "description": "Out of AI runs \u2014 buy credits"
+            "description": "Out of AI runs — buy credits"
           },
           "429": {
             "description": "Rate limited"
@@ -4168,7 +4341,7 @@
             "name": "page",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Page number (default: 1)",
+            "description": "**optional** — Page number (default: 1)",
             "schema": {
               "type": "integer"
             }
@@ -4177,7 +4350,7 @@
             "name": "limit",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Items per page (default: 20)",
+            "description": "**optional** — Items per page (default: 20)",
             "schema": {
               "type": "integer"
             }
@@ -4186,7 +4359,7 @@
             "name": "action",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter by action type",
+            "description": "**optional** — Filter by action type",
             "schema": {
               "type": "string"
             }
@@ -4195,7 +4368,7 @@
             "name": "resource",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter by resource type",
+            "description": "**optional** — Filter by resource type",
             "schema": {
               "type": "string"
             }
@@ -4311,6 +4484,38 @@
         "responses": {
           "200": {
             "description": "Array of { date, count } entries"
+          }
+        }
+      }
+    },
+    "/api/platforms": {
+      "get": {
+        "tags": [
+          "Channels"
+        ],
+        "summary": "List platforms and their availability",
+        "description": "Returns every social platform BulkPublish supports, together with its current availability. Use this to render an accurate \"temporarily unavailable\" or \"connections paused\" state rather than assuming every platform can be connected or published to.\n\nPlatforms that are switched off are still listed, with `enabled: false` and a `reason`. `envVar` is only included for organization owners and admins.",
+        "responses": {
+          "200": {
+            "description": "Platform list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "platforms": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PlatformAvailability"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }

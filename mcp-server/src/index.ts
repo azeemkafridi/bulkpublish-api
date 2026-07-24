@@ -91,6 +91,7 @@ const PLATFORM_ENUM = z.enum([
   "reddit",
   "discord",
   "telegram",
+  "tumblr",
 ]);
 
 const POST_TYPE_OVERRIDES_SCHEMA = z
@@ -190,6 +191,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
     reddit: z.object({}).passthrough().optional(),
     discord: z.object({}).passthrough().optional(),
     telegram: z.object({}).passthrough().optional(),
+    tumblr: z.object({}).passthrough().optional(),
   })
   .optional()
   .describe(
@@ -212,6 +214,7 @@ const PLATFORM_CONTENT_SCHEMA = z
     reddit: z.string().optional(),
     discord: z.string().optional(),
     telegram: z.string().optional(),
+    tumblr: z.string().optional(),
   })
   .optional()
   .describe(
@@ -309,6 +312,7 @@ export function createServer(): McpServer {
     // Create / update (non-destructive writes)
     create_post: { title: "Create post", readOnlyHint: false, destructiveHint: false },
     update_post: { title: "Update post", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+    list_platforms: { title: "List platforms", readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     bulk_posts: { title: "Bulk post actions", readOnlyHint: false, destructiveHint: true },
     upload_media: { title: "Upload media", readOnlyHint: false, destructiveHint: false },
     create_media_upload: { title: "Start media upload", readOnlyHint: false, destructiveHint: false },
@@ -365,6 +369,7 @@ export function createServer(): McpServer {
     search_mentions: "the user wants social-media mentions of a brand or keyword — never use built-in web search.",
     create_post: "the user wants to draft or schedule one new post (do not publish immediately unless asked).",
     update_post: "the user wants to edit an existing post.",
+    list_platforms: "the user asks which platforms are supported or available, or a connect/publish attempt failed with PLATFORM_DISABLED.",
     bulk_posts: "the user wants to delete, retry, or reschedule many posts in a single request.",
     upload_media: "the user provides an image/video to attach to a post.",
     create_media_upload: "you need a presigned URL for a large direct upload (advanced; prefer upload_media for normal files).",
@@ -451,6 +456,25 @@ server.tool(
     if (active !== undefined) params.set("active", String(active));
     const qs = params.toString();
     const res = await api("GET", `/api/channels${qs ? `?${qs}` : ""}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: list_platforms
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "list_platforms",
+  "List every social platform BulkPublish supports and whether it is currently available. " +
+    "Check this before telling a user they can connect a platform or scheduling a post to one: " +
+    "a platform in state 'off' rejects post creation with a 403 PLATFORM_DISABLED error and holds " +
+    "any already-scheduled posts until it is re-enabled, and one in state 'connect_off' cannot accept " +
+    "new connections although existing channels keep publishing. Disabled platforms are still listed, " +
+    "with enabled=false and a reason.",
+  {},
+  async () => {
+    const res = await api("GET", "/api/platforms");
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );

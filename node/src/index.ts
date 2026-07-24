@@ -7,10 +7,11 @@ import { LabelsResource } from './labels.js';
 import { SchedulesResource } from './schedules.js';
 import { ChannelSetsResource } from './channel-sets.js';
 import { RssFeedsResource } from './rss-feeds.js';
+import { PlatformsResource } from './platforms.js';
 import type { BulkPublishOptions } from './types.js';
 
 /**
- * BulkPublish API client — publish to 11 social media platforms from a single SDK.
+ * BulkPublish API client — publish to 15 social media platforms from a single SDK.
  *
  * @example
  * ```ts
@@ -42,6 +43,7 @@ export class BulkPublish {
   readonly schedules: SchedulesResource;
   readonly channelSets: ChannelSetsResource;
   readonly rssFeeds: RssFeedsResource;
+  readonly platforms: PlatformsResource;
 
   constructor(options: BulkPublishOptions) {
     const http = new HttpClient(options);
@@ -53,6 +55,7 @@ export class BulkPublish {
     this.schedules = new SchedulesResource(http);
     this.channelSets = new ChannelSetsResource(http);
     this.rssFeeds = new RssFeedsResource(http);
+    this.platforms = new PlatformsResource(http);
   }
 }
 
@@ -66,6 +69,7 @@ export { LabelsResource } from './labels.js';
 export { SchedulesResource } from './schedules.js';
 export { ChannelSetsResource } from './channel-sets.js';
 export { RssFeedsResource } from './rss-feeds.js';
+export { PlatformsResource } from './platforms.js';
 export {
   BulkPublishError,
   AuthenticationError,

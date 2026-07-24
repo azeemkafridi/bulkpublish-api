@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 if TYPE_CHECKING:
     from .client import _BaseClient
 
-from .types import Channel, ChannelHealth
+from .types import Channel, ChannelHealth, PlatformAvailability
 
 
 class ChannelsResource:
@@ -53,6 +53,30 @@ class ChannelsResource:
         if active is not None:
             params["active"] = str(active).lower()
         return self._client._request("GET", "/api/channels", params=params)
+
+    def list_platforms(self) -> List[PlatformAvailability]:
+        """List every supported platform and its current availability.
+
+        Check this before offering a connect option or scheduling a post: a
+        platform in state ``off`` rejects post creation with a 403
+        ``PLATFORM_DISABLED`` error and holds already-scheduled posts until it is
+        re-enabled, while ``connect_off`` blocks new connections but lets
+        existing channels keep publishing.
+
+        Disabled platforms are still included, with ``enabled`` False and a
+        ``reason``.
+
+        Returns:
+            List of platform availability objects.
+
+        Example::
+
+            for p in bp.channels.list_platforms():
+                if not p["canPublish"]:
+                    print(f"{p['displayName']} unavailable: {p['message']}")
+        """
+        res = self._client._request("GET", "/api/platforms")
+        return res.get("platforms", []) if isinstance(res, dict) else res
 
     def get(self, channel_id: str) -> Channel:
         """Get a single channel by ID.
@@ -137,6 +161,14 @@ class AsyncChannelsResource:
         if active is not None:
             params["active"] = str(active).lower()
         return await self._client._request("GET", "/api/channels", params=params)
+
+    async def list_platforms(self) -> List[PlatformAvailability]:
+        """List every supported platform and its current availability.
+
+        Async counterpart of :meth:`ChannelsResource.list_platforms`.
+        """
+        res = await self._client._request("GET", "/api/platforms")
+        return res.get("platforms", []) if isinstance(res, dict) else res
 
     async def get(self, channel_id: str) -> Channel:
         """Get a channel — see :meth:`ChannelsResource.get` for full docs."""

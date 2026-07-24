@@ -25,7 +25,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Page number (default: 1)",
+                    "content": "**optional** — Page number (default: 1)",
                     "type": "text/plain"
                   },
                   "key": "page",
@@ -34,7 +34,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Items per page, max 500 (default: 20)",
+                    "content": "**optional** — Items per page, max 500 (default: 20)",
                     "type": "text/plain"
                   },
                   "key": "limit",
@@ -43,7 +43,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Filter by post status (This can only be one of draft,scheduled,publishing,published,processing,failed,partial)",
+                    "content": "**optional** — Filter by post status (This can only be one of draft,scheduled,publishing,published,processing,failed,partial)",
                     "type": "text/plain"
                   },
                   "key": "status",
@@ -52,7 +52,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Filter by channel ID",
+                    "content": "**optional** — Filter by channel ID",
                     "type": "text/plain"
                   },
                   "key": "channelId",
@@ -61,7 +61,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Comma-separated label IDs to filter by",
+                    "content": "**optional** — Comma-separated label IDs to filter by",
                     "type": "text/plain"
                   },
                   "key": "labelIds",
@@ -70,7 +70,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Filter by single label ID (legacy, prefer labelIds)",
+                    "content": "**optional** — Filter by single label ID (legacy, prefer labelIds)",
                     "type": "text/plain"
                   },
                   "key": "labelId",
@@ -79,7 +79,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 How to combine label filters (default: or) (This can only be one of or,and)",
+                    "content": "**optional** — How to combine label filters (default: or) (This can only be one of or,and)",
                     "type": "text/plain"
                   },
                   "key": "labelMode",
@@ -88,7 +88,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Search in post content",
+                    "content": "**optional** — Search in post content",
                     "type": "text/plain"
                   },
                   "key": "search",
@@ -97,7 +97,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Filter posts created on or after this date",
+                    "content": "**optional** — Filter posts created on or after this date",
                     "type": "text/plain"
                   },
                   "key": "from",
@@ -106,7 +106,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Filter posts created on or before this date",
+                    "content": "**optional** — Filter posts created on or before this date",
                     "type": "text/plain"
                   },
                   "key": "to",
@@ -115,7 +115,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Filter posts scheduled on or after this date",
+                    "content": "**optional** — Filter posts scheduled on or after this date",
                     "type": "text/plain"
                   },
                   "key": "scheduledFrom",
@@ -124,7 +124,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Filter posts scheduled on or before this date",
+                    "content": "**optional** — Filter posts scheduled on or before this date",
                     "type": "text/plain"
                   },
                   "key": "scheduledTo",
@@ -133,7 +133,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Set to \"true\" to filter recurring posts only",
+                    "content": "**optional** — Set to \"true\" to filter recurring posts only",
                     "type": "text/plain"
                   },
                   "key": "recurring",
@@ -142,7 +142,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Filter by team approval state, e.g. 'pending' for the approval queue (This can only be one of none,pending,approved,rejected)",
+                    "content": "**optional** — Filter by team approval state, e.g. 'pending' for the approval queue (This can only be one of none,pending,approved,rejected)",
                     "type": "text/plain"
                   },
                   "key": "approvalStatus",
@@ -178,7 +178,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Page number (default: 1)",
+                        "content": "**optional** — Page number (default: 1)",
                         "type": "text/plain"
                       },
                       "key": "page",
@@ -187,7 +187,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Items per page, max 500 (default: 20)",
+                        "content": "**optional** — Items per page, max 500 (default: 20)",
                         "type": "text/plain"
                       },
                       "key": "limit",
@@ -196,7 +196,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Filter by post status (This can only be one of draft,scheduled,publishing,published,processing,failed,partial)",
+                        "content": "**optional** — Filter by post status (This can only be one of draft,scheduled,publishing,published,processing,failed,partial)",
                         "type": "text/plain"
                       },
                       "key": "status",
@@ -205,7 +205,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Filter by channel ID",
+                        "content": "**optional** — Filter by channel ID",
                         "type": "text/plain"
                       },
                       "key": "channelId",
@@ -214,7 +214,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Comma-separated label IDs to filter by",
+                        "content": "**optional** — Comma-separated label IDs to filter by",
                         "type": "text/plain"
                       },
                       "key": "labelIds",
@@ -223,7 +223,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Filter by single label ID (legacy, prefer labelIds)",
+                        "content": "**optional** — Filter by single label ID (legacy, prefer labelIds)",
                         "type": "text/plain"
                       },
                       "key": "labelId",
@@ -232,7 +232,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 How to combine label filters (default: or) (This can only be one of or,and)",
+                        "content": "**optional** — How to combine label filters (default: or) (This can only be one of or,and)",
                         "type": "text/plain"
                       },
                       "key": "labelMode",
@@ -241,7 +241,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Search in post content",
+                        "content": "**optional** — Search in post content",
                         "type": "text/plain"
                       },
                       "key": "search",
@@ -250,7 +250,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Filter posts created on or after this date",
+                        "content": "**optional** — Filter posts created on or after this date",
                         "type": "text/plain"
                       },
                       "key": "from",
@@ -259,7 +259,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Filter posts created on or before this date",
+                        "content": "**optional** — Filter posts created on or before this date",
                         "type": "text/plain"
                       },
                       "key": "to",
@@ -268,7 +268,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Filter posts scheduled on or after this date",
+                        "content": "**optional** — Filter posts scheduled on or after this date",
                         "type": "text/plain"
                       },
                       "key": "scheduledFrom",
@@ -277,7 +277,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Filter posts scheduled on or before this date",
+                        "content": "**optional** — Filter posts scheduled on or before this date",
                         "type": "text/plain"
                       },
                       "key": "scheduledTo",
@@ -286,7 +286,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Set to \"true\" to filter recurring posts only",
+                        "content": "**optional** — Set to \"true\" to filter recurring posts only",
                         "type": "text/plain"
                       },
                       "key": "recurring",
@@ -735,7 +735,7 @@
           "request": {
             "name": "Update post",
             "description": {
-              "content": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged \u2014 send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a failed or partial post silently resets its status to draft and clears failed platform results (they revert to pending). Send the optional status field ('draft' or 'scheduled') to move a post between draft and scheduled; other status values are rejected. To publish immediately, use POST /api/posts/{id}/publish instead.",
+              "content": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged — send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a failed or partial post silently resets its status to draft and clears failed platform results (they revert to pending). Send the optional status field ('draft' or 'scheduled') to move a post between draft and scheduled; other status values are rejected. To publish immediately, use POST /api/posts/{id}/publish instead.",
               "type": "text/plain"
             },
             "url": {
@@ -1769,7 +1769,7 @@
           "request": {
             "name": "Get post engagement (commenters + reactors)",
             "description": {
-              "content": "Returns per-platform lists of the people/pages who commented on or reacted to a published post \u2014 with name, handle/headline, profile photo and profile URL when the platform exposes them. Platforms that only expose aggregate counts (e.g. Instagram likers, YouTube likers) populate `comments` only and set a `notice` field. Platforms with no engagement API at all (e.g. TikTok) return `unsupported: true`.",
+              "content": "Returns per-platform lists of the people/pages who commented on or reacted to a published post — with name, handle/headline, profile photo and profile URL when the platform exposes them. Platforms that only expose aggregate counts (e.g. Instagram likers, YouTube likers) populate `comments` only and set a `notice` field. Platforms with no engagement API at all (e.g. TikTok) return `unsupported: true`.",
               "type": "text/plain"
             },
             "url": {
@@ -1786,7 +1786,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Max commenters per platform (default 25, max 100)",
+                    "content": "**optional** — Max commenters per platform (default 25, max 100)",
                     "type": "text/plain"
                   },
                   "key": "commentsLimit",
@@ -1795,7 +1795,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Max reactors per platform (default 25, max 100)",
+                    "content": "**optional** — Max reactors per platform (default 25, max 100)",
                     "type": "text/plain"
                   },
                   "key": "reactionsLimit",
@@ -1844,7 +1844,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Max commenters per platform (default 25, max 100)",
+                        "content": "**optional** — Max commenters per platform (default 25, max 100)",
                         "type": "text/plain"
                       },
                       "key": "commentsLimit",
@@ -1853,7 +1853,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Max reactors per platform (default 25, max 100)",
+                        "content": "**optional** — Max reactors per platform (default 25, max 100)",
                         "type": "text/plain"
                       },
                       "key": "reactionsLimit",
@@ -1920,7 +1920,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Max commenters per platform (default 25, max 100)",
+                        "content": "**optional** — Max commenters per platform (default 25, max 100)",
                         "type": "text/plain"
                       },
                       "key": "commentsLimit",
@@ -1929,7 +1929,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Max reactors per platform (default 25, max 100)",
+                        "content": "**optional** — Max reactors per platform (default 25, max 100)",
                         "type": "text/plain"
                       },
                       "key": "reactionsLimit",
@@ -2341,7 +2341,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 IANA timezone (default: UTC)",
+                    "content": "**optional** — IANA timezone (default: UTC)",
                     "type": "text/plain"
                   },
                   "key": "timezone",
@@ -2372,7 +2372,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 IANA timezone (default: UTC)",
+                        "content": "**optional** — IANA timezone (default: UTC)",
                         "type": "text/plain"
                       },
                       "key": "timezone",
@@ -2433,7 +2433,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Filter by active status (default: true)",
+                    "content": "**optional** — Filter by active status (default: true)",
                     "type": "text/plain"
                   },
                   "key": "active",
@@ -2469,7 +2469,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Filter by active status (default: true)",
+                        "content": "**optional** — Filter by active status (default: true)",
                         "type": "text/plain"
                       },
                       "key": "active",
@@ -3006,6 +3006,36 @@
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           }
+        },
+        {
+          "id": "65e8844b-1bf2-e274-3284-df8dbd6e6dea",
+          "name": "List platforms",
+          "request": {
+            "name": "List platforms",
+            "description": {
+              "content": "Returns every social platform BulkPublish supports, together with its current availability. Use this to render an accurate \"temporarily unavailable\" or \"connections paused\" state rather than assuming every platform can be connected or published to.\n\nPlatforms that are switched off are still listed, with `enabled: false` and a `reason`. `envVar` is only included for organization owners and admins.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "platforms"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET"
+          },
+          "response": []
         }
       ]
     },
@@ -4163,7 +4193,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Page number (default: 1)",
+                    "content": "**optional** — Page number (default: 1)",
                     "type": "text/plain"
                   },
                   "key": "page",
@@ -4172,7 +4202,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Items per page (default: 20)",
+                    "content": "**optional** — Items per page (default: 20)",
                     "type": "text/plain"
                   },
                   "key": "limit",
@@ -4181,7 +4211,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Search by filename",
+                    "content": "**optional** — Search by filename",
                     "type": "text/plain"
                   },
                   "key": "search",
@@ -4190,7 +4220,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Comma-separated label IDs",
+                    "content": "**optional** — Comma-separated label IDs",
                     "type": "text/plain"
                   },
                   "key": "labelIds",
@@ -4220,7 +4250,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Page number (default: 1)",
+                        "content": "**optional** — Page number (default: 1)",
                         "type": "text/plain"
                       },
                       "key": "page",
@@ -4229,7 +4259,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Items per page (default: 20)",
+                        "content": "**optional** — Items per page (default: 20)",
                         "type": "text/plain"
                       },
                       "key": "limit",
@@ -4238,7 +4268,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Search by filename",
+                        "content": "**optional** — Search by filename",
                         "type": "text/plain"
                       },
                       "key": "search",
@@ -4247,7 +4277,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Comma-separated label IDs",
+                        "content": "**optional** — Comma-separated label IDs",
                         "type": "text/plain"
                       },
                       "key": "labelIds",
@@ -4782,7 +4812,7 @@
           "request": {
             "name": "Start multipart upload (large videos, up to 1GB)",
             "description": {
-              "content": "Step 1 of the chunked direct-to-storage upload for large files. Returns an uploadId, the fixed part size (10MB), and a presigned PUT URL per part. Upload each 10MB slice of the file to its URL (a failed part can be retried on its own \u2014 a network drop never restarts the whole file), collect each response's ETag header, then call /api/media/multipart/complete.",
+              "content": "Step 1 of the chunked direct-to-storage upload for large files. Returns an uploadId, the fixed part size (10MB), and a presigned PUT URL per part. Upload each 10MB slice of the file to its URL (a failed part can be retried on its own — a network drop never restarts the whole file), collect each response's ETag header, then call /api/media/multipart/complete.",
               "type": "text/plain"
             },
             "url": {
@@ -5707,7 +5737,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "(Required) **required** \u2014 Start date (YYYY-MM-DD)",
+                    "content": "(Required) **required** — Start date (YYYY-MM-DD)",
                     "type": "text/plain"
                   },
                   "key": "from",
@@ -5716,7 +5746,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "(Required) **required** \u2014 End date (YYYY-MM-DD)",
+                    "content": "(Required) **required** — End date (YYYY-MM-DD)",
                     "type": "text/plain"
                   },
                   "key": "to",
@@ -5747,7 +5777,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "(Required) **required** \u2014 Start date (YYYY-MM-DD)",
+                        "content": "(Required) **required** — Start date (YYYY-MM-DD)",
                         "type": "text/plain"
                       },
                       "key": "from",
@@ -5756,7 +5786,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "(Required) **required** \u2014 End date (YYYY-MM-DD)",
+                        "content": "(Required) **required** — End date (YYYY-MM-DD)",
                         "type": "text/plain"
                       },
                       "key": "to",
@@ -5812,7 +5842,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "(Required) **required** \u2014 Start date (YYYY-MM-DD)",
+                    "content": "(Required) **required** — Start date (YYYY-MM-DD)",
                     "type": "text/plain"
                   },
                   "key": "from",
@@ -5821,7 +5851,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "(Required) **required** \u2014 End date (YYYY-MM-DD)",
+                    "content": "(Required) **required** — End date (YYYY-MM-DD)",
                     "type": "text/plain"
                   },
                   "key": "to",
@@ -5830,7 +5860,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Filter to a single channel",
+                    "content": "**optional** — Filter to a single channel",
                     "type": "text/plain"
                   },
                   "key": "channelId",
@@ -5861,7 +5891,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "(Required) **required** \u2014 Start date (YYYY-MM-DD)",
+                        "content": "(Required) **required** — Start date (YYYY-MM-DD)",
                         "type": "text/plain"
                       },
                       "key": "from",
@@ -5870,7 +5900,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "(Required) **required** \u2014 End date (YYYY-MM-DD)",
+                        "content": "(Required) **required** — End date (YYYY-MM-DD)",
                         "type": "text/plain"
                       },
                       "key": "to",
@@ -5879,7 +5909,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Filter to a single channel",
+                        "content": "**optional** — Filter to a single channel",
                         "type": "text/plain"
                       },
                       "key": "channelId",
@@ -6002,7 +6032,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Filter to a single channel",
+                    "content": "**optional** — Filter to a single channel",
                     "type": "text/plain"
                   },
                   "key": "channelId",
@@ -6011,7 +6041,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Start date (YYYY-MM-DD, default 30 days ago). Clamped to at most 30 days before the end date.",
+                    "content": "**optional** — Start date (YYYY-MM-DD, default 30 days ago). Clamped to at most 30 days before the end date.",
                     "type": "text/plain"
                   },
                   "key": "from",
@@ -6020,7 +6050,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 End date (YYYY-MM-DD, default today)",
+                    "content": "**optional** — End date (YYYY-MM-DD, default today)",
                     "type": "text/plain"
                   },
                   "key": "to",
@@ -6057,7 +6087,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Filter to a single channel",
+                        "content": "**optional** — Filter to a single channel",
                         "type": "text/plain"
                       },
                       "key": "channelId",
@@ -6066,7 +6096,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Start date (YYYY-MM-DD, default 30 days ago). Clamped to at most 30 days before the end date.",
+                        "content": "**optional** — Start date (YYYY-MM-DD, default 30 days ago). Clamped to at most 30 days before the end date.",
                         "type": "text/plain"
                       },
                       "key": "from",
@@ -6075,7 +6105,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 End date (YYYY-MM-DD, default today)",
+                        "content": "**optional** — End date (YYYY-MM-DD, default today)",
                         "type": "text/plain"
                       },
                       "key": "to",
@@ -6143,7 +6173,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Filter by label type (This can only be one of post,media)",
+                    "content": "**optional** — Filter by label type (This can only be one of post,media)",
                     "type": "text/plain"
                   },
                   "key": "type",
@@ -6173,7 +6203,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Filter by label type (This can only be one of post,media)",
+                        "content": "**optional** — Filter by label type (This can only be one of post,media)",
                         "type": "text/plain"
                       },
                       "key": "type",
@@ -7508,7 +7538,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Page number (default: 1)",
+                    "content": "**optional** — Page number (default: 1)",
                     "type": "text/plain"
                   },
                   "key": "page",
@@ -7517,7 +7547,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Items per page (default: 20)",
+                    "content": "**optional** — Items per page (default: 20)",
                     "type": "text/plain"
                   },
                   "key": "limit",
@@ -7526,7 +7556,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Show only unread notifications",
+                    "content": "**optional** — Show only unread notifications",
                     "type": "text/plain"
                   },
                   "key": "unreadOnly",
@@ -7556,7 +7586,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Page number (default: 1)",
+                        "content": "**optional** — Page number (default: 1)",
                         "type": "text/plain"
                       },
                       "key": "page",
@@ -7565,7 +7595,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Items per page (default: 20)",
+                        "content": "**optional** — Items per page (default: 20)",
                         "type": "text/plain"
                       },
                       "key": "limit",
@@ -7574,7 +7604,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Show only unread notifications",
+                        "content": "**optional** — Show only unread notifications",
                         "type": "text/plain"
                       },
                       "key": "unreadOnly",
@@ -8371,7 +8401,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "(Required) **required** \u2014 HTTP/HTTPS URL to preview",
+                    "content": "(Required) **required** — HTTP/HTTPS URL to preview",
                     "type": "text/plain"
                   },
                   "key": "url",
@@ -8401,7 +8431,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "(Required) **required** \u2014 HTTP/HTTPS URL to preview",
+                        "content": "(Required) **required** — HTTP/HTTPS URL to preview",
                         "type": "text/plain"
                       },
                       "key": "url",
@@ -8524,7 +8554,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 History window in days (default 30, max 90)",
+                    "content": "**optional** — History window in days (default 30, max 90)",
                     "type": "text/plain"
                   },
                   "key": "days",
@@ -8555,7 +8585,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 History window in days (default 30, max 90)",
+                        "content": "**optional** — History window in days (default 30, max 90)",
                         "type": "text/plain"
                       },
                       "key": "days",
@@ -8789,7 +8819,7 @@
           "request": {
             "name": "Generate an AI caption",
             "description": {
-              "content": "Generate, rephrase, improve, shorten, expand, or restyle a caption \u2014 or caption an image via vision (Cloudflare Workers AI). Consumes one AI run-unit (image = 2) from the plan's monthly allowance, then from purchased credits. Returns up to several variants plus a usage snapshot.",
+              "content": "Generate, rephrase, improve, shorten, expand, or restyle a caption — or caption an image via vision (Cloudflare Workers AI). Consumes one AI run-unit (image = 2) from the plan's monthly allowance, then from purchased credits. Returns up to several variants plus a usage snapshot.",
               "type": "text/plain"
             },
             "url": {
@@ -8874,7 +8904,7 @@
             },
             {
               "id": "6b1daade-e6bc-4539-8ea4-fac2da5e005b",
-              "name": "Out of AI runs \u2014 buy credits",
+              "name": "Out of AI runs — buy credits",
               "originalRequest": {
                 "url": {
                   "path": [
@@ -8992,7 +9022,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Page number (default: 1)",
+                    "content": "**optional** — Page number (default: 1)",
                     "type": "text/plain"
                   },
                   "key": "page",
@@ -9001,7 +9031,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Items per page (default: 20)",
+                    "content": "**optional** — Items per page (default: 20)",
                     "type": "text/plain"
                   },
                   "key": "limit",
@@ -9010,7 +9040,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Filter by action type",
+                    "content": "**optional** — Filter by action type",
                     "type": "text/plain"
                   },
                   "key": "action",
@@ -9019,7 +9049,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** \u2014 Filter by resource type",
+                    "content": "**optional** — Filter by resource type",
                     "type": "text/plain"
                   },
                   "key": "resource",
@@ -9049,7 +9079,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Page number (default: 1)",
+                        "content": "**optional** — Page number (default: 1)",
                         "type": "text/plain"
                       },
                       "key": "page",
@@ -9058,7 +9088,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Items per page (default: 20)",
+                        "content": "**optional** — Items per page (default: 20)",
                         "type": "text/plain"
                       },
                       "key": "limit",
@@ -9067,7 +9097,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Filter by action type",
+                        "content": "**optional** — Filter by action type",
                         "type": "text/plain"
                       },
                       "key": "action",
@@ -9076,7 +9106,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** \u2014 Filter by resource type",
+                        "content": "**optional** — Filter by resource type",
                         "type": "text/plain"
                       },
                       "key": "resource",

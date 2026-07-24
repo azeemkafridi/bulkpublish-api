@@ -27,3 +27,7 @@ dist/
 
 # MCP registry credentials — secrets, never commit
 .mcpregistry_*token
+
+# Build/tooling artifacts
+mcp-server/.harness/
+mcp-server/.smithery/

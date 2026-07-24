@@ -19,7 +19,56 @@ export type Platform =
   | 'mastodon'
   | 'reddit'
   | 'discord'
-  | 'telegram';
+  | 'telegram'
+  | 'tumblr';
+
+/**
+ * Availability of a platform, controlled server-side.
+ *
+ * - `on` — fully available.
+ * - `connect_off` — new channels cannot be connected, but channels already
+ *   connected keep publishing (used while a platform app review is pending).
+ * - `off` — kill switch: posts targeting the platform are **held**, not failed,
+ *   and publish automatically once it is re-enabled.
+ */
+export type PlatformState = 'on' | 'connect_off' | 'off';
+
+/** Why a platform is in its current state. */
+export type PlatformStateReason =
+  | 'enabled'
+  | 'flag_connect_off'
+  | 'flag_off'
+  /** The server has no OAuth app credentials for this platform yet. */
+  | 'unconfigured';
+
+/**
+ * Availability of one social platform. Disabled platforms are always included in
+ * responses with `enabled: false` — never omitted — so clients can distinguish
+ * "switched off right now" from "not supported".
+ */
+export interface PlatformAvailability {
+  platform: Platform;
+  displayName: string;
+  /** Brand colour hex, for UI rendering. */
+  color: string | null;
+  /** Convenience flag; equivalent to `state === 'on'`. */
+  enabled: boolean;
+  state: PlatformState;
+  reason: PlatformStateReason;
+  /** Whether a NEW channel can be connected right now. */
+  canConnect: boolean;
+  /** Whether already-connected channels can publish right now. */
+  canPublish: boolean;
+  /** User-facing explanation. `null` when the platform is fully enabled. */
+  message: string | null;
+  /** Server env var controlling this platform. Only returned to org owners/admins. */
+  envVar?: string;
+}
+
+/** Response from listing platforms. */
+export interface ListPlatformsResponse {
+  platforms: PlatformAvailability[];
+}
 
 /** Supported post formats. */
 export type PostFormat = 'post' | 'video' | 'reel' | 'story' | 'carousel' | 'thread';
@@ -174,6 +223,16 @@ export interface Channel {
   metadata: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
+  /**
+   * Whether this channel's platform can publish right now. `false` means the
+   * platform is disabled server-side — the channel itself is healthy, but its
+   * scheduled posts are being held until it is re-enabled.
+   */
+  platformAvailable?: boolean;
+  /** Current availability of the channel's platform. */
+  platformState?: PlatformState;
+  /** User-facing explanation when the platform is not fully available. */
+  platformMessage?: string | null;
 }
 
 /** Response from listing channels. */

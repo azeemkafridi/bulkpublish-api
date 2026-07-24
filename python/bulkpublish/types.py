@@ -163,6 +163,43 @@ class Channel(TypedDict, total=False):
     tokenExpiresAt: Optional[str]
     createdAt: str
     updatedAt: str
+    # Platform-level availability. A channel can be perfectly healthy while its
+    # platform is switched off server-side, in which case its scheduled posts are
+    # held (not failed) until the platform is re-enabled.
+    platformAvailable: bool
+    platformState: str  # "on" | "connect_off" | "off"
+    platformMessage: Optional[str]
+
+
+class PlatformAvailability(TypedDict, total=False):
+    """Availability of one social platform.
+
+    ``state`` is one of:
+
+    * ``on`` — fully available.
+    * ``connect_off`` — new channels cannot be connected, but channels already
+      connected keep publishing (used while a platform app review is pending).
+    * ``off`` — kill switch: posts targeting the platform are **held**, not
+      failed, and publish automatically once it is re-enabled.
+
+    ``reason`` is one of ``enabled``, ``flag_connect_off``, ``flag_off``, or
+    ``unconfigured`` (the server has no OAuth app credentials for it yet).
+
+    Disabled platforms are always included in responses with ``enabled`` False —
+    never omitted — so callers can tell "switched off right now" apart from
+    "not supported".
+    """
+
+    platform: str
+    displayName: str
+    color: Optional[str]
+    enabled: bool
+    state: str
+    reason: str
+    canConnect: bool
+    canPublish: bool
+    message: Optional[str]
+    envVar: str  # only returned to organization owners/admins
 
 
 class ChannelHealth(TypedDict, total=False):

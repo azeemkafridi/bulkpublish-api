@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-07-25 — Tumblr platform + platform availability (mcp-server 1.9.0, node SDK 1.6.0, python SDK 0.7.0)
+
+### Added
+
+- **Tumblr is now supported — 15 platforms.** `tumblr` is a valid value everywhere `platform` appears (post channels, `platformContent`, `platformSpecific`, `postTypeOverrides`, the `Channel` schema). Post type is `post`; content limit 32,768 characters.
+- **`platformSpecific.tumblr` is keyed by channel ID**, because one Tumblr account can own several blogs and each connected channel may target a different one. Fields: `blogName` (defaults to the blog the channel was connected as), `title` (rendered as a heading), `tags` (array, no leading `#`), `link`, `sourceUrl`. List a channel's blogs with `GET /api/channels/{id}/options`.
+- Tumblr media rules: up to **30 images**, **or exactly one video** — a video cannot be mixed with images in the same post. Content over 4,096 characters is split across multiple Neue Post Format text blocks automatically.
+- **`GET /api/platforms`** — returns every supported platform with its current availability (`state`, `reason`, `canConnect`, `canPublish`, `message`). Disabled platforms are **included** with `enabled: false` rather than omitted, so callers can tell "switched off right now" from "not supported". `envVar` is returned only to organization owners/admins. Exposed as `bp.platforms.list()` (node), `bp.channels.list_platforms()` (python, sync + async), and the `list_platforms` MCP tool.
+- **`platformAvailable`, `platformState`, `platformMessage` on the `Channel` object** — a channel can be perfectly healthy while its platform is switched off server-side.
+- **`PLATFORM_DISABLED` (403)** on `POST /api/posts`, bulk create, and `POST /api/posts/{id}/publish` when a target platform is disabled server-side. Distinct from `FEATURE_DISABLED` (not on the org's plan): `PLATFORM_DISABLED` is temporary and resolves on its own, and posts already scheduled when a platform is disabled are **held, not failed** — they publish automatically once it returns. Do not delete and recreate them.
+- New "Platform Availability" section in the platforms guide covering the three states (`on` / `connect_off` / `off`) and both error codes.
+
+### Documented
+
+- **`PATCH /api/posts/{id}` is now in the spec** — it was previously an undocumented route. It only accepts `recurringScheduleId` (pass `null` to detach a repeat schedule); every other field is now rejected with 400 and `unsupportedFields`. **To edit a post — including moving a draft to `scheduled` — use `PUT /api/posts/{id}`** with `{"status": "scheduled", "scheduledAt": "<future ISO 8601>"}`. Previously PATCH silently ignored those fields and still returned 200, which read as success.
+- `platformSpecific` prose now documents the **Reddit** (`subreddit`, `title`, `flairId`, …) and **Discord** (`channelId`) option shapes, which were never described when those platforms landed.
+
 ## 2026-07-24 — approval gating for automated sources (mcp-server 1.8.0, node SDK 1.5.0, python SDK 0.6.0)
 
 ### Added

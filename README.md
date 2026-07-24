@@ -2,7 +2,7 @@
 
 **The free social media API built for automation, AI agents, and LLMs.**
 
-Programmatically publish to 14 platforms from a single API call. Built for developers, AI agents, LLMs, and agentic workflows that need reliable social media automation without browser sessions or manual interaction.
+Programmatically publish to 15 platforms from a single API call. Built for developers, AI agents, LLMs, and agentic workflows that need reliable social media automation without browser sessions or manual interaction.
 
 ```python
 from bulkpublish import BulkPublish
@@ -23,7 +23,7 @@ Most social media tools are built for humans clicking buttons. BulkPublish is bu
 - **Headless by design** — No browser, no UI, no OAuth pop-ups at runtime. Connect accounts once in the dashboard, then automate everything via API.
 - **AI-native** — MCP server for Claude, tool definitions for GPT and LangChain, structured JSON responses that LLMs parse reliably.
 - **Agentic-ready** — Deterministic API with clear error codes. AI agents can create posts, check status, retry failures, and read analytics autonomously.
-- **14 platforms, one endpoint** — Facebook, Instagram, X/Twitter, TikTok, YouTube, Threads, Bluesky, Pinterest, Google Business Profile, LinkedIn, Mastodon, Reddit, Discord, Telegram.
+- **15 platforms, one endpoint** — Facebook, Instagram, X/Twitter, TikTok, YouTube, Threads, Bluesky, Pinterest, Google Business Profile, LinkedIn, Mastodon, Reddit, Discord, Telegram, Tumblr.
 
 ## Use Cases
 
@@ -214,7 +214,7 @@ More examples in [`examples/`](examples/) — including [Python automation scrip
 
 ## Features
 
-- **14 platforms** — Facebook, Instagram, X/Twitter, TikTok, YouTube, Threads, Bluesky, Pinterest, Google Business Profile, LinkedIn, Mastodon, Reddit, Discord, Telegram
+- **15 platforms** — Facebook, Instagram, X/Twitter, TikTok, YouTube, Threads, Bluesky, Pinterest, Google Business Profile, LinkedIn, Mastodon, Reddit, Discord, Telegram, Tumblr
 - **Scheduling** — Schedule posts for any future time with timezone support, or let queue slots pick optimal times
 - **Media uploads** — Images (JPEG, PNG, WebP, GIF) and videos (MP4, MOV, WebM) up to 100 MB
 - **Recurring schedules** — Repeat posts daily, weekly, biweekly, or monthly at a set time of day

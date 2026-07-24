@@ -1,5 +1,62 @@
 # Platform-Specific Options
 
+## Platform Availability
+
+Not every platform is publishable at every moment. Each one carries a
+server-controlled availability state, which you can read from
+`GET /api/platforms`:
+
+| State | New connections | Existing channels | Meaning |
+|-------|-----------------|-------------------|---------|
+| `on` | ✅ | ✅ publish normally | Fully available. |
+| `connect_off` | ❌ | ✅ publish normally | New connections are paused — typically while a platform app review is pending. Customers already connected are unaffected. |
+| `off` | ❌ | ⏸ posts **held** | Kill switch. Posts are held, **not failed**, and publish automatically once the platform is re-enabled. |
+
+Disabled platforms are always **included** in the response with `enabled: false`
+and a `reason` — never omitted — so you can distinguish "switched off right now"
+from "not supported".
+
+```json
+{
+  "platforms": [
+    {
+      "platform": "tumblr",
+      "displayName": "Tumblr",
+      "enabled": true,
+      "state": "on",
+      "reason": "enabled",
+      "canConnect": true,
+      "canPublish": true,
+      "message": null
+    }
+  ]
+}
+```
+
+Creating or publishing a post that targets an `off` platform returns **403** with
+`code: "PLATFORM_DISABLED"`:
+
+```json
+{
+  "error": {
+    "message": "LinkedIn is temporarily unavailable. Scheduled posts are on hold and will publish once it's back.",
+    "code": "PLATFORM_DISABLED",
+    "platform": "linkedin",
+    "state": "off",
+    "reason": "flag_off"
+  }
+}
+```
+
+This is distinct from `FEATURE_DISABLED`, which means the platform is not
+included in the organization's plan. `PLATFORM_DISABLED` is temporary and
+resolves without any action from you; `FEATURE_DISABLED` requires an upgrade.
+
+Posts already scheduled when a platform goes `off` need no intervention — do not
+delete and recreate them. They remain scheduled and publish on their own once
+the platform returns.
+
+
 ## Post Types by Platform
 
 Use the `postTypeOverrides` field to set a specific post type per platform:
@@ -27,6 +84,7 @@ Use the `postTypeOverrides` field to set a specific post type per platform:
 | Bluesky | `post` (use `postFormat: "thread"` for threads) |
 | Mastodon | `post` (use `postFormat: "thread"` for threads) |
 | Google Business | `standard`, `event`, `offer` |
+| Tumblr | `post` |
 
 If not specified, the platform's default post type is used based on the attached media.
 
@@ -505,6 +563,51 @@ No platform-specific options. Standard post creation with text, images, and vide
 
 ---
 
+## Tumblr
+
+```json
+{
+  "platformSpecific": {
+    "tumblr": {
+      "12": {
+        "blogName": "myblog",
+        "title": "An optional heading",
+        "tags": ["art", "design"],
+        "link": "https://example.com",
+        "sourceUrl": "https://example.com/original"
+      }
+    }
+  }
+}
+```
+
+### Options
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `blogName` | string | Which blog to publish to. Defaults to the blog the channel was connected as. |
+| `title` | string | Rendered as a heading above the post body. |
+| `tags` | string[] | Tumblr tags, without the leading `#`. |
+| `link` | string | Appended to the post as a link block. |
+| `sourceUrl` | string | Attribution URL stored as the post's source. |
+
+Note that `platformSpecific.tumblr` is keyed by **channel ID**, because a single
+Tumblr account can own several blogs and each connected channel may target a
+different one.
+
+### Notes
+
+- A Tumblr account usually owns multiple blogs. The channel connects as the
+  account's **primary** blog; use `blogName` to publish to a different one.
+  Call `GET /api/channels/{id}/options` to list the available blogs.
+- Up to **30 images** per post, **or exactly one video** — a video cannot be
+  mixed with images in the same post.
+- Tags matter more on Tumblr than on most networks: they drive discovery.
+- Posts are built with Tumblr's Neue Post Format. Content longer than 4,096
+  characters is automatically split across multiple text blocks.
+
+---
+
 ## Post Type Overrides
 
 When publishing to multiple platforms, you may want different post types per platform. Use `postTypeOverrides`:
@@ -545,5 +648,6 @@ Each platform enforces its own character limit on the `content` field:
 | Pinterest | 500 |
 | Google Business | 1,500 |
 | Mastodon | 500 (varies by instance) |
+| Tumblr | 32,768 |
 
 BulkPublish validates content length per platform before creating the post and returns an error if any platform's limit is exceeded.
