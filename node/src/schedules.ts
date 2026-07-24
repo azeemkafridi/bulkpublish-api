@@ -1,51 +1,24 @@
 import type { HttpClient } from './client.js';
-
-export interface RecurringSchedule {
-  id: number;
-  name: string;
-  channelIds: number[];
-  content: string;
-  mediaFiles: number[];
-  cronExpression: string;
-  timezone: string;
-  isActive: boolean;
-  nextRunAt: string | null;
-  createdAt: string;
-}
-
-export interface CreateScheduleParams {
-  name: string;
-  channelIds: number[];
-  content: string;
-  mediaFiles?: number[];
-  cronExpression: string;
-  timezone?: string;
-  platformSpecific?: Record<string, unknown>;
-}
-
-export interface UpdateScheduleParams {
-  name?: string;
-  channelIds?: number[];
-  content?: string;
-  mediaFiles?: number[];
-  cronExpression?: string;
-  timezone?: string;
-  isActive?: boolean;
-  platformSpecific?: Record<string, unknown>;
-}
+import type {
+  RecurringSchedule,
+  CreateScheduleParams,
+  UpdateScheduleParams,
+} from './types.js';
 
 /**
- * Manage recurring post schedules (cron-based auto-publishing).
+ * Manage recurring post schedules (frequency-based auto-publishing).
  *
  * @example
  * ```ts
  * const schedules = await bp.schedules.list();
  * const schedule = await bp.schedules.create({
  *   name: 'Daily tip',
+ *   frequency: 'daily',
+ *   timeOfDay: '09:00',
  *   channelIds: [1, 2],
- *   content: 'Tip of the day!',
- *   cronExpression: '0 9 * * *',
+ *   contentTemplate: 'Tip of the day!',
  *   timezone: 'America/New_York',
+ *   requireApproval: true, // hold every occurrence for team approval
  * });
  * ```
  */
@@ -57,12 +30,24 @@ export class SchedulesResource {
     return this.http.get('/api/schedules');
   }
 
-  /** Create a new recurring schedule. */
+  /**
+   * Create a new recurring schedule.
+   *
+   * Pass `requireApproval: true` to hold every occurrence the schedule
+   * generates for team approval — each generated post lands with
+   * `approvalStatus: 'pending'` and the scheduler skips it until an approver
+   * releases it via `posts.approve(id)`. Default: false.
+   */
   async create(params: CreateScheduleParams): Promise<RecurringSchedule> {
     return this.http.post('/api/schedules', params);
   }
 
-  /** Update a recurring schedule by ID. */
+  /**
+   * Update a recurring schedule by ID.
+   *
+   * Toggling `requireApproval` changes the gate for future occurrences only —
+   * posts already generated keep the approval status they were created with.
+   */
   async update(id: number, params: UpdateScheduleParams): Promise<RecurringSchedule> {
     return this.http.put(`/api/schedules/${id}`, params);
   }

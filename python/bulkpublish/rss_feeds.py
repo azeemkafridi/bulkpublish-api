@@ -45,6 +45,7 @@ class RssFeedsResource:
         channel_ids: List[int],
         mode: Optional[str] = None,
         field_mapping: Optional[RssFieldMapping] = None,
+        require_approval: Optional[bool] = None,
     ) -> RssFeed:
         """Add an RSS feed.
 
@@ -59,6 +60,13 @@ class RssFeedsResource:
                 media selection, truncation, hashtags, per-channel overrides —
                 see :class:`~bulkpublish.types.RssFieldMapping`). Omit for the
                 built-in default (``"{title}\n\n{link}"``, no media).
+            require_approval: Hold items auto-published from this feed for
+                team approval — each generated post lands with
+                ``approvalStatus: "pending"`` and waits for
+                ``bp.posts.approve(post_id)``. Only meaningful when ``mode``
+                is ``"publish"``: draft items never publish on their own, and
+                a feed force-demoted to draft by the plan gate stays ungated.
+                Defaults to False.
 
         Returns:
             The newly created feed.
@@ -83,6 +91,8 @@ class RssFeedsResource:
             body["mode"] = mode
         if field_mapping is not None:
             body["fieldMapping"] = field_mapping
+        if require_approval is not None:
+            body["requireApproval"] = require_approval
         return self._client._request("POST", "/api/rss-feeds", json=body)
 
     def update(
@@ -96,6 +106,7 @@ class RssFeedsResource:
         field_mapping: Optional[RssFieldMapping] = None,
         clear_field_mapping: bool = False,
         enabled: Optional[bool] = None,
+        require_approval: Optional[bool] = None,
     ) -> RssFeed:
         """Update an RSS feed (partial update).
 
@@ -115,6 +126,14 @@ class RssFeedsResource:
             clear_field_mapping: Set True to clear the mapping back to the
                 built-in default (sends ``fieldMapping: null``).
             enabled: Enable or disable polling of this feed.
+            require_approval: Hold items auto-published from this feed for
+                team approval — each generated post lands with
+                ``approvalStatus: "pending"`` and waits for
+                ``bp.posts.approve(post_id)``. Only meaningful when ``mode``
+                is ``"publish"``: draft items never publish on their own, and
+                a feed force-demoted to draft by the plan gate stays ungated.
+                Defaults to False.
+                Toggling it affects future items only.
 
         Raises:
             NotFoundError: If the feed does not exist.
@@ -134,6 +153,8 @@ class RssFeedsResource:
             body["fieldMapping"] = field_mapping
         if enabled is not None:
             body["enabled"] = enabled
+        if require_approval is not None:
+            body["requireApproval"] = require_approval
         return self._client._request("PUT", f"/api/rss-feeds/{feed_id}", json=body)
 
     def delete(self, feed_id: int) -> Dict[str, Any]:
@@ -172,6 +193,7 @@ class AsyncRssFeedsResource:
         channel_ids: List[int],
         mode: Optional[str] = None,
         field_mapping: Optional[RssFieldMapping] = None,
+        require_approval: Optional[bool] = None,
     ) -> RssFeed:
         """Add an RSS feed — see :meth:`RssFeedsResource.create`."""
         body: Dict[str, Any] = {
@@ -183,6 +205,8 @@ class AsyncRssFeedsResource:
             body["mode"] = mode
         if field_mapping is not None:
             body["fieldMapping"] = field_mapping
+        if require_approval is not None:
+            body["requireApproval"] = require_approval
         return await self._client._request("POST", "/api/rss-feeds", json=body)
 
     async def update(
@@ -196,6 +220,7 @@ class AsyncRssFeedsResource:
         field_mapping: Optional[RssFieldMapping] = None,
         clear_field_mapping: bool = False,
         enabled: Optional[bool] = None,
+        require_approval: Optional[bool] = None,
     ) -> RssFeed:
         """Update an RSS feed — see :meth:`RssFeedsResource.update`."""
         body: Dict[str, Any] = {}
@@ -213,6 +238,8 @@ class AsyncRssFeedsResource:
             body["fieldMapping"] = field_mapping
         if enabled is not None:
             body["enabled"] = enabled
+        if require_approval is not None:
+            body["requireApproval"] = require_approval
         return await self._client._request(
             "PUT", f"/api/rss-feeds/{feed_id}", json=body
         )

@@ -38,6 +38,13 @@ export class RssFeedsResource {
    * Add an RSS feed. The server validates that `feedUrl` is a reachable public
    * RSS 2.0 or Atom feed. `mode` defaults to `'draft'`.
    *
+   * Pass `requireApproval: true` to hold items auto-published from this feed
+   * for team approval — each generated post lands with
+   * `approvalStatus: 'pending'` and waits for `posts.approve(id)`. Only
+   * meaningful when `mode` is `'publish'`: draft items never publish on their
+   * own, and a feed force-demoted to draft by the plan gate stays ungated.
+   * Default: false.
+   *
    * @throws 400 if the input is invalid or the organization already has 20 feeds.
    */
   async create(params: CreateRssFeedParams): Promise<RssFeed> {
@@ -50,6 +57,9 @@ export class RssFeedsResource {
    * Note: changing `feedUrl` re-baselines the feed — its check state resets and
    * only items published after the change are posted, so the new feed's
    * backlog is not flooded onto your channels.
+   *
+   * Toggling `requireApproval` affects future items only — posts already
+   * created from the feed keep the approval status they were created with.
    */
   async update(id: number, params: UpdateRssFeedParams): Promise<RssFeed> {
     return this.http.put(`/api/rss-feeds/${id}`, params);

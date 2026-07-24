@@ -373,6 +373,11 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "requireApproval": {
+            "type": "boolean",
+            "default": false,
+            "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
           }
         }
       },
@@ -2327,6 +2332,11 @@
                         }
                       }
                     }
+                  },
+                  "requireApproval": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Optional. Hold items auto-published from this feed for team approval \u2014 each generated post lands with approvalStatus 'pending' and waits for POST /api/posts/{id}/approve. Only meaningful when mode is 'publish' (draft items never publish on their own). Default false."
                   }
                 }
               }
@@ -2467,6 +2477,11 @@
                         }
                       }
                     }
+                  },
+                  "requireApproval": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Optional. Hold items auto-published from this feed for team approval \u2014 each generated post lands with approvalStatus 'pending' and waits for POST /api/posts/{id}/approve. Only meaningful when mode is 'publish' (draft items never publish on their own). Default false."
                   }
                 }
               }
@@ -3436,6 +3451,11 @@
                       "type": "integer"
                     },
                     "description": "Media file IDs to attach to each generated post."
+                  },
+                  "requireApproval": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
                   }
                 }
               }
@@ -3550,6 +3570,11 @@
                       "type": "integer"
                     },
                     "description": "Media file IDs to attach to each generated post."
+                  },
+                  "requireApproval": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
                   }
                 }
               }

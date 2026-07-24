@@ -786,6 +786,10 @@ export interface RecurringSchedule {
   isActive: boolean | null;
   lastRunAt: string | null;
   nextRunAt: string | null;
+  /**
+   * Whether every occurrence this schedule generates is held for team approval.
+   */
+  requireApproval?: boolean;
   createdAt: string;
 }
 
@@ -815,6 +819,13 @@ export interface CreateScheduleParams {
   platformSpecific?: Record<string, Record<string, unknown>>;
   /** Whether the schedule is active. Default: true. */
   isActive?: boolean;
+  /**
+   * Hold every occurrence this schedule generates for team approval — each
+   * generated post lands with `approvalStatus: 'pending'` and the scheduler
+   * skips it until an approver releases it via `posts.approve(id)`.
+   * Default: false.
+   */
+  requireApproval?: boolean;
 }
 
 /** Parameters for updating a recurring schedule. All fields are optional. */
@@ -831,6 +842,13 @@ export interface UpdateScheduleParams {
   postTypeOverrides?: Record<string, string>;
   platformSpecific?: Record<string, Record<string, unknown>>;
   isActive?: boolean;
+  /**
+   * Hold every occurrence this schedule generates for team approval — each
+   * generated post lands with `approvalStatus: 'pending'` and the scheduler
+   * skips it until an approver releases it via `posts.approve(id)`.
+   * Default: false.
+   */
+  requireApproval?: boolean;
 }
 
 // ---------- API Keys ----------
@@ -1064,6 +1082,14 @@ export interface CreateRssFeedParams {
    * the built-in default ("{title}\n\n{link}", no media).
    */
   fieldMapping?: RssFieldMapping;
+  /**
+   * Hold items auto-published from this feed for team approval — each generated
+   * post lands with `approvalStatus: 'pending'` and waits for
+   * `posts.approve(id)`. Only meaningful when `mode` is 'publish' (draft items
+   * never publish on their own, and a feed force-demoted to draft by the plan
+   * gate stays ungated). Default: false.
+   */
+  requireApproval?: boolean;
 }
 
 /** Parameters for updating an RSS feed (partial update). */
@@ -1079,6 +1105,14 @@ export interface UpdateRssFeedParams {
   /** New field mapping; pass null to clear back to the built-in default. */
   fieldMapping?: RssFieldMapping | null;
   enabled?: boolean;
+  /**
+   * Hold items auto-published from this feed for team approval — each generated
+   * post lands with `approvalStatus: 'pending'` and waits for
+   * `posts.approve(id)`. Only meaningful when `mode` is 'publish' (draft items
+   * never publish on their own, and a feed force-demoted to draft by the plan
+   * gate stays ungated). Default: false.
+   */
+  requireApproval?: boolean;
 }
 
 // ---------- Media multipart upload ----------

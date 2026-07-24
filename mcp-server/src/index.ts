@@ -1445,8 +1445,14 @@ server.tool(
       .boolean()
       .optional()
       .describe("Whether the schedule starts active. Defaults to true."),
+    requireApproval: z
+      .boolean()
+      .optional()
+      .describe(
+        "Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via approve_post. Defaults to false."
+      ),
   },
-  async ({ name, channelIds, frequency, timeOfDay, dayOfWeek, dayOfMonth, contentTemplate, mediaFileIds, timezone, isActive }) => {
+  async ({ name, channelIds, frequency, timeOfDay, dayOfWeek, dayOfMonth, contentTemplate, mediaFileIds, timezone, isActive, requireApproval }) => {
     const body: Record<string, unknown> = {
       name,
       channelIds,
@@ -1459,6 +1465,7 @@ server.tool(
     if (mediaFileIds !== undefined) body.mediaFileIds = mediaFileIds;
     if (timezone) body.timezone = timezone;
     if (isActive !== undefined) body.isActive = isActive;
+    if (requireApproval !== undefined) body.requireApproval = requireApproval;
     const res = await api("POST", "/api/schedules", body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
@@ -1501,8 +1508,14 @@ server.tool(
       .boolean()
       .optional()
       .describe("Enable or disable the schedule."),
+    requireApproval: z
+      .boolean()
+      .optional()
+      .describe(
+        "Hold every future occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via approve_post. Defaults to false."
+      ),
   },
-  async ({ scheduleId, name, contentTemplate, frequency, timeOfDay, dayOfWeek, dayOfMonth, mediaFileIds, timezone, isActive }) => {
+  async ({ scheduleId, name, contentTemplate, frequency, timeOfDay, dayOfWeek, dayOfMonth, mediaFileIds, timezone, isActive, requireApproval }) => {
     const body: Record<string, unknown> = {};
     if (name !== undefined) body.name = name;
     if (contentTemplate !== undefined) body.contentTemplate = contentTemplate;
@@ -1513,6 +1526,7 @@ server.tool(
     if (mediaFileIds !== undefined) body.mediaFileIds = mediaFileIds;
     if (timezone !== undefined) body.timezone = timezone;
     if (isActive !== undefined) body.isActive = isActive;
+    if (requireApproval !== undefined) body.requireApproval = requireApproval;
     const res = await api("PUT", `/api/schedules/${scheduleId}`, body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
@@ -1689,11 +1703,18 @@ server.tool(
         "draft = new items become draft posts for review (the default); publish = auto-published."
       ),
     fieldMapping: rssFieldMappingSchema.optional(),
+    requireApproval: z
+      .boolean()
+      .optional()
+      .describe(
+        "Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for approve_post. Only meaningful when mode is 'publish' (draft items never publish on their own, and a feed force-demoted to draft by the plan gate stays ungated). Defaults to false."
+      ),
   },
-  async ({ name, feedUrl, channelIds, mode, fieldMapping }) => {
+  async ({ name, feedUrl, channelIds, mode, fieldMapping, requireApproval }) => {
     const body: Record<string, unknown> = { name, feedUrl, channelIds };
     if (mode !== undefined) body.mode = mode;
     if (fieldMapping !== undefined) body.fieldMapping = fieldMapping;
+    if (requireApproval !== undefined) body.requireApproval = requireApproval;
     const res = await api("POST", "/api/rss-feeds", body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
@@ -1729,8 +1750,14 @@ server.tool(
       .optional()
       .describe("New field mapping; pass null to clear back to the built-in default."),
     enabled: z.boolean().optional().describe("Enable or disable polling of this feed."),
+    requireApproval: z
+      .boolean()
+      .optional()
+      .describe(
+        "Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for approve_post. Only meaningful when mode is 'publish' (draft items never publish on their own, and a feed force-demoted to draft by the plan gate stays ungated). Defaults to false."
+      ),
   },
-  async ({ feedId, name, feedUrl, channelIds, mode, fieldMapping, enabled }) => {
+  async ({ feedId, name, feedUrl, channelIds, mode, fieldMapping, enabled, requireApproval }) => {
     const body: Record<string, unknown> = {};
     if (name !== undefined) body.name = name;
     if (feedUrl !== undefined) body.feedUrl = feedUrl;
@@ -1738,6 +1765,7 @@ server.tool(
     if (mode !== undefined) body.mode = mode;
     if (fieldMapping !== undefined) body.fieldMapping = fieldMapping;
     if (enabled !== undefined) body.enabled = enabled;
+    if (requireApproval !== undefined) body.requireApproval = requireApproval;
     const res = await api("PUT", `/api/rss-feeds/${feedId}`, body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }

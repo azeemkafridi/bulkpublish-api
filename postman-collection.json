@@ -3723,7 +3723,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"<string>\",\n  \"feedUrl\": \"<string>\",\n  \"channelIds\": [\n    \"<integer>\"\n  ],\n  \"mode\": \"draft\",\n  \"fieldMapping\": {\n    \"template\": \"{title}\\n\\n{link}\",\n    \"mediaField\": \"none\",\n    \"stripHtml\": true,\n    \"truncate\": \"smart\",\n    \"hashtags\": \"\",\n    \"channelOverrides\": {\n      \"<channelId>\": {\n        \"template\": \"<string>\",\n        \"hashtags\": \"<string>\"\n      }\n    }\n  }\n}",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"feedUrl\": \"<string>\",\n  \"channelIds\": [\n    \"<integer>\"\n  ],\n  \"mode\": \"draft\",\n  \"fieldMapping\": {\n    \"template\": \"{title}\\n\\n{link}\",\n    \"mediaField\": \"none\",\n    \"stripHtml\": true,\n    \"truncate\": \"smart\",\n    \"hashtags\": \"\",\n    \"channelOverrides\": {\n      \"<channelId>\": {\n        \"template\": \"<string>\",\n        \"hashtags\": \"<string>\"\n      }\n    }\n  },\n  \"requireApproval\": false\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -3872,7 +3872,7 @@
             "method": "PUT",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"<string>\",\n  \"feedUrl\": \"<string>\",\n  \"channelIds\": [\n    \"<integer>\"\n  ],\n  \"mode\": \"draft\",\n  \"fieldMapping\": {\n    \"template\": \"{title}\\n\\n{link}\",\n    \"mediaField\": \"none\",\n    \"stripHtml\": true,\n    \"truncate\": \"smart\",\n    \"hashtags\": \"\",\n    \"channelOverrides\": {\n      \"<channelId>\": {\n        \"template\": \"<string>\",\n        \"hashtags\": \"<string>\"\n      }\n    }\n  },\n  \"enabled\": \"<boolean>\"\n}",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"feedUrl\": \"<string>\",\n  \"channelIds\": [\n    \"<integer>\"\n  ],\n  \"mode\": \"draft\",\n  \"fieldMapping\": {\n    \"template\": \"{title}\\n\\n{link}\",\n    \"mediaField\": \"none\",\n    \"stripHtml\": true,\n    \"truncate\": \"smart\",\n    \"hashtags\": \"\",\n    \"channelOverrides\": {\n      \"<channelId>\": {\n        \"template\": \"<string>\",\n        \"hashtags\": \"<string>\"\n      }\n    }\n  },\n  \"enabled\": \"<boolean>\",\n  \"requireApproval\": false\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -6591,7 +6591,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"<string>\",\n  \"frequency\": \"weekly\",\n  \"timeOfDay\": \"<string>\",\n  \"channelIds\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"dayOfWeek\": \"<integer>\",\n  \"dayOfMonth\": \"<integer>\",\n  \"timezone\": \"<string>\",\n  \"contentTemplate\": \"<string>\",\n  \"isActive\": true,\n  \"postFormat\": \"thread\",\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"mediaFileIds\": [\n    \"<integer>\",\n    \"<integer>\"\n  ]\n}",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"frequency\": \"weekly\",\n  \"timeOfDay\": \"<string>\",\n  \"channelIds\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"dayOfWeek\": \"<integer>\",\n  \"dayOfMonth\": \"<integer>\",\n  \"timezone\": \"<string>\",\n  \"contentTemplate\": \"<string>\",\n  \"isActive\": true,\n  \"postFormat\": \"thread\",\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"mediaFileIds\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"requireApproval\": false\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -6693,7 +6693,7 @@
             "method": "PUT",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"<string>\",\n  \"frequency\": \"monthly\",\n  \"dayOfWeek\": \"<integer>\",\n  \"dayOfMonth\": \"<integer>\",\n  \"timeOfDay\": \"<string>\",\n  \"timezone\": \"<string>\",\n  \"channelIds\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"contentTemplate\": \"<string>\",\n  \"isActive\": true,\n  \"postFormat\": \"thread\",\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"mediaFileIds\": [\n    \"<integer>\",\n    \"<integer>\"\n  ]\n}",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"frequency\": \"monthly\",\n  \"dayOfWeek\": \"<integer>\",\n  \"dayOfMonth\": \"<integer>\",\n  \"timeOfDay\": \"<string>\",\n  \"timezone\": \"<string>\",\n  \"channelIds\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"contentTemplate\": \"<string>\",\n  \"isActive\": true,\n  \"postFormat\": \"thread\",\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"mediaFileIds\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"requireApproval\": false\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",

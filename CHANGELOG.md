@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-07-24 — approval gating for automated sources (mcp-server 1.8.0, node SDK 1.5.0, python SDK 0.6.0)
+
+### Added
+
+- **`requireApproval` (boolean, default false) on recurring schedules** — `POST /api/schedules` and `PUT /api/schedules/{id}`; also returned on the schedule object. Every occurrence the schedule generates lands with `approvalStatus` `pending` and the scheduler skips it until an approver releases it via `POST /api/posts/{id}/approve`.
+- **`requireApproval` (boolean, default false) on RSS autopost feeds** — `POST /api/rss-feeds` and `PUT /api/rss-feeds/{id}`. Items auto-published from the feed land as `approvalStatus` `pending` and wait for approval. Only meaningful when `mode` is `publish` (draft items never publish on their own, and a feed force-demoted to draft by the plan gate stays ungated).
+- Documented that creating a post with `repeatSchedule` while the post itself is approval-gated (`requestApproval`, or a contributor role) propagates the gate onto the created recurring schedule; editing such a post keeps the schedule's gate in step.
+- Surfaces updated: openapi.json (4 request bodies + the `Schedule` schema), Postman collection (schedules + rss-feeds create/update bodies), node SDK (`CreateScheduleParams`/`UpdateScheduleParams`/`RecurringSchedule`, `CreateRssFeedParams`/`UpdateRssFeedParams` + resource JSDoc), python SDK (`Schedule`/`RssFeed` types, `schedules.create/update` docs, `rss_feeds.create/update` `require_approval` kwarg sync + async), MCP server (`create_schedule`, `update_schedule`, `create_rss_feed`, `update_rss_feed`), scheduling guide ("Gating automated sources").
+
+### Fixed
+
+- **Node SDK `schedules` resource used a stale cron-based model.** `SchedulesResource` declared its own local `RecurringSchedule`/`CreateScheduleParams`/`UpdateScheduleParams` with `cronExpression`/`content`/`mediaFiles`, which the API does not accept. It now uses the correct `frequency`/`timeOfDay`/`dayOfWeek`/`dayOfMonth`/`contentTemplate`/`mediaFileIds` types from `types.ts`, and the class example was corrected.
+
 ## 2026-07-24 — post approval flow (mcp-server 1.7.0, node SDK 1.4.0, python SDK 0.5.0)
 
 ### Added

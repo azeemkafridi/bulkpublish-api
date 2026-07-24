@@ -52,7 +52,12 @@ class SchedulesResource:
                 ``channelIds``.  Optional: ``dayOfWeek`` (0=Sunday..6=Saturday,
                 for weekly/biweekly), ``dayOfMonth`` (1-31, for monthly),
                 ``timezone`` (default UTC), ``contentTemplate``,
-                ``mediaFileIds``, ``isActive`` (default True).
+                ``mediaFileIds``, ``isActive`` (default True),
+                ``requireApproval`` (default False — when True, every
+                occurrence this schedule generates lands with
+                ``approvalStatus: "pending"`` and the scheduler skips it until
+                an approver releases it via
+                ``bp.posts.approve(post_id)``).
 
         Returns:
             The newly created schedule object.
@@ -66,6 +71,7 @@ class SchedulesResource:
                 timezone="America/New_York",
                 channelIds=[1],
                 contentTemplate="Stay focused! #motivation",
+                requireApproval=True,  # hold each occurrence for team approval
             )
             print(schedule["id"])
         """
@@ -76,7 +82,9 @@ class SchedulesResource:
 
         Args:
             schedule_id: The schedule's unique identifier.
-            **fields: Fields to update (same keys as :meth:`create`).
+            **fields: Fields to update (same keys as :meth:`create`,
+                including ``requireApproval``). Toggling ``requireApproval``
+                affects future occurrences only.
 
         Returns:
             The updated schedule object.

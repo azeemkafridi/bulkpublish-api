@@ -90,6 +90,14 @@ Posts carry an `approvalStatus` (`none` (default) | `pending` | `approved` | `re
 
 Both endpoints return the post on 200, `400` if the post is not awaiting approval, `403` if the role lacks `post:approve`, and `404` if not found.
 
+### Gating automated sources
+
+Approval is not limited to posts you create by hand — the two automated post sources can be gated too, so nothing they generate goes out unreviewed:
+
+- **Recurring schedules** — pass `"requireApproval": true` on `POST /api/schedules` or `PUT /api/schedules/:id` (default `false`; the flag is also returned on the schedule object). Every occurrence the schedule generates lands with `approvalStatus` `"pending"` and the scheduler skips it until an approver releases it via `POST /api/posts/:id/approve`. Toggling the flag affects future occurrences only — already-generated posts keep the status they were created with.
+- **RSS autopost feeds** — pass `"requireApproval": true` on `POST /api/rss-feeds` or `PUT /api/rss-feeds/:id` (default `false`). Items auto-published from the feed land as `approvalStatus` `"pending"` and wait for approval. Only meaningful when `mode` is `"publish"`: draft items never publish on their own, and a feed force-demoted to draft by the plan gate (Free is draft-only) stays ungated.
+- **Posts with `repeatSchedule`** — creating an approval-gated post (via `requestApproval`, or automatically for a contributor key) that also carries a `repeatSchedule` propagates the gate onto the recurring schedule it creates, so all future occurrences are held too. Editing such a post keeps the schedule's gate in step.
+
 ## Queue Slots
 
 Queue slots help you find optimal posting times. Request an available slot for a specific channel:

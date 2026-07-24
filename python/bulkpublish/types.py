@@ -282,7 +282,10 @@ class Schedule(TypedDict, total=False):
     ``frequency`` is one of ``daily``, ``weekly``, ``biweekly``, ``monthly``.
     ``timeOfDay`` is 24h ``"HH:MM"``. ``dayOfWeek`` (0=Sunday..6=Saturday)
     applies to weekly/biweekly; ``dayOfMonth`` (1-31) to monthly.
-    ``nextRunAt`` is always computed by the server.
+    ``nextRunAt`` is always computed by the server. When ``requireApproval``
+    is True every occurrence this schedule generates lands with
+    ``approvalStatus: "pending"`` and the scheduler skips it until an approver
+    releases it via ``POST /api/posts/{id}/approve``.
     """
 
     id: int
@@ -301,6 +304,7 @@ class Schedule(TypedDict, total=False):
     postFormat: str
     threadParts: Optional[List[Dict[str, Any]]]
     nextRunAt: Optional[str]
+    requireApproval: bool
     createdAt: str
     updatedAt: str
 
@@ -491,7 +495,10 @@ class RssFeed(TypedDict, total=False):
 
     ``mode`` is ``"draft"`` (new items become draft posts for review) or
     ``"publish"`` (auto-published). ``fieldMapping`` controls item → post
-    rendering; ``None`` means the built-in default mapping.
+    rendering; ``None`` means the built-in default mapping. When
+    ``requireApproval`` is True, items auto-published from this feed land with
+    ``approvalStatus: "pending"`` and wait for approval — only meaningful when
+    ``mode`` is ``"publish"``.
     """
 
     id: int
@@ -503,6 +510,7 @@ class RssFeed(TypedDict, total=False):
     mode: str
     fieldMapping: Optional[RssFieldMapping]
     enabled: bool
+    requireApproval: bool
     lastCheckedAt: Optional[str]
     lastError: Optional[str]
     createdAt: str
