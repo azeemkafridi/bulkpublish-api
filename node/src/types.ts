@@ -35,6 +35,14 @@ export type PostStatus =
   | 'failed'
   | 'partial';
 
+/**
+ * Team approval state of a post, orthogonal to {@link PostStatus}.
+ * 'pending' and 'rejected' posts are skipped by the scheduler even when
+ * scheduled and overdue; approving releases them (an overdue post publishes
+ * immediately on approval).
+ */
+export type PostApprovalStatus = 'none' | 'pending' | 'approved' | 'rejected';
+
 /** Possible per-platform statuses on a post. */
 export type PlatformStatus = 'pending' | 'publishing' | 'published' | 'failed' | 'processing';
 
@@ -308,6 +316,18 @@ export interface Post {
   autoRepostEnabled: boolean | null;
   autoRepostThreshold: number | null;
   autoRepostFired: boolean | null;
+  /**
+   * Team approval state, orthogonal to status. 'pending' and 'rejected' posts
+   * are skipped by the scheduler even when scheduled and overdue. Members whose
+   * role lacks post:publish (contributors) always get 'pending' when
+   * scheduling; others can opt in with `requestApproval`. Default: 'none'.
+   */
+  approvalStatus: PostApprovalStatus;
+  /** User ID of the approver (set when approvalStatus is 'approved'). */
+  approvedBy: string | null;
+  approvedAt: string | null;
+  /** Reviewer's reason when approvalStatus is 'rejected'. */
+  rejectionReason: string | null;
   createdAt: string;
   updatedAt: string;
   postPlatforms: PostPlatform[];
@@ -340,6 +360,8 @@ export interface ListPostsParams extends PaginationParams {
   search?: string;
   /** Set to 'true' to only return recurring posts. */
   recurring?: string;
+  /** Filter by team approval state (e.g. 'pending' for the approval queue). */
+  approvalStatus?: PostApprovalStatus;
 }
 
 /** Response from listing posts. */
@@ -433,6 +455,13 @@ export interface CreatePostParams {
   autoRepostEnabled?: boolean;
   /** Engagement threshold (likes) to trigger auto-repost. Default: 100. */
   autoRepostThreshold?: number;
+  /**
+   * Optional. Set true to hold a scheduled post for team approval
+   * (approvalStatus becomes 'pending'). Forced on server-side for roles
+   * without post:publish (contributors), regardless of this flag.
+   * Default: false.
+   */
+  requestApproval?: boolean;
 }
 
 /** Parameters for updating an existing post. All fields are optional. */
@@ -464,6 +493,19 @@ export interface UpdatePostParams {
   autoPlugThreshold?: number;
   autoRepostEnabled?: boolean;
   autoRepostThreshold?: number;
+  /**
+   * Optional. Set true to hold a scheduled post for team approval
+   * (approvalStatus becomes 'pending'). Forced on server-side for roles
+   * without post:publish (contributors), regardless of this flag.
+   * Default: false.
+   */
+  requestApproval?: boolean;
+}
+
+/** Parameters for rejecting a pending post. */
+export interface RejectPostParams {
+  /** Optional reason, max 2000 chars. Shown to the author (in-app notification + on the post). */
+  reason?: string;
 }
 
 /** Response from publishing a post. */

@@ -327,6 +327,8 @@ export function createServer(): McpServer {
     // Publishing (writes out to external platforms)
     publish_post: { title: "Publish post now", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     retry_post: { title: "Retry failed post", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    approve_post: { title: "Approve pending post", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    reject_post: { title: "Reject pending post", readOnlyHint: false, destructiveHint: false },
     publish_story: { title: "Publish story", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     // Destructive
     delete_post: { title: "Delete post", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
@@ -384,6 +386,8 @@ export function createServer(): McpServer {
     update_schedule: "the user wants to change a recurring schedule.",
     publish_post: "the user wants to publish an existing draft or scheduled post right now.",
     retry_post: "a post failed on some platforms and the user wants to retry just those.",
+    approve_post: "the user (an owner/admin/approver) wants to approve a post awaiting team approval.",
+    reject_post: "the user (an owner/admin/approver) wants to reject a post awaiting team approval, optionally with a reason.",
     publish_story: "the user wants to post an Instagram/Facebook story.",
     delete_post: "the user wants to permanently remove a post.",
     delete_media: "the user wants to delete a media file.",
@@ -617,6 +621,12 @@ server.tool(
         "Thread parts array. Required when postFormat is thread (min 2 parts)."
       ),
     postTypeOverrides: POST_TYPE_OVERRIDES_SCHEMA,
+    requestApproval: z
+      .boolean()
+      .optional()
+      .describe(
+        "Optional (default false). Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for API keys of roles without post:publish (contributors), regardless of this flag."
+      ),
   },
   async ({
     content,
@@ -631,6 +641,7 @@ server.tool(
     postFormat,
     threadParts,
     postTypeOverrides,
+    requestApproval,
   }) => {
     // Validate platform requirements before creating
     if (mediaFileIds && mediaFileIds.length > 0) {
@@ -690,6 +701,7 @@ server.tool(
     if (postFormat) body.postFormat = postFormat;
     if (threadParts) body.threadParts = threadParts;
     if (postTypeOverrides) body.postTypeOverrides = postTypeOverrides;
+    if (requestApproval !== undefined) body.requestApproval = requestApproval;
 
     const res = await api("POST", "/api/posts", body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -723,6 +735,10 @@ server.tool(
       .string()
       .optional()
       .describe("Filter posts scheduled on or before this ISO date."),
+    approvalStatus: z
+      .enum(["none", "pending", "approved", "rejected"])
+      .optional()
+      .describe("Filter by team approval state (e.g. 'pending' for the approval queue)."),
   },
   async ({
     status,
@@ -735,6 +751,7 @@ server.tool(
     to,
     scheduledFrom,
     scheduledTo,
+    approvalStatus,
   }) => {
     const params = new URLSearchParams();
     if (status) params.set("status", status);
@@ -747,6 +764,7 @@ server.tool(
     if (to) params.set("to", to);
     if (scheduledFrom) params.set("scheduledFrom", scheduledFrom);
     if (scheduledTo) params.set("scheduledTo", scheduledTo);
+    if (approvalStatus) params.set("approvalStatus", approvalStatus);
 
     const qs = params.toString();
     const res = await api("GET", `/api/posts${qs ? `?${qs}` : ""}`);
@@ -776,7 +794,9 @@ server.tool(
 
 server.tool(
   "publish_post",
-  "Publish a draft or scheduled post immediately. The post will be queued for publishing to all its target channels.",
+  "Publish a draft or scheduled post immediately. The post will be queued for publishing to all its target channels. " +
+    "Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). " +
+    "Publishing a pending/rejected post as an approver implicitly approves it.",
   {
     postId: z.number().describe("The post ID to publish."),
   },
@@ -798,6 +818,49 @@ server.tool(
   },
   async ({ postId }) => {
     const res = await api("POST", `/api/posts/${postId}/retry`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: approve_post
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "approve_post",
+  "Approve a post awaiting team approval. Requires a role with post:approve (owner, admin, approver). " +
+    "Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time has already passed. The author is notified in-app. " +
+    "Errors: 400 if the post is not awaiting approval, 403 if the role lacks post:approve, 404 if not found.",
+  {
+    postId: z.number().describe("The post ID to approve."),
+  },
+  async ({ postId }) => {
+    const res = await api("POST", `/api/posts/${postId}/approve`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: reject_post
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "reject_post",
+  "Reject a post awaiting team approval. Requires a role with post:approve. " +
+    "The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval. " +
+    "Errors: 400 if the post is not awaiting approval, 403 if the role lacks post:approve, 404 if not found.",
+  {
+    postId: z.number().describe("The post ID to reject."),
+    reason: z
+      .string()
+      .max(2000)
+      .optional()
+      .describe("Optional reason (max 2000 chars). Shown to the author (in-app notification + on the post)."),
+  },
+  async ({ postId, reason }) => {
+    const body: Record<string, unknown> = {};
+    if (reason !== undefined) body.reason = reason;
+    const res = await api("POST", `/api/posts/${postId}/reject`, body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );
@@ -1065,6 +1128,12 @@ server.tool(
       .describe("Replace label IDs on the post."),
     postTypeOverrides: POST_TYPE_OVERRIDES_SCHEMA,
     platformSpecific: PLATFORM_SPECIFIC_SCHEMA,
+    requestApproval: z
+      .boolean()
+      .optional()
+      .describe(
+        "Optional (default false). Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for API keys of roles without post:publish (contributors), regardless of this flag."
+      ),
   },
   async ({
     postId,
@@ -1076,6 +1145,7 @@ server.tool(
     labelIds,
     postTypeOverrides,
     platformSpecific,
+    requestApproval,
   }) => {
     const body: Record<string, unknown> = {};
     if (content !== undefined) body.content = content;
@@ -1086,6 +1156,7 @@ server.tool(
     if (labelIds !== undefined) body.labels = labelIds;
     if (postTypeOverrides !== undefined) body.postTypeOverrides = postTypeOverrides;
     if (platformSpecific !== undefined) body.platformSpecific = platformSpecific;
+    if (requestApproval !== undefined) body.requestApproval = requestApproval;
 
     const res = await api("PUT", `/api/posts/${postId}`, body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };

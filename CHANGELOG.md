@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-24 — post approval flow (mcp-server 1.7.0, node SDK 1.4.0, python SDK 0.5.0)
+
+### Added
+
+- **Post approval flow (team roles Phase 2).** Posts now carry `approvalStatus` (`none` (default) | `pending` | `approved` | `rejected`), plus `approvedBy`, `approvedAt`, and `rejectionReason`. Approval is orthogonal to `status`; the scheduler skips `pending`/`rejected` posts even when scheduled and overdue.
+- **`requestApproval` (boolean, default false)** on `POST /api/posts` and `PUT /api/posts/{id}` — holds a scheduled post for team approval (`approvalStatus` becomes `pending`). Forced server-side for API keys of members whose role lacks `post:publish` (contributors), regardless of the flag.
+- **`approvalStatus` query param on `GET /api/posts`** — e.g. `pending` for the approval queue.
+- **`POST /api/posts/{id}/approve`** — requires a role with `post:approve` (owner, admin, approver); releases a pending post (publishes immediately if its `scheduledAt` has passed). **`POST /api/posts/{id}/reject`** — optional `{reason}` (max 2000 chars); returns the post to draft with `approvalStatus` `rejected`; the author is notified. Both: 400 if not pending, 403 if the role lacks `post:approve`, 404 if not found.
+- **`POST /api/posts/{id}/publish`** now returns `403 APPROVAL_REQUIRED` for roles without `post:publish`; publishing a pending/rejected post as an approver implicitly approves it.
+- Surfaces updated: openapi.json + Postman collection (2 new requests, `requestApproval` in create/update bodies, `approvalStatus` list filter), node SDK (`posts.approve()` / `posts.reject()`, typed Post fields, params), python SDK (`posts.approve()` / `posts.reject()` sync + async, `request_approval` / `approval_status` kwargs), MCP server (`approve_post` / `reject_post` tools, `requestApproval` on create/update, `approvalStatus` on list_posts), guides (scheduling + authentication) and READMEs.
+
 ## 2026-07-19 — post update accepts `status` (mcp-server 1.6.2, node SDK 1.3.2, python SDK 0.4.2)
 
 ### Changed

@@ -127,6 +127,8 @@ Once deployed, add it to **claude.ai → Settings → Connectors → Add custom 
 | `delete_post` | Delete a post |
 | `publish_post` | Publish a draft post immediately |
 | `retry_post` | Retry a failed post |
+| `approve_post` | Approve a post awaiting team approval (roles with post:approve) |
+| `reject_post` | Reject a pending post back to draft, with an optional reason |
 | `get_post_metrics` | Get engagement metrics (impressions, likes, comments, shares) |
 | `publish_story` | Publish as a story to Facebook or Instagram |
 | `bulk_posts` | Bulk delete or retry multiple posts |

@@ -70,7 +70,7 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 
 | Resource | Methods |
 |----------|---------|
-| `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `bulk`, `queueSlot`, `metrics`, `story` |
+| `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `approve`, `reject`, `bulk`, `queueSlot`, `metrics`, `story` |
 | `bp.channels` | `list`, `get`, `delete`, `health` |
 | `bp.media` | `upload`, `list`, `get`, `delete`, `getLabels`, `setLabels`, `createMultipart`, `completeMultipart`, `abortMultipart` |
 | `bp.analytics` | `summary`, `engagement`, `refresh`, `account` |

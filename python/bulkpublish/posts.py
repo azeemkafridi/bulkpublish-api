@@ -46,6 +46,7 @@ class PostsResource:
         to_date: Optional[str] = None,
         sort_by: Optional[str] = None,
         sort_order: Optional[str] = None,
+        approval_status: Optional[str] = None,
     ) -> PostList:
         """List posts with optional filtering and pagination.
 
@@ -63,6 +64,9 @@ class PostsResource:
             to_date: ISO-8601 end date filter.
             sort_by: Field to sort by (e.g. ``"scheduledAt"``, ``"createdAt"``).
             sort_order: ``"asc"`` or ``"desc"``.
+            approval_status: Filter by team approval state — one of ``"none"``,
+                ``"pending"``, ``"approved"``, ``"rejected"`` (e.g.
+                ``"pending"`` for the approval queue).
 
         Returns:
             A dict with ``posts``, ``total``, ``page``, ``limit``, and
@@ -103,6 +107,8 @@ class PostsResource:
             params["sortBy"] = sort_by
         if sort_order is not None:
             params["sortOrder"] = sort_order
+        if approval_status is not None:
+            params["approvalStatus"] = approval_status
         return self._client._request("GET", "/api/posts", params=params)
 
     # -- Get ------------------------------------------------------------------
@@ -144,6 +150,7 @@ class PostsResource:
         delete_media_after_publish: Optional[bool] = None,
         thread_parts: Optional[List[Dict[str, Any]]] = None,
         post_type_overrides: Optional[Dict[str, str]] = None,
+        request_approval: Optional[bool] = None,
     ) -> Post:
         """Create a new post.
 
@@ -183,6 +190,11 @@ class PostsResource:
                 - pinterest: ``pin``, ``video_pin``, ``carousel``
                 - threads: ``text``, ``image``, ``video``, ``carousel``
                 - gmb: ``standard``, ``event``, ``offer``
+
+            request_approval: Set ``True`` to hold a scheduled post for team
+                approval (``approvalStatus`` becomes ``"pending"``; default
+                ``False``). Forced on server-side for roles without
+                post:publish (contributors), regardless of this flag.
 
         Returns:
             The newly created post object.
@@ -241,6 +253,8 @@ class PostsResource:
             body["threadParts"] = thread_parts
         if post_type_overrides is not None:
             body["postTypeOverrides"] = post_type_overrides
+        if request_approval is not None:
+            body["requestApproval"] = request_approval
         return self._client._request("POST", "/api/posts", json=body)
 
     # -- Update ---------------------------------------------------------------
@@ -303,6 +317,12 @@ class PostsResource:
     def publish(self, post_id: str) -> Post:
         """Publish a post immediately (bypassing its schedule).
 
+        Requires a role with post:publish — contributors get a 403 with code
+        ``APPROVAL_REQUIRED`` and must submit the post for approval instead
+        (create/update with ``request_approval``, then a teammate approves).
+        Publishing a pending/rejected post as an approver implicitly approves
+        it.
+
         Args:
             post_id: The post's unique identifier.
 
@@ -334,6 +354,64 @@ class PostsResource:
                 bp.posts.retry(post["id"])
         """
         return self._client._request("POST", f"/api/posts/{post_id}/retry")
+
+    # -- Approval -------------------------------------------------------------
+
+    def approve(self, post_id: str) -> Post:
+        """Approve a pending post.
+
+        Requires a role with post:approve (owner, admin, approver). Releases a
+        post with ``approvalStatus`` ``"pending"``: it publishes at its
+        scheduled time, or immediately if that time has already passed. The
+        author is notified in-app.
+
+        Args:
+            post_id: The post's unique identifier.
+
+        Returns:
+            The approved post object.
+
+        Raises:
+            ValidationError: If the post is not awaiting approval (400).
+            PermissionError: If the role lacks post:approve (403).
+            NotFoundError: If the post does not exist (404).
+
+        Example::
+
+            queue = bp.posts.list(approval_status="pending")
+            for post in queue["posts"]:
+                bp.posts.approve(post["id"])
+        """
+        return self._client._request("POST", f"/api/posts/{post_id}/approve")
+
+    def reject(self, post_id: str, *, reason: Optional[str] = None) -> Post:
+        """Reject a pending post.
+
+        Requires a role with post:approve. The post returns to draft with
+        ``approvalStatus`` ``"rejected"`` and the optional reason; the author
+        is notified and can edit + reschedule to resubmit for approval.
+
+        Args:
+            post_id: The post's unique identifier.
+            reason: Optional reason, max 2000 chars. Shown to the author
+                (in-app notification + on the post).
+
+        Returns:
+            The rejected post object.
+
+        Raises:
+            ValidationError: If the post is not awaiting approval (400).
+            PermissionError: If the role lacks post:approve (403).
+            NotFoundError: If the post does not exist (404).
+
+        Example::
+
+            bp.posts.reject("42", reason="Please tone down the CTA.")
+        """
+        body: Dict[str, Any] = {}
+        if reason is not None:
+            body["reason"] = reason
+        return self._client._request("POST", f"/api/posts/{post_id}/reject", json=body)
 
     # -- Metrics --------------------------------------------------------------
 
@@ -482,6 +560,17 @@ class AsyncPostsResource:
         """Retry a failed post — see :meth:`PostsResource.retry`."""
         return await self._client._request("POST", f"/api/posts/{post_id}/retry")
 
+    async def approve(self, post_id: str) -> Post:
+        """Approve a pending post — see :meth:`PostsResource.approve`."""
+        return await self._client._request("POST", f"/api/posts/{post_id}/approve")
+
+    async def reject(self, post_id: str, *, reason: Optional[str] = None) -> Post:
+        """Reject a pending post — see :meth:`PostsResource.reject`."""
+        body: Dict[str, Any] = {}
+        if reason is not None:
+            body["reason"] = reason
+        return await self._client._request("POST", f"/api/posts/{post_id}/reject", json=body)
+
     async def metrics(self, post_id: str) -> PostMetrics:
         """Get post metrics — see :meth:`PostsResource.metrics`."""
         return await self._client._request("GET", f"/api/posts/{post_id}/metrics")
@@ -527,6 +616,8 @@ _SNAKE_TO_CAMEL = {
     "sort_by": "sortBy",
     "sort_order": "sortOrder",
     "post_ids": "postIds",
+    "request_approval": "requestApproval",
+    "approval_status": "approvalStatus",
 }
 
 

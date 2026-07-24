@@ -104,7 +104,7 @@ BulkPublish ships an MCP server so AI assistants can manage your social media di
 }
 ```
 
-48 tools available: `create_post`, `list_channels`, `upload_media`, `get_analytics`, the interactive `compose_post` composer (MCP Apps), and more. Runs locally (stdio) or hosted over Streamable HTTP at `https://mcp.bulkpublish.com/mcp`. See [mcp-server/README.md](mcp-server/README.md).
+50 tools available: `create_post`, `list_channels`, `upload_media`, `get_analytics`, the interactive `compose_post` composer (MCP Apps), and more. Runs locally (stdio) or hosted over Streamable HTTP at `https://mcp.bulkpublish.com/mcp`. See [mcp-server/README.md](mcp-server/README.md).
 
 ### LLM Tool Use / Function Calling
 
@@ -254,6 +254,8 @@ Authorization: Bearer bp_your_key_here
 | `DELETE` | `/api/posts/:id` | Delete a post |
 | `POST` | `/api/posts/:id/publish` | Publish a draft immediately |
 | `POST` | `/api/posts/:id/retry` | Retry failed platforms |
+| `POST` | `/api/posts/:id/approve` | Approve a post awaiting team approval (roles with post:approve) |
+| `POST` | `/api/posts/:id/reject` | Reject a pending post back to draft, with an optional reason |
 | `POST` | `/api/posts/bulk` | Bulk delete or retry |
 | `GET` | `/api/channels` | List connected social media channels |
 | `GET` | `/api/channels/:id/health` | Check channel token health |

@@ -80,7 +80,7 @@ asyncio.run(main())
 
 | Resource | Methods |
 |----------|---------|
-| `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `bulk`, `queue_slot` |
+| `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `approve`, `reject`, `bulk`, `queue_slot` |
 | `bp.channels` | `list`, `get`, `delete`, `health` |
 | `bp.media` | `upload`, `list`, `get`, `delete`, `get_labels`, `set_labels`, `create_multipart`, `complete_multipart`, `abort_multipart` |
 | `bp.analytics` | `summary`, `engagement`, `refresh`, `account` |

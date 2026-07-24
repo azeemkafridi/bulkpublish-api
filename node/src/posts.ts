@@ -5,6 +5,7 @@ import type {
   ListPostsResponse,
   CreatePostParams,
   UpdatePostParams,
+  RejectPostParams,
   PublishPostResponse,
   RetryPostResponse,
   PublishStoryParams,
@@ -163,6 +164,11 @@ export class PostsResource {
    * Immediately publish a draft, scheduled, or failed post.
    * The post is queued for publishing and its status changes to 'publishing'.
    *
+   * Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED
+   * and must submit the post for approval instead (create/update with
+   * `requestApproval`, then a teammate approves). Publishing a pending/rejected
+   * post as an approver implicitly approves it.
+   *
    * @param id - The post ID.
    * @returns The post with updated status and platform entries.
    *
@@ -192,6 +198,50 @@ export class PostsResource {
    */
   retry(id: number): Promise<RetryPostResponse> {
     return this.http.post<RetryPostResponse>(`/api/posts/${id}/retry`);
+  }
+
+  /**
+   * Approve a pending post. Requires a role with post:approve (owner, admin,
+   * approver). Releases a post with approvalStatus 'pending': it publishes at
+   * its scheduled time, or immediately if that time has already passed. The
+   * author is notified in-app.
+   *
+   * Errors: 400 if the post is not awaiting approval, 403 if the role lacks
+   * post:approve, 404 if not found.
+   *
+   * @param id - The post ID.
+   * @returns The approved post.
+   *
+   * @example
+   * ```typescript
+   * // Approve everything in the approval queue
+   * const { posts } = await bp.posts.list({ approvalStatus: 'pending' });
+   * for (const post of posts) await bp.posts.approve(post.id);
+   * ```
+   */
+  approve(id: number): Promise<Post> {
+    return this.http.post<Post>(`/api/posts/${id}/approve`);
+  }
+
+  /**
+   * Reject a pending post. Requires a role with post:approve. The post returns
+   * to draft with approvalStatus 'rejected' and the optional reason; the author
+   * is notified and can edit + reschedule to resubmit for approval.
+   *
+   * Errors: 400 if the post is not awaiting approval, 403 if the role lacks
+   * post:approve, 404 if not found.
+   *
+   * @param id - The post ID.
+   * @param params - Optional `{ reason }` (max 2000 chars), shown to the author.
+   * @returns The rejected post.
+   *
+   * @example
+   * ```typescript
+   * await bp.posts.reject(42, { reason: 'Please tone down the CTA.' });
+   * ```
+   */
+  reject(id: number, params?: RejectPostParams): Promise<Post> {
+    return this.http.post<Post>(`/api/posts/${id}/reject`, params ?? {});
   }
 
   /**

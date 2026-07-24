@@ -138,6 +138,15 @@
                   },
                   "key": "recurring",
                   "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** \u2014 Filter by team approval state, e.g. 'pending' for the approval queue (This can only be one of none,pending,approved,rejected)",
+                    "type": "text/plain"
+                  },
+                  "key": "approvalStatus",
+                  "value": "pending"
                 }
               ],
               "variable": []
@@ -354,7 +363,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"channels\": [\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    },\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    }\n  ],\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"timezone\": \"UTC\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"postFormat\": \"post\",\n  \"postTypeOverrides\": {},\n  \"platformSpecific\": {\n    \"facebook\": {\n      \"shareToStory\": \"<boolean>\"\n    },\n    \"x\": {\n      \"replySettings\": \"following\"\n    },\n    \"tiktok\": {\n      \"privacyLevel\": \"PUBLIC_TO_EVERYONE\",\n      \"disableDuet\": \"<boolean>\",\n      \"disableStitch\": \"<boolean>\",\n      \"disableComment\": \"<boolean>\",\n      \"isAigc\": \"<boolean>\",\n      \"brandContentToggle\": \"<boolean>\",\n      \"brandOrganicToggle\": \"<boolean>\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"youtube\": {\n      \"title\": \"<string>\",\n      \"privacyStatus\": \"private\",\n      \"categoryId\": \"<string>\",\n      \"madeForKids\": \"<boolean>\",\n      \"playlistId\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    },\n    \"pinterest\": {\n      \"title\": \"<string>\",\n      \"description\": \"<string>\",\n      \"link\": \"<string>\",\n      \"dominantColor\": \"<string>\"\n    },\n    \"gmb\": {\n      \"ctaType\": \"CALL\",\n      \"ctaUrl\": \"<string>\",\n      \"eventTitle\": \"<string>\",\n      \"startDate\": \"<string>\",\n      \"startTime\": \"<string>\",\n      \"endDate\": \"<string>\",\n      \"endTime\": \"<string>\",\n      \"couponCode\": \"<string>\",\n      \"redeemOnlineUrl\": \"<string>\",\n      \"termsConditions\": \"<string>\"\n    },\n    \"instagram\": {\n      \"collaborators\": \"<string>\",\n      \"shareToStory\": \"<boolean>\",\n      \"trialReel\": \"<boolean>\",\n      \"graduationStrategy\": \"auto\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"threads\": {\n      \"quotePostId\": \"<string>\"\n    }\n  },\n  \"platformContent\": {},\n  \"deleteMediaAfterPublish\": false,\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"platformThreadParts\": {},\n  \"repeatSchedule\": {\n    \"frequency\": \"monthly\",\n    \"daysOfWeek\": [\n      \"<integer>\",\n      \"<integer>\"\n    ],\n    \"dayOfMonth\": \"<integer>\",\n    \"timeOfDay\": \"<string>\",\n    \"timezone\": \"<string>\"\n  },\n  \"autoPlugEnabled\": false,\n  \"autoPlugText\": \"<string>\",\n  \"autoPlugThreshold\": 50,\n  \"autoRepostEnabled\": false,\n  \"autoRepostThreshold\": 100\n}",
+              "raw": "{\n  \"channels\": [\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    },\n    {\n      \"channelId\": \"<integer>\",\n      \"platform\": \"<string>\"\n    }\n  ],\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"timezone\": \"UTC\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"postFormat\": \"post\",\n  \"postTypeOverrides\": {},\n  \"platformSpecific\": {\n    \"facebook\": {\n      \"shareToStory\": \"<boolean>\"\n    },\n    \"x\": {\n      \"replySettings\": \"following\"\n    },\n    \"tiktok\": {\n      \"privacyLevel\": \"PUBLIC_TO_EVERYONE\",\n      \"disableDuet\": \"<boolean>\",\n      \"disableStitch\": \"<boolean>\",\n      \"disableComment\": \"<boolean>\",\n      \"isAigc\": \"<boolean>\",\n      \"brandContentToggle\": \"<boolean>\",\n      \"brandOrganicToggle\": \"<boolean>\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"youtube\": {\n      \"title\": \"<string>\",\n      \"privacyStatus\": \"private\",\n      \"categoryId\": \"<string>\",\n      \"madeForKids\": \"<boolean>\",\n      \"playlistId\": \"<string>\",\n      \"thumbnailUrl\": \"<string>\"\n    },\n    \"pinterest\": {\n      \"title\": \"<string>\",\n      \"description\": \"<string>\",\n      \"link\": \"<string>\",\n      \"dominantColor\": \"<string>\"\n    },\n    \"gmb\": {\n      \"ctaType\": \"CALL\",\n      \"ctaUrl\": \"<string>\",\n      \"eventTitle\": \"<string>\",\n      \"startDate\": \"<string>\",\n      \"startTime\": \"<string>\",\n      \"endDate\": \"<string>\",\n      \"endTime\": \"<string>\",\n      \"couponCode\": \"<string>\",\n      \"redeemOnlineUrl\": \"<string>\",\n      \"termsConditions\": \"<string>\"\n    },\n    \"instagram\": {\n      \"collaborators\": \"<string>\",\n      \"shareToStory\": \"<boolean>\",\n      \"trialReel\": \"<boolean>\",\n      \"graduationStrategy\": \"auto\",\n      \"thumbnailTimestamp\": \"<number>\"\n    },\n    \"threads\": {\n      \"quotePostId\": \"<string>\"\n    }\n  },\n  \"platformContent\": {},\n  \"deleteMediaAfterPublish\": false,\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"platformThreadParts\": {},\n  \"repeatSchedule\": {\n    \"frequency\": \"monthly\",\n    \"daysOfWeek\": [\n      \"<integer>\",\n      \"<integer>\"\n    ],\n    \"dayOfMonth\": \"<integer>\",\n    \"timeOfDay\": \"<string>\",\n    \"timezone\": \"<string>\"\n  },\n  \"autoPlugEnabled\": false,\n  \"autoPlugText\": \"<string>\",\n  \"autoPlugThreshold\": 50,\n  \"autoRepostEnabled\": false,\n  \"autoRepostThreshold\": 100,\n  \"requestApproval\": \"<boolean>\"\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -761,7 +770,7 @@
             "method": "PUT",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"channels\": \"<array>\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"platformSpecific\": {},\n  \"platformContent\": {\n    \"key_0\": \"<string>\"\n  },\n  \"postTypeOverrides\": {\n    \"key_0\": \"<string>\",\n    \"key_1\": \"<string>\"\n  },\n  \"postFormat\": \"post\",\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ]\n}",
+              "raw": "{\n  \"content\": \"<string>\",\n  \"status\": \"draft\",\n  \"mediaFiles\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"scheduledAt\": \"<dateTime>\",\n  \"channels\": \"<array>\",\n  \"labels\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"platformSpecific\": {},\n  \"platformContent\": {\n    \"key_0\": \"<string>\"\n  },\n  \"postTypeOverrides\": {\n    \"key_0\": \"<string>\",\n    \"key_1\": \"<string>\"\n  },\n  \"postFormat\": \"post\",\n  \"threadParts\": [\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    },\n    {\n      \"content\": \"<string>\",\n      \"mediaFileIds\": [\n        \"<integer>\",\n        \"<integer>\"\n      ]\n    }\n  ],\n  \"requestApproval\": \"<boolean>\"\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -1148,6 +1157,495 @@
               },
               "status": "OK",
               "code": 200,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "82048ed3-ba9c-42c3-9101-8b272ce41e23",
+          "name": "Approve pending post",
+          "request": {
+            "name": "Approve pending post",
+            "description": {
+              "content": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time has already passed. The author is notified in-app.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "posts",
+                ":id",
+                "approve"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) ",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "method": "POST",
+            "body": {},
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "e073d3a2-eb6b-4e94-840c-89e03cc221fb",
+              "name": "The approved post",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "posts",
+                    ":id",
+                    "approve"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "25d882d0-f881-494f-a42a-2c2aac821871",
+              "name": "Post is not awaiting approval",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "posts",
+                    ":id",
+                    "approve"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "206826f6-0769-4e24-bb78-faf06efb2d5a",
+              "name": "Role lacks post:approve",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "posts",
+                    ":id",
+                    "approve"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "ccce2839-6a98-4c04-b727-e328b71eec6d",
+              "name": "Post not found",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "posts",
+                    ":id",
+                    "approve"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "debd59a5-5fad-4780-848b-dcac48a56246",
+          "name": "Reject pending post",
+          "request": {
+            "name": "Reject pending post",
+            "description": {
+              "content": "Requires a role with post:approve. The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "posts",
+                ":id",
+                "reject"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) ",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"<string>\"\n}"
+            },
+            "auth": null,
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "response": [
+            {
+              "id": "ee4269c2-034f-4a5f-90de-f02f007d7995",
+              "name": "The rejected post",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "posts",
+                    ":id",
+                    "reject"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"<string>\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "e9dca224-0fe6-4067-b15b-1a7994ec6d5f",
+              "name": "Post is not awaiting approval",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "posts",
+                    ":id",
+                    "reject"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"<string>\"\n}"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "8c3c6617-2ab8-45a6-88ed-a22d7b58bfa4",
+              "name": "Role lacks post:approve",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "posts",
+                    ":id",
+                    "reject"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"<string>\"\n}"
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "77c400c9-91e9-4dde-b658-59fc1cff660b",
+              "name": "Post not found",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "posts",
+                    ":id",
+                    "reject"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"<string>\"\n}"
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
               "header": [],
               "cookie": [],
               "_postman_previewlanguage": "text"

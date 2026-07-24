@@ -62,6 +62,13 @@ class Post(TypedDict, total=False):
     ``published``, ``processing``, ``failed``, or ``partial``.
     ``deleteMediaAfterPublish`` defaults to ``False`` — media is kept and
     reclaimed by the server's 3-month retention sweep.
+
+    ``approvalStatus`` is the team approval state, orthogonal to ``status``:
+    one of ``none`` (default), ``pending``, ``approved``, ``rejected``.
+    ``pending`` and ``rejected`` posts are skipped by the scheduler even when
+    scheduled and overdue; approving releases them (an overdue post publishes
+    immediately on approval). ``approvedBy``/``approvedAt`` are set when
+    approved; ``rejectionReason`` when rejected.
     """
 
     id: int
@@ -84,6 +91,10 @@ class Post(TypedDict, total=False):
     autoRepostEnabled: bool
     autoRepostThreshold: int
     autoRepostFired: bool
+    approvalStatus: str
+    approvedBy: Optional[str]
+    approvedAt: Optional[str]
+    rejectionReason: Optional[str]
     recurringScheduleId: Optional[int]
     mediaFiles: List["MediaFile"]
     postPlatforms: List[PostPlatform]

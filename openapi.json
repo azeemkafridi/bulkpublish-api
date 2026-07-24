@@ -140,6 +140,32 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "approvalStatus": {
+            "type": "string",
+            "enum": [
+              "none",
+              "pending",
+              "approved",
+              "rejected"
+            ],
+            "default": "none",
+            "description": "Team approval state, orthogonal to status. 'pending' and 'rejected' posts are skipped by the scheduler even when scheduled and overdue; approving via POST /api/posts/{id}/approve releases them (an overdue post publishes immediately on approval). Members whose role lacks post:publish (contributors) always get 'pending' when scheduling; others can opt in with requestApproval."
+          },
+          "approvedBy": {
+            "type": "string",
+            "nullable": true,
+            "description": "User ID of the approver (set when approvalStatus is 'approved')."
+          },
+          "approvedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "rejectionReason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Reviewer's reason when approvalStatus is 'rejected'."
           }
         }
       },
@@ -788,6 +814,21 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "approvalStatus",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "pending",
+                "approved",
+                "rejected"
+              ]
+            },
+            "description": "Filter by team approval state (e.g. 'pending' for the approval queue)."
           }
         ],
         "responses": {
@@ -1003,6 +1044,11 @@
                     "type": "integer",
                     "default": 100,
                     "description": "Optional. Number of likes to trigger auto-repost (default: 100)"
+                  },
+                  "requestApproval": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Optional. Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for roles without post:publish (contributors), regardless of this flag."
                   }
                 }
               },
@@ -1254,6 +1300,11 @@
                       "scheduled"
                     ],
                     "description": "Move the post between draft and scheduled. Setting 'scheduled' requires a future scheduledAt (in this body or already stored) and at least one channel; setting 'draft' unschedules it. Any other value is rejected. Omit to leave the status unchanged (failed/partial posts still auto-reset to draft on edit). To publish immediately, use POST /api/posts/{id}/publish instead."
+                  },
+                  "requestApproval": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Optional. Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for roles without post:publish (contributors), regardless of this flag."
                   }
                 }
               }
@@ -1311,7 +1362,8 @@
           "200": {
             "description": "Publishing started"
           }
-        }
+        },
+        "description": "Requires a role with post:publish \u2014 contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). Publishing a pending/rejected post as an approver implicitly approves it."
       }
     },
     "/api/posts/{id}/retry": {
@@ -1333,6 +1385,105 @@
         "responses": {
           "200": {
             "description": "Retry queued"
+          }
+        }
+      }
+    },
+    "/api/posts/{id}/approve": {
+      "post": {
+        "tags": [
+          "Posts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "summary": "Approve a pending post",
+        "description": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time has already passed. The author is notified in-app.",
+        "operationId": "approvePost",
+        "responses": {
+          "200": {
+            "description": "The approved post",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Post is not awaiting approval"
+          },
+          "403": {
+            "description": "Role lacks post:approve"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      }
+    },
+    "/api/posts/{id}/reject": {
+      "post": {
+        "tags": [
+          "Posts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "summary": "Reject a pending post",
+        "description": "Requires a role with post:approve. The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval.",
+        "operationId": "rejectPost",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "description": "Optional. Shown to the author (in-app notification + on the post)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The rejected post",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Post is not awaiting approval"
+          },
+          "403": {
+            "description": "Role lacks post:approve"
+          },
+          "404": {
+            "description": "Post not found"
           }
         }
       }

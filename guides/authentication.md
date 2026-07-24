@@ -143,6 +143,10 @@ When exceeded, the API returns `429` with:
 
 Daily quotas only apply to API key requests. Requests made through the dashboard UI (session auth) are not counted against this limit.
 
+## Team Roles and API Keys
+
+An API key inherits the role of the member who created it. Roles with `post:publish` (owner, admin, approver) can publish directly; keys belonging to members whose role lacks `post:publish` (contributors) always have `requestApproval` forced on when scheduling — their posts get `approvalStatus` `"pending"` — and `POST /api/posts/:id/publish` returns `403` with code `APPROVAL_REQUIRED`. Roles with `post:approve` (owner, admin, approver) can call `POST /api/posts/:id/approve` and `/reject`. See the scheduling guide's "Team Approval Flow" section.
+
 ## Security Best Practices
 
 - Never commit API keys to version control
