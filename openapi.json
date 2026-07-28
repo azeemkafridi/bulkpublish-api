@@ -3260,11 +3260,23 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "name": "top",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Set to `1` to return only the ranked `topPosts` list; `allPosts` comes back as an empty array. Used by dashboards that render a short leaderboard and would otherwise download every post in the window.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts"
+            "description": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts, allPosts, and unmeasuredPlatforms.\n\n`unmeasuredPlatforms` lists platforms present in the window that cannot report per-post metrics at all — either the platform has no metrics API (Google Business, Telegram, Discord, Reddit, Tumblr) or, for LinkedIn, the channel is a personal/profile account (share statistics are exposed only for organization pages). Their rows still appear in every total with zeroes, so a zero for one of these platforms means \"not reported\", not \"measured zero\". Each entry in a post's `platformMetrics` carries the same signal as `metricsSupported`.\n\nAll figures come from the stored `post_metrics` snapshot, synced every 6 hours (or on demand via `POST /api/analytics/refresh`) — not a live read of the platform."
           }
         }
       }

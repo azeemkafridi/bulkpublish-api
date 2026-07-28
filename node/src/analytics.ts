@@ -49,6 +49,17 @@ export class AnalyticsResource {
   /**
    * Get engagement data grouped by time period.
    *
+   * All figures come from the stored metrics snapshot, synced every 6 hours (or
+   * on demand via {@link refresh}) — not a live read of the platform.
+   *
+   * The response's `unmeasuredPlatforms` lists platforms in the window that
+   * cannot report per-post metrics at all: Google Business, Telegram, Discord,
+   * Reddit and Tumblr have no metrics API, and LinkedIn exposes share
+   * statistics only for organization pages (personal/profile channels never
+   * report). Those posts are still counted, with zeroes — so a zero for one of
+   * these platforms means "not reported", not "measured zero". The same signal
+   * appears per entry as `platformMetrics[].metricsSupported`.
+   *
    * @example
    * ```ts
    * const data = await bp.analytics.engagement({

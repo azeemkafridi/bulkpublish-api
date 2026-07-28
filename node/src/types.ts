@@ -703,6 +703,12 @@ export interface AnalyticsSummaryResponse {
 export interface AnalyticsEngagementParams extends AnalyticsDateParams {
   /** Optional channel ID to filter by. */
   channelId?: string;
+  /**
+   * Set to `'1'` to return only the ranked `topPosts` leaderboard; `allPosts`
+   * comes back empty. Use it when you render a short list and don't want to
+   * download every post in the window.
+   */
+  top?: '1';
 }
 
 /** Per-platform engagement breakdown. */

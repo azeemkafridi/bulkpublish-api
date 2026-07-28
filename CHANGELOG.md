@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-28 — engagement metrics: unmeasured platforms + top-only mode (node SDK 1.6.1, python SDK 0.7.1)
+
+### Added
+
+- **`GET /api/analytics/engagement?top=1`** returns only the ranked `topPosts` leaderboard; `allPosts` comes back as an empty array. For dashboards that render a short list and should not download every post in the window. `bp.analytics.engagement({ top: '1' })` (node), `bp.analytics.engagement(top=True)` (python).
+
+### Documented
+
+- **`unmeasuredPlatforms` on the engagement response**, plus `metricsSupported` on each `platformMetrics` entry. These name the platforms in the window that cannot report per-post metrics **at all**: Google Business, Telegram, Discord, Reddit and Tumblr have no metrics API, and LinkedIn exposes share statistics only for **organization** pages — personal/profile channels never report. Posts on those platforms are still counted in every total, **with zeroes**, so a zero for one of them means "not reported", not "measured zero". Previously nothing in the response distinguished the two, and clients rendered an unmeasurable post as a confident `0 impressions`.
+- The engagement figures are a **synced snapshot** (every 6 hours, or on demand via `POST /api/analytics/refresh`) — not a live read of the platform. This was never stated.
+
 ## 2026-07-25 — Tumblr platform + platform availability (mcp-server 1.9.0, node SDK 1.6.0, python SDK 0.7.0)
 
 ### Added

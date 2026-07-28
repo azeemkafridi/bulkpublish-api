@@ -74,6 +74,7 @@ class AnalyticsResource:
         to_date: Optional[str] = None,
         channel_id: Optional[str] = None,
         group_by: Optional[str] = None,
+        top: Optional[bool] = None,
     ) -> List[EngagementDataPoint]:
         """Get engagement time-series data.
 
@@ -83,6 +84,17 @@ class AnalyticsResource:
             channel_id: Limit to a specific channel.
             group_by: Grouping interval — ``"day"``, ``"week"``, or
                 ``"month"``.
+            top: Return only the ranked ``topPosts`` leaderboard; ``allPosts``
+                comes back empty.
+
+        Note:
+            Figures come from the stored metrics snapshot, synced every 6 hours
+            (or on demand via :meth:`refresh`) — not a live platform read. The
+            response's ``unmeasuredPlatforms`` lists platforms that cannot
+            report per-post metrics at all (Google Business, Telegram, Discord,
+            Reddit, Tumblr; and LinkedIn personal/profile channels, since share
+            statistics are organization-only). Their posts still count, with
+            zeroes — a zero there means "not reported", not "measured zero".
 
         Returns:
             List of data points, each with ``date``, ``impressions``,
@@ -108,6 +120,8 @@ class AnalyticsResource:
             params["channelId"] = channel_id
         if group_by is not None:
             params["groupBy"] = group_by
+        if top:
+            params["top"] = "1"
         return self._client._request("GET", "/api/analytics/engagement", params=params)
 
     def refresh(self) -> Dict[str, Any]:
@@ -189,6 +203,7 @@ class AsyncAnalyticsResource:
         to_date: Optional[str] = None,
         channel_id: Optional[str] = None,
         group_by: Optional[str] = None,
+        top: Optional[bool] = None,
     ) -> List[EngagementDataPoint]:
         """Get engagement data — see :meth:`AnalyticsResource.engagement`."""
         params: Dict[str, Any] = {}
@@ -200,6 +215,8 @@ class AsyncAnalyticsResource:
             params["channelId"] = channel_id
         if group_by is not None:
             params["groupBy"] = group_by
+        if top:
+            params["top"] = "1"
         return await self._client._request("GET", "/api/analytics/engagement", params=params)
 
     async def refresh(self) -> Dict[str, Any]:
