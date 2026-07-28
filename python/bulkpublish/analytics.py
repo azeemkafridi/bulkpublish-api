@@ -82,8 +82,9 @@ class AnalyticsResource:
             from_date: ISO-8601 start date.
             to_date: ISO-8601 end date.
             channel_id: Limit to a specific channel.
-            group_by: Grouping interval — ``"day"``, ``"week"``, or
-                ``"month"``.
+            group_by: Deprecated and ignored by the server — ``byDay`` is
+                always daily buckets, and passing ``"week"``/``"month"``
+                silently returned daily data. Aggregate client-side.
             top: Return only the ranked ``topPosts`` leaderboard; ``allPosts``
                 comes back empty.
 
@@ -106,7 +107,6 @@ class AnalyticsResource:
             data = bp.analytics.engagement(
                 from_date="2026-03-01",
                 to_date="2026-04-01",
-                group_by="week",
             )
             for point in data:
                 print(f"{point['date']}: {point['engagements']} engagements")

@@ -10,7 +10,18 @@ export interface EngagementParams {
   from?: string;
   to?: string;
   channelId?: number;
+  /**
+   * @deprecated The server has never read this. `byDay` is always daily
+   * buckets; passing `'week'` or `'month'` silently returned daily data.
+   * Aggregate client-side. This field is kept only so existing builds keep
+   * compiling and will be removed in the next major.
+   */
   groupBy?: 'day' | 'week' | 'month';
+  /**
+   * Set to `'1'` to return only the ranked `topPosts` leaderboard; `allPosts`
+   * comes back empty.
+   */
+  top?: '1';
 }
 
 export interface AccountMetricsParams {
@@ -23,7 +34,7 @@ export interface AccountMetricsParams {
  * @example
  * ```ts
  * const summary = await bp.analytics.summary({ from: '2026-04-01', to: '2026-04-08' });
- * const engagement = await bp.analytics.engagement({ groupBy: 'day' });
+ * const engagement = await bp.analytics.engagement({ from: '2026-04-01', to: '2026-04-08' });
  * ```
  */
 export class AnalyticsResource {
@@ -65,7 +76,6 @@ export class AnalyticsResource {
    * const data = await bp.analytics.engagement({
    *   from: '2026-04-01',
    *   to: '2026-04-08',
-   *   groupBy: 'day',
    * });
    * ```
    */

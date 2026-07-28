@@ -4,6 +4,15 @@
 
 ### Added
 
+- **`GET /api/quotas/usage` accepts `tz`** (IANA name, defaults to `UTC`) and the response gains **`usage.scheduledToday`** — posts scheduled FOR the current day, excluding `draft`/`failed`. It pairs with `limits.scheduledPerDay` (3/day on Free), which previously had **no** usage figure anywhere, so callers could not see the tightest limit in the product until a write 403'd. `tz` only picks the day boundary, so the figure matches the day the limit is enforced against; a malformed value falls back to `UTC`.
+- Note the three post limits are distinct and must not be read interchangeably: `usage.postsToday` ↔ `limits.postsPerDay` (posts *created* today), `usage.scheduledToday` ↔ `limits.scheduledPerDay` (scheduled *for* today), `usage.pendingScheduled` ↔ `limits.maxPendingScheduled` (all pending, any date).
+
+### Deprecated
+
+- **`groupBy` on `analytics.engagement` (node + python) is deprecated and was always ignored.** The server has never read it; `byDay` is daily buckets, so passing `'week'`/`'month'` silently returned daily data. Aggregate client-side. The field is retained this release so existing builds keep compiling, and will be removed in the next major.
+
+### Added
+
 - **`GET /api/analytics/engagement?top=1`** returns only the ranked `topPosts` leaderboard; `allPosts` comes back as an empty array. For dashboards that render a short list and should not download every post in the window. `bp.analytics.engagement({ top: '1' })` (node), `bp.analytics.engagement(top=True)` (python).
 
 ### Documented

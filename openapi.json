@@ -4163,9 +4163,21 @@
         "description": "Current usage vs limits for all resource types on your plan.",
         "responses": {
           "200": {
-            "description": "Quota data"
+            "description": "Current usage vs limits for all resource types on your plan.\n\n`usage.scheduledToday` counts posts scheduled FOR the current day (excluding `draft` and `failed`) and pairs with `limits.scheduledPerDay` — distinct from `usage.pendingScheduled`, which is every pending scheduled post regardless of date and pairs with `limits.maxPendingScheduled`. `usage.postsToday` counts posts *created* today and pairs with `limits.postsPerDay`."
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "tz",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — IANA timezone name (e.g. `Asia/Karachi`) used only for the day boundary of `usage.scheduledToday`, so it matches the same calendar day the `scheduledPerDay` limit is enforced against at write time. Defaults to `UTC`; a malformed value falls back to `UTC` rather than erroring.",
+            "schema": {
+              "type": "string",
+              "default": "UTC"
+            }
+          }
+        ]
       }
     },
     "/api/quotas/x-usage": {
