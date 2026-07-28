@@ -97,6 +97,24 @@ class AnalyticsResource:
             statistics are organization-only). Their posts still count, with
             zeroes — a zero there means "not reported", not "measured zero".
 
+            Support is per-METRIC too. ``metricSupport`` maps each platform in
+            the window to the metric keys its API can report; every other key is
+            a stored 0, not a measurement. X reports impressions/likes/comments/
+            shares only (never reach, saves, clicks or video views); Bluesky and
+            Mastodon report no impressions, so engagement rate is always 0;
+            Pinterest reports no reach; YouTube reports no shares or reach.
+            ``supportedTotals`` is the union across the window — render a
+            ``total*`` field whose key is missing there as "not available", never
+            as 0. ``partialTotals`` maps a supported key to the platforms that do
+            not report it, and ``conditionalMetrics`` flags supported-but-
+            permission-gated metrics (Facebook insights need ``read_insights``).
+
+            ``metricsDisabledChannels`` lists channels whose metrics sync is off,
+            so their posts contribute zeroes. X is the only one today: its reads
+            are billed, so sync is opt-in per channel and runs at most weekly —
+            ``refresh()`` will not produce X figures for a channel that has not
+            opted in.
+
         Returns:
             List of data points, each with ``date``, ``impressions``,
             ``engagements``, ``clicks``, ``likes``, ``comments``, and

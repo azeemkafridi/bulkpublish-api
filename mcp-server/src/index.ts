@@ -1209,7 +1209,7 @@ server.tool(
 
 server.tool(
   "get_post_metrics",
-  "Get engagement metrics for a published post. Returns likes, comments, shares, impressions, and other platform-specific metrics.",
+  "Get engagement metrics for a published post. Returns likes, comments, shares, impressions, and other platform-specific metrics. IMPORTANT: every platform entry carries `metricsSupported` and `supportedMetrics` — a metric key NOT in `supportedMetrics` is stored as 0 because that platform's API has no such field, so report it as unavailable rather than as zero. X reports impressions/likes/comments/shares only; Bluesky and Mastodon report no impressions; Pinterest reports no reach; YouTube reports no shares or reach; Google Business, Reddit, Discord, Telegram, Tumblr and LinkedIn personal profiles report nothing at all.",
   {
     postId: z.number().describe("The post ID to get metrics for."),
   },

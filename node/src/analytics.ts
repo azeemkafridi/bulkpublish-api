@@ -71,6 +71,25 @@ export class AnalyticsResource {
    * these platforms means "not reported", not "measured zero". The same signal
    * appears per entry as `platformMetrics[].metricsSupported`.
    *
+   * Support is also per-METRIC, not just per-platform. `metricSupport` maps each
+   * platform in the window to the metric keys its API can actually report; every
+   * other key is stored as 0 because the platform has no such field. X reports
+   * impressions/likes/comments/shares only (never reach, saves, clicks or video
+   * views); Bluesky and Mastodon report no impressions, so their engagement
+   * rate is always 0 — though Bluesky does report `saves`, via bookmarks;
+   * Pinterest reports no reach; YouTube reports no shares or reach.
+   * `supportedTotals` is the union across the window — a `total*` field whose key
+   * is absent there should be shown as "not available", never as 0.
+   * `partialTotals` maps a supported key to the platforms that do NOT report it,
+   * and `conditionalMetrics` flags supported-but-permission-gated metrics
+   * (Facebook's insights need `read_insights`). Each post's `platformMetrics`
+   * entries carry the same list as `supportedMetrics`.
+   *
+   * `metricsDisabledChannels` lists channels whose metrics sync is switched off,
+   * so their posts contribute zeroes. X is the only such platform today: its
+   * reads are billed, so sync is opt-in per channel and runs at most weekly —
+   * {@link refresh} will not produce X figures for a channel that hasn't opted in.
+   *
    * @example
    * ```ts
    * const data = await bp.analytics.engagement({

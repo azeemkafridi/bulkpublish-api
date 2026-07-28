@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-07-28 — per-metric support on analytics responses (node SDK 1.7.0, python SDK 0.8.0, MCP 1.10.0)
+
+### Added
+
+- **`metricSupport`, `supportedTotals`, `partialTotals` and `conditionalMetrics` on `GET /api/analytics/engagement`**, plus **`supportedMetrics`** on every `platformMetrics` entry and on each platform of `GET /api/posts/{id}/metrics`. Platform support is not all-or-nothing: each platform reports a *different subset* of the eight metric columns, and the server stores all eight as NOT NULL integers, so a field the platform API never returns was persisted as `0` and was indistinguishable from a measured zero. X reports impressions/likes/comments/shares only — never reach, saves, clicks or video views — so an X-only account saw four confident zeroes that were not measurements. A key absent from `supportedMetrics` / `supportedTotals` must be rendered as unavailable (a dash), never as `0`. `partialTotals` names the platforms excluded from an otherwise-real total; `conditionalMetrics` flags supported-but-permission-gated metrics (Facebook insights need `read_insights`).
+- **`metricsDisabledChannels` on the engagement response** — channels whose metrics sync is switched off, whose posts therefore contribute zeroes. X is the only platform this applies to: its reads are billed, so per-post sync is opt-in per channel and runs at most once every 7 days. `POST /api/analytics/refresh` will not produce X figures for a channel that has not opted in.
+
+### Fixed
+
+- **Bluesky reported no saves.** `app.bsky.feed.defs#postView` carries `bookmarkCount` — the atproto equivalent of a save — and it was never read. Bluesky now reports `saves`.
+- **Negative counts are clamped to 0.** LinkedIn documents that `likeCount` can go negative (an unlike on a *sponsored* share counts as organic while the original like never did). Stored raw it subtracted from org-wide totals; `engagementRate` is now computed from the clamped values too.
+- **Pinterest pins always reported 0 likes and 0 comments.** The server sent `metric_types=LIFETIME`, which is in neither of Pinterest's two `metric_types` enum sets. Pinterest tolerated it (the parameter's documented default is "all") so impressions, clicks and saves still came through — but an invalid value cannot request `TOTAL_REACTIONS` / `TOTAL_COMMENTS`, so engagement was permanently zero. Those are now requested explicitly, with a fallback to the standard-only metric set because video metric names are valid for video pins only.
+- **Threads post metrics never returned anything.** The insights call included `reach`, which is a Threads *user*-level metric; Meta rejects the whole request when any metric is invalid. `reach` is gone (and correctly reported as unsupported for Threads), and off-platform `shares` are now summed with `reposts`.
+- **Instagram account-level insights never returned anything.** The call requested `profile_views` and `website_clicks`, both removed from the IG User metric set; their replacements (`views`, `profile_links_taps`) are `total_value` metrics that cannot be combined with `period=day`. Split into two calls, so reach and views/link-taps are recorded again.
+
 ## 2026-07-28 — engagement metrics: unmeasured platforms + top-only mode (node SDK 1.6.1, python SDK 0.7.1)
 
 ### Added
