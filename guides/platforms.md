@@ -631,6 +631,70 @@ When publishing to multiple platforms, you may want different post types per pla
 
 If no override is set for a platform, BulkPublish selects the default post type based on the attached media.
 
+## Metrics by Platform
+
+Every platform reports a **different subset** of the metric columns, and the
+columns that a platform has no API for are stored as `0`. That makes "not
+reported" and "measured zero" identical on the wire unless you read the support
+fields — so **never present a `0` as a measurement without checking them first.**
+
+`GET /api/posts/{id}/metrics` returns, per platform entry:
+
+- `metricsSupported` — `false` when the platform exposes no per-post statistics API at all.
+- `supportedMetrics` — the metric keys that platform can populate. Anything absent is a stored `0`.
+
+`GET /api/analytics/engagement` returns the same information for a date range:
+
+| Field | Meaning |
+|---|---|
+| `metricSupport` | platform → the metric keys it can report |
+| `supportedTotals` | union across the window; a `total*` field whose key is missing here should render as "not available", never `0` |
+| `partialTotals` | supported key → platforms in the window that do **not** report it, so the total covers fewer posts than it appears to |
+| `conditionalMetrics` | supported but permission-gated (see the Facebook note below) |
+| `unmeasuredPlatforms` | platforms present that report nothing at all |
+| `metricsDisabledChannels` | channels whose metrics sync is switched off (see X below) |
+
+### Support matrix
+
+| Platform | Reports | Never reports |
+|---|---|---|
+| X | impressions, likes, comments, shares | reach, saves, clicks, video views |
+| YouTube | impressions, video views, likes, comments | reach, shares, saves, clicks |
+| Instagram | impressions, reach, likes, comments, shares, saves | clicks, video views |
+| Facebook | likes, comments, shares + impressions, reach, clicks¹ | saves, video views |
+| LinkedIn (company pages) | impressions, reach, likes, comments, shares, clicks | saves, video views |
+| TikTok | impressions, video views, likes, comments, shares | reach, saves, clicks |
+| Threads | impressions, likes, comments, shares | reach, saves, clicks, video views |
+| Pinterest | impressions, clicks, saves, likes, comments, video views | reach |
+| Bluesky | likes, comments, shares, saves (bookmarks) | impressions, reach, clicks, video views |
+| Mastodon | likes, comments, shares | everything else |
+| Google Business, Reddit, Discord, Telegram, Tumblr | *nothing* | — |
+| LinkedIn personal profiles | *nothing* | — |
+
+¹ Facebook's `impressions`, `reach` and `clicks` come from the Page Insights
+edge and require the `read_insights` permission. Without it they stay `0` even
+though the metric is listed as supported — that is "may not be readable", a
+third state distinct from both a dash and a trustworthy figure. These are the
+keys reported in `conditionalMetrics`.
+
+`engagementRate` is derived as engagements ÷ impressions, so it exists exactly
+where `impressions` does — it is permanently `0` for Bluesky and Mastodon.
+
+**LinkedIn is account-type-gated.** Share statistics are exposed only for
+**organization** pages. A personal/profile channel reports nothing, which is why
+LinkedIn can appear in both the matrix above and in `unmeasuredPlatforms`
+depending on the channel.
+
+### Two other reasons a figure is legitimately 0
+
+- **The snapshot has not run.** All figures come from a stored snapshot refreshed
+  every 6 hours (or on demand via `POST /api/analytics/refresh`) — never a live
+  read. A just-published post appears immediately with zeros.
+- **Metrics sync is switched off for the channel.** X bills every read, so its
+  per-post sync is **opt-in per channel** and runs at most once every 7 days.
+  Until it is enabled, every X figure stays `0` and `POST /api/analytics/refresh`
+  cannot change that. Affected channels are listed in `metricsDisabledChannels`.
+
 ## Character Limits
 
 Each platform enforces its own character limit on the `content` field:

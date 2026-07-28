@@ -56,7 +56,7 @@ BulkPublish is designed for programmatic social media management — no browser 
 - **AI agents** — Use with Claude (MCP server), GPT (function calling), LangChain, or any LLM that supports tool use
 - **Cron jobs & scripts** — Schedule content pipelines, RSS-to-social, blog-to-social workflows
 - **Bulk operations** — Upload a CSV, iterate, and schedule hundreds of posts programmatically
-- **Analytics extraction** — Pull engagement data into your own dashboards or AI analysis pipelines
+- **Analytics extraction** — Pull engagement data into your own dashboards or AI analysis pipelines (check `supportedMetrics` before treating a `0` as a measurement — platforms report different subsets)
 
 ## Async Support
 

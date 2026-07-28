@@ -56,7 +56,7 @@ BulkPublish is designed for programmatic social media management — no browser 
 - **AI agents** — Use with Claude (MCP server), GPT (function calling), LangChain, or any LLM with tool use
 - **Server-side scripts** — Cron jobs, CI/CD pipelines, content syndication
 - **Bulk operations** — Iterate over data and schedule hundreds of posts programmatically
-- **Analytics pipelines** — Pull engagement data into your own dashboards or AI analysis
+- **Analytics pipelines** — Pull engagement data into your own dashboards or AI analysis (check `supportedMetrics` before treating a `0` as a measurement — platforms report different subsets)
 
 ## Full TypeScript Types
 

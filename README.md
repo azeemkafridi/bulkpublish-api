@@ -218,7 +218,7 @@ More examples in [`examples/`](examples/) — including [Python automation scrip
 - **Scheduling** — Schedule posts for any future time with timezone support, or let queue slots pick optimal times
 - **Media uploads** — Images (JPEG, PNG, WebP, GIF) and videos (MP4, MOV, WebM) up to 100 MB
 - **Recurring schedules** — Repeat posts daily, weekly, biweekly, or monthly at a set time of day
-- **Analytics** — Track impressions, likes, comments, shares, and engagement across all platforms
+- **Analytics** — Track impressions, likes, comments, shares, and engagement. Each platform reports a different subset of metrics, and the response says which (`supportedMetrics` / `supportedTotals`) so a `0` is never mistaken for a measurement — see [Metrics by Platform](guides/platforms.md#metrics-by-platform)
 - **Labels** — Organize posts and media with color-coded labels
 - **Bulk operations** — Delete or retry multiple posts in a single request
 - **Threads** — Multi-part thread posts for X, Threads, Bluesky, and Mastodon
