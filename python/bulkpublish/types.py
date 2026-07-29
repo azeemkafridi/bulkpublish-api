@@ -163,9 +163,12 @@ class Channel(TypedDict, total=False):
     tokenExpiresAt: Optional[str]
     createdAt: str
     updatedAt: str
-    # Platform-level availability. A channel can be perfectly healthy while its
-    # platform is switched off server-side, in which case its scheduled posts are
-    # held (not failed) until the platform is re-enabled.
+    # Availability of THIS channel: the platform flag narrowed by any variant
+    # matching its ``accountType``. A channel can be perfectly healthy while it
+    # is switched off server-side, in which case its scheduled posts are held
+    # (not failed) until it is re-enabled. LinkedIn company pages
+    # (``accountType`` "organization") are gated separately from personal
+    # profiles, so two LinkedIn channels in one response can differ here.
     platformAvailable: bool
     platformState: str  # "on" | "connect_off" | "off"
     platformMessage: Optional[str]

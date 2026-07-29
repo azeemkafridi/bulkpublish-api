@@ -265,7 +265,7 @@
           },
           "platformAvailable": {
             "type": "boolean",
-            "description": "Whether this channel's platform can publish right now. `false` means the platform is switched off server-side — the channel itself is healthy, but its scheduled posts are being held."
+            "description": "Whether this channel can publish right now. `false` means it is switched off server-side — the channel itself is healthy, but its scheduled posts are being held.\n\nResolved for THIS channel: the `PLATFORM_<NAME>` flag narrowed by any variant flag matching its `accountType`. LinkedIn company pages (`accountType: \"organization\"`) are gated separately from personal profiles, so two LinkedIn channels in the same response can differ here."
           },
           "platformState": {
             "type": "string",
@@ -274,12 +274,12 @@
               "connect_off",
               "off"
             ],
-            "description": "Current availability of the platform, controlled by the `PLATFORM_<NAME>` environment flag on the server.\n\n- `on` — fully available.\n- `connect_off` — new channels cannot be connected, but channels already connected keep publishing normally (used while a platform app review is pending).\n- `off` — kill switch: the platform is unavailable, and posts targeting it are **held**, not failed. They publish automatically once the platform is switched back on."
+            "description": "Current availability of the platform, controlled by the `PLATFORM_<NAME>` environment flag on the server.\n\n- `on` — fully available.\n- `connect_off` — new channels cannot be connected, but channels already connected keep publishing normally (used while a platform app review is pending).\n- `off` — kill switch: the platform is unavailable, and posts targeting it are **held**, not failed. They publish automatically once the platform is switched back on.\n\nResolved for THIS channel: the `PLATFORM_<NAME>` flag narrowed by any variant flag matching its `accountType`. LinkedIn company pages (`accountType: \"organization\"`) are gated separately from personal profiles, so two LinkedIn channels in the same response can differ here."
           },
           "platformMessage": {
             "type": "string",
             "nullable": true,
-            "description": "User-facing explanation when the platform is not fully available; `null` otherwise."
+            "description": "User-facing explanation when the platform is not fully available; `null` otherwise. When a variant rather than the whole platform is what is switched off, this names the variant (e.g. \"LinkedIn Company Pages\")."
           }
         }
       },

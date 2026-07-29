@@ -254,12 +254,17 @@ export interface Channel {
   createdAt: string;
   updatedAt: string;
   /**
-   * Whether this channel's platform can publish right now. `false` means the
-   * platform is disabled server-side — the channel itself is healthy, but its
-   * scheduled posts are being held until it is re-enabled.
+   * Whether this channel can publish right now. `false` means it is disabled
+   * server-side — the channel itself is healthy, but its scheduled posts are
+   * being held until it is re-enabled.
+   *
+   * Resolved for THIS channel: the platform flag narrowed by any variant
+   * matching its `accountType`. LinkedIn company pages
+   * (`accountType: 'organization'`) are gated separately from personal
+   * profiles, so two LinkedIn channels in one response can differ here.
    */
   platformAvailable?: boolean;
-  /** Current availability of the channel's platform. */
+  /** Current availability of this channel, variant included (see `platformAvailable`). */
   platformState?: PlatformState;
   /** User-facing explanation when the platform is not fully available. */
   platformMessage?: string | null;
