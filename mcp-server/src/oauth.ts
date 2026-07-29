@@ -35,6 +35,20 @@ const BASE_URL = (
   process.env.BULKPUBLISH_BASE_URL || "https://app.bulkpublish.com"
 ).replace(/\/+$/, "");
 
+/**
+ * Our own issuer identifier, per RFC 9207.
+ *
+ * MUST be byte-identical to the `issuer` in the authorization-server metadata,
+ * because a client validating `iss` compares them as exact strings. http.ts
+ * passes `issuerUrl: new URL(PUBLIC_BASE)` to mcpAuthRouter, which serialises
+ * it via URL.href — and href appends a trailing slash to an origin-only URL
+ * ("https://mcp.bulkpublish.com" -> "https://mcp.bulkpublish.com/"). Building
+ * this the same way keeps the two in step; do NOT strip the trailing slash.
+ */
+const ISSUER = new URL(
+  (process.env.PUBLIC_BASE_URL || "https://mcp.bulkpublish.com").replace(/\/+$/, "")
+).href;
+
 const SECRET =
   process.env.OAUTH_SIGNING_SECRET || randomBytes(32).toString("hex");
 if (!process.env.OAUTH_SIGNING_SECRET) {
@@ -109,14 +123,24 @@ async function isValidApiKey(apiKey: string): Promise<boolean> {
 // --- stateless clients store (client_id IS a sealed blob) -------------------
 const clientsStore: OAuthRegisteredClientsStore = {
   async getClient(clientId) {
-    const c = open<Sealed & { redirect_uris?: string[]; client_name?: string }>(
-      clientId
-    );
+    const c = open<
+      Sealed & {
+        redirect_uris?: string[];
+        client_name?: string;
+        application_type?: string;
+      }
+    >(clientId);
     if (!c || c.t !== "client") return undefined;
     return {
       client_id: clientId,
       redirect_uris: (c.redirect_uris as string[]) ?? [],
       client_name: c.client_name as string | undefined,
+      // MCP 2026-07-28 / SEP-837: desktop and CLI clients register as "native"
+      // so an authorization server knows not to reject their localhost
+      // redirects. We accept any registered redirect_uri, so this changes no
+      // behaviour here — but it must survive a round trip rather than being
+      // silently dropped, since clients read it back from the registration.
+      application_type: c.application_type as string | undefined,
       token_endpoint_auth_method: "none",
       grant_types: ["authorization_code", "refresh_token"],
       response_types: ["code"],
@@ -130,6 +154,7 @@ const clientsStore: OAuthRegisteredClientsStore = {
         t: "client",
         redirect_uris: client.redirect_uris ?? [],
         client_name: client.client_name,
+        application_type: (client as { application_type?: string }).application_type,
       },
       CLIENT_TTL
     );
@@ -426,5 +451,11 @@ export async function handleConsent(req: Request, res: Response): Promise<void> 
   const url = new URL(redirectUri);
   url.searchParams.set("code", code);
   if (state) url.searchParams.set("state", state);
+  // RFC 9207 (MCP 2026-07-28, SEP-2468): name ourselves in the authorization
+  // response so a client holding several authorization servers cannot be
+  // tricked into redeeming our code at a different one (the "AS mix-up"
+  // attack). Clients that validate `iss` require this; clients that don't
+  // ignore the extra parameter, so it is safe to always send.
+  url.searchParams.set("iss", ISSUER);
   res.redirect(url.toString());
 }

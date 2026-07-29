@@ -236,6 +236,25 @@ app.get(
   }
 );
 
+// RFC 9207: advertise that our authorization responses carry `iss` (we always
+// set it — see handleConsent). The SDK's router builds the metadata document
+// itself and has no hook for extra fields, so augment its JSON on the way out.
+// Registered BEFORE mcpAuthRouter because Express runs matching handlers in
+// registration order.
+app.get(
+  ["/.well-known/oauth-authorization-server", "/.well-known/oauth-authorization-server/*splat"],
+  (_req: Request, res: Response, next: NextFunction) => {
+    const json = res.json.bind(res);
+    res.json = (body: unknown) => {
+      if (body && typeof body === "object" && "issuer" in body) {
+        (body as Record<string, unknown>).authorization_response_iss_parameter_supported = true;
+      }
+      return json(body);
+    };
+    next();
+  }
+);
+
 // OAuth 2.1 server: /.well-known/oauth-authorization-server, /.well-known/
 // oauth-protected-resource, /authorize, /token, /register, /revoke.
 app.use(

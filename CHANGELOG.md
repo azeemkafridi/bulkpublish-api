@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-29 — RFC 9207 issuer validation on the MCP OAuth server (MCP 1.11.0)
+
+### Added
+
+- **`iss` on every authorization response.** RFC 9207, required by the MCP 2026-07-28 spec (SEP-2468): the authorization server names itself in the redirect back to the client, so a client configured with several authorization servers cannot be tricked into redeeming our code at a different one (the "authorization server mix-up" attack). The value is byte-identical to the `issuer` in `/.well-known/oauth-authorization-server` — including its trailing slash, which `URL.href` adds to an origin-only URL — because clients compare the two as exact strings. `authorization_response_iss_parameter_supported: true` is now advertised in the authorization-server metadata so clients know to validate it.
+- **`application_type` survives Dynamic Client Registration.** SEP-837: desktop and CLI clients register as `native` so an authorization server knows not to reject their localhost redirects. It was echoed in the registration response but dropped from the sealed `client_id`, so reading the client back lost it. We accept any registered `redirect_uri`, so no request that previously worked behaves differently.
+
+### Changed
+
+- **Consent screen restyled to match `app.bulkpublish.com/login`.** It was styled from scratch — system font stack, bordered input, dark button, drop shadows, and an amber (`#d97706`) that is not our accent — so next to the app's own sign-in it read as a different product. Now uses the app's Inter/DM Sans, logo, card geometry, filled input, and accent pill button. The light-only palette is deliberate: the dark-mode block was where the off-brand amber lived, and the webapp is light-only.
+- **`@modelcontextprotocol/ext-apps` 1.7.2 → 1.7.5.**
+
+### Notes on MCP 2026-07-28
+
+The v2 SDKs (`@modelcontextprotocol/core`/`server`/`client`, all 2.0.0) implement the new spec; this server still runs `@modelcontextprotocol/sdk` 1.29.0, whose newest protocol version is `2025-11-25`. Migrating is tracked separately — it retires the `initialize` handshake and `Mcp-Session-Id`, requires `Mcp-Method`/`Mcp-Name` headers, and replaces server-initiated elicitation/sampling with Multi Round-Trip Requests. Our transport is already stateless (`sessionIdGenerator: undefined`, fresh server per request), so the architectural shift is not a rewrite. Dynamic Client Registration is now formally deprecated in favour of Client ID Metadata Documents, with a twelve-month minimum window.
+
 ## 2026-07-29 — platform variants: LinkedIn company pages gated separately (node SDK 1.7.1, python SDK 0.8.1, MCP 1.10.1)
 
 ### Added
