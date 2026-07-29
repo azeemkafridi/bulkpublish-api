@@ -156,34 +156,143 @@ export function consentPage(params: {
   const who = params.clientName
     ? `<strong>${escapeHtml(params.clientName)}</strong>`
     : "this app";
+  // Mirrors the webapp's AuthLayout + sign-in page: same fonts, tokens, card
+  // geometry and ambient gradients. Values are copied from
+  // webapp/src/styles/global.css (:root, .auth-*, .input, .label, .btn) — keep
+  // them in sync when the webapp tokens change.
   return `<!doctype html><html lang="en"><head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Connect BulkPublish</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-  :root { color-scheme: light dark; }
-  body { margin:0; font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    background:#f5f4f1; color:#1c1917; display:flex; min-height:100vh; align-items:center; justify-content:center; }
-  .card { background:#fff; max-width:420px; width:calc(100% - 40px); padding:32px; border-radius:16px;
-    box-shadow:0 1px 3px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06); }
-  h1 { font-size:20px; margin:0 0 4px; }
-  p { color:#57534e; margin:0 0 20px; font-size:14px; }
-  label { display:block; font-weight:600; font-size:13px; margin:0 0 6px; }
-  input[type=text],input[type=password] { width:100%; box-sizing:border-box; height:44px; padding:0 14px;
-    border:1px solid #e7e5e4; border-radius:10px; font-size:15px; background:#fafaf9; }
-  input:focus { outline:none; border-color:#d97706; box-shadow:0 0 0 3px rgba(217,119,6,.15); }
-  .hint { font-size:12px; color:#78716c; margin:8px 0 20px; }
-  .hint a { color:#b45309; }
-  button { width:100%; height:46px; border:none; border-radius:999px; background:#222; color:#fff;
-    font-size:15px; font-weight:600; cursor:pointer; transition:background .15s ease,transform .15s ease,box-shadow .15s ease; }
-  button:hover { background:#3d3830; transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,.22); }
-  button:active { transform:translateY(0); }
-  .err { background:#fef2f2; color:#b91c1c; padding:10px 12px; border-radius:10px; font-size:13px; margin:0 0 16px; }
-  @media (prefers-color-scheme: dark){ body{background:#1c1917;color:#fafaf9} .card{background:#292524;box-shadow:none}
-    input[type=text],input[type=password]{background:#1c1917;border-color:#44403c;color:#fafaf9} button{background:#d97706;color:#1c1917} button:hover{background:#ff9a36;box-shadow:0 6px 18px rgba(217,119,6,.4)} }
+  :root {
+    color-scheme: light;
+    --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+    --stone-100: #F5F5F4;
+    --stone-400: #A8A29E;
+    --stone-500: #78716C;
+    --stone-700: #3D3830;
+    --stone-800: #222222;
+    --stone-900: #1A1A1A;
+    --accent-50: #FFF4E6;
+    --accent-500: #FA8112;
+    --accent-600: #E06D00;
+    --card-yellow: #FEF3C7;
+    --color-error-bg: #FEF7F7;
+    --surface-main: #FFFFFF;
+    --radius-md: 8px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --radius-pill: 999px;
+    --transition-base: 180ms ease;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--stone-800);
+    background: var(--stone-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px 16px;
+    position: relative;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before, body::after { content: ''; position: absolute; pointer-events: none; }
+  body::before {
+    top: -40%; right: -20%; width: 60vw; height: 60vw;
+    background: radial-gradient(circle, var(--accent-50) 0%, transparent 70%);
+  }
+  body::after {
+    bottom: -30%; left: -15%; width: 50vw; height: 50vw; opacity: .3;
+    background: radial-gradient(circle, var(--card-yellow) 0%, transparent 70%);
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    background: var(--surface-main);
+    border-radius: var(--radius-2xl);
+    padding: 48px 40px;
+    animation: authFadeIn 600ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+  @keyframes authFadeIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .logo { display: block; margin-bottom: 36px; }
+  h1 {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--stone-900);
+    margin: 0 0 8px;
+  }
+  .sub { font-size: 0.8125rem; color: var(--stone-500); margin: 0 0 32px; }
+  label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--stone-700);
+    margin-bottom: 6px;
+  }
+  input[type=text], input[type=password] {
+    width: 100%;
+    height: 42px;
+    padding: 0 16px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    color: var(--stone-800);
+    background: var(--stone-100);
+    border: none;
+    border-radius: var(--radius-xl);
+    transition: box-shadow var(--transition-base);
+  }
+  input::placeholder { color: var(--stone-400); }
+  input:focus { outline: none; box-shadow: 0 0 0 3px var(--accent-50); }
+  .hint { font-size: 0.8125rem; color: var(--stone-500); margin: 10px 0 24px; }
+  .hint a { color: var(--accent-500); text-decoration: underline; }
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 46px;
+    padding: 0 28px;
+    border: none;
+    border-radius: var(--radius-pill);
+    font-family: inherit;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    background: var(--accent-500);
+    color: #fff;
+    cursor: pointer;
+    transition: all var(--transition-base);
+  }
+  button:hover { background: var(--accent-600); transform: translateY(-1px); }
+  button:active { transform: translateY(0); }
+  .err {
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    background: var(--color-error-bg);
+    color: #991B1B;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    margin: 0 0 16px;
+  }
 </style></head><body>
 <form class="card" method="POST" action="/oauth/consent">
+  <a class="logo" href="https://www.bulkpublish.com" target="_blank" rel="noopener"><img src="${BASE_URL}/assets/logo.svg" alt="BulkPublish" width="36" height="22" style="display:block;" /></a>
   <h1>Connect BulkPublish</h1>
-  <p>${who} wants to manage your social posts, channels, media, and analytics through BulkPublish.</p>
+  <p class="sub">${who} wants to manage your social posts, channels, media, and analytics through BulkPublish.</p>
   ${params.error ? `<div class="err">${escapeHtml(params.error)}</div>` : ""}
   <label for="apiKey">Your BulkPublish API key</label>
   <input id="apiKey" name="apiKey" type="password" placeholder="bp_..." autocomplete="off" autofocus required />
