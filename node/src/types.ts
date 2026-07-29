@@ -819,8 +819,16 @@ export interface AccountMetricsDataPoint {
   following: number | null;
   impressions: number | null;
   reach: number | null;
+  /** Facebook only (`page_views_total`); null/0 elsewhere — not measured. */
   profileViews: number | null;
+  /** Google Business only; null/0 elsewhere — not measured. */
   websiteClicks: number | null;
+  /**
+   * ALWAYS null. No platform handler computes an account-level engagement rate,
+   * so the server returns null rather than a 0 that would look like a measured
+   * 0%. For a real rate use `platformMetrics[].engagementRate` from
+   * `analytics.engagement()`.
+   */
   engagementRate: number | null;
 }
 

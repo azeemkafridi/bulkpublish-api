@@ -313,7 +313,10 @@ class AccountMetrics(TypedDict, total=False):
     followers: int
     following: int
     totalPosts: int
-    engagementRate: float
+    #: Always ``None`` — no platform handler computes an account-level rate, so
+    #: the server returns null rather than a 0 that would look measured. Use the
+    #: per-post ``engagementRate`` from ``analytics.engagement()`` instead.
+    engagementRate: Optional[float]
 
 
 # ---------------------------------------------------------------------------

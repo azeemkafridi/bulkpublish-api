@@ -3436,7 +3436,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Account metrics with channel list",
+            "description": "Account metrics with channel list.\n\n`engagementRate` on each row is ALWAYS `null`: no platform handler computes an account-level engagement rate (the `getAccountAnalytics` contract has no such field), so the stored column is its default 0 for every row. It is returned as null rather than 0 so it cannot be mistaken for a measured 0%. For a real rate, use the per-post `engagementRate` inside `platformMetrics[]` on `GET /api/analytics/engagement`.\n\n`websiteClicks` is populated by Google Business only; `profileViews` by Facebook only (`page_views_total`). Both are 0 for every other platform because no other handler reports them — not because the value was measured as zero.",
             "content": {
               "application/json": {
                 "schema": {

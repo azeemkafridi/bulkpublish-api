@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-07-29 — analytics accuracy: engagementRate semantics (node SDK 1.7.2, python SDK 0.8.2)
+
+### Fixed
+
+- **`avgEngagementRate` on `GET /api/analytics/engagement` was averaged over only the posts with non-zero engagement.** The server stores `engagement_rate` as engagements ÷ impressions and writes 0 when impressions is 0, so filtering on `rate > 0` dropped every post that genuinely got no engagement — 66% of measurable rows in production — and reported a mean over only the posts that performed. It is now averaged over every row with `impressions > 0`, which is exactly when the stored rate is meaningful. Expect this number to go DOWN, and to be correct.
+- **`engagementRate` on `GET /api/analytics/account` is now `null`, never `0`.** No platform handler computes an account-level engagement rate — the internal `getAccountAnalytics` contract has no such field — so the column was its default 0 on every row and was indistinguishable from a measured 0%. Both SDKs already typed it as nullable, so this is not a breaking change. For a real rate use `platformMetrics[].engagementRate` from the engagement endpoint.
+
+### Documented
+
+- **`platformMetrics[].engagementRate` vs the post-level `engagementRate`** on the engagement response are different numbers: the post-level value is the mean over the post's channels that were measurable, the per-channel value is that one channel's own rate. Rendering the post-level average beside a single channel's counters shows one network's percentage next to another network's zeros.
+- **`profileViews` is Facebook-only** (`page_views_total`) and **`websiteClicks` is Google-Business-only**. A 0 on any other platform means "not reported", not "measured zero".
+
 ## 2026-07-29 — RFC 9207 issuer validation on the MCP OAuth server (MCP 1.11.0)
 
 ### Added
