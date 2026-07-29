@@ -36,6 +36,12 @@ export class PlatformsResource {
    * `connect_off` cannot accept new channel connections, but channels already
    * connected keep publishing normally.
    *
+   * A platform may also expose `variants` — sub-platforms gated separately
+   * because the vendor reviews them as a separate app. LinkedIn reports
+   * `variants.organization` for company pages; the platform-level state
+   * describes personal profiles. Check the variant before offering a
+   * company-page connect.
+   *
    * @returns List of platforms and their availability.
    *
    * @example

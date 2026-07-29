@@ -63,6 +63,36 @@ export interface PlatformAvailability {
   message: string | null;
   /** Server env var controlling this platform. Only returned to org owners/admins. */
   envVar?: string;
+  /**
+   * Sub-platforms gated independently of their parent, keyed by the channel
+   * `accountType` they cover. Present only for platforms that have one — today
+   * `linkedin.organization` (company pages), which run on a separate LinkedIn
+   * app reviewed separately from personal profiles, so pages can be paused
+   * while personal-profile posting stays live.
+   *
+   * A variant is never more permissive than its parent: a platform in state
+   * `off` means every variant is off too. When a variant blocks a write, the
+   * 403 `PLATFORM_DISABLED` error carries an `accountType` naming it.
+   */
+  variants?: Record<string, PlatformVariantAvailability>;
+}
+
+/** Availability of one sub-platform variant (e.g. LinkedIn company pages). */
+export interface PlatformVariantAvailability {
+  /** User-facing name, e.g. "LinkedIn Company Pages". */
+  label: string;
+  /** Convenience flag; equivalent to `state === 'on'`. */
+  enabled: boolean;
+  state: PlatformState;
+  reason: PlatformStateReason;
+  /** Whether a NEW channel of this account type can be connected right now. */
+  canConnect: boolean;
+  /** Whether already-connected channels of this account type can publish right now. */
+  canPublish: boolean;
+  /** User-facing explanation. `null` when the variant is fully enabled. */
+  message: string | null;
+  /** Server env var controlling this variant. Only returned to org owners/admins. */
+  envVar?: string;
 }
 
 /** Response from listing platforms. */

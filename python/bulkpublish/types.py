@@ -200,6 +200,30 @@ class PlatformAvailability(TypedDict, total=False):
     canPublish: bool
     message: Optional[str]
     envVar: str  # only returned to organization owners/admins
+    # Sub-platforms gated independently of their parent, keyed by the channel
+    # ``accountType`` they cover. Present only for platforms that have one —
+    # today ``linkedin.organization`` (company pages), which run on a separate
+    # LinkedIn app reviewed separately from personal profiles. A variant is
+    # never more permissive than its parent. When a variant blocks a write, the
+    # 403 ``PLATFORM_DISABLED`` error carries an ``accountType`` naming it.
+    variants: Dict[str, "PlatformVariantAvailability"]
+
+
+class PlatformVariantAvailability(TypedDict, total=False):
+    """Availability of one sub-platform variant (e.g. LinkedIn company pages).
+
+    ``state``/``reason`` carry the same meanings as on
+    :class:`PlatformAvailability`, resolved for this variant alone.
+    """
+
+    label: str
+    enabled: bool
+    state: str
+    reason: str
+    canConnect: bool
+    canPublish: bool
+    message: Optional[str]
+    envVar: str  # only returned to organization owners/admins
 
 
 class ChannelHealth(TypedDict, total=False):

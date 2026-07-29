@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-29 — platform variants: LinkedIn company pages gated separately (node SDK 1.7.1, python SDK 0.8.1, MCP 1.10.1)
+
+### Added
+
+- **`variants` on `GET /api/platforms` entries** — sub-platforms gated independently of their parent, keyed by the channel `accountType` they cover. Today the only one is `linkedin.organization` (company pages): LinkedIn requires the Community Management API that company pages use to be the *only* product on its application, so pages live in a separate LinkedIn app with its own review and can be paused while personal-profile posting is fully live. The platform-level state describes personal profiles — check `variants.organization` before offering a company-page connect. Each variant carries `label`, `enabled`, `state`, `reason`, `canConnect`, `canPublish`, `message`, and (owners/admins only) `envVar`. A variant is never more permissive than its parent: a platform in state `off` means every variant is off too.
+- **`accountType` on `PLATFORM_DISABLED` errors** from post create, bulk create and publish-now, naming the variant that is unavailable when a variant — rather than the whole platform — is what blocks the write. Absent when the platform itself is off.
+
+### Fixed
+
+- **Python package version was reported two ways.** `pyproject.toml` said 0.8.0 while `bulkpublish.__version__` still said 0.7.1. Both now read 0.8.1.
+
 ## 2026-07-28 — per-metric support on analytics responses (node SDK 1.7.0, python SDK 0.8.0, MCP 1.10.0)
 
 ### Added

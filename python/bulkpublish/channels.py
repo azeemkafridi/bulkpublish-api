@@ -66,6 +66,11 @@ class ChannelsResource:
         Disabled platforms are still included, with ``enabled`` False and a
         ``reason``.
 
+        A platform may also carry ``variants`` — sub-platforms gated separately
+        because the vendor reviews them as a separate app. LinkedIn reports
+        ``variants["organization"]`` for company pages; the platform-level state
+        describes personal profiles.
+
         Returns:
             List of platform availability objects.
 

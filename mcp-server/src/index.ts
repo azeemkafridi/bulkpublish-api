@@ -471,7 +471,12 @@ server.tool(
     "a platform in state 'off' rejects post creation with a 403 PLATFORM_DISABLED error and holds " +
     "any already-scheduled posts until it is re-enabled, and one in state 'connect_off' cannot accept " +
     "new connections although existing channels keep publishing. Disabled platforms are still listed, " +
-    "with enabled=false and a reason.",
+    "with enabled=false and a reason. A platform may also carry a 'variants' object keyed by channel " +
+    "accountType for sub-platforms gated on their own: LinkedIn reports variants.organization for " +
+    "company pages (a separate LinkedIn app with its own review), while the platform-level state " +
+    "covers personal profiles — so pages can be paused while personal-profile posting is live. " +
+    "A variant is never more permissive than its parent, and when a variant blocks a write the 403 " +
+    "PLATFORM_DISABLED error carries an accountType field naming it.",
   {},
   async () => {
     const res = await api("GET", "/api/platforms");

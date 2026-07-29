@@ -714,6 +714,59 @@
             "type": "string",
             "description": "The server env var controlling this platform. Only returned to organization owners and admins.",
             "example": "PLATFORM_LINKEDIN"
+          },
+          "variants": {
+            "type": "object",
+            "description": "Sub-platforms gated independently of their parent, keyed by the channel `accountType` they cover. Present only for platforms that have one. Today: `linkedin.organization` — LinkedIn company pages, which run on a separate LinkedIn app (Community Management API) reviewed separately from personal profiles, so pages can be paused while personal-profile posting stays fully live. A variant is never more permissive than its parent: `state: \"off\"` on the platform means every variant is off too.",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "example": "LinkedIn Company Pages"
+                },
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Convenience flag; equivalent to `state == \"on\"`."
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "on",
+                    "connect_off",
+                    "off"
+                  ],
+                  "description": "Same semantics as the platform-level `state`, resolved for this variant."
+                },
+                "reason": {
+                  "type": "string",
+                  "enum": [
+                    "enabled",
+                    "flag_connect_off",
+                    "flag_off",
+                    "unconfigured"
+                  ]
+                },
+                "canConnect": {
+                  "type": "boolean",
+                  "description": "Whether a NEW channel of this account type can be connected right now."
+                },
+                "canPublish": {
+                  "type": "boolean",
+                  "description": "Whether already-connected channels of this account type can publish right now."
+                },
+                "message": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "User-facing explanation. `null` when the variant is fully enabled."
+                },
+                "envVar": {
+                  "type": "string",
+                  "description": "The server env var controlling this variant. Only returned to organization owners and admins.",
+                  "example": "PLATFORM_LINKEDIN_PAGES"
+                }
+              }
+            }
           }
         }
       }
@@ -970,7 +1023,7 @@
           "Posts"
         ],
         "summary": "Create post",
-        "description": "Create a new post as draft or scheduled. Validates character limits per platform, media ownership, channel ownership, and plan quotas.\n\n**Character limits:** X: 280, Bluesky: 300, Threads: 500, Mastodon: 500, Pinterest: 500, GMB: 1500, Instagram: 2200, TikTok: 2200, LinkedIn: 3000, YouTube: 5000, Facebook: 63206. On X and Mastodon every URL counts as a flat 23 characters (t.co wrapping / Mastodon link counting), regardless of its real length.\n\n**Link cards:** for a text-only post (no media) containing a URL, the first URL is unfurled at publish time. Facebook receives it as the `link` param, Bluesky as an external embed (with thumbnail), and LinkedIn as a `content.article` card (LinkedIn's API never scrapes URLs itself; if the page yields no title, the post publishes as plain text without a card). Other platforms unfurl the URL themselves or render it as plain text (links in Instagram/TikTok captions are not clickable).\n\nReturns **403** with `code: \"PLATFORM_DISABLED\"` when a target channel's platform has been switched off server-side (`PLATFORM_<NAME>=off`). This is distinct from `FEATURE_DISABLED`, which means the platform is not on the organization's plan. Check `GET /api/platforms` for current availability.",
+        "description": "Create a new post as draft or scheduled. Validates character limits per platform, media ownership, channel ownership, and plan quotas.\n\n**Character limits:** X: 280, Bluesky: 300, Threads: 500, Mastodon: 500, Pinterest: 500, GMB: 1500, Instagram: 2200, TikTok: 2200, LinkedIn: 3000, YouTube: 5000, Facebook: 63206. On X and Mastodon every URL counts as a flat 23 characters (t.co wrapping / Mastodon link counting), regardless of its real length.\n\n**Link cards:** for a text-only post (no media) containing a URL, the first URL is unfurled at publish time. Facebook receives it as the `link` param, Bluesky as an external embed (with thumbnail), and LinkedIn as a `content.article` card (LinkedIn's API never scrapes URLs itself; if the page yields no title, the post publishes as plain text without a card). Other platforms unfurl the URL themselves or render it as plain text (links in Instagram/TikTok captions are not clickable).\n\nReturns **403** with `code: \"PLATFORM_DISABLED\"` when a target channel's platform has been switched off server-side (`PLATFORM_<NAME>=off`). This is distinct from `FEATURE_DISABLED`, which means the platform is not on the organization's plan. Check `GET /api/platforms` for current availability. A channel's *variant* can be off on its own — LinkedIn company pages are gated separately from personal profiles — in which case the error also carries `accountType` (e.g. `\"organization\"`) naming the variant that is unavailable.",
         "requestBody": {
           "required": true,
           "content": {
@@ -1541,7 +1594,7 @@
             }
           }
         },
-        "description": "Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). Publishing a pending/rejected post as an approver implicitly approves it.\n\nReturns **403** with `code: \"PLATFORM_DISABLED\"` when one of the post's platforms has been switched off server-side (`PLATFORM_<NAME>=off`); the post is left untouched. Check `GET /api/platforms` for current availability."
+        "description": "Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). Publishing a pending/rejected post as an approver implicitly approves it.\n\nReturns **403** with `code: \"PLATFORM_DISABLED\"` when one of the post's platforms has been switched off server-side (`PLATFORM_<NAME>=off`); the post is left untouched. Check `GET /api/platforms` for current availability. A channel's *variant* can be off on its own — LinkedIn company pages are gated separately from personal profiles — in which case the error also carries `accountType` (e.g. `\"organization\"`) naming the variant that is unavailable."
       }
     },
     "/api/posts/{id}/retry": {
@@ -4566,7 +4619,7 @@
           "Channels"
         ],
         "summary": "List platforms and their availability",
-        "description": "Returns every social platform BulkPublish supports, together with its current availability. Use this to render an accurate \"temporarily unavailable\" or \"connections paused\" state rather than assuming every platform can be connected or published to.\n\nPlatforms that are switched off are still listed, with `enabled: false` and a `reason`. `envVar` is only included for organization owners and admins.",
+        "description": "Returns every social platform BulkPublish supports, together with its current availability. Use this to render an accurate \"temporarily unavailable\" or \"connections paused\" state rather than assuming every platform can be connected or published to.\n\nPlatforms that are switched off are still listed, with `enabled: false` and a `reason`. `envVar` is only included for organization owners and admins.\n\nA platform may also expose `variants` — sub-platforms gated separately because the vendor reviews them as a separate app. LinkedIn reports `variants.organization` for company pages; personal-profile availability is the platform-level state.",
         "responses": {
           "200": {
             "description": "Platform list",

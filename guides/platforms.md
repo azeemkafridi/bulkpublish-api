@@ -56,6 +56,55 @@ Posts already scheduled when a platform goes `off` need no intervention — do n
 delete and recreate them. They remain scheduled and publish on their own once
 the platform returns.
 
+### Variants (sub-platforms gated on their own)
+
+Some platforms are two integrations under one name, approved separately by the
+vendor. Those report a `variants` object keyed by the channel `accountType` it
+covers, with the same fields as the platform itself:
+
+```json
+{
+  "platform": "linkedin",
+  "state": "on",
+  "canConnect": true,
+  "canPublish": true,
+  "variants": {
+    "organization": {
+      "label": "LinkedIn Company Pages",
+      "enabled": false,
+      "state": "connect_off",
+      "reason": "flag_connect_off",
+      "canConnect": false,
+      "canPublish": true,
+      "message": "New LinkedIn Company Pages connections are paused. Pages you've already connected keep working."
+    }
+  }
+}
+```
+
+Today the only variant is `linkedin.organization` — company pages run on a
+separate LinkedIn app (Community Management API) with its own review, so pages
+can be paused while personal-profile posting is fully live. The platform-level
+state describes personal profiles; check the variant before offering a
+company-page connect.
+
+A variant is never more permissive than its parent: a platform in state `off`
+means every variant is off too. When a variant is what blocks a write, the 403
+`PLATFORM_DISABLED` error carries an extra `accountType` field naming it:
+
+```json
+{
+  "error": {
+    "message": "LinkedIn Company Pages are temporarily unavailable. Scheduled posts are on hold and will publish once they're back.",
+    "code": "PLATFORM_DISABLED",
+    "platform": "linkedin",
+    "accountType": "organization",
+    "state": "off",
+    "reason": "flag_off"
+  }
+}
+```
+
 
 ## Post Types by Platform
 
@@ -537,6 +586,11 @@ A connected LinkedIn channel is one of two `accountType` values, returned by `GE
 - Connect personal profiles and company pages in the dashboard (each is a one-time
   LinkedIn authorization). Once connected they behave identically — list them with
   `GET /api/channels` and post to them by `channelId` like any other channel.
+- The two run on **separate LinkedIn apps** (LinkedIn requires the Community
+  Management API used by company pages to be the only product on its
+  application), so they are gated separately: `GET /api/platforms` reports
+  company pages under `variants.organization` while the platform-level state
+  covers personal profiles. See [Variants](#variants-sub-platforms-gated-on-their-own).
 
 ---
 
