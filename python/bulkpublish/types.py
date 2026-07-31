@@ -69,6 +69,11 @@ class Post(TypedDict, total=False):
     scheduled and overdue; approving releases them (an overdue post publishes
     immediately on approval). ``approvedBy``/``approvedAt`` are set when
     approved; ``rejectionReason`` when rejected.
+
+    ``linkTrackingOverride`` is the per-post override for link tracking
+    (bulkpubli.sh): ``True`` forces links in this post to be shortened and
+    their clicks counted, ``False`` forces them to publish as written, and
+    ``None`` (the default) inherits the organization's Link Tracking setting.
     """
 
     id: int
@@ -91,6 +96,7 @@ class Post(TypedDict, total=False):
     autoRepostEnabled: bool
     autoRepostThreshold: int
     autoRepostFired: bool
+    linkTrackingOverride: Optional[bool]
     approvalStatus: str
     approvedBy: Optional[str]
     approvedAt: Optional[str]
@@ -245,8 +251,14 @@ class ChannelHealth(TypedDict, total=False):
 class MediaFile(TypedDict, total=False):
     """An uploaded media file.
 
-    ``width``/``height``/``duration``/``thumbnailUrl``/``previewUrl`` can be
-    ``None`` (e.g. before async processing finishes).
+    ``width``/``height``/``duration``/``thumbnailUrl``/``previewUrl``/
+    ``largeUrl`` can be ``None`` (e.g. before async processing finishes).
+
+    The three derivative URLs are webp renditions — ``thumbnailUrl`` a 160x160
+    square crop, ``previewUrl`` 400px wide for grids, ``largeUrl`` 1200px wide
+    for lightboxes and large preview panes. For videos they are generated from
+    an extracted poster frame. ``largeUrl`` is ``None`` on media uploaded
+    before that derivative existed, until the backfill runs.
     """
 
     id: int
@@ -256,6 +268,7 @@ class MediaFile(TypedDict, total=False):
     originalUrl: str
     thumbnailUrl: Optional[str]
     previewUrl: Optional[str]
+    largeUrl: Optional[str]
     width: Optional[int]
     height: Optional[int]
     duration: Optional[float]

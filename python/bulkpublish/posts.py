@@ -151,6 +151,7 @@ class PostsResource:
         thread_parts: Optional[List[Dict[str, Any]]] = None,
         post_type_overrides: Optional[Dict[str, str]] = None,
         request_approval: Optional[bool] = None,
+        link_tracking_override: Optional[bool] = None,
     ) -> Post:
         """Create a new post.
 
@@ -195,6 +196,17 @@ class PostsResource:
                 approval (``approvalStatus`` becomes ``"pending"``; default
                 ``False``). Forced on server-side for roles without
                 post:publish (contributors), regardless of this flag.
+
+            link_tracking_override: Per-post override for link tracking
+                (bulkpubli.sh). ``True`` forces links in this post to be
+                shortened and their clicks counted, ``False`` forces them to
+                publish as written, and ``None`` (the default) inherits the
+                organization's Link Tracking setting. Shortening happens at
+                publish time, per channel, so two accounts on the same platform
+                get distinct codes; it is skipped for a channel when the
+                rewrite would push the post past that platform's character
+                limit (a short URL is 28 characters and can be longer than the
+                link it replaces).
 
         Returns:
             The newly created post object.
@@ -255,6 +267,8 @@ class PostsResource:
             body["postTypeOverrides"] = post_type_overrides
         if request_approval is not None:
             body["requestApproval"] = request_approval
+        if link_tracking_override is not None:
+            body["linkTrackingOverride"] = link_tracking_override
         return self._client._request("POST", "/api/posts", json=body)
 
     # -- Update ---------------------------------------------------------------
@@ -277,6 +291,14 @@ class PostsResource:
                 value is rejected.  Omit ``status`` to leave it unchanged
                 (failed/partial posts still auto-reset to draft on edit).  To
                 publish immediately, use :meth:`publish` instead.
+
+        Note:
+            Fields passed as ``None`` are dropped, not sent as JSON ``null``.
+            So a nullable field cannot be *cleared* through this method —
+            ``update(post_id, link_tracking_override=None)`` leaves the
+            existing override in place rather than reverting the post to the
+            organization default. Pass an explicit ``True``/``False``, or use
+            the REST endpoint directly to send ``null``.
 
         Returns:
             The updated post object.
@@ -618,6 +640,7 @@ _SNAKE_TO_CAMEL = {
     "post_ids": "postIds",
     "request_approval": "requestApproval",
     "approval_status": "approvalStatus",
+    "link_tracking_override": "linkTrackingOverride",
 }
 
 

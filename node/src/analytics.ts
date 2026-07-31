@@ -22,6 +22,13 @@ export interface EngagementParams {
    * comes back empty.
    */
   top?: '1';
+  /**
+   * Sort field for `allPosts`. `linkClicks` sorts by bulkpubli.sh short-link
+   * click count. Default: `'date'`.
+   */
+  sort?: 'date' | 'impressions' | 'likes' | 'comments' | 'shares' | 'linkClicks';
+  /** Sort direction for `allPosts`. Default: `'desc'`. */
+  order?: 'asc' | 'desc';
 }
 
 export interface AccountMetricsParams {

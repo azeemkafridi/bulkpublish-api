@@ -219,6 +219,7 @@ More examples in [`examples/`](examples/) — including [Python automation scrip
 - **Media uploads** — Images (JPEG, PNG, WebP, GIF) and videos (MP4, MOV, WebM) up to 100 MB
 - **Recurring schedules** — Repeat posts daily, weekly, biweekly, or monthly at a set time of day
 - **Analytics** — Track impressions, likes, comments, shares, and engagement. Each platform reports a different subset of metrics, and the response says which (`supportedMetrics` / `supportedTotals`) so a `0` is never mistaken for a measurement — see [Metrics by Platform](guides/platforms.md#metrics-by-platform)
+- **Link tracking** — Opt in per organization, or per post via `linkTrackingOverride`, to rewrite links through `bulkpubli.sh` and count the clicks. Reported as `linkClicks` / `totalLinkClicks` and measured by BulkPublish rather than the platform, so it works even where the platform reports nothing — see [Character Limits](guides/platforms.md#character-limits)
 - **Labels** — Organize posts and media with color-coded labels
 - **Bulk operations** — Delete or retry multiple posts in a single request
 - **Threads** — Multi-part thread posts for X, Threads, Bluesky, and Mastodon

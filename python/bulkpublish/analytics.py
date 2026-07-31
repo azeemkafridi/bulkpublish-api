@@ -75,6 +75,8 @@ class AnalyticsResource:
         channel_id: Optional[str] = None,
         group_by: Optional[str] = None,
         top: Optional[bool] = None,
+        sort: Optional[str] = None,
+        order: Optional[str] = None,
     ) -> List[EngagementDataPoint]:
         """Get engagement time-series data.
 
@@ -87,6 +89,12 @@ class AnalyticsResource:
                 silently returned daily data. Aggregate client-side.
             top: Return only the ranked ``topPosts`` leaderboard; ``allPosts``
                 comes back empty.
+            sort: Sort field for ``allPosts`` — one of ``"date"``,
+                ``"impressions"``, ``"likes"``, ``"comments"``, ``"shares"`` or
+                ``"linkClicks"`` (bulkpubli.sh short-link click count).
+                Defaults to ``"date"``.
+            order: Sort direction for ``allPosts`` — ``"asc"`` or ``"desc"``.
+                Defaults to ``"desc"``.
 
         Note:
             Figures come from the stored metrics snapshot, synced every 6 hours
@@ -117,8 +125,16 @@ class AnalyticsResource:
 
         Returns:
             List of data points, each with ``date``, ``impressions``,
-            ``engagements``, ``clicks``, ``likes``, ``comments``, and
-            ``shares``.
+            ``engagements``, ``clicks``, ``likes``, ``comments``, ``shares``
+            and ``linkClicks``.
+
+            ``linkClicks`` (and the window-level ``totalLinkClicks``) counts
+            clicks on bulkpubli.sh short links, measured by BulkPublish rather
+            than reported by the platform. It is deliberately NOT folded into
+            ``clicks``/``totalClicks`` — one visit can register in both, so
+            adding them double-counts. Bot and link-preview traffic is
+            excluded, and it is 0 for organizations without Link Tracking
+            enabled.
 
         Example::
 
@@ -140,6 +156,10 @@ class AnalyticsResource:
             params["groupBy"] = group_by
         if top:
             params["top"] = "1"
+        if sort is not None:
+            params["sort"] = sort
+        if order is not None:
+            params["order"] = order
         return self._client._request("GET", "/api/analytics/engagement", params=params)
 
     def refresh(self) -> Dict[str, Any]:
@@ -222,6 +242,8 @@ class AsyncAnalyticsResource:
         channel_id: Optional[str] = None,
         group_by: Optional[str] = None,
         top: Optional[bool] = None,
+        sort: Optional[str] = None,
+        order: Optional[str] = None,
     ) -> List[EngagementDataPoint]:
         """Get engagement data — see :meth:`AnalyticsResource.engagement`."""
         params: Dict[str, Any] = {}
@@ -235,6 +257,10 @@ class AsyncAnalyticsResource:
             params["groupBy"] = group_by
         if top:
             params["top"] = "1"
+        if sort is not None:
+            params["sort"] = sort
+        if order is not None:
+            params["order"] = order
         return await self._client._request("GET", "/api/analytics/engagement", params=params)
 
     async def refresh(self) -> Dict[str, Any]:

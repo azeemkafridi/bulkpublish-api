@@ -656,6 +656,13 @@ server.tool(
       .describe(
         "Optional (default false). Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for API keys of roles without post:publish (contributors), regardless of this flag."
       ),
+    linkTrackingOverride: z
+      .boolean()
+      .nullable()
+      .optional()
+      .describe(
+        "Optional per-post override for link tracking (bulkpubli.sh). true forces links in this post to be shortened and their clicks counted, false forces them to publish as written, and null/omitted (the default) inherits the organization's Link Tracking setting. Shortening happens at publish time, per channel, so two accounts on the same platform get distinct codes; it is skipped for a channel when the rewrite would push the post past that platform's character limit (a short URL is 28 characters and can be longer than the link it replaces)."
+      ),
   },
   async ({
     content,
@@ -671,6 +678,7 @@ server.tool(
     threadParts,
     postTypeOverrides,
     requestApproval,
+    linkTrackingOverride,
   }) => {
     // Validate platform requirements before creating
     if (mediaFileIds && mediaFileIds.length > 0) {
@@ -731,6 +739,8 @@ server.tool(
     if (threadParts) body.threadParts = threadParts;
     if (postTypeOverrides) body.postTypeOverrides = postTypeOverrides;
     if (requestApproval !== undefined) body.requestApproval = requestApproval;
+    if (linkTrackingOverride !== undefined)
+      body.linkTrackingOverride = linkTrackingOverride;
 
     const res = await api("POST", "/api/posts", body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -1163,6 +1173,13 @@ server.tool(
       .describe(
         "Optional (default false). Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for API keys of roles without post:publish (contributors), regardless of this flag."
       ),
+    linkTrackingOverride: z
+      .boolean()
+      .nullable()
+      .optional()
+      .describe(
+        "Optional per-post override for link tracking (bulkpubli.sh). true forces links in this post to be shortened and their clicks counted, false forces them to publish as written, and null clears the override so the post inherits the organization's Link Tracking setting again. Omit to leave it unchanged."
+      ),
   },
   async ({
     postId,
@@ -1175,6 +1192,7 @@ server.tool(
     postTypeOverrides,
     platformSpecific,
     requestApproval,
+    linkTrackingOverride,
   }) => {
     const body: Record<string, unknown> = {};
     if (content !== undefined) body.content = content;
@@ -1186,6 +1204,8 @@ server.tool(
     if (postTypeOverrides !== undefined) body.postTypeOverrides = postTypeOverrides;
     if (platformSpecific !== undefined) body.platformSpecific = platformSpecific;
     if (requestApproval !== undefined) body.requestApproval = requestApproval;
+    if (linkTrackingOverride !== undefined)
+      body.linkTrackingOverride = linkTrackingOverride;
 
     const res = await api("PUT", `/api/posts/${postId}`, body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -1214,7 +1234,7 @@ server.tool(
 
 server.tool(
   "get_post_metrics",
-  "Get engagement metrics for a published post. Returns likes, comments, shares, impressions, and other platform-specific metrics. IMPORTANT: every platform entry carries `metricsSupported` and `supportedMetrics` — a metric key NOT in `supportedMetrics` is stored as 0 because that platform's API has no such field, so report it as unavailable rather than as zero. X reports impressions/likes/comments/shares only; Bluesky and Mastodon report no impressions; Pinterest reports no reach; YouTube reports no shares or reach; Google Business, Reddit, Discord, Telegram, Tumblr and LinkedIn personal profiles report nothing at all.",
+  "Get engagement metrics for a published post. Returns likes, comments, shares, impressions, and other platform-specific metrics. IMPORTANT: every platform entry carries `metricsSupported` and `supportedMetrics` — a metric key NOT in `supportedMetrics` is stored as 0 because that platform's API has no such field, so report it as unavailable rather than as zero. X reports impressions/likes/comments/shares only; Bluesky and Mastodon report no impressions; Pinterest reports no reach; YouTube reports no shares or reach; Google Business, Reddit, Discord, Telegram, Tumblr and LinkedIn personal profiles report nothing at all. Each platform entry also carries `linkClicks` (summed in `totals.linkClicks`): clicks on bulkpubli.sh short links in this post, measured by BulkPublish rather than reported by the platform. It sits OUTSIDE `latest` and is distinct from the platform's own `clicks` — one visit can register in both, so never add them together. It is therefore available even for the platforms that report nothing, and `supportedMetrics` always includes it. Bot and link-preview traffic is excluded; it is 0 for organizations without Link Tracking enabled.",
   {
     postId: z.number().describe("The post ID to get metrics for."),
   },

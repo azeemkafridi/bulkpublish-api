@@ -769,3 +769,11 @@ Each platform enforces its own character limit on the `content` field:
 | Tumblr | 32,768 |
 
 BulkPublish validates content length per platform before creating the post and returns an error if any platform's limit is exceeded.
+
+### Link tracking and the limit
+
+When link tracking is on — the organization setting, or `linkTrackingOverride` on the post — links are rewritten to `bulkpubli.sh` short URLs **at publish time**, per channel. Two accounts on the same platform get distinct codes, so their clicks are counted separately.
+
+A short URL is 28 characters, which can be **longer** than the link it replaces. Because validation runs on the rewritten text, shortening is skipped for any channel where the rewrite would push the post past that platform's limit: a post composed at 295/300 for Bluesky publishes with its original links rather than failing at 308. The post still goes out — only the tracking is dropped for that channel, and no short link is minted for it, so `linkClicks` stays 0 there.
+
+The tight limits above are where this bites: X (280), Bluesky (300), Threads / Pinterest / Mastodon (500). It never applies on Facebook, LinkedIn or Tumblr.

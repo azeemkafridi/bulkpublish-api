@@ -199,8 +199,16 @@ export interface MediaFile {
   duration: number | null;
   isOriginalDeleted?: boolean;
   originalUrl: string;
+  /** 160x160 square crop (webp). For videos, from an extracted poster frame. */
   thumbnailUrl: string | null;
+  /** 400px-wide derivative (webp) for grids. For videos, from the poster frame. */
   previewUrl?: string | null;
+  /**
+   * 1200px-wide derivative (webp) for lightboxes and large preview panes. For
+   * videos, generated from the poster frame. Null on media uploaded before this
+   * derivative existed, until the backfill runs.
+   */
+  largeUrl?: string | null;
   createdAt: string;
   labels?: MediaLabel[];
 }
@@ -411,6 +419,13 @@ export interface Post {
   autoRepostThreshold: number | null;
   autoRepostFired: boolean | null;
   /**
+   * Per-post override for link tracking (bulkpubli.sh). `true` forces links in
+   * this post to be shortened and their clicks counted, `false` forces them to
+   * publish as written, and `null` (the default) inherits the organization's
+   * Link Tracking setting.
+   */
+  linkTrackingOverride: boolean | null;
+  /**
    * Team approval state, orthogonal to status. 'pending' and 'rejected' posts
    * are skipped by the scheduler even when scheduled and overdue. Members whose
    * role lacks post:publish (contributors) always get 'pending' when
@@ -556,6 +571,18 @@ export interface CreatePostParams {
    * Default: false.
    */
   requestApproval?: boolean;
+  /**
+   * Per-post override for link tracking (bulkpubli.sh). `true` forces links in
+   * this post to be shortened and their clicks counted, `false` forces them to
+   * publish as written, and `null`/omitted (the default) inherits the
+   * organization's Link Tracking setting.
+   *
+   * Shortening happens at publish time, per channel, so two accounts on the
+   * same platform get distinct codes. It is skipped for a channel when the
+   * rewrite would push the post past that platform's character limit — a short
+   * URL is 28 characters and can be longer than the link it replaces.
+   */
+  linkTrackingOverride?: boolean | null;
 }
 
 /** Parameters for updating an existing post. All fields are optional. */
@@ -594,6 +621,13 @@ export interface UpdatePostParams {
    * Default: false.
    */
   requestApproval?: boolean;
+  /**
+   * Per-post override for link tracking (bulkpubli.sh). `true` forces links in
+   * this post to be shortened and their clicks counted, `false` forces them to
+   * publish as written, and `null` clears the override so the post inherits the
+   * organization's Link Tracking setting again.
+   */
+  linkTrackingOverride?: boolean | null;
 }
 
 /** Parameters for rejecting a pending post. */
@@ -683,6 +717,17 @@ export interface PostPlatformMetrics {
   status: PlatformStatus;
   latest: MetricsSnapshot | null;
   history: MetricsHistoryPoint[];
+  /**
+   * Clicks on bulkpubli.sh short links in this post on this platform, measured
+   * by BulkPublish rather than reported by the platform.
+   *
+   * Deliberately OUTSIDE `latest`: it is not a platform snapshot, so a platform
+   * that reports no metrics at all still has link clicks. It is also distinct
+   * from `latest.clicks` (the platform's own click figure) — one visit can
+   * register in both, so never add them together. Bot and link-preview traffic
+   * is excluded. Zero for organizations without Link Tracking enabled.
+   */
+  linkClicks: number;
 }
 
 /** Response from getting post metrics. */
@@ -696,6 +741,8 @@ export interface PostMetricsResponse {
     shares: number;
     clicks: number;
     videoViews: number;
+    /** Sum of `platforms[].linkClicks`. Not folded into `clicks`. */
+    linkClicks: number;
   };
 }
 
@@ -744,6 +791,13 @@ export interface AnalyticsEngagementParams extends AnalyticsDateParams {
    * download every post in the window.
    */
   top?: '1';
+  /**
+   * Sort field for `allPosts`. `linkClicks` sorts by bulkpubli.sh click count.
+   * Default: `'date'`.
+   */
+  sort?: 'date' | 'impressions' | 'likes' | 'comments' | 'shares' | 'linkClicks';
+  /** Sort direction for `allPosts`. Default: `'desc'`. */
+  order?: 'asc' | 'desc';
 }
 
 /** Per-platform engagement breakdown. */
@@ -754,6 +808,8 @@ export interface EngagementPlatformBreakdown {
   shares: number;
   clicks: number;
   posts: number;
+  /** bulkpubli.sh short-link clicks. Measured by BulkPublish, not the platform. */
+  linkClicks: number;
 }
 
 /** Daily engagement data point. */
@@ -762,6 +818,8 @@ export interface EngagementDayData {
   impressions: number;
   engagements: number;
   reach: number;
+  /** bulkpubli.sh short-link clicks on this day. */
+  linkClicks: number;
 }
 
 /** A top-performing post in engagement analytics. */
@@ -774,6 +832,8 @@ export interface TopPost {
   likes: number;
   comments: number;
   shares: number;
+  /** bulkpubli.sh short-link clicks for this post. */
+  linkClicks: number;
   platforms: Array<{ platform: string; platformUrl: string }>;
 }
 
@@ -788,6 +848,18 @@ export interface AnalyticsEngagementResponse {
   totalSaves: number;
   totalVideoViews: number;
   totalReach: number;
+  /**
+   * Clicks on bulkpubli.sh short links across the window, measured by
+   * BulkPublish rather than reported by the platform.
+   *
+   * Deliberately NOT folded into `totalClicks`, which is the platforms' own
+   * click figure: one visit can register in both, so adding them double-counts.
+   * Because we measure it ourselves it is available on every platform,
+   * including those that report no per-post metrics at all. Bot and
+   * link-preview traffic is excluded. Zero for organizations that have not
+   * enabled Link Tracking.
+   */
+  totalLinkClicks: number;
   /** Average engagement rate in basis points (325 = 3.25%). */
   avgEngagementRate: number;
   byPlatform: Record<string, EngagementPlatformBreakdown>;

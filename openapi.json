@@ -3,7 +3,7 @@
   "info": {
     "title": "BulkPublish API",
     "version": "1.0.0",
-    "description": "Publish to 11 social media platforms from a single API."
+    "description": "Publish to 15 social media platforms from a single API."
   },
   "servers": [
     {
@@ -315,7 +315,18 @@
           },
           "thumbnailUrl": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "description": "160x160 square crop (webp). For videos this is generated from an extracted poster frame; null until the derivative job has run."
+          },
+          "previewUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "400px-wide derivative (webp) for grids. For videos, generated from the poster frame."
+          },
+          "largeUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "1200px-wide derivative (webp) for lightboxes and large preview panes. For videos, generated from the poster frame. Null on media uploaded before this derivative existed until the backfill runs."
           }
         }
       },
@@ -1203,6 +1214,14 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Optional. Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for roles without post:publish (contributors), regardless of this flag."
+                  },
+                  "linkTrackingOverride": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ],
+                    "default": null,
+                    "description": "Per-post override for link tracking (bulkpubli.sh). `true` forces links in this post to be shortened and their clicks counted, `false` forces them to publish as written, and `null` (the default) inherits the organization's Link Tracking setting. Shortening happens at publish time, per channel, so two accounts on the same platform get distinct codes; it is skipped for a channel when the rewrite would push the post past that platform's character limit."
                   }
                 }
               },
@@ -1401,6 +1420,14 @@
                     "type": "string",
                     "format": "date-time"
                   },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "scheduled"
+                    ],
+                    "description": "Move the post between draft and scheduled. Setting 'scheduled' requires a future scheduledAt (in this body or already stored) and at least one channel; setting 'draft' unschedules it. Any other value is rejected. Omit to leave the status unchanged (failed/partial posts still auto-reset to draft on edit). To publish immediately, use POST /api/posts/{id}/publish instead."
+                  },
                   "channels": {
                     "type": "array"
                   },
@@ -1454,18 +1481,18 @@
                       }
                     }
                   },
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "draft",
-                      "scheduled"
-                    ],
-                    "description": "Move the post between draft and scheduled. Setting 'scheduled' requires a future scheduledAt (in this body or already stored) and at least one channel; setting 'draft' unschedules it. Any other value is rejected. Omit to leave the status unchanged (failed/partial posts still auto-reset to draft on edit). To publish immediately, use POST /api/posts/{id}/publish instead."
-                  },
                   "requestApproval": {
                     "type": "boolean",
                     "default": false,
                     "description": "Optional. Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for roles without post:publish (contributors), regardless of this flag."
+                  },
+                  "linkTrackingOverride": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ],
+                    "default": null,
+                    "description": "Per-post override for link tracking (bulkpubli.sh). `true` forces links in this post to be shortened and their clicks counted, `false` forces them to publish as written, and `null` (the default) inherits the organization's Link Tracking setting. Shortening happens at publish time, per channel, so two accounts on the same platform get distinct codes; it is skipped for a channel when the rewrite would push the post past that platform's character limit."
                   }
                 }
               }
@@ -1620,105 +1647,6 @@
         }
       }
     },
-    "/api/posts/{id}/approve": {
-      "post": {
-        "tags": [
-          "Posts"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "summary": "Approve a pending post",
-        "description": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time has already passed. The author is notified in-app.",
-        "operationId": "approvePost",
-        "responses": {
-          "200": {
-            "description": "The approved post",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Post"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Post is not awaiting approval"
-          },
-          "403": {
-            "description": "Role lacks post:approve"
-          },
-          "404": {
-            "description": "Post not found"
-          }
-        }
-      }
-    },
-    "/api/posts/{id}/reject": {
-      "post": {
-        "tags": [
-          "Posts"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "summary": "Reject a pending post",
-        "description": "Requires a role with post:approve. The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval.",
-        "operationId": "rejectPost",
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "reason": {
-                    "type": "string",
-                    "maxLength": 2000,
-                    "description": "Optional. Shown to the author (in-app notification + on the post)."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The rejected post",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Post"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Post is not awaiting approval"
-          },
-          "403": {
-            "description": "Role lacks post:approve"
-          },
-          "404": {
-            "description": "Post not found"
-          }
-        }
-      }
-    },
     "/api/posts/{id}/metrics": {
       "get": {
         "tags": [
@@ -1738,7 +1666,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Metrics per platform.\n\nEach entry in `platforms` carries `metricsSupported` (false when the platform exposes no per-post statistics API at all — Google Business, Reddit, Discord, Telegram, Tumblr, and LinkedIn personal/profile channels) and `supportedMetrics`, the list of metric keys that platform's API can populate. Every other key on `latest` is stored as 0 by the metrics sync regardless of what the platform returned, so those zeroes mean “not reported” and must not be presented as measurements.",
+            "description": "Metrics per platform.\n\nEach entry in `platforms` carries `metricsSupported` (false when the platform exposes no per-post statistics API at all — Google Business, Reddit, Discord, Telegram, Tumblr, and LinkedIn personal/profile channels) and `supportedMetrics`, the list of metric keys that platform's API can populate. Every other key on `latest` is stored as 0 by the metrics sync regardless of what the platform returned, so those zeroes mean “not reported” and must not be presented as measurements.\n\nEach platform entry carries `linkClicks`, and `totals.linkClicks` sums them: clicks on bulkpubli.sh short links in this post, measured by BulkPublish. It sits OUTSIDE `latest` because it is not a platform snapshot — a platform that reports nothing still has link clicks — and is distinct from the platform-reported `clicks` field. `supportedMetrics` therefore always includes `linkClicks`, even when `metricsSupported` is false.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1829,7 +1757,7 @@
             "name": "commentsLimit",
             "in": "query",
             "required": false,
-            "description": "**optional** — Max commenters per platform (default 25, max 100)",
+            "description": "**optional** — Max comments per platform (default 25, max 100). Counts replies as well as top-level comments; when replies push a platform past the cap, `hasMoreComments` is true.",
             "schema": {
               "type": "integer",
               "default": 25
@@ -1916,6 +1844,10 @@
                                           "type": "string"
                                         }
                                       }
+                                    },
+                                    "parentId": {
+                                      "type": "string",
+                                      "description": "Set when this comment is a reply — the id of the comment it replies to. Absent for top-level comments. Clients can use it to nest replies; a parentId not present in the returned page should be rendered at top level."
                                     }
                                   }
                                 }
@@ -1951,11 +1883,20 @@
                               },
                               "notice": {
                                 "type": "string"
+                              },
+                              "reactionsUnsupported": {
+                                "type": "boolean",
+                                "description": "True when the platform exposes commenters but never individual likers (Threads, Instagram, YouTube). `reactions` is always empty; clients should hide any reactors UI rather than render an empty list."
                               }
                             }
                           },
                           "error": {
                             "type": "string"
+                          },
+                          "accountName": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Name of the connected account/Page the content was read from. Shown in the UI so the source is identifiable."
                           }
                         }
                       }
@@ -2345,457 +2286,6 @@
         }
       }
     },
-    "/api/channel-sets": {
-      "get": {
-        "tags": [
-          "Channel Sets"
-        ],
-        "summary": "List channel sets",
-        "description": "Saved channel groupings for one-click multi-channel targeting.",
-        "responses": {
-          "200": {
-            "description": "Channel sets"
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Channel Sets"
-        ],
-        "summary": "Create channel set",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "name",
-                  "channelIds"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "maxLength": 100
-                  },
-                  "channelIds": {
-                    "type": "array",
-                    "items": {
-                      "type": "integer"
-                    },
-                    "minItems": 1,
-                    "description": "IDs of channels in your organization"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Invalid name or channelIds"
-          },
-          "409": {
-            "description": "Duplicate name"
-          }
-        }
-      }
-    },
-    "/api/channel-sets/{id}": {
-      "put": {
-        "tags": [
-          "Channel Sets"
-        ],
-        "summary": "Update channel set",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "maxLength": 100
-                  },
-                  "channelIds": {
-                    "type": "array",
-                    "items": {
-                      "type": "integer"
-                    },
-                    "minItems": 1,
-                    "description": "IDs of channels in your organization"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Updated"
-          },
-          "404": {
-            "description": "Not found"
-          },
-          "409": {
-            "description": "Duplicate name"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Channel Sets"
-        ],
-        "summary": "Delete channel set",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Deleted"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      }
-    },
-    "/api/rss-feeds": {
-      "get": {
-        "tags": [
-          "RSS Autopost"
-        ],
-        "summary": "List RSS feeds",
-        "description": "RSS/Atom feeds polled every 15 minutes; new items become posts. Polling uses conditional GET (ETag/Last-Modified) and exponential backoff on errors (15 minutes doubling to 24 hours); a feed is automatically disabled after 20 consecutive failed polls (`enabled` becomes false and `lastError` explains why). The first successful poll baselines the feed's existing backlog without posting it.",
-        "responses": {
-          "200": {
-            "description": "Feeds"
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "RSS Autopost"
-        ],
-        "summary": "Add RSS feed",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "name",
-                  "feedUrl",
-                  "channelIds"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "maxLength": 100
-                  },
-                  "feedUrl": {
-                    "type": "string",
-                    "description": "Public RSS 2.0 or Atom feed URL"
-                  },
-                  "channelIds": {
-                    "type": "array",
-                    "items": {
-                      "type": "integer"
-                    },
-                    "minItems": 1
-                  },
-                  "mode": {
-                    "type": "string",
-                    "enum": [
-                      "draft",
-                      "publish"
-                    ],
-                    "default": "draft",
-                    "description": "draft = new items become drafts for review; publish = auto-published"
-                  },
-                  "fieldMapping": {
-                    "type": [
-                      "object",
-                      "null"
-                    ],
-                    "description": "Per-feed field mapping controlling how an RSS/Atom item becomes post content. null (default) uses the built-in mapping: template \"{title}\\n\\n{link}\", no media, stripHtml true, smart truncation. Media selection is post-level (media attaches to the post, not a single channel); per-channel overrides cover text only, and channels on the same platform share one rendered text (written to the post's platformContent, as in the composer). Channels whose platform requires media (e.g. Instagram, TikTok, YouTube) are skipped for items lacking a usable enclosure, with the reason recorded in the activity log.",
-                    "properties": {
-                      "template": {
-                        "type": "string",
-                        "maxLength": 2000,
-                        "default": "{title}\n\n{link}",
-                        "description": "Caption template. Standard tokens: {title} {link} {description} {content} {author} {categories} {feedName}. Any extra leaf field on the feed item (namespaced or not, e.g. {publisher}) can also be used as {fieldName} (lowercased localName); the editor surfaces the feed's real fields as pills after a preview. A line whose tokens all render empty is dropped."
-                      },
-                      "mediaField": {
-                        "type": "string",
-                        "enum": [
-                          "none",
-                          "image",
-                          "video",
-                          "auto"
-                        ],
-                        "default": "none",
-                        "description": "Which item enclosure to import and attach: none, the item image, the item video, or auto (video if present, else image). The file is re-hosted to your media library; if the import fails the post is created without media."
-                      },
-                      "stripHtml": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Strip HTML tags/entities from {title}/{description}/{content}."
-                      },
-                      "truncate": {
-                        "type": "string",
-                        "enum": [
-                          "smart",
-                          "hard",
-                          "skip"
-                        ],
-                        "default": "smart",
-                        "description": "When rendered text exceeds the platform character limit: smart = trim at a word boundary keeping a trailing link line; hard = cut at the limit; skip = don't post to that channel."
-                      },
-                      "hashtags": {
-                        "type": "string",
-                        "maxLength": 500,
-                        "default": "",
-                        "description": "Appended after the rendered template."
-                      },
-                      "channelOverrides": {
-                        "type": "object",
-                        "description": "Per-channel text overrides keyed by channel id (as a string). Each override may set template, hashtags, stripHtml, truncate; mediaField cannot be overridden per channel.",
-                        "additionalProperties": {
-                          "type": "object",
-                          "properties": {
-                            "template": {
-                              "type": "string",
-                              "maxLength": 2000
-                            },
-                            "hashtags": {
-                              "type": "string",
-                              "maxLength": 500
-                            },
-                            "stripHtml": {
-                              "type": "boolean"
-                            },
-                            "truncate": {
-                              "type": "string",
-                              "enum": [
-                                "smart",
-                                "hard",
-                                "skip"
-                              ]
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "requireApproval": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Optional. Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for POST /api/posts/{id}/approve. Only meaningful when mode is 'publish' (draft items never publish on their own). Default false."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Invalid input"
-          }
-        },
-        "description": "Create an RSS/Atom feed. Plan-gated: max feeds per org (Free 1, Pro 10, Business 50) and auto-publish mode (`mode: \"publish\"`) is paid-only — Free is draft-only and a `publish` request returns 403. Over the feed limit returns 403. Feed poll cadence is also per-plan (Free 60 min, Pro 30 min, Business 15 min)."
-      }
-    },
-    "/api/rss-feeds/{id}": {
-      "put": {
-        "tags": [
-          "RSS Autopost"
-        ],
-        "summary": "Update RSS feed",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "maxLength": 100
-                  },
-                  "feedUrl": {
-                    "type": "string",
-                    "description": "Public RSS 2.0 or Atom feed URL"
-                  },
-                  "channelIds": {
-                    "type": "array",
-                    "items": {
-                      "type": "integer"
-                    },
-                    "minItems": 1
-                  },
-                  "mode": {
-                    "type": "string",
-                    "enum": [
-                      "draft",
-                      "publish"
-                    ],
-                    "default": "draft",
-                    "description": "draft = new items become drafts for review; publish = auto-published"
-                  },
-                  "enabled": {
-                    "type": "boolean"
-                  },
-                  "fieldMapping": {
-                    "type": [
-                      "object",
-                      "null"
-                    ],
-                    "description": "Per-feed field mapping controlling how an RSS/Atom item becomes post content. null (default) uses the built-in mapping: template \"{title}\\n\\n{link}\", no media, stripHtml true, smart truncation. Media selection is post-level (media attaches to the post, not a single channel); per-channel overrides cover text only, and channels on the same platform share one rendered text (written to the post's platformContent, as in the composer). Channels whose platform requires media (e.g. Instagram, TikTok, YouTube) are skipped for items lacking a usable enclosure, with the reason recorded in the activity log. Pass null to clear back to the default mapping.",
-                    "properties": {
-                      "template": {
-                        "type": "string",
-                        "maxLength": 2000,
-                        "default": "{title}\n\n{link}",
-                        "description": "Caption template. Standard tokens: {title} {link} {description} {content} {author} {categories} {feedName}. Any extra leaf field on the feed item (namespaced or not, e.g. {publisher}) can also be used as {fieldName} (lowercased localName); the editor surfaces the feed's real fields as pills after a preview. A line whose tokens all render empty is dropped."
-                      },
-                      "mediaField": {
-                        "type": "string",
-                        "enum": [
-                          "none",
-                          "image",
-                          "video",
-                          "auto"
-                        ],
-                        "default": "none",
-                        "description": "Which item enclosure to import and attach: none, the item image, the item video, or auto (video if present, else image). The file is re-hosted to your media library; if the import fails the post is created without media."
-                      },
-                      "stripHtml": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Strip HTML tags/entities from {title}/{description}/{content}."
-                      },
-                      "truncate": {
-                        "type": "string",
-                        "enum": [
-                          "smart",
-                          "hard",
-                          "skip"
-                        ],
-                        "default": "smart",
-                        "description": "When rendered text exceeds the platform character limit: smart = trim at a word boundary keeping a trailing link line; hard = cut at the limit; skip = don't post to that channel."
-                      },
-                      "hashtags": {
-                        "type": "string",
-                        "maxLength": 500,
-                        "default": "",
-                        "description": "Appended after the rendered template."
-                      },
-                      "channelOverrides": {
-                        "type": "object",
-                        "description": "Per-channel text overrides keyed by channel id (as a string). Each override may set template, hashtags, stripHtml, truncate; mediaField cannot be overridden per channel.",
-                        "additionalProperties": {
-                          "type": "object",
-                          "properties": {
-                            "template": {
-                              "type": "string",
-                              "maxLength": 2000
-                            },
-                            "hashtags": {
-                              "type": "string",
-                              "maxLength": 500
-                            },
-                            "stripHtml": {
-                              "type": "boolean"
-                            },
-                            "truncate": {
-                              "type": "string",
-                              "enum": [
-                                "smart",
-                                "hard",
-                                "skip"
-                              ]
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "requireApproval": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Optional. Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for POST /api/posts/{id}/approve. Only meaningful when mode is 'publish' (draft items never publish on their own). Default false."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Updated"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "RSS Autopost"
-        ],
-        "summary": "Delete RSS feed",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Deleted"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      }
-    },
     "/api/media": {
       "get": {
         "tags": [
@@ -2853,7 +2343,7 @@
           "Media"
         ],
         "summary": "Upload media (single request)",
-        "description": "Upload an image or video file in one multipart request (server relays to storage). Max 100MB. Formats: JPEG, PNG, WebP, GIF, MP4, QuickTime, WebM. Browser clients should prefer the faster direct-to-storage flow: POST /api/media/presign then PUT the file to the returned URL then POST /api/media/finalize.",
+        "description": "Upload an image or video file in one multipart request (server relays to storage). Max 100MB (for videos up to 1GB use the multipart endpoints: /api/media/multipart/create → PUT each part → /api/media/multipart/complete). Formats: JPEG, PNG, WebP, GIF, MP4, QuickTime, WebM. Browser clients should prefer the faster direct-to-storage flow: POST /api/media/presign then PUT the file to the returned URL then POST /api/media/finalize.",
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -2882,7 +2372,7 @@
           "Media"
         ],
         "summary": "Get a direct upload URL",
-        "description": "Step 1 of the direct-to-storage upload. Checks the storage quota and returns a presigned PUT URL plus the object key. PUT the file (max 100MB) to `uploadUrl` with a matching `Content-Type` header, then call POST /api/media/finalize.",
+        "description": "Step 1 of the direct-to-storage upload. Checks the storage quota and returns a presigned PUT URL plus the object key. PUT the file (max 100MB — videos up to 1GB go through the multipart endpoints instead) to `uploadUrl` with a matching `Content-Type` header, then call POST /api/media/finalize.",
         "requestBody": {
           "required": true,
           "content": {
@@ -2997,162 +2487,6 @@
           },
           "403": {
             "description": "Storage quota exceeded"
-          }
-        }
-      }
-    },
-    "/api/media/multipart/create": {
-      "post": {
-        "tags": [
-          "Media"
-        ],
-        "summary": "Start multipart upload (large videos, up to 1GB)",
-        "description": "Step 1 of the chunked direct-to-storage upload for large files. Returns an uploadId, the fixed part size (10MB), and a presigned PUT URL per part. Upload each 10MB slice of the file to its URL (a failed part can be retried on its own — a network drop never restarts the whole file), collect each response's ETag header, then call /api/media/multipart/complete.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "contentType",
-                  "sizeBytes"
-                ],
-                "properties": {
-                  "contentType": {
-                    "type": "string",
-                    "description": "One of the allowed media MIME types"
-                  },
-                  "sizeBytes": {
-                    "type": "integer",
-                    "description": "Exact file size. Videos up to 1GB; images up to 100MB."
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "uploadId, r2Key, partSize, and presigned partUrls"
-          },
-          "400": {
-            "description": "Disallowed type or file too large"
-          }
-        }
-      }
-    },
-    "/api/media/multipart/complete": {
-      "post": {
-        "tags": [
-          "Media"
-        ],
-        "summary": "Complete multipart upload",
-        "description": "Step 2: assembles the uploaded parts, verifies the stored object (existence, size, content magic bytes, storage quota) and records the media file. Same verification and response shape as /api/media/finalize.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "r2Key",
-                  "uploadId",
-                  "parts",
-                  "fileName",
-                  "mimeType",
-                  "sizeBytes"
-                ],
-                "properties": {
-                  "r2Key": {
-                    "type": "string"
-                  },
-                  "uploadId": {
-                    "type": "string"
-                  },
-                  "parts": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                      "type": "object",
-                      "required": [
-                        "partNumber",
-                        "etag"
-                      ],
-                      "properties": {
-                        "partNumber": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "etag": {
-                          "type": "string",
-                          "description": "ETag response header from the part PUT"
-                        }
-                      }
-                    }
-                  },
-                  "fileName": {
-                    "type": "string"
-                  },
-                  "mimeType": {
-                    "type": "string"
-                  },
-                  "sizeBytes": {
-                    "type": "integer"
-                  },
-                  "width": {
-                    "type": "integer"
-                  },
-                  "height": {
-                    "type": "integer"
-                  },
-                  "duration": {
-                    "type": "integer"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Media file recorded"
-          },
-          "400": {
-            "description": "Assembly or verification failed"
-          }
-        }
-      }
-    },
-    "/api/media/multipart/abort": {
-      "post": {
-        "tags": [
-          "Media"
-        ],
-        "summary": "Abort multipart upload",
-        "description": "Cancel an in-progress chunked upload and free its stored parts.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "r2Key",
-                  "uploadId"
-                ],
-                "properties": {
-                  "r2Key": {
-                    "type": "string"
-                  },
-                  "uploadId": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Aborted"
           }
         }
       }
@@ -3316,6 +2650,28 @@
               "type": "string",
               "format": "date"
             }
+          },
+          {
+            "name": "tz",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — IANA timezone (e.g. `Asia/Karachi`) used for day boundaries and per-day bucketing. Defaults to `UTC`. Invalid names fall back to UTC.",
+            "schema": {
+              "type": "string",
+              "default": "UTC"
+            }
+          },
+          {
+            "name": "heatmap",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — set to `1` to include `publishedTimes` (raw publish timestamps for the posting-activity heatmap, up to 5000 entries). Omitted by default; `publishedTimes` is then an empty array.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
           }
         ],
         "responses": {
@@ -3373,11 +2729,43 @@
                 "1"
               ]
             }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "date",
+                "impressions",
+                "likes",
+                "comments",
+                "shares",
+                "linkClicks"
+              ],
+              "default": "date"
+            },
+            "description": "Sort field for `allPosts`. `linkClicks` sorts by bulkpubli.sh click count."
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "description": "Sort direction for `allPosts`."
           }
         ],
         "responses": {
           "200": {
-            "description": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts, allPosts, and unmeasuredPlatforms.\n\n`unmeasuredPlatforms` lists platforms present in the window that cannot report per-post metrics at all — either the platform has no metrics API (Google Business, Telegram, Discord, Reddit, Tumblr) or, for LinkedIn, the channel is a personal/profile account (share statistics are exposed only for organization pages). Their rows still appear in every total with zeroes, so a zero for one of these platforms means \"not reported\", not \"measured zero\". Each entry in a post's `platformMetrics` carries the same signal as `metricsSupported`.\n\nAll figures come from the stored `post_metrics` snapshot, synced every 6 hours (or on demand via `POST /api/analytics/refresh`) — not a live read of the platform.\n\n`metricSupport` maps each platform present in the window to the list of metric keys its API can actually report (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `engagementRate`). Anything not listed is stored as 0 by the metrics sync because the platform has no such field — it is NOT a measurement. For example X reports impressions/likes/comments/shares only, so `reach`, `saves`, `clicks` and `videoViews` are always 0 for X rows; Bluesky and Mastodon report no impressions, so `engagementRate` is always 0 for them; Pinterest reports no likes or comments; YouTube reports no shares or reach.\n\n`supportedTotals` is the union of `metricSupport` across the window — the org-wide `total*` fields are only measurements for keys listed here. A key absent from `supportedTotals` should be rendered as “not available” (a dash), never as 0. `partialTotals` maps a supported metric key to the platforms in the window that do NOT report it, so a consumer can note that the total covers only a subset of posts.\n\nEach entry of a post's `platformMetrics` also carries `supportedMetrics` (same per-platform list) alongside `metricsSupported`.\n\nFacebook's `impressions`, `reach`, `clicks` and `engagementRate` come from the Page Insights edge and require the `read_insights` permission; without it they stay 0 even though the metric is listed as supported.\n\n`metricsDisabledChannels` lists channels published to in the window whose metrics sync is switched off, so their posts contribute zeroes to every total. X is the only platform this applies to today: its reads are billed, so per-post metrics sync is opt-in per channel (`metadata.metricsSyncEnabled`, toggled on the Channels page) and runs at most once every 7 days. `POST /api/analytics/refresh` will not produce X figures for a channel that has not opted in.\n\n`conditionalMetrics` maps a platform in the window to metrics that are supported but permission-gated — a 0 there means \"may not be readable\", not \"no such metric\". Today only Facebook appears, for `impressions`, `reach`, `clicks` and `engagementRate`.\n\nEach post in `topPosts`/`allPosts` carries both a post-level `engagementRate` and, inside `platformMetrics[]`, a per-channel `engagementRate`. They are NOT the same number: the post-level value is the mean of the post's channels that reported a non-zero rate, while `platformMetrics[].engagementRate` is that one channel's own rate (engagements ÷ impressions). Render the per-channel value next to per-channel counters — using the post-level average there shows one network's percentage beside another network's zeros. Both are basis points (325 = 3.25%)."
+            "description": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts, allPosts, and unmeasuredPlatforms.\n\n`unmeasuredPlatforms` lists platforms present in the window that cannot report per-post metrics at all — either the platform has no metrics API (Google Business, Telegram, Discord, Reddit, Tumblr) or, for LinkedIn, the channel is a personal/profile account (share statistics are exposed only for organization pages). Their rows still appear in every total with zeroes, so a zero for one of these platforms means \"not reported\", not \"measured zero\". Each entry in a post's `platformMetrics` carries the same signal as `metricsSupported`.\n\nAll figures come from the stored `post_metrics` snapshot, synced every 6 hours (or on demand via `POST /api/analytics/refresh`) — not a live read of the platform.\n\n`metricSupport` maps each platform present in the window to the list of metric keys its API can actually report (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `engagementRate`). Anything not listed is stored as 0 by the metrics sync because the platform has no such field — it is NOT a measurement. For example X reports impressions/likes/comments/shares only, so `reach`, `saves`, `clicks` and `videoViews` are always 0 for X rows; Bluesky and Mastodon report no impressions, so `engagementRate` is always 0 for them; Pinterest reports no likes or comments; YouTube reports no shares or reach.\n\n`supportedTotals` is the union of `metricSupport` across the window — the org-wide `total*` fields are only measurements for keys listed here. A key absent from `supportedTotals` should be rendered as “not available” (a dash), never as 0. `partialTotals` maps a supported metric key to the platforms in the window that do NOT report it, so a consumer can note that the total covers only a subset of posts.\n\nEach entry of a post's `platformMetrics` also carries `supportedMetrics` (same per-platform list) alongside `metricsSupported`.\n\nFacebook's `impressions`, `reach`, `clicks` and `engagementRate` come from the Page Insights edge and require the `read_insights` permission; without it they stay 0 even though the metric is listed as supported.\n\n`metricsDisabledChannels` lists channels published to in the window whose metrics sync is switched off, so their posts contribute zeroes to every total. X is the only platform this applies to today: its reads are billed, so per-post metrics sync is opt-in per channel (`metadata.metricsSyncEnabled`, toggled on the Channels page) and runs at most once every 7 days. `POST /api/analytics/refresh` will not produce X figures for a channel that has not opted in.\n\n`conditionalMetrics` maps a platform in the window to metrics that are supported but permission-gated — a 0 there means \"may not be readable\", not \"no such metric\". Today only Facebook appears, for `impressions`, `reach`, `clicks` and `engagementRate`.\n\nEach post in `topPosts`/`allPosts` carries both a post-level `engagementRate` and, inside `platformMetrics[]`, a per-channel `engagementRate`. They are NOT the same number: the post-level value is the mean of the post's channels that reported a non-zero rate, while `platformMetrics[].engagementRate` is that one channel's own rate (engagements ÷ impressions). Render the per-channel value next to per-channel counters — using the post-level average there shows one network's percentage beside another network's zeros. Both are basis points (325 = 3.25%).\n\n`totalLinkClicks` (and `linkClicks` on each entry of `byPlatform`, `byDay`, `topPosts`, `allPosts` and `platformMetrics`) counts clicks on bulkpubli.sh short links, measured by BulkPublish rather than reported by the platform. It is deliberately NOT folded into `totalClicks`/`clicks`, which are the platform's own click figures: one visit can register in both, so adding them would double-count. Because we measure it ourselves it is available on every platform, including those listed in `unmeasuredPlatforms`, and it appears in `supportedTotals`/`metricSupport` for all of them. Bot and link-preview traffic is excluded. Zero for organizations that have not enabled Link Tracking."
           }
         }
       }
@@ -4069,6 +3457,40 @@
         }
       }
     },
+    "/api/organizations/leave": {
+      "post": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Leave an organization",
+        "description": "Remove yourself from an organization you're a member of. The owner cannot leave (delete the organization instead). Your posts are reassigned to the owner.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "organizationId"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Left the organization"
+          },
+          "400": {
+            "description": "Owner cannot leave, or invalid request"
+          }
+        }
+      }
+    },
     "/api/notifications": {
       "get": {
         "tags": [
@@ -4506,6 +3928,744 @@
         }
       }
     },
+    "/api/channel-sets": {
+      "get": {
+        "tags": [
+          "Channel Sets"
+        ],
+        "summary": "List channel sets",
+        "description": "Saved channel groupings for one-click multi-channel targeting.",
+        "responses": {
+          "200": {
+            "description": "Channel sets"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Channel Sets"
+        ],
+        "summary": "Create channel set",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "channelIds"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "channelIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "minItems": 1,
+                    "description": "IDs of channels in your organization"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Invalid name or channelIds"
+          },
+          "409": {
+            "description": "Duplicate name"
+          }
+        }
+      }
+    },
+    "/api/channel-sets/{id}": {
+      "put": {
+        "tags": [
+          "Channel Sets"
+        ],
+        "summary": "Update channel set",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "channelIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "minItems": 1,
+                    "description": "IDs of channels in your organization"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Duplicate name"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Channel Sets"
+        ],
+        "summary": "Delete channel set",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/rss-feeds": {
+      "get": {
+        "tags": [
+          "RSS Autopost"
+        ],
+        "summary": "List RSS feeds",
+        "description": "RSS/Atom feeds polled every 15 minutes; new items become posts. Polling uses conditional GET (ETag/Last-Modified) and exponential backoff on errors (15 minutes doubling to 24 hours); a feed is automatically disabled after 20 consecutive failed polls (`enabled` becomes false and `lastError` explains why). The first successful poll baselines the feed's existing backlog without posting it.",
+        "responses": {
+          "200": {
+            "description": "Feeds"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "RSS Autopost"
+        ],
+        "summary": "Add RSS feed",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "feedUrl",
+                  "channelIds"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "feedUrl": {
+                    "type": "string",
+                    "description": "Public RSS 2.0 or Atom feed URL"
+                  },
+                  "channelIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "minItems": 1
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "publish"
+                    ],
+                    "default": "draft",
+                    "description": "draft = new items become drafts for review; publish = auto-published"
+                  },
+                  "fieldMapping": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "description": "Per-feed field mapping controlling how an RSS/Atom item becomes post content. null (default) uses the built-in mapping: template \"{title}\\n\\n{link}\", no media, stripHtml true, smart truncation. Media selection is post-level (media attaches to the post, not a single channel); per-channel overrides cover text only, and channels on the same platform share one rendered text (written to the post's platformContent, as in the composer). Channels whose platform requires media (e.g. Instagram, TikTok, YouTube) are skipped for items lacking a usable enclosure, with the reason recorded in the activity log.",
+                    "properties": {
+                      "template": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "default": "{title}\n\n{link}",
+                        "description": "Caption template. Standard tokens: {title} {link} {description} {content} {author} {categories} {feedName}. Any of a feed item's own extra leaf fields (namespaced or not, e.g. {publisher}) can also be used as {fieldName} (lowercased localName); the editor surfaces a feed's real fields as pills after a preview. A line whose tokens all render empty is dropped."
+                      },
+                      "mediaField": {
+                        "type": "string",
+                        "enum": [
+                          "none",
+                          "image",
+                          "video",
+                          "auto"
+                        ],
+                        "default": "none",
+                        "description": "Which item enclosure to import and attach: none, the item image, the item video, or auto (video if present, else image). The file is re-hosted to your media library; if the import fails the post is created without media."
+                      },
+                      "stripHtml": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Strip HTML tags/entities from {title}/{description}/{content}."
+                      },
+                      "truncate": {
+                        "type": "string",
+                        "enum": [
+                          "smart",
+                          "hard",
+                          "skip"
+                        ],
+                        "default": "smart",
+                        "description": "When rendered text exceeds the platform character limit: smart = trim at a word boundary keeping a trailing link line; hard = cut at the limit; skip = don't post to that channel."
+                      },
+                      "hashtags": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "default": "",
+                        "description": "Appended after the rendered template."
+                      },
+                      "channelOverrides": {
+                        "type": "object",
+                        "description": "Per-channel text overrides keyed by channel id (as a string). Each override may set template, hashtags, stripHtml, truncate; mediaField cannot be overridden per channel.",
+                        "additionalProperties": {
+                          "type": "object",
+                          "properties": {
+                            "template": {
+                              "type": "string",
+                              "maxLength": 2000
+                            },
+                            "hashtags": {
+                              "type": "string",
+                              "maxLength": 500
+                            },
+                            "stripHtml": {
+                              "type": "boolean"
+                            },
+                            "truncate": {
+                              "type": "string",
+                              "enum": [
+                                "smart",
+                                "hard",
+                                "skip"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "requireApproval": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Optional. Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for POST /api/posts/{id}/approve. Only meaningful when mode is 'publish' (draft items never publish on their own). Default false."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        },
+        "description": "Create an RSS/Atom feed. Plan-gated: max feeds per org (Free 1, Pro 10, Business 50) and auto-publish mode (`mode: \"publish\"`) is paid-only — Free is draft-only and a `publish` request returns 403. Over the feed limit returns 403. Feed poll cadence is also per-plan (Free 60 min, Pro 30 min, Business 15 min)."
+      }
+    },
+    "/api/rss-feeds/{id}": {
+      "put": {
+        "tags": [
+          "RSS Autopost"
+        ],
+        "summary": "Update RSS feed",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "feedUrl": {
+                    "type": "string",
+                    "description": "Public RSS 2.0 or Atom feed URL"
+                  },
+                  "channelIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "minItems": 1
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "publish"
+                    ],
+                    "default": "draft",
+                    "description": "draft = new items become drafts for review; publish = auto-published"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "fieldMapping": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "description": "Per-feed field mapping controlling how an RSS/Atom item becomes post content. null (default) uses the built-in mapping: template \"{title}\\n\\n{link}\", no media, stripHtml true, smart truncation. Media selection is post-level (media attaches to the post, not a single channel); per-channel overrides cover text only, and channels on the same platform share one rendered text (written to the post's platformContent, as in the composer). Channels whose platform requires media (e.g. Instagram, TikTok, YouTube) are skipped for items lacking a usable enclosure, with the reason recorded in the activity log. Pass null to clear back to the default mapping.",
+                    "properties": {
+                      "template": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "default": "{title}\n\n{link}",
+                        "description": "Caption template. Standard tokens: {title} {link} {description} {content} {author} {categories} {feedName}. Any of a feed item's own extra leaf fields (namespaced or not, e.g. {publisher}) can also be used as {fieldName} (lowercased localName); the editor surfaces a feed's real fields as pills after a preview. A line whose tokens all render empty is dropped."
+                      },
+                      "mediaField": {
+                        "type": "string",
+                        "enum": [
+                          "none",
+                          "image",
+                          "video",
+                          "auto"
+                        ],
+                        "default": "none",
+                        "description": "Which item enclosure to import and attach: none, the item image, the item video, or auto (video if present, else image). The file is re-hosted to your media library; if the import fails the post is created without media."
+                      },
+                      "stripHtml": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Strip HTML tags/entities from {title}/{description}/{content}."
+                      },
+                      "truncate": {
+                        "type": "string",
+                        "enum": [
+                          "smart",
+                          "hard",
+                          "skip"
+                        ],
+                        "default": "smart",
+                        "description": "When rendered text exceeds the platform character limit: smart = trim at a word boundary keeping a trailing link line; hard = cut at the limit; skip = don't post to that channel."
+                      },
+                      "hashtags": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "default": "",
+                        "description": "Appended after the rendered template."
+                      },
+                      "channelOverrides": {
+                        "type": "object",
+                        "description": "Per-channel text overrides keyed by channel id (as a string). Each override may set template, hashtags, stripHtml, truncate; mediaField cannot be overridden per channel.",
+                        "additionalProperties": {
+                          "type": "object",
+                          "properties": {
+                            "template": {
+                              "type": "string",
+                              "maxLength": 2000
+                            },
+                            "hashtags": {
+                              "type": "string",
+                              "maxLength": 500
+                            },
+                            "stripHtml": {
+                              "type": "boolean"
+                            },
+                            "truncate": {
+                              "type": "string",
+                              "enum": [
+                                "smart",
+                                "hard",
+                                "skip"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "requireApproval": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Optional. Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for POST /api/posts/{id}/approve. Only meaningful when mode is 'publish' (draft items never publish on their own). Default false."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RSS Autopost"
+        ],
+        "summary": "Delete RSS feed",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/media/multipart/create": {
+      "post": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Start multipart upload (large videos, up to 1GB)",
+        "description": "Step 1 of the chunked direct-to-storage upload for large files. Returns an uploadId, the fixed part size (10MB), and a presigned PUT URL per part. Upload each 10MB slice of the file to its URL (a failed part can be retried on its own — a network drop never restarts the whole file), collect each response's ETag header, then call /api/media/multipart/complete.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "contentType",
+                  "sizeBytes"
+                ],
+                "properties": {
+                  "contentType": {
+                    "type": "string",
+                    "description": "One of the allowed media MIME types"
+                  },
+                  "sizeBytes": {
+                    "type": "integer",
+                    "description": "Exact file size. Videos up to 1GB; images up to 100MB."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "uploadId, r2Key, partSize, and presigned partUrls"
+          },
+          "400": {
+            "description": "Disallowed type or file too large"
+          }
+        }
+      }
+    },
+    "/api/media/multipart/complete": {
+      "post": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Complete multipart upload",
+        "description": "Step 2: assembles the uploaded parts, verifies the stored object (existence, size, content magic bytes, storage quota) and records the media file. Same verification and response shape as /api/media/finalize.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "r2Key",
+                  "uploadId",
+                  "parts",
+                  "fileName",
+                  "mimeType",
+                  "sizeBytes"
+                ],
+                "properties": {
+                  "r2Key": {
+                    "type": "string"
+                  },
+                  "uploadId": {
+                    "type": "string"
+                  },
+                  "parts": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "partNumber",
+                        "etag"
+                      ],
+                      "properties": {
+                        "partNumber": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "etag": {
+                          "type": "string",
+                          "description": "ETag response header from the part PUT"
+                        }
+                      }
+                    }
+                  },
+                  "fileName": {
+                    "type": "string"
+                  },
+                  "mimeType": {
+                    "type": "string"
+                  },
+                  "sizeBytes": {
+                    "type": "integer"
+                  },
+                  "width": {
+                    "type": "integer"
+                  },
+                  "height": {
+                    "type": "integer"
+                  },
+                  "duration": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Media file recorded"
+          },
+          "400": {
+            "description": "Assembly or verification failed"
+          }
+        }
+      }
+    },
+    "/api/media/multipart/abort": {
+      "post": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Abort multipart upload",
+        "description": "Cancel an in-progress chunked upload and free its stored parts.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "r2Key",
+                  "uploadId"
+                ],
+                "properties": {
+                  "r2Key": {
+                    "type": "string"
+                  },
+                  "uploadId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Aborted"
+          }
+        }
+      }
+    },
+    "/api/posts/{id}/approve": {
+      "post": {
+        "tags": [
+          "Posts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "summary": "Approve a pending post",
+        "description": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time has already passed. The author is notified in-app.",
+        "operationId": "approvePost",
+        "responses": {
+          "200": {
+            "description": "The approved post",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Post is not awaiting approval"
+          },
+          "403": {
+            "description": "Role lacks post:approve"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      }
+    },
+    "/api/posts/{id}/reject": {
+      "post": {
+        "tags": [
+          "Posts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "summary": "Reject a pending post",
+        "description": "Requires a role with post:approve. The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval.",
+        "operationId": "rejectPost",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "description": "Optional. Shown to the author (in-app notification + on the post)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The rejected post",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Post is not awaiting approval"
+          },
+          "403": {
+            "description": "Role lacks post:approve"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      }
+    },
+    "/api/platforms": {
+      "get": {
+        "tags": [
+          "Channels"
+        ],
+        "summary": "List platforms and their availability",
+        "description": "Returns every social platform BulkPublish supports, together with its current availability. Use this to render an accurate \"temporarily unavailable\" or \"connections paused\" state rather than assuming every platform can be connected or published to.\n\nPlatforms that are switched off are still listed, with `enabled: false` and a `reason`. `envVar` is only included for organization owners and admins.\n\nA platform may also expose `variants` — sub-platforms gated separately because the vendor reviews them as a separate app. LinkedIn reports `variants.organization` for company pages; personal-profile availability is the platform-level state.",
+        "responses": {
+          "200": {
+            "description": "Platform list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "platforms": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PlatformAvailability"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/api-keys": {
       "get": {
         "tags": [
@@ -4609,38 +4769,6 @@
         "responses": {
           "200": {
             "description": "Array of { date, count } entries"
-          }
-        }
-      }
-    },
-    "/api/platforms": {
-      "get": {
-        "tags": [
-          "Channels"
-        ],
-        "summary": "List platforms and their availability",
-        "description": "Returns every social platform BulkPublish supports, together with its current availability. Use this to render an accurate \"temporarily unavailable\" or \"connections paused\" state rather than assuming every platform can be connected or published to.\n\nPlatforms that are switched off are still listed, with `enabled: false` and a `reason`. `envVar` is only included for organization owners and admins.\n\nA platform may also expose `variants` — sub-platforms gated separately because the vendor reviews them as a separate app. LinkedIn reports `variants.organization` for company pages; personal-profile availability is the platform-level state.",
-        "responses": {
-          "200": {
-            "description": "Platform list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "platforms": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/PlatformAvailability"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
           }
         }
       }

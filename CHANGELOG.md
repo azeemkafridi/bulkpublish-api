@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-08-01 — link tracking: `linkClicks` and `linkTrackingOverride` (node SDK 1.8.0, python SDK 0.9.0, MCP 1.12.0)
+
+Catches the public spec and every SDK up with the shortlink feature, which shipped server-side without its contract-sync fan-out.
+
+### Added
+
+- **`linkTrackingOverride` on `POST /api/posts` and `PUT /api/posts/:id`.** Per-post override for link tracking (`bulkpubli.sh`): `true` forces links in the post to be shortened and their clicks counted, `false` forces them to publish as written, `null` (the default) inherits the organization's Link Tracking setting. Exposed as `link_tracking_override` in the python SDK, `linkTrackingOverride` in the node SDK and on the `create_post` / `update_post` MCP tools.
+- **`linkClicks` on metrics and engagement responses**, plus `totals.linkClicks` and `totalLinkClicks`. Clicks on `bulkpubli.sh` short links, measured by BulkPublish rather than reported by the platform. It sits **outside** `latest` on `GET /api/posts/:id/metrics` because it is not a platform snapshot, and it is deliberately **not** folded into `clicks`/`totalClicks` — one visit can register in both, so adding them double-counts. Because we measure it ourselves it is available on every platform, including those that report no per-post metrics at all, so `supportedMetrics` always contains it. Bot and link-preview traffic is excluded; it is 0 for organizations that have not enabled Link Tracking.
+- **`sort` and `order` on `GET /api/analytics/engagement`.** `sort` accepts `date` (default), `impressions`, `likes`, `comments`, `shares` and `linkClicks`; `order` is `asc`/`desc` (default `desc`). Both apply to `allPosts`. Added to `analytics.engagement()` in both SDKs. Not surfaced on the MCP server, which has no engagement tool.
+- **`largeUrl` on `MediaFile`** — the 1200px-wide webp derivative for lightboxes, alongside the existing `thumbnailUrl` (160x160 crop) and `previewUrl` (400px). For videos all three come from an extracted poster frame. `null` on media uploaded before the derivative existed, until the backfill runs.
+- **`POST /api/organizations/leave`** was missing from the public spec copy.
+
+### Documented
+
+- **Shortening can be skipped to protect a publish.** A short URL is 28 characters and can be *longer* than the link it replaces, and validation runs on the rewritten text — so shortening is skipped for any channel where the rewrite would push the post past that platform's character limit, rather than failing a post the composer accepted. The post publishes with its original links and no short link is minted for that channel. See [Character Limits](guides/platforms.md#character-limits).
+- **Python `update()` cannot clear a nullable field.** `_snake_to_camel_dict` drops `None` rather than sending JSON `null`, so `update(post_id, link_tracking_override=None)` leaves the existing override in place. Pass an explicit `True`/`False`, or call the REST endpoint directly. Pre-existing behaviour, now stated in the docstring.
+
+### Fixed
+
+- **`info.description` said 11 platforms.** The platform enum has carried 15 for some time (Reddit, Discord, Telegram and Tumblr were added without updating the prose). Corrected in both spec copies.
+- **The public spec copy had drifted from the webapp's.** It is now rebased on `webapp/public/openapi.json` verbatim, which reorders keys throughout — the only intentional divergence left is the `/api/api-keys*` surface and its two tags, which are public-SDK-only. Diffing the two now yields nothing but those.
+
 ## 2026-07-29 — analytics accuracy: engagementRate semantics (node SDK 1.7.2, python SDK 0.8.2)
 
 ### Fixed
