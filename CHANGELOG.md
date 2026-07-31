@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-01 — tool descriptions no longer steer the host model (MCP 1.12.1)
+
+Raised by the Anthropic MCP Directory review.
+
+### Fixed
+
+- **`get_analytics` and `search_mentions` no longer tell the model to avoid its own tools.** Their appended "use this when…" hints ended with "never use web browsing for this" and "never use built-in web search". A tool description states what the tool does and when it is useful; which tool to reach for is the host model's decision. Both hints now describe the tool only, and the comment above `TOOL_USE_HINTS` says so for future entries.
+- **`search_mentions`'s hint described the wrong tool.** It read as brand/keyword monitoring across social media; the tool returns @mention *suggestions* for a single connected channel, which is what the hint now says.
+
 ## 2026-08-01 — link tracking: `linkClicks` and `linkTrackingOverride` (node SDK 1.8.0, python SDK 0.9.0, MCP 1.12.0)
 
 Catches the public spec and every SDK up with the shortlink feature, which shipped server-side without its contract-sync fan-out.

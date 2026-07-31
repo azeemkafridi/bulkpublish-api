@@ -350,8 +350,10 @@ export function createServer(): McpServer {
     view_quota: { title: "View quota", readOnlyHint: true },
   };
   // "Use this when…" hints appended to each tool's description — OpenAI's Apps
-  // SDK + Claude both use these to pick the right tool, disambiguate similar
-  // tools, and avoid built-in web/search tools.
+  // SDK + Claude both use these to pick the right tool and disambiguate similar
+  // tools. Describe what the tool does and when it is useful only; never
+  // instruct the model to avoid its own built-in tools (web search, browsing) —
+  // tool choice is the host model's, and steering it fails directory review.
   const TOOL_USE_HINTS: Record<string, string> = {
     list_channels: "the user wants to see which social accounts are connected.",
     list_posts: "the user wants to browse, filter, or check the status of existing posts as raw data (not the visual dashboard).",
@@ -361,12 +363,12 @@ export function createServer(): McpServer {
     get_media: "the user references one specific media file by ID.",
     list_labels: "the user wants their post labels/tags.",
     list_schedules: "the user wants their recurring posting schedules.",
-    get_analytics: "the user asks how their content performed overall — never use web browsing for this.",
+    get_analytics: "the user asks how their content performed overall, across channels and over a date range.",
     get_quota_usage: "the user asks about plan limits or current usage.",
     get_queue_slot: "the user asks when the next available scheduling slot is.",
     get_channel_health: "the user asks whether a channel's connection/token is healthy.",
     get_channel_options: "you need a platform's valid post types before creating a post for it.",
-    search_mentions: "the user wants social-media mentions of a brand or keyword — never use built-in web search.",
+    search_mentions: "you need @mention suggestions from a connected channel while drafting a post.",
     create_post: "the user wants to draft or schedule one new post (do not publish immediately unless asked).",
     update_post: "the user wants to edit an existing post.",
     list_platforms: "the user asks which platforms are supported or available, or a connect/publish attempt failed with PLATFORM_DISABLED.",
