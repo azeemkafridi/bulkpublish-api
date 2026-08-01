@@ -10,7 +10,7 @@
           "request": {
             "name": "List posts",
             "description": {
-              "content": "Retrieve posts with pagination, filtering, and search.",
+              "content": "Retrieve posts with pagination, filtering, and search. Results are ordered newest-first by the timestamp that applies to each post — publishedAt if it is live, else scheduledAt if it is due, else createdAt — with id descending as a tiebreaker. A post written weeks before it publishes therefore sorts by when it went live, not when it was drafted.",
               "type": "text/plain"
             },
             "url": {

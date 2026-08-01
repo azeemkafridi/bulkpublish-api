@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-01 — `GET /api/posts` ordering (node SDK 1.8.1, python SDK 0.9.1, MCP 1.12.2)
+
+### Changed
+
+- **`GET /api/posts` is ordered by the timestamp that applies to each post**, newest first: `publishedAt` if the post is live, else `scheduledAt` if it is due, else `createdAt`, with `id` descending as a tiebreaker. It previously ordered by `createdAt` alone, so a post drafted weeks before it published sorted among the day it was *written* rather than the day it went live — on a real account a post published today sat 92 rows down its own Published listing. Drafts and scheduled posts are unaffected in practice, since their applicable timestamp is the one they were already sorted by. Documented in the spec, the Postman collection, both SDK list methods, and the `list_posts` MCP tool. No request or response field changed.
+
 ## 2026-08-01 — tool descriptions no longer steer the host model (MCP 1.12.1)
 
 Raised by the Anthropic MCP Directory review.

@@ -50,6 +50,11 @@ class PostsResource:
     ) -> PostList:
         """List posts with optional filtering and pagination.
 
+        Ordered newest-first by the timestamp that applies to each post:
+        ``published_at`` if it is live, else ``scheduled_at`` if it is due, else
+        ``created_at``. A post drafted weeks before it publishes sorts by when it
+        went live, not when it was written.
+
         Args:
             status: Filter by status (``"draft"``, ``"scheduled"``,
                 ``"published"``, ``"failed"``).

@@ -755,7 +755,7 @@ server.tool(
 
 server.tool(
   "list_posts",
-  "List posts with optional filters for status, search text, date range, channel, and label. Returns paginated results with platform statuses and metrics.",
+  "List posts with optional filters for status, search text, date range, channel, and label. Returns paginated results with platform statuses and metrics, ordered newest-first by publishedAt if the post is live, else scheduledAt, else createdAt.",
   {
     status: z
       .enum(["draft", "scheduled", "publishing", "published", "processing", "failed", "partial"])

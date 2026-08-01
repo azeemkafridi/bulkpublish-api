@@ -43,6 +43,11 @@ export class PostsResource {
   /**
    * List posts with pagination and filters.
    *
+   * Ordered newest-first by the timestamp that applies to each post:
+   * `publishedAt` if it is live, else `scheduledAt` if it is due, else
+   * `createdAt`. A post drafted weeks before it publishes sorts by when it went
+   * live, not when it was written.
+   *
    * @param params - Filtering and pagination options.
    * @returns Paginated list of posts with relations.
    *
