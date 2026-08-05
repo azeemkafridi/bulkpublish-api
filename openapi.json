@@ -1158,7 +1158,24 @@
                   },
                   "platformThreadParts": {
                     "type": "object",
-                    "description": "Optional. Per-platform thread overrides, e.g. { \"x\": [{ \"content\": \"Part 1\" }] }"
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "content": {
+                            "type": "string"
+                          },
+                          "mediaFileIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "description": "Optional. Per-platform thread overrides, e.g. { \"x\": [{ \"content\": \"Part 1\" }] }. Part content must be a plain string — non-string shapes are rejected with 400 VALIDATION_ERROR."
                   },
                   "repeatSchedule": {
                     "type": "object",
