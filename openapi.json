@@ -68,11 +68,11 @@
           },
           "postTypeOverrides": {
             "type": "object",
-            "description": "Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer."
+            "description": "Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. A type the platform does not offer is rejected with 400 VALIDATION_ERROR (previously it silently fell back to the platform default). Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer."
           },
           "platformSpecific": {
             "type": "object",
-            "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto'), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX' — any other value is rejected with 400 VALIDATION_ERROR), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus, categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType, ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'mentionedUsers') }. Threads: { quotePostId }. Use _firstComment (string) for auto-posted reply after publish."
+            "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto' — any other value is rejected with 400 VALIDATION_ERROR), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX' — any other value is rejected with 400 VALIDATION_ERROR), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus ('public'|'unlisted'|'private' — any other value is rejected with 400 VALIDATION_ERROR), categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType ('BOOK'|'ORDER'|'SHOP'|'LEARN_MORE'|'SIGN_UP'|'CALL' — any other value is rejected with 400 VALIDATION_ERROR), ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'verified'|'subscribers'|'mentionedUsers' — any other value is rejected with 400 VALIDATION_ERROR) }. Threads: { quotePostId }. Use _firstComment (string) for auto-posted reply after publish."
           },
           "platformContent": {
             "type": "object",
@@ -456,7 +456,7 @@
       },
       "PlatformSpecific": {
         "type": "object",
-        "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto'), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX' — any other value is rejected with 400 VALIDATION_ERROR), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus, categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType, ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'mentionedUsers') }. Threads: { quotePostId }. Reddit: { [channelId]: { subreddit (required), title (required), flairId, type, url, thumbnailUrl } }. Discord: { [channelId]: { channelId } } — the target Discord channel id. Tumblr: { [channelId]: { blogName, title, tags (array of strings, no leading '#'), link, sourceUrl } }; blogName defaults to the blog the channel was connected as. Use _firstComment (string) for auto-posted reply after publish.",
+        "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto' — any other value is rejected with 400 VALIDATION_ERROR), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX' — any other value is rejected with 400 VALIDATION_ERROR), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus ('public'|'unlisted'|'private' — any other value is rejected with 400 VALIDATION_ERROR), categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType ('BOOK'|'ORDER'|'SHOP'|'LEARN_MORE'|'SIGN_UP'|'CALL' — any other value is rejected with 400 VALIDATION_ERROR), ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'verified'|'subscribers'|'mentionedUsers' — any other value is rejected with 400 VALIDATION_ERROR) }. Threads: { quotePostId }. Reddit: { [channelId]: { subreddit (required), title (required), flairId, type, url, thumbnailUrl } }. Discord: { [channelId]: { channelId } } — the target Discord channel id. Tumblr: { [channelId]: { blogName, title, tags (array of strings, no leading '#'), link, sourceUrl } }; blogName defaults to the blog the channel was connected as. Use _firstComment (string) for auto-posted reply after publish.",
         "properties": {
           "facebook": {
             "type": "object",
@@ -475,6 +475,8 @@
                 "enum": [
                   "everyone",
                   "following",
+                  "verified",
+                  "subscribers",
                   "mentionedUsers"
                 ],
                 "description": "Who can reply to this tweet"
@@ -1120,7 +1122,7 @@
                   },
                   "postTypeOverrides": {
                     "type": "object",
-                    "description": "Optional. Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer."
+                    "description": "Optional. Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. A type the platform does not offer is rejected with 400 VALIDATION_ERROR (previously it silently fell back to the platform default). Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer."
                   },
                   "platformSpecific": {
                     "$ref": "#/components/schemas/PlatformSpecific",
