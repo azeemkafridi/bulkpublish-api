@@ -85,7 +85,7 @@ class Post(TypedDict, total=False):
     postFormat: str
     postTypeOverrides: Dict[str, Any]
     platformSpecific: Dict[str, Any]
-    platformContent: Dict[str, Any]
+    platformContent: Dict[str, str]
     platformThreadParts: Dict[str, Any]
     deleteMediaAfterPublish: bool
     threadParts: Optional[List[Dict[str, Any]]]

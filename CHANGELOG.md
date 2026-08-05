@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-05 — `platformContent` values must be strings (python SDK 0.9.2)
+
+### Changed
+
+- **The server now rejects non-string `platformContent` values with 400 `VALIDATION_ERROR`.** `platformContent` maps platform name → caption *string* (e.g. `{"youtube": "clip #fyp"}`). A client that sent nested objects (`{"youtube": {"content": "..."}}`) previously had them stored verbatim and the post crashed at publish time with `content.split is not a function`; the malformed shape is now caught at create/update. Documented in both OpenAPI copies. The node SDK and MCP server already typed this as string-valued (no change); the python SDK's `platform_content` tightens from `Dict[str, Any]` to `Dict[str, str]` (0.9.2 — also fixes `__version__` lagging at 0.9.0). Postman examples were already string-valued.
+
 ## 2026-08-01 — `GET /api/posts` ordering (node SDK 1.8.1, python SDK 0.9.1, MCP 1.12.2)
 
 ### Changed

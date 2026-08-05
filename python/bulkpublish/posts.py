@@ -151,7 +151,7 @@ class PostsResource:
         label_ids: Optional[List[str]] = None,
         post_format: Optional[str] = None,
         platform_specific: Optional[Dict[str, Any]] = None,
-        platform_content: Optional[Dict[str, Any]] = None,
+        platform_content: Optional[Dict[str, str]] = None,
         delete_media_after_publish: Optional[bool] = None,
         thread_parts: Optional[List[Dict[str, Any]]] = None,
         post_type_overrides: Optional[Dict[str, str]] = None,

@@ -76,7 +76,10 @@
           },
           "platformContent": {
             "type": "object",
-            "description": "Per-platform content overrides, e.g. { \"x\": \"Short version\" }"
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Per-platform content overrides mapping platform name to a plain string, e.g. { \"x\": \"Short version\" }. Values must be strings — nested objects are rejected with 400 VALIDATION_ERROR."
           },
           "deleteMediaAfterPublish": {
             "type": "boolean",
@@ -1125,7 +1128,10 @@
                   },
                   "platformContent": {
                     "type": "object",
-                    "description": "Optional. Per-platform content overrides, e.g. { \"x\": \"Short version\" }"
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Optional. Per-platform content overrides mapping platform name to a plain string, e.g. { \"x\": \"Short version\" }. Values must be strings — nested objects are rejected with 400 VALIDATION_ERROR."
                   },
                   "deleteMediaAfterPublish": {
                     "type": "boolean",
@@ -1446,7 +1452,7 @@
                     "additionalProperties": {
                       "type": "string"
                     },
-                    "description": "Per-platform content overrides, keyed by platform. Replaced wholesale on update."
+                    "description": "Per-platform content overrides, keyed by platform; values must be plain strings (nested objects are rejected with 400 VALIDATION_ERROR). Replaced wholesale on update."
                   },
                   "postTypeOverrides": {
                     "type": "object",
