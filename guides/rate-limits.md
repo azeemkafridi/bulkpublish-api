@@ -15,9 +15,9 @@ Your daily quota depends on your plan:
 
 | Plan | Daily API Requests |
 |------|-------------------|
-| Free | 100 |
+| Free | 10 |
 | Pro | 5,000 |
-| Business | Unlimited |
+| Business | 50,000 |
 
 The daily quota resets at midnight UTC.
 
