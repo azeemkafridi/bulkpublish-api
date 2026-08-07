@@ -123,7 +123,7 @@ Each plan has a daily API request limit, enforced per organization and reset at 
 
 | Plan | Daily Requests |
 |------|---------------|
-| Free | 10 |
+| Free | 30 |
 | Pro | 5,000 |
 | Business | 50,000 |
 
