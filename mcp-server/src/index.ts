@@ -156,7 +156,7 @@ const REDDIT_OPTIONS = z
       .string()
       .optional()
       .describe(
-        "Poster image URL. REQUIRED for video posts — Reddit rejects a video submission without one and there is NO fallback to an attached image or the video's auto-extracted poster frame (unlike Pinterest's coverImageUrl). Publishing fails if omitted on a video post."
+        "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, failing only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file."
       ),
   })
   .passthrough();

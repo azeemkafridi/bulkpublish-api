@@ -712,7 +712,7 @@ post.
 | `type` | string | Set to `link` to force a link submission. Usually unnecessary — see the kind table below. |
 | `url` | string | Destination URL for a link post. Supplying it implies `type: "link"`. |
 | `flairId` | string | Link-flair ID. Call `GET /api/channels/{id}/options` to list a subreddit's flairs. |
-| `thumbnailUrl` | string | **Required for video posts.** Reddit rejects a video submission without a poster image. |
+| `thumbnailUrl` | string | Poster image for video posts. Optional — falls back to the video's auto-extracted poster frame. |
 
 ### How the submission kind is chosen
 
@@ -730,9 +730,11 @@ and options, in this order:
 
 - A media post accepts **exactly one** file. Attaching two images, or an image
   and a video, fails validation — Reddit has no multi-asset submission.
-- **Video posts require `thumbnailUrl` explicitly.** Unlike Pinterest, Reddit
-  does *not* fall back to an attached image or to the video's auto-extracted
-  poster frame; omitting it fails the publish with a message naming the field.
+- **Video posts need a poster image, but you rarely have to supply one.**
+  `thumbnailUrl` falls back to the video's auto-extracted poster frame, and the
+  publish fails only when neither exists. Unlike Pinterest there is no
+  attached-image fallback — a media post accepts exactly one file, so a video
+  post cannot also carry a cover image.
 - Reddit returns HTTP 200 even when a subreddit rule rejects the submission. The
   real error arrives in the response body and is surfaced as a failed post, so
   check `errorMessage` rather than assuming success.

@@ -534,8 +534,9 @@ export interface CreatePostParams {
    * - **reddit**: `{ subreddit }` (required; accepts `webdev`, `r/webdev` or `/r/webdev`, else falls back to the
    *   subreddit stored on the channel). Optional: `title` (defaults to the first line of `content`, truncated to
    *   300 chars), `type` (`'link'` forces a link post), `url`, `flairId`, `thumbnailUrl`.
-   *   `thumbnailUrl` is **required for video posts** — unlike Pinterest's `coverImageUrl` there is no fallback to
-   *   an attached image or the video's auto-extracted poster frame. A media post accepts exactly one file.
+   *   `thumbnailUrl` is optional on video posts — omitted, it falls back to the video's auto-extracted poster
+   *   frame and fails only if neither exists. Unlike Pinterest's `coverImageUrl` there is no attached-image
+   *   fallback, because a media post accepts exactly one file.
    * - **discord**: `{ channelId }` (required) — the target Discord *text channel* snowflake inside the connected
    *   server, which is not the BulkPublish channel id. Publishing uses a global bot token, so failures are
    *   permission problems rather than a reconnect issue.
