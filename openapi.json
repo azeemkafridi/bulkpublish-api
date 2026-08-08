@@ -456,7 +456,7 @@
       },
       "PlatformSpecific": {
         "type": "object",
-        "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto' — any other value is rejected with 400 VALIDATION_ERROR), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX' — any other value is rejected with 400 VALIDATION_ERROR), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus ('public'|'unlisted'|'private' — any other value is rejected with 400 VALIDATION_ERROR), categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType ('BOOK'|'ORDER'|'SHOP'|'LEARN_MORE'|'SIGN_UP'|'CALL' — any other value is rejected with 400 VALIDATION_ERROR), ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'verified'|'subscribers'|'mentionedUsers' — any other value is rejected with 400 VALIDATION_ERROR) }. Threads: { quotePostId }. Reddit: { [channelId]: { subreddit (required), title (required), flairId, type, url, thumbnailUrl } }. Discord: { [channelId]: { channelId } } — the target Discord channel id. Tumblr: { [channelId]: { blogName, title, tags (array of strings, no leading '#'), link, sourceUrl } }; blogName defaults to the blog the channel was connected as. Use _firstComment (string) for auto-posted reply after publish.",
+        "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto' — any other value is rejected with 400 VALIDATION_ERROR), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX' — any other value is rejected with 400 VALIDATION_ERROR), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus ('public'|'unlisted'|'private' — any other value is rejected with 400 VALIDATION_ERROR), categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType ('BOOK'|'ORDER'|'SHOP'|'LEARN_MORE'|'SIGN_UP'|'CALL' — any other value is rejected with 400 VALIDATION_ERROR), ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'verified'|'subscribers'|'mentionedUsers' — any other value is rejected with 400 VALIDATION_ERROR) }. Threads: { quotePostId }. Reddit: { [channelId]: { subreddit (required), title, type, url, flairId, thumbnailUrl } }; subreddit falls back to the one stored on the channel, and title falls back to the first line of content truncated to 300 chars. thumbnailUrl is REQUIRED for video posts — unlike Pinterest there is no fallback to an attached image or the auto-extracted poster frame. Discord: { [channelId]: { channelId } } — the outer key is the BulkPublish channel id, the inner channelId is the target Discord text channel. Telegram: no options — the destination chat is fixed when the channel is connected. Tumblr: { [channelId]: { blogName, title, tags (array of strings, no leading '#'), link, sourceUrl } }; blogName defaults to the blog the channel was connected as. Reddit, Discord and Tumblr also accept a flat (non channel-id-keyed) object that applies to every channel of that platform on the post. Use _firstComment (string) for auto-posted reply after publish.",
         "properties": {
           "facebook": {
             "type": "object",
@@ -655,6 +655,80 @@
               "quotePostId": {
                 "type": "string",
                 "description": "Threads post ID to quote"
+              }
+            }
+          },
+          "reddit": {
+            "type": "object",
+            "description": "Keyed by BulkPublish channel id (e.g. \"12\"), or flat to apply to every Reddit channel on the post. The fields below are those of the inner object.",
+            "properties": {
+              "subreddit": {
+                "type": "string",
+                "description": "Required. Target subreddit. Accepts 'webdev', 'r/webdev' or '/r/webdev' — normalized to a bare lowercase name. Falls back to the subreddit stored on the channel."
+              },
+              "title": {
+                "type": "string",
+                "description": "Post title. Defaults to the first line of content, truncated to 300 characters."
+              },
+              "type": {
+                "type": "string",
+                "description": "Set to 'link' to force a link submission. The submission kind is otherwise resolved from the attached media: image file -> image, video file -> video, url set -> link, else self."
+              },
+              "url": {
+                "type": "string",
+                "description": "Destination URL for a link post. Supplying it implies type 'link'."
+              },
+              "flairId": {
+                "type": "string",
+                "description": "Link-flair id. List a subreddit's flairs via GET /api/channels/{id}/options."
+              },
+              "thumbnailUrl": {
+                "type": "string",
+                "description": "Poster image URL. REQUIRED for video posts — Reddit rejects a video submission without one, and there is no automatic fallback to an attached image or the video's poster frame. Publishing fails if omitted on a video post."
+              }
+            }
+          },
+          "discord": {
+            "type": "object",
+            "description": "Keyed by BulkPublish channel id (e.g. \"12\"), or flat to apply to every Discord channel on the post. The fields below are those of the inner object.",
+            "properties": {
+              "channelId": {
+                "type": "string",
+                "description": "Required. The target Discord text channel id (a snowflake) within the connected server. Note this is a Discord channel id, not the BulkPublish channel id used as the outer key. List postable channels via GET /api/channels/{id}/options."
+              }
+            }
+          },
+          "telegram": {
+            "type": "object",
+            "description": "Telegram accepts no platform-specific options — the destination chat is fixed when the channel is connected. Content is sent as plain text (no parse mode). Text longer than the 1024-character caption limit is posted as a second message alongside captionless media.",
+            "properties": {}
+          },
+          "tumblr": {
+            "type": "object",
+            "description": "Keyed by BulkPublish channel id (e.g. \"12\"), or flat to apply to every Tumblr channel on the post. The fields below are those of the inner object.",
+            "properties": {
+              "blogName": {
+                "type": "string",
+                "description": "Which blog to publish to. Defaults to the blog the channel was connected as (the account's primary blog). List the account's blogs via GET /api/channels/{id}/options."
+              },
+              "title": {
+                "type": "string",
+                "description": "Rendered as a heading block above the post body."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Tumblr tags, without the leading '#'."
+              },
+              "link": {
+                "type": "string",
+                "description": "Appended to the post as a link block."
+              },
+              "sourceUrl": {
+                "type": "string",
+                "description": "Attribution URL stored as the post's source."
               }
             }
           }

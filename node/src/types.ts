@@ -531,8 +531,24 @@ export interface CreatePostParams {
    * - **gmb**: Optional: `ctaType`, `ctaUrl`, `eventTitle`, `startDate`, `endDate`, `startTime`, `endTime`, `couponCode`, `redeemOnlineUrl`
    * - **mastodon**: Optional: `visibility` (public|unlisted|private|direct), `spoilerText`, `language`
    * - **threads**: Optional: `quotePostId`
+   * - **reddit**: `{ subreddit }` (required; accepts `webdev`, `r/webdev` or `/r/webdev`, else falls back to the
+   *   subreddit stored on the channel). Optional: `title` (defaults to the first line of `content`, truncated to
+   *   300 chars), `type` (`'link'` forces a link post), `url`, `flairId`, `thumbnailUrl`.
+   *   `thumbnailUrl` is **required for video posts** — unlike Pinterest's `coverImageUrl` there is no fallback to
+   *   an attached image or the video's auto-extracted poster frame. A media post accepts exactly one file.
+   * - **discord**: `{ channelId }` (required) — the target Discord *text channel* snowflake inside the connected
+   *   server, which is not the BulkPublish channel id. Publishing uses a global bot token, so failures are
+   *   permission problems rather than a reconnect issue.
+   * - **telegram**: no options — the destination chat is fixed when the channel is connected.
+   * - **tumblr**: Optional: `blogName` (defaults to the blog the channel was connected as), `title`, `tags`
+   *   (string[], no leading `#`), `link`, `sourceUrl`
+   *
+   * `reddit`, `discord` and `tumblr` nest their options under the **BulkPublish channel id**, because each
+   * connected account commonly targets a different subreddit / Discord channel / blog. A flat object is also
+   * accepted and applies to every channel of that platform on the post.
    *
    * @example { youtube: { title: 'My Video' }, pinterest: { title: 'My Pin', boardId: '123' } }
+   * @example { reddit: { 12: { subreddit: 'webdev', title: 'Show and tell' } }, discord: { 13: { channelId: '1090123456789012345' } } }
    */
   platformSpecific?: Record<string, Record<string, unknown>>;
   /**

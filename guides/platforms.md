@@ -134,6 +134,9 @@ Use the `postTypeOverrides` field to set a specific post type per platform:
 | Mastodon | `post` (use `postFormat: "thread"` for threads) |
 | Google Business | `standard`, `event`, `offer` |
 | Tumblr | `post` |
+| Reddit | `post` |
+| Discord | `post` |
+| Telegram | `post` |
 
 If not specified, the platform's default post type is used based on the attached media.
 
@@ -665,6 +668,151 @@ different one.
 
 ---
 
+## Reddit
+
+```json
+{
+  "platformSpecific": {
+    "reddit": {
+      "12": {
+        "subreddit": "webdev",
+        "title": "We rebuilt our scheduler — here's what broke",
+        "flairId": "a1b2c3d4-0000-11ee-8c99-0242ac120002"
+      }
+    }
+  }
+}
+```
+
+`platformSpecific.reddit` is keyed by **channel ID**, because each connected
+Reddit account commonly posts to a different subreddit. A flat object (no
+channel-ID level) is also accepted and applies to every Reddit channel on the
+post.
+
+### Options
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `subreddit` | string | **Required.** Target subreddit. Accepts `webdev`, `r/webdev`, or `/r/webdev` — all are normalized to a bare lowercase name. Falls back to the subreddit stored on the channel if omitted. |
+| `title` | string | Post title. When omitted, the first line of `content` is used, truncated to 300 characters. |
+| `type` | string | Set to `link` to force a link submission. Usually unnecessary — see the kind table below. |
+| `url` | string | Destination URL for a link post. Supplying it implies `type: "link"`. |
+| `flairId` | string | Link-flair ID. Call `GET /api/channels/{id}/options` to list a subreddit's flairs. |
+| `thumbnailUrl` | string | **Required for video posts.** Reddit rejects a video submission without a poster image. |
+
+### How the submission kind is chosen
+
+You do not set the kind directly. The server resolves it from the attached media
+and options, in this order:
+
+| Condition | Reddit submission kind |
+|-----------|------------------------|
+| An image file is attached | `image` |
+| A video file is attached | `video` |
+| `type` is `link`, or `url` is set | `link` |
+| Otherwise | `self` (text post) |
+
+### Notes
+
+- A media post accepts **exactly one** file. Attaching two images, or an image
+  and a video, fails validation — Reddit has no multi-asset submission.
+- **Video posts require `thumbnailUrl` explicitly.** Unlike Pinterest, Reddit
+  does *not* fall back to an attached image or to the video's auto-extracted
+  poster frame; omitting it fails the publish with a message naming the field.
+- Reddit returns HTTP 200 even when a subreddit rule rejects the submission. The
+  real error arrives in the response body and is surfaced as a failed post, so
+  check `errorMessage` rather than assuming success.
+- Media submissions resolve **asynchronously**: Reddit confirms the permalink
+  over a websocket. If it does not confirm within 20 seconds the post is marked
+  failed with a message saying it may still have appeared — verify on the
+  subreddit before retrying, or you risk a duplicate.
+- A text post's `content` is submitted as the body, and the title is separate,
+  so the first line is effectively used twice unless you set `title` yourself.
+- Character limit: 40,000. Images up to 20 MB (jpg, png, gif); video up to 1 GB
+  (mp4, mov).
+
+---
+
+## Discord
+
+```json
+{
+  "platformSpecific": {
+    "discord": {
+      "12": { "channelId": "1090123456789012345" }
+    }
+  }
+}
+```
+
+The **outer** key is the BulkPublish channel ID; the **inner** `channelId` is the
+Discord channel (the snowflake ID of the text channel inside the server). They
+are different IDs that happen to share a name — a connected Discord "channel" in
+BulkPublish is an entire *server* (guild), so the message still needs a
+destination channel within it.
+
+A flat `{"channelId": "..."}` is also accepted and applies to every Discord
+channel on the post, as is a default stored on the connection.
+
+### Options
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `channelId` | string | **Required.** The Discord text channel to post in. Call `GET /api/channels/{id}/options` to list the server's postable channels (text, announcement, and forum channels). |
+
+### Notes
+
+- Publishing fails with "No Discord channel selected for this message" if no
+  channel ID can be resolved from the post, a flat value, or the connection
+  default.
+- Posting uses a **global bot token**, not the per-user OAuth token. A publish
+  failure is therefore never a re-authentication problem — the channel is never
+  flagged `needs_reconnect`, and reconnecting will not fix a failed Discord post.
+  The usual causes are permissions: the bot lacks access to the channel, lacks
+  permission to send messages there, or the channel was deleted. Those are
+  returned as plain-language errors.
+- Up to **10 attachments** per message, 25 MB each — Discord's limit for a
+  standard (non-boosted) server.
+- Character limit: 2,000. This is the tightest limit of any supported platform
+  except X, Bluesky, Threads, Pinterest, and Mastodon — use `platformContent` to
+  supply a shorter variant rather than letting the post fail validation.
+
+---
+
+## Telegram
+
+**No platform-specific options.** Telegram takes nothing in `platformSpecific`;
+the destination chat is fixed when the channel is connected, so a post needs
+only `content` and any media.
+
+Each Telegram connection stores its own bot token (from @BotFather) together
+with one target chat, which is why there is nothing to select per post. To
+publish to a second channel or group, connect it as a separate BulkPublish
+channel.
+
+### Notes
+
+- Content is sent as **plain text**, without Markdown or HTML parse mode, so
+  characters like `&`, `<`, and `>` are safe and never cause a formatting error.
+  Telegram still auto-links bare URLs. Markdown you write is *not* rendered.
+- Telegram caps a media **caption** at 1,024 characters while a standalone
+  message allows 4,096. When a post has media and text longer than 1,024
+  characters, the media is sent without a caption and the full text follows as a
+  **second message** — nothing is truncated, but the post arrives as two
+  messages. Keep text at or under 1,024 to get a single captioned message.
+- Media is handed to Telegram as a **URL** rather than uploaded, and the Bot API
+  caps download-by-URL well below its upload limits: **5 MB** for images
+  (jpg, png, webp) and **20 MB** for video (mp4). Oversized files are rejected
+  up front rather than failing at publish time.
+- Up to 10 media items per message; more than 10 are sent as additional media
+  groups.
+- The returned post URL is a `t.me` link for public chats and a `t.me/c/` link
+  for private supergroups and channels. Basic groups have no public permalink,
+  so the URL is empty for them.
+- Character limit: 4,096.
+
+---
+
 ## Post Type Overrides
 
 When publishing to multiple platforms, you may want different post types per platform. Use `postTypeOverrides`:
@@ -770,6 +918,9 @@ Each platform enforces its own character limit on the `content` field:
 | Google Business | 1,500 |
 | Mastodon | 500 (varies by instance) |
 | Tumblr | 32,768 |
+| Reddit | 40,000 |
+| Discord | 2,000 |
+| Telegram | 4,096 (1,024 when the text rides as a media caption) |
 
 BulkPublish validates content length per platform before creating the post and returns an error if any platform's limit is exceeded.
 
@@ -779,4 +930,4 @@ When link tracking is on — the organization setting, or `linkTrackingOverride`
 
 A short URL is 28 characters, which can be **longer** than the link it replaces. Because validation runs on the rewritten text, shortening is skipped for any channel where the rewrite would push the post past that platform's limit: a post composed at 295/300 for Bluesky publishes with its original links rather than failing at 308. The post still goes out — only the tracking is dropped for that channel, and no short link is minted for it, so `linkClicks` stays 0 there.
 
-The tight limits above are where this bites: X (280), Bluesky (300), Threads / Pinterest / Mastodon (500). It never applies on Facebook, LinkedIn or Tumblr.
+The tight limits above are where this bites: X (280), Bluesky (300), Threads / Pinterest / Mastodon (500), and to a lesser degree Discord (2,000). It never applies on Facebook, LinkedIn, Tumblr, Reddit or Telegram.

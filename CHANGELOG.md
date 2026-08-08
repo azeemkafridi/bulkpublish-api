@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-08-08 — Reddit, Discord and Telegram options documented (node SDK 1.8.3, python SDK 0.9.4, MCP 1.13.0)
+
+Reddit, Discord and Telegram have been publishable for a while, but no surface
+described what they accept in `platformSpecific`. Traced from the handlers
+(`webapp/src/lib/platforms/reddit.ts`, `discord.ts`, `telegram.ts`) and the
+worker that feeds them (`publish.worker.ts`, which passes
+`post.platformSpecific[platform]` to the handler).
+
+### Added
+
+- **`platformSpecific.reddit`** — `{ subreddit, title, type, url, flairId, thumbnailUrl }`. `subreddit` is required, falling back to the one stored on the channel; `webdev`, `r/webdev` and `/r/webdev` are all accepted. `title` defaults to the first line of `content` truncated to 300 characters. The submission kind is derived, not set: image attached → `image`, video → `video`, `type: "link"` or `url` → `link`, else `self`. A media post accepts exactly one file. Also documented: Reddit returns HTTP 200 on a rule rejection (surfaced as a failed post), and media submissions confirm asynchronously with a 20-second timeout after which the post fails with a "may still have appeared" warning — verify before retrying to avoid a duplicate.
+- **`platformSpecific.discord`** — `{ channelId }`, required. The inner `channelId` is the target Discord *text channel* snowflake, which is **not** the BulkPublish channel id used as the outer key; a connected Discord "channel" in BulkPublish is an entire server. Publishing uses a global bot token rather than the per-user OAuth token, so a failure is never a reconnect situation and the channel is never flagged `needs_reconnect` — the causes are bot permissions.
+- **`platformSpecific.telegram`** — documented as accepting **no options**; the destination chat is fixed when the channel is connected. Content is sent without a parse mode (so `&`, `<`, `>` are safe and Markdown is not rendered), media is fetched by URL (5 MB images / 20 MB video, well under Telegram's upload limits), and text over the 1,024-character caption limit is posted as a second message alongside captionless media rather than being truncated.
+- **The channel-id-keyed shape is now documented generally.** `reddit`, `discord` and `tumblr` nest options under the BulkPublish channel id (`{"reddit": {"12": {…}}}`) because each connected account commonly targets a different subreddit / Discord channel / blog. A flat object is also accepted and applies to every channel of that platform. Previously only the Tumblr guide mentioned this.
+- **Object schemas** for `reddit`, `discord`, `telegram` and `tumblr` in `PlatformSpecific` in both OpenAPI copies — they were described in prose only (Telegram not at all) and had no `properties` entries. Character limits and post types for the four platforms were also missing from the platforms guide's tables (Reddit 40,000, Discord 2,000, Telegram 4,096, all post type `post`).
+- **MCP `create_post` / `update_post`** now expose real field shapes for these four platforms instead of empty `passthrough()` objects, so a model gets field hints rather than guessing (Reddit's required `subreddit` in particular). Both the channel-keyed and flat shapes validate. `postTypeOverrides` gained the missing `mastodon`, `reddit`, `discord`, `telegram` and `tumblr` keys, all `post` — they were valid server-side but rejected by the tool schema.
+
+### Fixed
+
+- **Correction to the entry below: the Reddit poster-frame fallback was never implemented.** That entry states that an omitted `platformSpecific.reddit.thumbnailUrl` falls back to the video's auto-extracted poster frame, naming the `publishPost` video branch of `reddit.ts` as the resolution site. It does not: that branch reads `thumbnailUrl` from `platformSpecific` only and fails the publish when it is absent. Only the Pinterest half of that change shipped. **Reddit video posts still require `thumbnailUrl` explicitly**, and every surface now says so, contrasting it with Pinterest's `coverImageUrl` so the two are not assumed to behave alike. If the fallback is added to `reddit.ts` later (`videoFile.posterUrl` is already plumbed through `MediaFileData` and used by Pinterest), this documentation needs reverting along with it.
+- The node SDK JSDoc and python SDK docstring for `platformSpecific` listed only eight platforms; they now cover Reddit, Discord, Telegram and Tumblr too. The node package description still advertised "11 platforms" — corrected to 15.
+
 ## 2026-08-08 — Pinterest video-pin cover images (node SDK 1.8.2, python SDK 0.9.3, MCP 1.12.3)
 
 ### Added

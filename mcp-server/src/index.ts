@@ -108,11 +108,97 @@ const POST_TYPE_OVERRIDES_SCHEMA = z
     linkedin: z.enum(["post", "multi_image", "pdf_carousel", "article"]).optional(),
     pinterest: z.enum(["pin", "video_pin", "carousel"]).optional(),
     gmb: z.enum(["standard", "event", "offer"]).optional(),
+    mastodon: z.enum(["post"]).optional(),
+    reddit: z.enum(["post"]).optional(),
+    discord: z.enum(["post"]).optional(),
+    telegram: z.enum(["post"]).optional(),
+    tumblr: z.enum(["post"]).optional(),
   })
   .optional()
   .describe(
     'Per-platform post type override. E.g. { "instagram": "reel", "youtube": "short" }.'
   );
+
+// Reddit, Discord and Tumblr nest their options under the BulkPublish channel
+// id (e.g. { "12": { … } }) because each connected account commonly targets a
+// different subreddit / Discord channel / blog. The server also accepts a FLAT
+// object, which applies to every channel of that platform on the post, so both
+// shapes have to validate here.
+const REDDIT_OPTIONS = z
+  .object({
+    subreddit: z
+      .string()
+      .optional()
+      .describe(
+        "Required. Target subreddit — 'webdev', 'r/webdev' and '/r/webdev' are all accepted. Falls back to the subreddit stored on the channel."
+      ),
+    title: z
+      .string()
+      .optional()
+      .describe(
+        "Post title. Defaults to the first line of content, truncated to 300 characters."
+      ),
+    type: z
+      .string()
+      .optional()
+      .describe(
+        "Set to 'link' to force a link submission. Otherwise the kind is resolved from media: image -> image, video -> video, url set -> link, else self (text)."
+      ),
+    url: z
+      .string()
+      .optional()
+      .describe("Destination URL for a link post; implies type 'link'."),
+    flairId: z
+      .string()
+      .optional()
+      .describe("Link-flair id (list via get_channel_options)."),
+    thumbnailUrl: z
+      .string()
+      .optional()
+      .describe(
+        "Poster image URL. REQUIRED for video posts — Reddit rejects a video submission without one and there is NO fallback to an attached image or the video's auto-extracted poster frame (unlike Pinterest's coverImageUrl). Publishing fails if omitted on a video post."
+      ),
+  })
+  .passthrough();
+
+const DISCORD_OPTIONS = z
+  .object({
+    channelId: z
+      .string()
+      .optional()
+      .describe(
+        "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options."
+      ),
+  })
+  .passthrough();
+
+const TUMBLR_OPTIONS = z
+  .object({
+    blogName: z
+      .string()
+      .optional()
+      .describe(
+        "Which blog to publish to. Defaults to the blog the channel was connected as (list via get_channel_options)."
+      ),
+    title: z
+      .string()
+      .optional()
+      .describe("Rendered as a heading block above the body."),
+    tags: z
+      .array(z.string())
+      .optional()
+      .describe("Tumblr tags, without the leading '#'."),
+    link: z.string().optional().describe("Appended as a link block."),
+    sourceUrl: z
+      .string()
+      .optional()
+      .describe("Attribution URL stored as the post's source."),
+  })
+  .passthrough();
+
+/** Accept both the channel-id-keyed form and the flat form. */
+const channelKeyedOrFlat = <T extends z.ZodTypeAny>(inner: T) =>
+  z.union([z.record(z.string(), inner), inner]);
 
 const PLATFORM_SPECIFIC_SCHEMA = z
   .object({
@@ -195,14 +281,32 @@ const PLATFORM_SPECIFIC_SCHEMA = z
     linkedin: z.object({}).passthrough().optional(),
     bluesky: z.object({}).passthrough().optional(),
     mastodon: z.object({}).passthrough().optional(),
-    reddit: z.object({}).passthrough().optional(),
-    discord: z.object({}).passthrough().optional(),
-    telegram: z.object({}).passthrough().optional(),
-    tumblr: z.object({}).passthrough().optional(),
+    reddit: channelKeyedOrFlat(REDDIT_OPTIONS)
+      .optional()
+      .describe(
+        'Reddit options, nested under the BulkPublish channel id: { "12": { "subreddit": "webdev" } }. A flat object (e.g. { "subreddit": "webdev" }) applies to every Reddit channel on the post. subreddit is required; a media post accepts exactly one file.'
+      ),
+    discord: channelKeyedOrFlat(DISCORD_OPTIONS)
+      .optional()
+      .describe(
+        'Discord options, nested under the BulkPublish channel id: { "12": { "channelId": "1090123456789012345" } }. A flat object applies to every Discord channel on the post. The inner channelId is the target Discord text channel. Posting uses a global bot token, so failures are permission problems, never a reconnect issue.'
+      ),
+    telegram: z
+      .object({})
+      .passthrough()
+      .optional()
+      .describe(
+        "Telegram accepts no options — the destination chat is fixed when the channel is connected. Content is sent as plain text (no markdown). Text over the 1024-char caption limit is posted as a second message alongside captionless media."
+      ),
+    tumblr: channelKeyedOrFlat(TUMBLR_OPTIONS)
+      .optional()
+      .describe(
+        'Tumblr options, nested under the BulkPublish channel id: { "12": { "blogName": "myblog", "tags": ["art"] } }. A flat object applies to every Tumblr channel on the post. Up to 30 images OR exactly one video per post.'
+      ),
   })
   .optional()
   .describe(
-    'Platform-specific settings, e.g. { "youtube": { "title": "…", "privacyStatus": "public" } }.'
+    'Platform-specific settings, e.g. { "youtube": { "title": "…", "privacyStatus": "public" } }. Reddit, Discord and Tumblr nest their options under the BulkPublish channel id, e.g. { "reddit": { "12": { "subreddit": "webdev" } } }. Telegram takes no options.'
   );
 
 const PLATFORM_CONTENT_SCHEMA = z

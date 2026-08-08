@@ -183,6 +183,29 @@ class PostsResource:
                 - **linkedin**: Optional: ``title``, ``description``, ``url`` (required for article type)
                 - **gmb**: Optional: ``ctaType``, ``ctaUrl``, ``eventTitle``, ``startDate``, ``endDate``
                 - **mastodon**: Optional: ``visibility``, ``spoilerText``, ``language``
+                - **reddit**: ``{"subreddit": "..."}`` (required; ``webdev``, ``r/webdev``
+                  and ``/r/webdev`` are all accepted, else falls back to the subreddit
+                  stored on the channel).
+                  Optional: ``title`` (defaults to the first line of content, truncated to
+                  300 chars), ``type`` (``"link"`` forces a link post), ``url``, ``flairId``,
+                  ``thumbnailUrl``. ``thumbnailUrl`` is **required for video posts** — unlike
+                  Pinterest's ``coverImageUrl`` there is no fallback to an attached image or
+                  the video's auto-extracted poster frame. A media post accepts exactly one file.
+                - **discord**: ``{"channelId": "..."}`` (required) — the target Discord *text
+                  channel* snowflake inside the connected server, which is not the BulkPublish
+                  channel id. Publishing uses a global bot token, so failures are permission
+                  problems rather than a reconnect issue.
+                - **telegram**: no options — the destination chat is fixed at connect time.
+                - **tumblr**: Optional: ``blogName`` (defaults to the blog the channel was
+                  connected as), ``title``, ``tags`` (list of strings, no leading ``#``),
+                  ``link``, ``sourceUrl``
+
+                ``reddit``, ``discord`` and ``tumblr`` nest their options under the
+                **BulkPublish channel id**, because each connected account commonly targets a
+                different subreddit / Discord channel / blog. A flat object is also accepted
+                and applies to every channel of that platform on the post::
+
+                    {"reddit": {"12": {"subreddit": "webdev"}}}
 
             platform_content: Per-platform content overrides for different char limits
                 (bluesky: 300, pinterest/threads/mastodon: 500, etc.).
@@ -198,6 +221,7 @@ class PostsResource:
                 - pinterest: ``pin``, ``video_pin``, ``carousel``
                 - threads: ``text``, ``image``, ``video``, ``carousel``
                 - gmb: ``standard``, ``event``, ``offer``
+                - mastodon, reddit, discord, telegram, tumblr: ``post``
 
             request_approval: Set ``True`` to hold a scheduled post for team
                 approval (``approvalStatus`` becomes ``"pending"``; default
