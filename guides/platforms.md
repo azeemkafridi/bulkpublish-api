@@ -198,7 +198,7 @@ Platforms listed in `platformContent` use that text. All others fall back to the
 
 ## Auto First Comment
 
-All platforms support `_firstComment` in `platformSpecific`. After the post is published, BulkPublish automatically posts a comment on the published content:
+Most platforms support `_firstComment` in `platformSpecific`. After the post is published, BulkPublish automatically posts a comment on the published content:
 
 ```json
 {
@@ -213,6 +213,20 @@ All platforms support `_firstComment` in `platformSpecific`. After the post is p
 ```
 
 This is commonly used on Instagram to keep the caption clean while adding hashtags or CTAs in the first comment.
+
+**Not every platform can post one.** Supported on X, Instagram, Facebook,
+LinkedIn, YouTube, Threads, Bluesky, Mastodon, Reddit and Telegram. **Not
+supported on Discord, Pinterest, TikTok, Google Business or Tumblr.**
+
+Sending `_firstComment` to an unsupported platform does **not** fail the post.
+The main post publishes normally and the comment is recorded against it as
+`failed` with the reason `<Platform> does not support first comments`. So a
+missing first comment on those platforms is expected behaviour, not an incident
+— check the post's first-comment result rather than assuming an error dropped
+it.
+
+Note that `_firstComment` sits at the **top level** of `platformSpecific`, not
+inside a platform key, so it applies to every channel on the post.
 
 ---
 
@@ -773,9 +787,13 @@ channel on the post, as is a default stored on the connection.
   returned as plain-language errors.
 - Up to **10 attachments** per message, 25 MB each — Discord's limit for a
   standard (non-boosted) server.
-- Character limit: 2,000. This is the tightest limit of any supported platform
-  except X, Bluesky, Threads, Pinterest, and Mastodon — use `platformContent` to
-  supply a shorter variant rather than letting the post fail validation.
+- **`_firstComment` is not supported.** Discord exposes no comment API to the
+  bot, so a first comment is recorded as failed while the main message publishes
+  normally. See [Auto First Comment](#auto-first-comment).
+- Character limit: 2,000 — tighter than every platform except X (280),
+  Bluesky (300), Threads / Pinterest / Mastodon (500) and Google Business
+  (1,500). Use `platformContent` to supply a shorter variant rather than letting
+  the post fail validation.
 
 ---
 
@@ -930,4 +948,4 @@ When link tracking is on — the organization setting, or `linkTrackingOverride`
 
 A short URL is 28 characters, which can be **longer** than the link it replaces. Because validation runs on the rewritten text, shortening is skipped for any channel where the rewrite would push the post past that platform's limit: a post composed at 295/300 for Bluesky publishes with its original links rather than failing at 308. The post still goes out — only the tracking is dropped for that channel, and no short link is minted for it, so `linkClicks` stays 0 there.
 
-The tight limits above are where this bites: X (280), Bluesky (300), Threads / Pinterest / Mastodon (500), and to a lesser degree Discord (2,000). It never applies on Facebook, LinkedIn, Tumblr, Reddit or Telegram.
+The tight limits above are where this bites: X (280), Bluesky (300), Threads / Pinterest / Mastodon (500), and to a lesser degree Google Business (1,500) and Discord (2,000). It never applies on Facebook, LinkedIn, Tumblr, Reddit or Telegram.
