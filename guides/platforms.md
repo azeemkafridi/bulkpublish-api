@@ -391,6 +391,8 @@ This is commonly used on Instagram to keep the caption clean while adding hashta
 | `title` | string | **Required.** Pin title |
 | `description` | string | Pin description (overrides the post's `content` if set) |
 | `link` | string | Destination URL when the pin is clicked |
+| `dominantColor` | string | Hex color for the pin, e.g. `#FF5733` |
+| `coverImageUrl` | string | Cover image for `video_pin` posts. Optional — when omitted, an image attached alongside the video is used, otherwise the video's auto-extracted poster frame |
 
 ### Board Selection
 
@@ -415,6 +417,7 @@ curl "https://app.bulkpublish.com/api/channels/5/options" \
 
 - A `title` is required for Pinterest pins.
 - Each pin can link to one external URL.
+- Video pins need a cover image. You rarely have to supply one: the server resolves `coverImageUrl` → an attached image → the video's auto-extracted poster frame, and only fails when all three are missing (e.g. a video uploaded before poster generation existed).
 
 ---
 

@@ -568,6 +568,10 @@
               "dominantColor": {
                 "type": "string",
                 "description": "Hex color e.g. #FF5733"
+              },
+              "coverImageUrl": {
+                "type": "string",
+                "description": "Cover image URL for video pins. Optional — when omitted, an image attached alongside the video is used, otherwise the auto-extracted poster frame of the video. Publishing fails only if none of the three is available."
               }
             }
           },

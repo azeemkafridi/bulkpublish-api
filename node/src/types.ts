@@ -524,7 +524,7 @@ export interface CreatePostParams {
    *
    * Required fields by platform:
    * - **youtube**: `{ title }` (required, 1-100 chars). Optional: `privacyStatus`, `categoryId`, `tags`, `playlistId`, `thumbnailUrl`, `madeForKids`
-   * - **pinterest**: `{ title }` (required, 1-100 chars). Optional: `boardId` (or falls back to channel default), `description`, `link`
+   * - **pinterest**: `{ title }` (required, 1-100 chars). Optional: `boardId` (or falls back to channel default), `description`, `link`, `dominantColor` (hex e.g. #FF5733), `coverImageUrl` (video pins; when omitted the server falls back to an attached image, then the video's auto-extracted poster frame)
    * - **instagram**: Optional: `collaborators`, `trialReel`, `thumbnailTimestamp`
    * - **tiktok**: Optional: `privacyLevel` (SELF_ONLY|PUBLIC|FRIENDS), `disableDuet`, `disableStitch`, `disableComment`, `isAigc`
    * - **linkedin**: Optional: `title`, `description`, `url` (required for article type), `carouselTitle`

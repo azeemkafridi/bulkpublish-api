@@ -175,7 +175,9 @@ class PostsResource:
                 - **youtube**: ``{"title": "..."}`` (required, 1-100 chars).
                   Optional: ``privacyStatus``, ``categoryId``, ``tags``, ``playlistId``, ``thumbnailUrl``, ``madeForKids``
                 - **pinterest**: ``{"title": "..."}`` (required, 1-100 chars).
-                  Optional: ``boardId``, ``description``, ``link``
+                  Optional: ``boardId``, ``description``, ``link``, ``dominantColor``,
+                  ``coverImageUrl`` (video pins; when omitted the server falls back to an
+                  attached image, then the video's auto-extracted poster frame)
                 - **instagram**: Optional: ``collaborators``, ``trialReel``, ``thumbnailTimestamp``
                 - **tiktok**: Optional: ``privacyLevel`` (SELF_ONLY|PUBLIC|FRIENDS), ``disableDuet``, ``disableStitch``
                 - **linkedin**: Optional: ``title``, ``description``, ``url`` (required for article type)

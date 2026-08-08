@@ -132,6 +132,13 @@ const PLATFORM_SPECIFIC_SCHEMA = z
         title: z.string().optional(),
         description: z.string().optional(),
         link: z.string().optional(),
+        dominantColor: z.string().optional().describe("Hex color e.g. #FF5733"),
+        coverImageUrl: z
+          .string()
+          .optional()
+          .describe(
+            "Cover image URL for video pins. Optional — server falls back to an attached image, then the video's auto-extracted poster frame."
+          ),
       })
       .passthrough()
       .optional(),

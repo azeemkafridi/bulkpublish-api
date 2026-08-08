@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-08 — Pinterest video-pin cover images (node SDK 1.8.2, python SDK 0.9.3, MCP 1.12.3)
+
+### Added
+
+- **`platformSpecific.pinterest.coverImageUrl`** on `POST /api/posts` / `PUT /api/posts/:id`. Pinterest requires a cover image on video pins; until now nothing could set one, so every `video_pin` failed with "A video pin needs a cover image". The field is optional: when omitted the server falls back to an image attached alongside the video, then to the video's auto-extracted poster frame (resolution site: `publishVideoPin` in `webapp/src/lib/platforms/pinterest.ts`), and fails only when all three are missing. Documented in both OpenAPI copies, the Postman collection, the node SDK JSDoc, the python SDK docstring, the `create_post`/`update_post` MCP tool schemas, and the platforms guide (which also picks up the previously undocumented `dominantColor`).
+
 ## 2026-08-05 — `platformContent` values must be strings (python SDK 0.9.2)
 
 ### Changed
