@@ -865,7 +865,7 @@ fields — so **never present a `0` as a measurement without checking them first
 
 `GET /api/posts/{id}/metrics` returns, per platform entry:
 
-- `metricsSupported` — `false` when the platform exposes no per-post statistics API at all.
+- `metricsSupported` — `false` when the platform has no readable per-post statistics API (Tumblr reports only a combined note count that cannot be split).
 - `supportedMetrics` — the metric keys that platform can populate. Anything absent is a stored `0`.
 
 `GET /api/analytics/engagement` returns the same information for a date range:
@@ -883,7 +883,7 @@ fields — so **never present a `0` as a measurement without checking them first
 
 | Platform | Reports | Never reports |
 |---|---|---|
-| X | impressions, likes, comments, shares | reach, saves, clicks, video views |
+| X | impressions, likes, comments, shares, saves (bookmarks) | reach, clicks, video views |
 | YouTube | impressions, video views, likes, comments | reach, shares, saves, clicks |
 | Instagram | impressions, reach, likes, comments, shares, saves | clicks, video views |
 | Facebook | likes, comments, shares + impressions, reach, clicks¹ | saves, video views |
@@ -893,7 +893,9 @@ fields — so **never present a `0` as a measurement without checking them first
 | Pinterest | impressions, clicks, saves, likes, comments, video views | reach |
 | Bluesky | likes, comments, shares, saves (bookmarks) | impressions, reach, clicks, video views |
 | Mastodon | likes, comments, shares | everything else |
-| Google Business, Reddit, Discord, Telegram, Tumblr | *nothing* | — |
+| Reddit | likes (score), comments, shares (crossposts) | impressions, reach, saves, clicks, video views |
+| Discord | likes (reaction counts), comments (thread replies) | everything else |
+| Google Business, Telegram, Tumblr | *nothing* | — |
 | LinkedIn personal profiles | *nothing* | — |
 
 ¹ Facebook's `impressions`, `reach` and `clicks` come from the Page Insights

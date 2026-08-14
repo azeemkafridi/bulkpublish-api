@@ -71,20 +71,22 @@ export class AnalyticsResource {
    * on demand via {@link refresh}) — not a live read of the platform.
    *
    * The response's `unmeasuredPlatforms` lists platforms in the window that
-   * cannot report per-post metrics at all: Google Business, Telegram, Discord,
-   * Reddit and Tumblr have no metrics API, and LinkedIn exposes share
-   * statistics only for organization pages (personal/profile channels never
-   * report). Those posts are still counted, with zeroes — so a zero for one of
+   * cannot report per-post metrics: Google Business and Telegram have no
+   * readable metrics API, Tumblr reports only a combined note count that
+   * cannot be split, and LinkedIn exposes share statistics only for
+   * organization pages (personal/profile channels never report). Those posts are still counted, with zeroes — so a zero for one of
    * these platforms means "not reported", not "measured zero". The same signal
    * appears per entry as `platformMetrics[].metricsSupported`.
    *
    * Support is also per-METRIC, not just per-platform. `metricSupport` maps each
    * platform in the window to the metric keys its API can actually report; every
    * other key is stored as 0 because the platform has no such field. X reports
-   * impressions/likes/comments/shares only (never reach, saves, clicks or video
-   * views); Bluesky and Mastodon report no impressions, so their engagement
-   * rate is always 0 — though Bluesky does report `saves`, via bookmarks;
-   * Pinterest reports no reach; YouTube reports no shares or reach.
+   * impressions/likes/comments/shares/saves — saves via bookmarks (never
+   * reach, clicks or video views); Bluesky and Mastodon report no impressions,
+   * so their engagement rate is always 0 — though Bluesky does report `saves`,
+   * via bookmarks; Pinterest reports no reach; YouTube reports no shares or
+   * reach; Reddit reports likes (score), comments and shares (crossposts);
+   * Discord reports likes (reaction counts) and comments (thread replies).
    * `supportedTotals` is the union across the window — a `total*` field whose key
    * is absent there should be shown as "not available", never as 0.
    * `partialTotals` maps a supported key to the platforms that do NOT report it,

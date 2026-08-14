@@ -100,17 +100,21 @@ class AnalyticsResource:
             Figures come from the stored metrics snapshot, synced every 6 hours
             (or on demand via :meth:`refresh`) — not a live platform read. The
             response's ``unmeasuredPlatforms`` lists platforms that cannot
-            report per-post metrics at all (Google Business, Telegram, Discord,
-            Reddit, Tumblr; and LinkedIn personal/profile channels, since share
+            report per-post metrics (Google Business and Telegram have no
+            readable metrics API; Tumblr reports only an unsplittable note
+            count; and LinkedIn personal/profile channels, since share
             statistics are organization-only). Their posts still count, with
             zeroes — a zero there means "not reported", not "measured zero".
 
             Support is per-METRIC too. ``metricSupport`` maps each platform in
             the window to the metric keys its API can report; every other key is
-            a stored 0, not a measurement. X reports impressions/likes/comments/
-            shares only (never reach, saves, clicks or video views); Bluesky and
-            Mastodon report no impressions, so engagement rate is always 0;
-            Pinterest reports no reach; YouTube reports no shares or reach.
+            a stored 0, not a measurement. X reports impressions/likes/
+            comments/shares/saves — saves via bookmarks (never reach, clicks or
+            video views); Bluesky and Mastodon report no impressions, so
+            engagement rate is always 0; Pinterest reports no reach; YouTube
+            reports no shares or reach; Reddit reports likes (score), comments
+            and shares (crossposts); Discord reports likes (reaction counts)
+            and comments (thread replies).
             ``supportedTotals`` is the union across the window — render a
             ``total*`` field whose key is missing there as "not available", never
             as 0. ``partialTotals`` maps a supported key to the platforms that do

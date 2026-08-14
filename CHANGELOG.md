@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-08-15 — Metrics audit: Reddit and Discord report per-post metrics; X reports saves
+
+Every platform's metrics/engagement/account-analytics wiring was verified
+against the platform's current official API documentation. Three under-claims
+were real and are fixed server-side; the doc surfaces here are re-synced.
+The response schemas are unchanged — only which platforms/keys carry data.
+
+### Changed
+
+- **Reddit now reports per-post metrics** — likes (`score`), comments
+  (`num_comments`) and shares (`num_crossposts`) via `GET /api/info`. It no
+  longer appears in `unmeasuredPlatforms`, and `metricSupport.reddit` /
+  `supportedMetrics` list `likes, comments, shares` (plus `linkClicks`).
+  Impressions are still not claimed: `view_count` is null through the data API.
+- **Discord now reports per-post metrics** — likes (sum of `reactions[].count`)
+  and comments (the started thread's `message_count`). No views field exists on
+  the Message resource, so nothing else is claimed.
+- **X now reports `saves`** — `public_metrics.bookmark_count` was already being
+  fetched and is now surfaced as the `saves` metric instead of a
+  platform-specific extra. Quote counts remain in `platformSpecificMetrics`.
+- **The unmeasured list shrank and its wording is now precise**: Google
+  Business and Telegram have no readable metrics API; Tumblr reports only a
+  combined note count that cannot be split into likes/reblogs/replies (so it
+  stays unmeasured, but the platform is not metric-less); LinkedIn
+  personal/profile channels stay unmeasured because the Member Post Analytics
+  API is approval-gated, not because the platform lacks one.
+- **Fixed a false doc claim**: the spec said "Pinterest reports no likes or
+  comments" — Pinterest's pin analytics return `TOTAL_REACTIONS` and
+  `TOTAL_COMMENTS`, and the server has always mapped them. The support matrix
+  in `guides/platforms.md` and both spec copies now match the server's
+  `METRIC_SUPPORT` table exactly.
+- Synced: `openapi.json`, node SDK JSDoc (1.8.4), python SDK docstrings
+  (0.9.5), MCP server tool description (1.13.1), `guides/platforms.md`.
+
 ## 2026-08-15 — Post engagement now covers eleven platforms, not seven
 
 `GET /api/posts/{id}/engagement` previously returned `unsupported: true` for
