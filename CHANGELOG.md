@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-08-15 — Post engagement now covers eleven platforms, not seven
+
+`GET /api/posts/{id}/engagement` previously returned `unsupported: true` for
+eight of the fifteen platforms. Four of those eight had a readable comment API
+the whole time, so the endpoint was reporting "this network has no comments"
+about networks that do. Implemented in the webapp handlers and re-documented
+here; the response schema is unchanged.
+
+### Changed
+
+- **`GET /api/posts/{id}/engagement` description** — now names exactly which
+  platforms return what, instead of "e.g. TikTok".
+  - **Newly returning data:** Reddit (comment tree; votes are anonymous so it
+    sets `reactionsUnsupported`), Tumblr (notes — replies and
+    reblogs-with-commentary become `comments`, likes and bare reblogs become
+    `reactions`), Discord (reactors, plus replies in a thread started from the
+    message) and X (replies via conversation search + liking users).
+  - **X is gated and says so:** reads are billed per tweet and per user, so
+    `comments`/`reactions` come back empty with an explanatory `notice` unless
+    the channel has `metadata.metricsSyncEnabled` and the org is inside its
+    daily read budget. X replies also come from recent search, which only
+    covers the last 7 days.
+  - **Still `unsupported: true`, now with a `notice` explaining why:** TikTok
+    (comments are Research-API only), Pinterest (v5 exposes no Pin comments),
+    Google Business (reviews attach to the location, not the post) and Telegram
+    (a bot only learns of comments through pushed updates).
+
+No SDK, MCP or integration change: none of them wrap this endpoint — it is
+documented in `openapi.json` only.
+
 ## 2026-08-08 — Reddit, Discord and Telegram options documented (node SDK 1.8.3, python SDK 0.9.4, MCP 1.13.0)
 
 Reddit, Discord and Telegram have been publishable for a while, but no surface
