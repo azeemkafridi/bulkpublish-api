@@ -213,7 +213,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     "Content-Type, Authorization, X-BulkPublish-Key, Mcp-Session-Id, Mcp-Protocol-Version, Last-Event-ID"
   );
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Expose-Headers", "Mcp-Session-Id, WWW-Authenticate");
+  // Note: no Mcp-Session-Id here — this server is stateless
+  // (sessionIdGenerator: undefined) and never emits that header.
+  res.setHeader("Access-Control-Expose-Headers", "WWW-Authenticate");
   if (req.method === "OPTIONS") {
     res.sendStatus(204);
     return;
@@ -326,7 +328,21 @@ function normalizeMcpAccept(req: Request, _res: Response, next: NextFunction): v
   const wantsJson = accept.includes("application/json") || accept.includes("*/*") || accept === "";
   const wantsSse = accept.includes("text/event-stream");
   if (wantsJson || wantsSse) {
-    req.headers.accept = "application/json, text/event-stream";
+    const normalized = "application/json, text/event-stream";
+    req.headers.accept = normalized;
+    // SDK ≥1.26 converts the Node request to a web-standard Request via
+    // @hono/node-server's getRequestListener, which builds the Header map from
+    // req.rawHeaders — NOT req.headers — so the mutation above alone no longer
+    // reaches the transport's Accept check. Rewrite rawHeaders too (replace any
+    // existing Accept entry, else append one).
+    let replaced = false;
+    for (let i = 0; i < req.rawHeaders.length; i += 2) {
+      if (req.rawHeaders[i].toLowerCase() === "accept") {
+        req.rawHeaders[i + 1] = normalized;
+        replaced = true;
+      }
+    }
+    if (!replaced) req.rawHeaders.push("Accept", normalized);
   }
   next();
 }
