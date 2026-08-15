@@ -185,7 +185,16 @@
             "type": "string"
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "pending",
+              "publishing",
+              "published",
+              "failed",
+              "processing",
+              "unconfirmed"
+            ],
+            "description": "Per-platform publish state. 'unconfirmed' is terminal: the publish request may have reached the platform but its response was lost — check the account, then retry with republish: true if the post is not live."
           },
           "platformPostId": {
             "type": "string",
@@ -1746,6 +1755,27 @@
         "responses": {
           "200": {
             "description": "Retry queued"
+          },
+          "400": {
+            "description": "No failed platforms, or unconfirmed platforms present without republish: true (code UNCONFIRMED_REQUIRES_REPUBLISH)"
+          }
+        },
+        "description": "Re-queues this post's failed platforms. Platforms in status 'unconfirmed' (the publish request may have reached the platform but its response was lost — the post may already be live) are NOT retried unless the body passes republish: true; without it the request fails with code UNCONFIRMED_REQUIRES_REPUBLISH. Check the account before passing republish: true — retrying an unconfirmed platform can duplicate the post.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "republish": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Explicit opt-in to also retry platforms in status 'unconfirmed'. Their publish may have already gone through; retrying can create a duplicate post."
+                  }
+                }
+              }
+            }
           }
         }
       }

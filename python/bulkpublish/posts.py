@@ -392,11 +392,22 @@ class PostsResource:
 
     # -- Retry ----------------------------------------------------------------
 
-    def retry(self, post_id: str) -> Post:
+    def retry(self, post_id: str, *, republish: bool = False) -> Post:
         """Retry publishing a failed post.
+
+        Platforms in status ``unconfirmed`` (the publish request may have
+        reached the platform but its response was lost — the post may already
+        be live) are NOT retried unless ``republish=True``; without it, a post
+        with unconfirmed platforms and no failed ones fails with a 400 and
+        code ``UNCONFIRMED_REQUIRES_REPUBLISH``. Check the account before
+        passing ``republish=True`` — retrying an unconfirmed platform can
+        duplicate the post.
 
         Args:
             post_id: The post's unique identifier (must have ``"failed"`` status).
+            republish: Explicit opt-in to also retry ``unconfirmed``
+                platforms. Defaults to ``False``. Can duplicate the post —
+                only pass after confirming the post is not live.
 
         Returns:
             The post object, now re-queued for publishing.
@@ -406,8 +417,12 @@ class PostsResource:
             failed = bp.posts.list(status="failed")
             for post in failed["posts"]:
                 bp.posts.retry(post["id"])
+
+            # After confirming on the platform that the post is NOT live:
+            bp.posts.retry(post_id, republish=True)
         """
-        return self._client._request("POST", f"/api/posts/{post_id}/retry")
+        body = {"republish": True} if republish else None
+        return self._client._request("POST", f"/api/posts/{post_id}/retry", json=body)
 
     # -- Approval -------------------------------------------------------------
 
@@ -610,9 +625,10 @@ class AsyncPostsResource:
         """Publish a post now — see :meth:`PostsResource.publish`."""
         return await self._client._request("POST", f"/api/posts/{post_id}/publish")
 
-    async def retry(self, post_id: str) -> Post:
+    async def retry(self, post_id: str, *, republish: bool = False) -> Post:
         """Retry a failed post — see :meth:`PostsResource.retry`."""
-        return await self._client._request("POST", f"/api/posts/{post_id}/retry")
+        body = {"republish": True} if republish else None
+        return await self._client._request("POST", f"/api/posts/{post_id}/retry", json=body)
 
     async def approve(self, post_id: str) -> Post:
         """Approve a pending post — see :meth:`PostsResource.approve`."""

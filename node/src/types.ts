@@ -123,7 +123,19 @@ export type PostStatus =
 export type PostApprovalStatus = 'none' | 'pending' | 'approved' | 'rejected';
 
 /** Possible per-platform statuses on a post. */
-export type PlatformStatus = 'pending' | 'publishing' | 'published' | 'failed' | 'processing';
+export type PlatformStatus =
+  | 'pending'
+  | 'publishing'
+  | 'published'
+  | 'failed'
+  | 'processing'
+  /**
+   * Terminal: the publish request may have reached the platform but its
+   * response was lost — the post may already be live. Never auto-retried;
+   * check the account, then retry with `republish: true` if the post is not
+   * live (this can duplicate the post).
+   */
+  | 'unconfirmed';
 
 /** Token health status for a channel. */
 export type TokenStatus = 'valid' | 'expiring_soon' | 'expired';
@@ -655,6 +667,19 @@ export interface RejectPostParams {
 
 /** Response from publishing a post. */
 export interface PublishPostResponse extends Post {}
+
+/** Parameters for retrying a post's failed platforms. */
+export interface RetryPostParams {
+  /**
+   * Explicit opt-in to also retry platforms in status 'unconfirmed' (the
+   * publish request may have reached the platform but its response was lost).
+   * Their publish may have already gone through; retrying can create a
+   * duplicate post — check the account first. Defaults to false; without it,
+   * a post with unconfirmed platforms and no failed ones fails with a 400 and
+   * code UNCONFIRMED_REQUIRES_REPUBLISH.
+   */
+  republish?: boolean;
+}
 
 /** Response from retrying failed platforms on a post. */
 export interface RetryPostResponse extends Post {

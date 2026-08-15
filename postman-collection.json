@@ -1086,7 +1086,7 @@
           "name": "Retry failed platforms",
           "request": {
             "name": "Retry failed platforms",
-            "description": {},
+            "description": "Re-queues this post's failed platforms. Platforms in status 'unconfirmed' (the publish request may have reached the platform but its response was lost — the post may already be live) are NOT retried unless the body passes republish: true; without it the request fails with code UNCONFIRMED_REQUIRES_REPUBLISH. Check the account before passing republish: true — retrying an unconfirmed platform can duplicate the post.",
             "url": {
               "path": [
                 "api",
@@ -1112,8 +1112,22 @@
               ]
             },
             "method": "POST",
-            "body": {},
-            "auth": null
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"republish\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": null,
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ]
           },
           "response": [
             {

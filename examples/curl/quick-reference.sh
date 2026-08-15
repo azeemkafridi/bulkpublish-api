@@ -150,6 +150,12 @@ curl -s -X POST -H "$AUTH" "$BASE/api/posts/42/publish"
 # Retry failed platforms on a post
 curl -s -X POST -H "$AUTH" "$BASE/api/posts/42/retry"
 
+# Retry including 'unconfirmed' platforms (publish response was lost — the post
+# may already be live). Check the account first: this can duplicate the post.
+# Without republish, unconfirmed-only posts 400 with UNCONFIRMED_REQUIRES_REPUBLISH.
+curl -s -X POST -H "$AUTH" -H "Content-Type: application/json" \
+  -d '{"republish": true}' "$BASE/api/posts/42/retry"
+
 # Get post metrics (impressions, likes, comments, shares)
 curl -s -H "$AUTH" "$BASE/api/posts/42/metrics"
 

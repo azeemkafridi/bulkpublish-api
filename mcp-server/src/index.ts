@@ -964,12 +964,20 @@ server.tool(
 
 server.tool(
   "retry_post",
-  "Retry publishing a failed or partially failed post. Only retries the platforms that failed, not the ones that already succeeded.",
+  "Retry publishing a failed or partially failed post. Only retries the platforms that failed, not the ones that already succeeded. " +
+    "Platforms in status 'unconfirmed' (the publish request may have reached the platform but its response was lost — the post may already be live) are NOT retried unless republish is true; " +
+    "if the post has unconfirmed platforms and no failed ones, the call fails with a 400 and code UNCONFIRMED_REQUIRES_REPUBLISH — ask the user to check the account on the platform, and only pass republish: true after they confirm the post is not live.",
   {
     postId: z.number().describe("The post ID to retry."),
+    republish: z
+      .boolean()
+      .optional()
+      .describe(
+        "Explicit opt-in to also retry platforms in status 'unconfirmed'. Their publish may have already gone through, so this can DUPLICATE the post — only pass true after the user has checked the account and confirmed the post is not live. Defaults to false."
+      ),
   },
-  async ({ postId }) => {
-    const res = await api("POST", `/api/posts/${postId}/retry`);
+  async ({ postId, republish }) => {
+    const res = await api("POST", `/api/posts/${postId}/retry`, republish === undefined ? undefined : { republish });
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );

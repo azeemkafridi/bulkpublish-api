@@ -38,7 +38,12 @@ class PostPlatform(TypedDict, total=False):
     """Per-platform entry included in a post's ``postPlatforms``.
 
     ``status`` is one of ``pending``, ``publishing``, ``published``,
-    ``processing``, or ``failed``.
+    ``processing``, ``failed``, or ``unconfirmed``.
+
+    ``unconfirmed`` is terminal: the publish request may have reached the
+    platform but its response was lost — the post may already be live. It is
+    never auto-retried; check the account, then call ``posts.retry`` with
+    ``republish=True`` if the post is not live (this can duplicate the post).
     """
 
     id: int

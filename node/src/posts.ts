@@ -7,6 +7,7 @@ import type {
   UpdatePostParams,
   RejectPostParams,
   PublishPostResponse,
+  RetryPostParams,
   RetryPostResponse,
   PublishStoryParams,
   PublishStoryResponse,
@@ -192,17 +193,30 @@ export class PostsResource {
    * Retry failed platform deliveries for a post.
    * Only platforms that haven't exceeded their max retry count are retried.
    *
+   * Platforms in status 'unconfirmed' (the publish request may have reached
+   * the platform but its response was lost — the post may already be live)
+   * are NOT retried unless `params.republish` is true; without it, a post
+   * whose retryable platforms are all unconfirmed fails with a 400 and code
+   * `UNCONFIRMED_REQUIRES_REPUBLISH`. Check the account before passing
+   * `republish: true` — retrying an unconfirmed platform can duplicate the
+   * post.
+   *
    * @param id - The post ID.
+   * @param params - Optional; pass `{ republish: true }` to also retry
+   *   unconfirmed platforms.
    * @returns The post with retry counts.
    *
    * @example
    * ```typescript
    * const result = await bp.posts.retry(42);
    * console.log(`Retried ${result.retriedCount} platforms, skipped ${result.skippedMaxRetries}`);
+   *
+   * // After confirming on the platform that the post is NOT live:
+   * await bp.posts.retry(42, { republish: true });
    * ```
    */
-  retry(id: number): Promise<RetryPostResponse> {
-    return this.http.post<RetryPostResponse>(`/api/posts/${id}/retry`);
+  retry(id: number, params?: RetryPostParams): Promise<RetryPostResponse> {
+    return this.http.post<RetryPostResponse>(`/api/posts/${id}/retry`, params);
   }
 
   /**

@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-08-15 — New platform status `unconfirmed`; opt-in `republish` on retry
+
+Mirrors webapp commit `bedafa4`.
+
+### Added
+
+- **New per-platform status `unconfirmed`** (joins pending, publishing,
+  published, failed, processing). Terminal: the publish request may have
+  reached the platform but its response was lost — the post may already be
+  live. Never auto-retried.
+- **`POST /api/posts/{id}/retry` accepts an optional JSON body
+  `{ "republish": boolean }`** (default `false`; server resolves
+  `body?.republish === true`). Without it, only `failed` platforms are
+  retried; if the post has `unconfirmed` platforms and no failed ones, the
+  endpoint returns 400 with code `UNCONFIRMED_REQUIRES_REPUBLISH`. Passing
+  `republish: true` also retries unconfirmed platforms — check the account
+  first, since the post may already be live and retrying can duplicate it.
+- Synced: `openapi.json` + Postman collection, node SDK (`PlatformStatus`
+  union, `posts.retry(id, { republish })`, **1.9.0**), python SDK
+  (`posts.retry(post_id, republish=...)`, `PostPlatform` docstring,
+  **0.10.0**), MCP server `retry_post` tool (**1.14.0**), curl
+  quick-reference example.
+
 ## 2026-08-15 — Metrics audit: Reddit and Discord report per-post metrics; X reports saves
 
 Every platform's metrics/engagement/account-analytics wiring was verified
