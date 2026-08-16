@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "bulkpublish": {
+      "type": "http",
+      "url": "https://mcp.bulkpublish.com/mcp"
+    }
+  }
+}
