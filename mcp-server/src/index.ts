@@ -2085,10 +2085,20 @@ function registerWidget(config: {
   // lives under the OpenAI-namespaced key "openai/widgetDomain" — Claude ignores
   // namespaced keys, ChatGPT ignores plain `ui.*`, so the two clients don't
   // collide.
+  // ChatGPT's compatibility key takes the SAME domain lists under snake_case
+  // field names (connect_domains / resource_domains); the MCP Apps standard
+  // `ui.csp` takes camelCase. Handing ChatGPT the camelCase object leaves it
+  // with no recognized list, and directory tool-scanning rejects it with
+  // "openai/widgetCSP must contain at least one CSP or redirect domain list".
+  // Derive it from `csp` so the two can never drift apart.
+  const openaiCsp = {
+    connect_domains: csp.connectDomains,
+    resource_domains: csp.resourceDomains,
+  };
   const meta = {
     ui: { csp },
     "openai/widgetDomain": "bulkpublish.com",
-    "openai/widgetCSP": csp,
+    "openai/widgetCSP": openaiCsp,
   };
   registerAppResource(
     server,

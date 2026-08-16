@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-16 — Fix `openai/widgetCSP` field names (ChatGPT widget scanning)
+
+### Fixed
+
+- **MCP server (1.14.1)**: the ChatGPT compatibility key
+  `_meta["openai/widgetCSP"]` was being handed the same camelCase object as
+  the MCP Apps standard `_meta.ui.csp` (`connectDomains` /
+  `resourceDomains`). ChatGPT's key expects **snake_case**
+  (`connect_domains` / `resource_domains`), so it saw no recognized domain
+  list and the OpenAI plugin directory's tool scan failed with
+  *"openai/widgetCSP must contain at least one CSP or redirect domain list"*.
+  The OpenAI key is now derived from the same `csp` object under snake_case
+  names, so the two cannot drift.
+
+  No behavior change for Claude or any other MCP client: `ui.csp` is
+  untouched, and the domains allowed are identical on both keys.
+
 ## 2026-08-15 — New platform status `unconfirmed`; opt-in `republish` on retry
 
 Mirrors webapp commit `bedafa4`.
