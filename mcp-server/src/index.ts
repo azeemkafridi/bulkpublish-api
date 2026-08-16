@@ -424,7 +424,11 @@ export function createServer(): McpServer {
     create_post: { title: "Create post", readOnlyHint: false, destructiveHint: false },
     update_post: { title: "Update post", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
     list_platforms: { title: "List platforms", readOnlyHint: true, destructiveHint: false, idempotentHint: true },
-    bulk_posts: { title: "Bulk post actions", readOnlyHint: false, destructiveHint: true },
+    // openWorldHint: the "retry" action re-publishes to the external platforms,
+    // exactly like retry_post (which is already marked true). "delete" and
+    // "reschedule" stay internal, but the hint describes the tool's widest
+    // reach, so it must be true here too.
+    bulk_posts: { title: "Bulk post actions", readOnlyHint: false, destructiveHint: true, openWorldHint: true },
     upload_media: { title: "Upload media", readOnlyHint: false, destructiveHint: false },
     create_media_upload: { title: "Start media upload", readOnlyHint: false, destructiveHint: false },
     finalize_media_upload: { title: "Finalize media upload", readOnlyHint: false, destructiveHint: false },

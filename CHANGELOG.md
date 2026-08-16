@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-08-16 — `bulk_posts` is an open-world tool
+
+### Fixed
+
+- **MCP server (1.14.2)**: `bulk_posts` was annotated `openWorldHint`
+  absent (reported as false) even though its `retry` action re-publishes
+  posts to the connected third-party platforms — exactly what `retry_post`
+  does, and that one was already `openWorldHint: true`. The hint describes
+  a tool's widest reach, so `bulk_posts` now sets it too. `delete` and
+  `reschedule` remain internal-only; `destructiveHint` is unchanged.
+
 ## 2026-08-16 — Fix `openai/widgetCSP` field names (ChatGPT widget scanning)
 
 ### Fixed
