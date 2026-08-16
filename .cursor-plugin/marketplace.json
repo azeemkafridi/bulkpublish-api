@@ -5,7 +5,7 @@
     "email": "support@bulkpublish.com"
   },
   "metadata": {
-    "description": "BulkPublish plugins for Cursor \u2014 social media scheduling and publishing via the BulkPublish MCP server",
+    "description": "BulkPublish plugins for Cursor — social media scheduling and publishing via the BulkPublish MCP server",
     "version": "1.0.0"
   },
   "plugins": [

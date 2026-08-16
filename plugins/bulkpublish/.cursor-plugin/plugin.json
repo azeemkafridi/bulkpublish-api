@@ -2,7 +2,7 @@
   "name": "bulkpublish",
   "displayName": "BulkPublish",
   "version": "1.0.0",
-  "description": "Connect to BulkPublish \u2014 draft, schedule, and publish social media posts across 14 platforms, manage media and channels, and read engagement metrics \u2014 via BulkPublish's official remote MCP server.",
+  "description": "Connect to BulkPublish — draft, schedule, and publish social media posts across 14 platforms, manage media and channels, and read engagement metrics — via BulkPublish's official remote MCP server.",
   "author": {
     "name": "BulkPublish",
     "email": "support@bulkpublish.com"
