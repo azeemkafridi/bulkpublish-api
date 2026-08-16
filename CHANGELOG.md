@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-17 — the API docs now point at the MCP server
+
+### Changed
+
+- **`openapi.json` (`info.description`)**: the `/docs` intro said only
+  "Publish to 15 social media platforms from a single API" and mentioned MCP
+  nowhere, while `/docs` also strips Scalar's own MCP buttons — so the one
+  page developers land on gave no route to the MCP server at all. It now
+  carries a short "Using this API from an AI agent" section: the hosted
+  endpoint `https://mcp.bulkpublish.com/mcp` (OAuth 2.1, or `?key=`), the
+  local `npx -y @bulkpublish/mcp-server` setup, and a link to the AI toolkit.
+  Mirrors the webapp copy at `webapp/public/openapi.json`.
+- **Platform count corrected to 14.** 15 counted Reddit, which is switched off
+  pending Reddit API approval; verified against `GET /api/platforms/public`.
+  Docs-only — no endpoint, field, or enum changed, so the SDKs are untouched
+  and unbumped.
+
 ## 2026-08-16 — `bulk_posts` is an open-world tool
 
 ### Fixed

@@ -3,7 +3,7 @@
   "info": {
     "title": "BulkPublish API",
     "version": "1.0.0",
-    "description": "Publish to 15 social media platforms from a single API."
+    "description": "Publish to 14 social media platforms from a single API.\n\n## Using this API from an AI agent\n\nEverything below is also available as an [MCP](https://modelcontextprotocol.io) server, so Claude, ChatGPT, Cursor and other agents can drive BulkPublish directly.\n\n**Hosted (web-based hosts):** add `https://mcp.bulkpublish.com/mcp` as a custom connector. It supports OAuth 2.1 \u2014 you paste your API key once on the consent screen \u2014 or a key in the URL (`?key=bp_...`) for hosts without OAuth.\n\n**Local (Claude Code, Cursor, Codex, Windsurf):** `npx -y @bulkpublish/mcp-server`, with `BULKPUBLISH_API_KEY` in the environment.\n\nPer-client config and the full tool list: [BulkPublish AI Toolkit](https://github.com/azeemkafridi/bulkpublish-ai-toolkit). Get an API key at [/developer](https://app.bulkpublish.com/developer)."
   },
   "servers": [
     {
