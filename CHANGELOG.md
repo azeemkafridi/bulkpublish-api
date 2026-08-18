@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-19 — X metered reads now consume the org's X budget
+
+### Changed
+
+- **`GET /api/quotas/x-usage` description** (openapi.json + Postman): metered X
+  reads (metrics sync, engagement, user search, health checks) are now billed
+  to the org's monthly X budget — plan allowance first, purchased credits as
+  overage — instead of being absorbed by BulkPublish; a per-day read cap
+  remains as a circuit breaker. `absorbedDcents` stays in the response for
+  compatibility but only covers historical pre-2026-08 usage. Response shape
+  unchanged, so the SDKs are untouched and unbumped.
+
 ## 2026-08-17 — the API docs now point at the MCP server
 
 ### Changed
