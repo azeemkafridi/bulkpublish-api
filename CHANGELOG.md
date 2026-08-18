@@ -4,6 +4,11 @@
 
 ### Changed
 
+- **Follow-up (same day):** the separate per-day read cap is gone — reads and
+  writes draw from ONE monthly X budget (pro $3/mo, business $10/mo, rescaled
+  from $5/$15), and metered reads are unavailable on the Free plan even with
+  credits. Description updated in openapi.json + Postman; still docs-only.
+
 - **`GET /api/quotas/x-usage` description** (openapi.json + Postman): metered X
   reads (metrics sync, engagement, user search, health checks) are now billed
   to the org's monthly X budget — plan allowance first, purchased credits as

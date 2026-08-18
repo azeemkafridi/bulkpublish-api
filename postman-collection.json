@@ -8572,7 +8572,7 @@
           "request": {
             "name": "X (Twitter) API spend",
             "description": {
-              "content": "Per-org X API call costs. Writes AND metered reads (metrics, engagement, user search, health checks) count toward the monthly budget — plan allowance first, purchased credits as overage; reads are additionally capped per day. `absorbedDcents` is retained for compatibility and covers only historical pre-2026-08 read usage. Returns today's breakdown, monthly budget status, and 30-day history.",
+              "content": "Per-org X API call costs. Writes AND metered reads (metrics, engagement, user search, health checks) draw from ONE monthly budget — plan allowance first, purchased credits as overage; there is no separate read quota, and metered reads are unavailable on the Free plan (credits unlock Free-plan publishing only). `absorbedDcents` is retained for compatibility and covers only historical pre-2026-08 read usage. Returns today's breakdown, monthly budget status, and 30-day history.",
               "type": "text/plain"
             },
             "url": {
