@@ -1,6 +1,6 @@
 ---
 name: platform-reference
-description: Complete reference for all 14 BulkPublish platforms — post types, media requirements, required fields, character limits, and platformSpecific options. ALWAYS consult before creating posts.
+description: Complete reference for all 15 BulkPublish platforms — post types, media requirements, required fields, character limits, and platformSpecific options. ALWAYS consult before creating posts.
 ---
 
 # BulkPublish — Platform Reference
@@ -374,3 +374,37 @@ The two run on separate LinkedIn apps (company pages use the Community Managemen
 | `tags` | Array of strings, no leading `#`. Tags drive discovery on Tumblr more than on other networks. |
 | `link` | Appended as a link block. |
 | `sourceUrl` | Attribution URL stored as the post's source. |
+
+---
+
+## Snapchat
+
+| Field | Value |
+|---|---|
+| Platform key | `snapchat` |
+| Char limit | 160 (Spotlight description / Saved Story title fallback only) |
+| Title required | No |
+
+**Post types** (set via `postTypeOverrides.snapchat`):
+
+| Type | Media | Notes |
+|---|---|---|
+| `story` (default) | exactly 1 image or video | The caption is NOT sent to Snapchat — plain stories carry no text. |
+| `saved_story` | exactly 1 image or video | Title max 45 chars; defaults to the first line of the caption, truncated. |
+| `spotlight` | 1 video only, 6–60s | Caption becomes the description (max 160 chars, truncated); hashtags are clickable. |
+
+**Media specs:** exactly ONE file per post. Images jpg/png; videos mp4/mov, vertical, 5–60s (Spotlight 6–60s), max 1GB.
+
+**platformSpecific** — keyed by **channel ID** (a flat object applies to every Snapchat channel):
+
+```json
+{"platformSpecific": {"snapchat": {"12": {"title": "Behind the scenes", "locale": "en_US", "saveToProfile": true}}}}
+```
+
+| Option | Notes |
+|---|---|
+| `title` | Saved Story title, max 45 chars. Defaults to the caption's first line, truncated. |
+| `locale` | Spotlight locale. Default `en_US`. |
+| `saveToProfile` | Spotlight only. Default `true`; `false` sends `skip_save_to_profile`. |
+
+**Gotchas:** `_firstComment` is NOT supported. Engagement (individual comments/reactions) is not readable. Metrics ARE reported: impressions, reach, likes, comments, shares, clicks, video views.

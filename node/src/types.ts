@@ -20,7 +20,8 @@ export type Platform =
   | 'reddit'
   | 'discord'
   | 'telegram'
-  | 'tumblr';
+  | 'tumblr'
+  | 'snapchat';
 
 /**
  * Availability of a platform, controlled server-side.
@@ -527,6 +528,7 @@ export interface CreatePostParams {
    * - bluesky: `post`
    * - mastodon: `post`
    * - gmb: `standard`, `event`, `offer`
+   * - snapchat: `story` (default), `saved_story`, `spotlight` (video only)
    *
    * @example { instagram: 'reel', facebook: 'story' }
    */
@@ -555,8 +557,14 @@ export interface CreatePostParams {
    * - **telegram**: no options — the destination chat is fixed when the channel is connected.
    * - **tumblr**: Optional: `blogName` (defaults to the blog the channel was connected as), `title`, `tags`
    *   (string[], no leading `#`), `link`, `sourceUrl`
+   * - **snapchat**: Optional: `title` (Saved Story title, max 45 chars — defaults to the caption's first
+   *   line, truncated), `locale` (Spotlight locale, default `'en_US'`), `saveToProfile` (Spotlight only,
+   *   default `true`; `false` sends skip_save_to_profile). Every Snapchat post requires exactly ONE image or
+   *   video (vertical; images jpg/png, videos mp4/mov 5–60s, max 1GB). The caption is NOT sent for plain
+   *   stories — it is used only as the Spotlight description (max 160 chars, truncated) and as the Saved
+   *   Story title fallback. Spotlight is video-only (6–60s). First comments are not supported on Snapchat.
    *
-   * `reddit`, `discord` and `tumblr` nest their options under the **BulkPublish channel id**, because each
+   * `reddit`, `discord`, `tumblr` and `snapchat` nest their options under the **BulkPublish channel id**, because each
    * connected account commonly targets a different subreddit / Discord channel / blog. A flat object is also
    * accepted and applies to every channel of that platform on the post.
    *

@@ -68,11 +68,11 @@
           },
           "postTypeOverrides": {
             "type": "object",
-            "description": "Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. A type the platform does not offer is rejected with 400 VALIDATION_ERROR (previously it silently fell back to the platform default). Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer."
+            "description": "Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. A type the platform does not offer is rejected with 400 VALIDATION_ERROR (previously it silently fell back to the platform default). Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer. Snapchat: story, saved_story, spotlight."
           },
           "platformSpecific": {
             "type": "object",
-            "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto' — any other value is rejected with 400 VALIDATION_ERROR), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX' — any other value is rejected with 400 VALIDATION_ERROR), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus ('public'|'unlisted'|'private' — any other value is rejected with 400 VALIDATION_ERROR), categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType ('BOOK'|'ORDER'|'SHOP'|'LEARN_MORE'|'SIGN_UP'|'CALL' — any other value is rejected with 400 VALIDATION_ERROR), ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'verified'|'subscribers'|'mentionedUsers' — any other value is rejected with 400 VALIDATION_ERROR) }. Threads: { quotePostId }. Use _firstComment (string) for auto-posted reply after publish."
+            "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto' — any other value is rejected with 400 VALIDATION_ERROR), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX' — any other value is rejected with 400 VALIDATION_ERROR), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus ('public'|'unlisted'|'private' — any other value is rejected with 400 VALIDATION_ERROR), categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType ('BOOK'|'ORDER'|'SHOP'|'LEARN_MORE'|'SIGN_UP'|'CALL' — any other value is rejected with 400 VALIDATION_ERROR), ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'verified'|'subscribers'|'mentionedUsers' — any other value is rejected with 400 VALIDATION_ERROR) }. Threads: { quotePostId }. Snapchat: { [channelId]: { title (Saved Story title, max 45 chars — defaults to the caption's first line), locale (Spotlight locale, default 'en_US'), saveToProfile (Spotlight only, default true) } }. Use _firstComment (string) for auto-posted reply after publish."
           },
           "platformContent": {
             "type": "object",
@@ -236,7 +236,8 @@
               "reddit",
               "discord",
               "telegram",
-              "tumblr"
+              "tumblr",
+              "snapchat"
             ]
           },
           "accountName": {
@@ -465,7 +466,7 @@
       },
       "PlatformSpecific": {
         "type": "object",
-        "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto' — any other value is rejected with 400 VALIDATION_ERROR), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX' — any other value is rejected with 400 VALIDATION_ERROR), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus ('public'|'unlisted'|'private' — any other value is rejected with 400 VALIDATION_ERROR), categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType ('BOOK'|'ORDER'|'SHOP'|'LEARN_MORE'|'SIGN_UP'|'CALL' — any other value is rejected with 400 VALIDATION_ERROR), ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'verified'|'subscribers'|'mentionedUsers' — any other value is rejected with 400 VALIDATION_ERROR) }. Threads: { quotePostId }. Reddit: { [channelId]: { subreddit (required), title, type, url, flairId, thumbnailUrl } }; subreddit falls back to the one stored on the channel, and title falls back to the first line of content truncated to 300 chars. thumbnailUrl is optional on video posts — when omitted the server falls back to the video's auto-extracted poster frame, and the publish fails only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file. Discord: { [channelId]: { channelId } } — the outer key is the BulkPublish channel id, the inner channelId is the target Discord text channel. Telegram: no options — the destination chat is fixed when the channel is connected. Tumblr: { [channelId]: { blogName, title, tags (array of strings, no leading '#'), link, sourceUrl } }; blogName defaults to the blog the channel was connected as. Reddit, Discord and Tumblr also accept a flat (non channel-id-keyed) object that applies to every channel of that platform on the post. Use _firstComment (string), at the TOP level of platformSpecific rather than inside a platform key, for an auto-posted reply after publish. Supported on x, instagram, facebook, linkedin, youtube, threads, bluesky, mastodon, reddit and telegram; NOT supported on discord, pinterest, tiktok, gmb or tumblr, where the main post still publishes and the comment is recorded as failed.",
+        "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto' — any other value is rejected with 400 VALIDATION_ERROR), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX' — any other value is rejected with 400 VALIDATION_ERROR), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus ('public'|'unlisted'|'private' — any other value is rejected with 400 VALIDATION_ERROR), categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType ('BOOK'|'ORDER'|'SHOP'|'LEARN_MORE'|'SIGN_UP'|'CALL' — any other value is rejected with 400 VALIDATION_ERROR), ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'verified'|'subscribers'|'mentionedUsers' — any other value is rejected with 400 VALIDATION_ERROR) }. Threads: { quotePostId }. Reddit: { [channelId]: { subreddit (required), title, type, url, flairId, thumbnailUrl } }; subreddit falls back to the one stored on the channel, and title falls back to the first line of content truncated to 300 chars. thumbnailUrl is optional on video posts — when omitted the server falls back to the video's auto-extracted poster frame, and the publish fails only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file. Discord: { [channelId]: { channelId } } — the outer key is the BulkPublish channel id, the inner channelId is the target Discord text channel. Telegram: no options — the destination chat is fixed when the channel is connected. Tumblr: { [channelId]: { blogName, title, tags (array of strings, no leading '#'), link, sourceUrl } }; blogName defaults to the blog the channel was connected as. Snapchat: { [channelId]: { title (Saved Story title, max 45 chars — defaults to the caption's first line), locale (Spotlight locale, default 'en_US'), saveToProfile (Spotlight only — false sends skip_save_to_profile) } }; post types are story (default; caption not sent to Snapchat), saved_story and spotlight (video only, caption becomes the 160-char description); every Snapchat post requires exactly one image or video. Reddit, Discord, Tumblr and Snapchat also accept a flat (non channel-id-keyed) object that applies to every channel of that platform on the post. Use _firstComment (string), at the TOP level of platformSpecific rather than inside a platform key, for an auto-posted reply after publish. Supported on x, instagram, facebook, linkedin, youtube, threads, bluesky, mastodon, reddit and telegram; NOT supported on discord, pinterest, tiktok, gmb or tumblr, where the main post still publishes and the comment is recorded as failed. Snapchat does not support first comments either.",
         "properties": {
           "facebook": {
             "type": "object",
@@ -740,6 +741,25 @@
                 "description": "Attribution URL stored as the post's source."
               }
             }
+          },
+          "snapchat": {
+            "type": "object",
+            "description": "Keyed by BulkPublish channel id (e.g. \"12\"), or flat to apply to every Snapchat channel on the post. Post types: story (default), saved_story, spotlight. Every Snapchat post requires exactly one image or video; spotlight is video-only (6–60s). The caption is used only for Spotlight (160-char description) and as the Saved Story title fallback — plain stories carry no text.",
+            "properties": {
+              "title": {
+                "type": "string",
+                "maxLength": 45,
+                "description": "Saved Story title (max 45 chars). Defaults to the first line of the caption, truncated."
+              },
+              "locale": {
+                "type": "string",
+                "description": "Spotlight locale, e.g. 'en_US'. Defaults to 'en_US' when omitted."
+              },
+              "saveToProfile": {
+                "type": "boolean",
+                "description": "Spotlight only. Default true; false sends skip_save_to_profile to Snap."
+              }
+            }
           }
         }
       },
@@ -764,7 +784,8 @@
               "reddit",
               "discord",
               "telegram",
-              "tumblr"
+              "tumblr",
+              "snapchat"
             ]
           },
           "displayName": {
@@ -1209,7 +1230,7 @@
                   },
                   "postTypeOverrides": {
                     "type": "object",
-                    "description": "Optional. Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. A type the platform does not offer is rejected with 400 VALIDATION_ERROR (previously it silently fell back to the platform default). Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer."
+                    "description": "Optional. Per-platform post type override. E.g. { \"instagram\": \"reel\", \"facebook\": \"story\" }. A type the platform does not offer is rejected with 400 VALIDATION_ERROR (previously it silently fell back to the platform default). Instagram: feed_photo, feed_video, reel, story, carousel. Facebook: post, reel, story. TikTok: video, photo_slideshow. YouTube: video, short. LinkedIn: post, multi_image. Pinterest: pin, video_pin, carousel. GMB: standard, event, offer. Snapchat: story, saved_story, spotlight."
                   },
                   "platformSpecific": {
                     "$ref": "#/components/schemas/PlatformSpecific",

@@ -11,7 +11,7 @@ import { PlatformsResource } from './platforms.js';
 import type { BulkPublishOptions } from './types.js';
 
 /**
- * BulkPublish API client — publish to 15 social media platforms from a single SDK.
+ * BulkPublish API client — publish to 16 social media platforms from a single SDK.
  *
  * @example
  * ```ts

@@ -25,8 +25,8 @@ platformSpecific (object)         — per-platform options; see the
                                     "_firstComment", NOT a firstComment param:
                                     {"_firstComment": "Link in bio!"}
                                     Unsupported on discord, pinterest, tiktok,
-                                    gmb and tumblr (recorded as failed; the main
-                                    post still publishes)
+                                    gmb, tumblr and snapchat (recorded as failed;
+                                    the main post still publishes)
 requestApproval (boolean)         — default false; hold a scheduled post for team
                                     approval (approvalStatus becomes "pending")
 linkTrackingOverride (boolean|null) — default null; per-post override for
@@ -108,7 +108,7 @@ Every post object returned by the API also carries the read-only approval fields
   the account on the platform, and only pass `republish: true` (default false)
   after they confirm the post is not live; it also retries the unconfirmed
   platforms and **can duplicate the post**.
-- **Publish as story**: set `postTypeOverrides` to `"story"` for Facebook/Instagram — publishes directly as a story, no separate call needed
+- **Publish as story**: set `postTypeOverrides` to `"story"` for Facebook/Instagram/Snapchat — publishes directly as a story, no separate call needed (Snapchat stories need exactly 1 image or video and send no caption)
 - **Re-publish existing post as story**: use `publish_story` (postId, platform) — for posts already created as regular posts
 
 ## Stories vs postTypeOverrides
@@ -134,6 +134,7 @@ This publishes the post AS a story. The separate `publish_story` tool is only fo
 | Pinterest | 500 |
 | Google Business | 1,500 |
 | Mastodon | 500 |
+| Snapchat | 160 (Spotlight description / Saved Story title fallback — plain stories send no text) |
 
 ## Platform media requirements
 
@@ -144,6 +145,7 @@ This publishes the post AS a story. The separate `publish_story` tool is only fo
 | Instagram | Depends on type | `feed_photo`=image, `reel`/`feed_video`=video, `carousel`=2-10 mixed |
 | Pinterest | Image or video | Needs board ID in `platformSpecific` or channel default |
 | Facebook/X/LinkedIn/Threads/Bluesky/Mastodon | Any or none | Text-only posts OK |
+| Snapchat | Exactly 1 image or video | jpg/png or mp4/mov, vertical, 5–60s (Spotlight 6–60s video-only), max 1GB |
 
 ## RSS Autopost (REST API)
 

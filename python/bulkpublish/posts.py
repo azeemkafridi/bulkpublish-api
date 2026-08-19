@@ -200,8 +200,17 @@ class PostsResource:
                 - **tumblr**: Optional: ``blogName`` (defaults to the blog the channel was
                   connected as), ``title``, ``tags`` (list of strings, no leading ``#``),
                   ``link``, ``sourceUrl``
+                - **snapchat**: Optional: ``title`` (Saved Story title, max 45 chars —
+                  defaults to the caption's first line, truncated), ``locale`` (Spotlight
+                  locale, default ``"en_US"``), ``saveToProfile`` (Spotlight only, default
+                  ``True``; ``False`` sends skip_save_to_profile). Every Snapchat post
+                  requires exactly ONE image or video (vertical; jpg/png or mp4/mov,
+                  5–60s, max 1GB). The caption is NOT sent for plain stories — it is used
+                  only as the Spotlight description (max 160 chars, truncated) and as the
+                  Saved Story title fallback. Spotlight is video-only (6–60s). First
+                  comments are not supported on Snapchat.
 
-                ``reddit``, ``discord`` and ``tumblr`` nest their options under the
+                ``reddit``, ``discord``, ``tumblr`` and ``snapchat`` nest their options under the
                 **BulkPublish channel id**, because each connected account commonly targets a
                 different subreddit / Discord channel / blog. A flat object is also accepted
                 and applies to every channel of that platform on the post::
@@ -222,6 +231,7 @@ class PostsResource:
                 - pinterest: ``pin``, ``video_pin``, ``carousel``
                 - threads: ``text``, ``image``, ``video``, ``carousel``
                 - gmb: ``standard``, ``event``, ``offer``
+                - snapchat: ``story`` (default), ``saved_story``, ``spotlight`` (video only)
                 - mastodon, reddit, discord, telegram, tumblr: ``post``
 
             request_approval: Set ``True`` to hold a scheduled post for team

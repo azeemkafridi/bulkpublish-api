@@ -92,6 +92,7 @@ const PLATFORM_ENUM = z.enum([
   "discord",
   "telegram",
   "tumblr",
+  "snapchat",
 ]);
 
 const POST_TYPE_OVERRIDES_SCHEMA = z
@@ -113,13 +114,19 @@ const POST_TYPE_OVERRIDES_SCHEMA = z
     discord: z.enum(["post"]).optional(),
     telegram: z.enum(["post"]).optional(),
     tumblr: z.enum(["post"]).optional(),
+    snapchat: z
+      .enum(["story", "saved_story", "spotlight"])
+      .optional()
+      .describe(
+        "story (default): 1 image or video, caption NOT sent. saved_story: 1 image or video with a title. spotlight: video only, 6\u201360s, caption becomes the description."
+      ),
   })
   .optional()
   .describe(
     'Per-platform post type override. E.g. { "instagram": "reel", "youtube": "short" }.'
   );
 
-// Reddit, Discord and Tumblr nest their options under the BulkPublish channel
+// Reddit, Discord, Tumblr and Snapchat nest their options under the BulkPublish channel
 // id (e.g. { "12": { … } }) because each connected account commonly targets a
 // different subreddit / Discord channel / blog. The server also accepts a FLAT
 // object, which applies to every channel of that platform on the post, so both
@@ -193,6 +200,27 @@ const TUMBLR_OPTIONS = z
       .string()
       .optional()
       .describe("Attribution URL stored as the post's source."),
+  })
+  .passthrough();
+
+const SNAPCHAT_OPTIONS = z
+  .object({
+    title: z
+      .string()
+      .optional()
+      .describe(
+        "Saved Story title (max 45 chars). Defaults to the first line of the caption, truncated."
+      ),
+    locale: z
+      .string()
+      .optional()
+      .describe("Spotlight locale, e.g. 'en_US'. Defaults to 'en_US'."),
+    saveToProfile: z
+      .boolean()
+      .optional()
+      .describe(
+        "Spotlight only. Default true; false sends skip_save_to_profile to Snap."
+      ),
   })
   .passthrough();
 
@@ -303,10 +331,15 @@ const PLATFORM_SPECIFIC_SCHEMA = z
       .describe(
         'Tumblr options, nested under the BulkPublish channel id: { "12": { "blogName": "myblog", "tags": ["art"] } }. A flat object applies to every Tumblr channel on the post. Up to 30 images OR exactly one video per post.'
       ),
+    snapchat: channelKeyedOrFlat(SNAPCHAT_OPTIONS)
+      .optional()
+      .describe(
+        'Snapchat options, nested under the BulkPublish channel id: { "12": { "title": "My story" } }. A flat object applies to every Snapchat channel on the post. Post types: story (default), saved_story, spotlight. Every Snapchat post requires exactly ONE image or video (vertical, videos 5\u201360s, spotlight 6\u201360s video-only, max 1GB). The caption is NOT sent for plain stories \u2014 it is only the Spotlight description (160 chars max) and the Saved Story title fallback. First comments are not supported.'
+      ),
   })
   .optional()
   .describe(
-    'Platform-specific settings, e.g. { "youtube": { "title": "…", "privacyStatus": "public" } }. Reddit, Discord and Tumblr nest their options under the BulkPublish channel id, e.g. { "reddit": { "12": { "subreddit": "webdev" } } }. Telegram takes no options.'
+    'Platform-specific settings, e.g. { "youtube": { "title": "…", "privacyStatus": "public" } }. Reddit, Discord, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { "reddit": { "12": { "subreddit": "webdev" } } }. Telegram takes no options.'
   );
 
 const PLATFORM_CONTENT_SCHEMA = z
@@ -326,6 +359,7 @@ const PLATFORM_CONTENT_SCHEMA = z
     discord: z.string().optional(),
     telegram: z.string().optional(),
     tumblr: z.string().optional(),
+    snapchat: z.string().optional(),
   })
   .optional()
   .describe(

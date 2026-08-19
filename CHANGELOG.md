@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-08-19 — Snapchat platform (node 1.10.0, mcp 1.15.0, python 0.11.0)
+
+### Added
+
+- **Snapchat is the 16th platform** (`snapchat`, display name "Snapchat"),
+  mirroring webapp commit 396624a. Added to every platform enum — openapi
+  Channel + PlatformAvailability schemas, node `Platform` union, MCP
+  `PLATFORM_ENUM` / `platformSpecific` / `platformContent` /
+  `postTypeOverrides`, Postman example body, and the manage-channels skill.
+- **Post types** (`postTypeOverrides.snapchat`): `story` (default; the caption
+  is NOT sent to Snapchat), `saved_story` (title max 45 chars, defaults to the
+  caption's first line truncated), `spotlight` (video only, 6–60s; the caption
+  becomes the description, max 160 chars, truncated; hashtags clickable).
+- **Media rule:** every Snapchat post requires exactly ONE file — images
+  jpg/png, videos mp4/mov, vertical, 5–60s (Spotlight 6–60s), max 1GB.
+- **`platformSpecific.snapchat`** is keyed by BulkPublish channel id (flat
+  object also accepted): `title` (Saved Story title, 45 chars),
+  `locale` (Spotlight, default `en_US`), `saveToProfile` (Spotlight only,
+  default true; false sends `skip_save_to_profile`). Documented across
+  openapi, node JSDoc, python docstrings, MCP zod schemas, the platforms
+  guide, and the plugin skills.
+- **Metrics:** impressions, reach, likes, comments, shares, clicks, videoViews
+  (never saves) — added to the support matrix. Engagement (individual
+  comments/reactions) and `_firstComment` are NOT supported on Snapchat; the
+  unsupported-first-comment lists now include it.
+- **Character limit 160** documented — used only as the Spotlight description
+  / Saved Story title fallback.
+
+### Changed
+
+- README platform count 14 → 15 and Snapchat added to the enumerations and the
+  Supported Platforms table. The count still deliberately excludes Reddit
+  (switched off pending Reddit API approval), matching `info.description` in
+  the webapp's openapi.json, which remains "14 social media platforms".
+- Versions bumped: node 1.9.0 → 1.10.0, mcp-server 1.14.2 → 1.15.0,
+  python 0.11.0 (from 0.10.0).
+
 ## 2026-08-19 — X metered reads now consume the org's X budget
 
 ### Changed

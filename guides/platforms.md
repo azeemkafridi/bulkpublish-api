@@ -134,6 +134,7 @@ Use the `postTypeOverrides` field to set a specific post type per platform:
 | Mastodon | `post` (use `postFormat: "thread"` for threads) |
 | Google Business | `standard`, `event`, `offer` |
 | Tumblr | `post` |
+| Snapchat | `story` (default), `saved_story`, `spotlight` |
 | Reddit | `post` |
 | Discord | `post` |
 | Telegram | `post` |
@@ -216,7 +217,7 @@ This is commonly used on Instagram to keep the caption clean while adding hashta
 
 **Not every platform can post one.** Supported on X, Instagram, Facebook,
 LinkedIn, YouTube, Threads, Bluesky, Mastodon, Reddit and Telegram. **Not
-supported on Discord, Pinterest, TikTok, Google Business or Tumblr.**
+supported on Discord, Pinterest, TikTok, Google Business, Tumblr or Snapchat.**
 
 Sending `_firstComment` to an unsupported platform does **not** fail the post.
 The main post publishes normally and the comment is recorded against it as
@@ -682,6 +683,54 @@ different one.
 
 ---
 
+## Snapchat
+
+```json
+{
+  "platformSpecific": {
+    "snapchat": {
+      "12": {
+        "title": "Behind the scenes",
+        "locale": "en_US",
+        "saveToProfile": true
+      }
+    }
+  }
+}
+```
+
+### Post types
+
+Set via `postTypeOverrides.snapchat` — one of `story`, `saved_story`, `spotlight`:
+
+| Type | Media | Text behaviour |
+|------|-------|----------------|
+| `story` (default) | exactly 1 image or video | The caption is **not** sent to Snapchat — stories carry no text. |
+| `saved_story` | exactly 1 image or video | Published as a Saved Story with a `title` (max 45 chars; defaults to the first line of the caption, truncated). |
+| `spotlight` | video only, 6–60s | The caption becomes the Spotlight description (max 160 chars, truncated); hashtags in it are clickable. |
+
+### Options
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` | string | Saved Story title, max 45 chars. Defaults to the first line of the caption, truncated. |
+| `locale` | string | Spotlight locale, e.g. `en_US` (the default). |
+| `saveToProfile` | boolean | Spotlight only. Default `true`; `false` sends `skip_save_to_profile` to Snap. |
+
+Like Reddit, Discord and Tumblr, `platformSpecific.snapchat` is keyed by
+**channel ID** (a flat object is also accepted and applies to every Snapchat
+channel on the post).
+
+### Notes
+
+- Every Snapchat post requires **exactly one** media file — images as jpg/png,
+  videos as mp4/mov, vertical, 5–60 seconds (6–60s for Spotlight), max 1GB.
+- First comments (`_firstComment`) are **not** supported on Snapchat.
+- Engagement (individual comments/reactions) is not readable; per-post metrics
+  are (see [Metrics by Platform](#metrics-by-platform)).
+
+---
+
 ## Reddit
 
 ```json
@@ -895,6 +944,7 @@ fields — so **never present a `0` as a measurement without checking them first
 | Mastodon | likes, comments, shares | everything else |
 | Reddit | likes (score), comments, shares (crossposts) | impressions, reach, saves, clicks, video views |
 | Discord | likes (reaction counts), comments (thread replies) | everything else |
+| Snapchat | impressions, reach, likes, comments, shares, clicks, video views | saves |
 | Google Business, Telegram, Tumblr | *nothing* | — |
 | LinkedIn personal profiles | *nothing* | — |
 
@@ -943,6 +993,7 @@ Each platform enforces its own character limit on the `content` field:
 | Reddit | 40,000 |
 | Discord | 2,000 |
 | Telegram | 4,096 (1,024 when the text rides as a media caption) |
+| Snapchat | 160 (used only as the Spotlight description / Saved Story title fallback — plain stories send no text) |
 
 BulkPublish validates content length per platform before creating the post and returns an error if any platform's limit is exceeded.
 
