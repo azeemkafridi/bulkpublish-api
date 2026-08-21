@@ -1131,6 +1131,19 @@ export interface QuotasUsageResponse {
   webhooks: { used: number; limit: number; allowed: boolean };
   apiKeys: { used: number; limit: number; allowed: boolean };
   apiRequests: { used: number; limit: number; allowed: boolean };
+  /**
+   * Purchased extra channel slots (the $2.99 / 30-day add-on, Pro & Business).
+   * Each active slot raises the effective total channel limit by one and allows
+   * one channel above the per-platform cap (shared across platforms).
+   * `effectiveChannelLimit` = base plan limit + active slots (`-1` stays `-1`)
+   * and is what channel-connect quota checks actually enforce.
+   */
+  channelSlots?: {
+    active: number;
+    slots: Array<{ id: number; expiresAt: string }>;
+    baseChannelLimit: number;
+    effectiveChannelLimit: number;
+  };
   [key: string]: unknown;
 }
 

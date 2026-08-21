@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-08-21 — Extra channel slots add-on (node 1.11.0, mcp 1.16.0, python 0.12.0)
+
+### Added
+
+- **`POST /api/quotas/channel-slots/checkout`** — creates a Polar checkout for
+  the Extra Channel Slot add-on (fixed price $2.99; no request body, unlike the
+  PWYW credit checkouts). One purchase grants one slot valid 30 days: it raises
+  the org's effective total channel limit by one and allows one channel above
+  the per-platform cap (slots are generic and shared across platforms).
+  Purchase is Pro/Business-only (`403 SLOT_PLAN_INELIGIBLE`); granted slots keep
+  working on any tier until expiry. Added to openapi.json and the Postman
+  collection.
+- **`GET /api/quotas/usage` now returns `channelSlots`** —
+  `{ active, slots: [{id, expiresAt}], baseChannelLimit, effectiveChannelLimit }`.
+  Typed in the node SDK (`QuotasUsageResponse.channelSlots`) and the Python SDK
+  (`QuotaUsage.channelSlots`); the MCP `get_quota_usage` tool description now
+  mentions it.
+- **Channel-limit `403 QUOTA_EXCEEDED` errors** on paid plans carry a new
+  `addon: "channel_slot"` field signalling that buying a slot (not only a plan
+  upgrade) lifts the limit.
+
+### Behavior notes
+
+- When a slot expires (or its order is refunded) and the org is left over its
+  limit, the webapp suspends the most recently connected excess channels —
+  paused with tokens kept, not disconnected — after 7-day and 1-day warning
+  emails.
+
 ## 2026-08-19 — Snapchat platform (node 1.10.0, mcp 1.15.0, python 0.11.0)
 
 ### Added

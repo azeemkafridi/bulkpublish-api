@@ -3,7 +3,7 @@
   "info": {
     "title": "BulkPublish API",
     "version": "1.0.0",
-    "description": "Publish to 14 social media platforms from a single API.\n\n## Using this API from an AI agent\n\nEverything below is also available as an [MCP](https://modelcontextprotocol.io) server, so Claude, ChatGPT, Cursor and other agents can drive BulkPublish directly.\n\n**Hosted (web-based hosts):** add `https://mcp.bulkpublish.com/mcp` as a custom connector. It supports OAuth 2.1 \u2014 you paste your API key once on the consent screen \u2014 or a key in the URL (`?key=bp_...`) for hosts without OAuth.\n\n**Local (Claude Code, Cursor, Codex, Windsurf):** `npx -y @bulkpublish/mcp-server`, with `BULKPUBLISH_API_KEY` in the environment.\n\nPer-client config and the full tool list: [BulkPublish AI Toolkit](https://github.com/azeemkafridi/bulkpublish-ai-toolkit). Get an API key at [/developer](https://app.bulkpublish.com/developer)."
+    "description": "Publish to 14 social media platforms from a single API.\n\n## Using this API from an AI agent\n\nEverything below is also available as an [MCP](https://modelcontextprotocol.io) server, so Claude, ChatGPT, Cursor and other agents can drive BulkPublish directly.\n\n**Hosted (web-based hosts):** add `https://mcp.bulkpublish.com/mcp` as a custom connector. It supports OAuth 2.1 — you paste your API key once on the consent screen — or a key in the URL (`?key=bp_...`) for hosts without OAuth.\n\n**Local (Claude Code, Cursor, Codex, Windsurf):** `npx -y @bulkpublish/mcp-server`, with `BULKPUBLISH_API_KEY` in the environment.\n\nPer-client config and the full tool list: [BulkPublish AI Toolkit](https://github.com/azeemkafridi/bulkpublish-ai-toolkit). Get an API key at [/developer](https://app.bulkpublish.com/developer)."
   },
   "servers": [
     {
@@ -3840,7 +3840,7 @@
         "description": "Current usage vs limits for all resource types on your plan.",
         "responses": {
           "200": {
-            "description": "Current usage vs limits for all resource types on your plan.\n\n`usage.scheduledToday` counts posts scheduled FOR the current day (excluding `draft` and `failed`) and pairs with `limits.scheduledPerDay` — distinct from `usage.pendingScheduled`, which is every pending scheduled post regardless of date and pairs with `limits.maxPendingScheduled`. `usage.postsToday` counts posts *created* today and pairs with `limits.postsPerDay`."
+            "description": "Current usage vs limits for all resource types on your plan.\n\n`usage.scheduledToday` counts posts scheduled FOR the current day (excluding `draft` and `failed`) and pairs with `limits.scheduledPerDay` — distinct from `usage.pendingScheduled`, which is every pending scheduled post regardless of date and pairs with `limits.maxPendingScheduled`. `usage.postsToday` counts posts *created* today and pairs with `limits.postsPerDay`.\n\nThe response also carries `channelSlots` — the org's purchased extra-channel add-on state: `{ active, slots: [{id, expiresAt}], baseChannelLimit, effectiveChannelLimit }`. Each slot is a one-time $2.99 purchase valid 30 days that raises the effective total channel limit by one and allows one channel above the per-platform cap (shared across platforms). `effectiveChannelLimit` (base plan limit + active slots; `-1` stays `-1`) is what channel-connect quota checks actually enforce."
           }
         },
         "parameters": [
@@ -3944,6 +3944,26 @@
         "responses": {
           "200": {
             "description": "Checkout URL"
+          }
+        }
+      }
+    },
+    "/api/quotas/channel-slots/checkout": {
+      "post": {
+        "tags": [
+          "Utilities"
+        ],
+        "summary": "Create extra channel slot checkout",
+        "description": "Create a Polar checkout session for the Extra Channel Slot add-on (fixed price $2.99). One purchase grants one slot valid 30 days from payment: it raises the org's effective total channel limit by one and allows one channel above the per-platform cap (slots are generic and shared across platforms). Purchase requires the Pro or Business plan (`403 SLOT_PLAN_INELIGIBLE` otherwise); already-granted slots keep working on any tier until they expire. When a slot expires or its order is refunded and the org is left over its limit, the most recently connected excess channels are suspended (paused, tokens kept) after 7-day and 1-day warning emails. Channel-limit `403 QUOTA_EXCEEDED` errors on paid plans include `addon: \"channel_slot\"` to signal this purchase as a remedy.",
+        "responses": {
+          "200": {
+            "description": "Checkout URL — `{ url, checkoutId }`. Redirect the user to `url` to pay."
+          },
+          "403": {
+            "description": "Organization is not on a plan that can purchase slots (`code: SLOT_PLAN_INELIGIBLE`)."
+          },
+          "503": {
+            "description": "Payments are disabled (`code: PAYMENTS_DISABLED`) or the product is not configured."
           }
         }
       }

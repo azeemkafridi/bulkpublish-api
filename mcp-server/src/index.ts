@@ -1284,7 +1284,8 @@ server.tool(
 if (!HIDE_BILLING_TOOLS) {
   server.tool(
     "get_quota_usage",
-    "Check current account usage. Returns daily/monthly post counts, scheduled post counts, channel counts, and media storage usage.",
+    "Check current account usage. Returns daily/monthly post counts, scheduled post counts, channel counts, and media storage usage. " +
+      "Also returns channelSlots — purchased extra channel slots ($2.99 / 30 days each, Pro & Business): each active slot raises the effective total channel limit by one and allows one channel above the per-platform cap.",
     {},
     async () => {
       const res = await api("GET", "/api/quotas/usage");

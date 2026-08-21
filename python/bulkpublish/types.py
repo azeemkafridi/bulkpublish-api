@@ -438,6 +438,12 @@ class QuotaUsage(TypedDict, total=False):
     channels: Dict[str, int]
     media: Dict[str, int]
     plan: str
+    #: Purchased extra channel slots (the $2.99 / 30-day add-on, Pro & Business).
+    #: ``{"active": int, "slots": [{"id": int, "expiresAt": str}],
+    #: "baseChannelLimit": int, "effectiveChannelLimit": int}`` — each active slot
+    #: raises the effective total channel limit by one and allows one channel above
+    #: the per-platform cap (shared across platforms).
+    channelSlots: Dict[str, Any]
 
 
 # ---------------------------------------------------------------------------
