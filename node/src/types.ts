@@ -1194,15 +1194,18 @@ export interface QuotasUsageResponse {
     [key: string]: unknown;
   };
   /**
-   * Purchased extra channel slots (the $2.99 / 30-day add-on, Pro & Business).
+   * Purchased extra channel slots (the $2.99/month add-on, Pro & Business — a
+   * seat-based subscription; unused slots are auto-canceled before renewal).
    * Each active slot raises the effective total channel limit by one and allows
    * one channel above the per-platform cap (shared across platforms).
    * `effectiveChannelLimit` = base plan limit + active slots (`-1` stays `-1`)
-   * and is what channel-connect quota checks actually enforce.
+   * and is what channel-connect quota checks actually enforce. Each slot's
+   * `autoRenews` says whether it renews with the subscription (`expiresAt` then
+   * rolls forward each cycle) or lapses at `expiresAt`.
    */
   channelSlots: {
     active: number;
-    slots: Array<{ id: number; expiresAt: string }>;
+    slots: Array<{ id: number; expiresAt: string; autoRenews: boolean }>;
     baseChannelLimit: number;
     effectiveChannelLimit: number;
   };

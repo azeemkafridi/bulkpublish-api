@@ -3953,17 +3953,20 @@
         "tags": [
           "Utilities"
         ],
-        "summary": "Create extra channel slot checkout",
-        "description": "Create a Polar checkout session for the Extra Channel Slot add-on (fixed price $2.99). One purchase grants one slot valid 30 days from payment: it raises the org's effective total channel limit by one and allows one channel above the per-platform cap (slots are generic and shared across platforms). Purchase requires the Pro or Business plan (`403 SLOT_PLAN_INELIGIBLE` otherwise); already-granted slots keep working on any tier until they expire. When a slot expires or its order is refunded and the org is left over its limit, the most recently connected excess channels are suspended (paused, tokens kept) after 7-day and 1-day warning emails. Channel-limit `403 QUOTA_EXCEEDED` errors on paid plans include `addon: \"channel_slot\"` to signal this purchase as a remedy.",
+        "summary": "Add extra channel slots",
+        "description": "Purchase extra channel slots — a seat-based Polar subscription at $2.99 per slot per month (seats = slot count, one subscription per organization). Each active slot raises the organization's effective total channel limit by one and allows one channel above the per-platform cap (slots are generic and shared across platforms). Body: `{ count?: number }` — slots to add, default 1, clamped to 1..20. With no existing slot subscription this returns `{ url, checkoutId }` — redirect the user to `url` to subscribe. With an existing slot subscription the seats are increased server-side (prorated) and the response is `{ updated: true, seats }` with no redirect. Purchase requires the Pro or Business plan (`403 SLOT_PLAN_INELIGIBLE` otherwise); already-granted slots keep working on any tier until they lapse. Slots renew automatically with the subscription; shortly before each renewal, slots no connected channel is using are automatically canceled or reduced so the organization is never billed for unused headroom (an email explains how to keep them). When slots lapse (cancellation, refund, or payment failure) and the organization is left over its limit, the most recently connected excess channels are suspended (paused, tokens kept) after 7-day and 1-day warning emails. Channel-limit `403 QUOTA_EXCEEDED` errors on paid plans include `addon: \"channel_slot\"` to signal this purchase as a remedy.",
         "responses": {
           "200": {
-            "description": "Checkout URL — `{ url, checkoutId }`. Redirect the user to `url` to pay."
+            "description": "New subscription: `{ url, checkoutId }` — redirect the user to `url` to pay. Existing subscription: `{ updated: true, seats }` — slots added by prorated seat increase, no redirect."
           },
           "403": {
             "description": "Organization is not on a plan that can purchase slots (`code: SLOT_PLAN_INELIGIBLE`)."
           },
           "503": {
             "description": "Payments are disabled (`code: PAYMENTS_DISABLED`) or the product is not configured."
+          },
+          "400": {
+            "description": "Already at the maximum of 20 extra slots (`code: SLOT_MAX_REACHED`)."
           }
         }
       }

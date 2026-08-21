@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-08-21 — Channel slots become a monthly subscription (node 1.12.0, mcp 1.17.0, python 0.13.0)
+
+### Changed
+
+- **`POST /api/quotas/channel-slots/checkout` is now a seat-based SUBSCRIPTION
+  purchase** ($2.99 per slot per month), replacing the one-time 30-day slot.
+  Body gains optional `{ count }` (default 1, clamped 1..20). With no existing
+  slot subscription the response is unchanged (`{ url, checkoutId }` → Polar
+  checkout); with an existing one the server increases its seats (prorated) and
+  returns `{ updated: true, seats }` with **no redirect** — clients must handle
+  both shapes. New `400 SLOT_MAX_REACHED` at the 20-slot cap. Slots renew with
+  the subscription, and slots no connected channel is using are auto-canceled
+  or reduced shortly before renewal (email sent), so orgs are never billed for
+  unused headroom. Spec + Postman updated.
+- **`GET /api/quotas/usage`: `channelSlots.slots[]` entries gain `autoRenews`**
+  (boolean) — whether the slot renews with the subscription or lapses at
+  `expiresAt`. Typed in the node SDK, documented in the Python types and the
+  MCP `get_quota_usage` tool description.
+
 ## 2026-08-21 — Fix long-stale quota-usage SDK types (node 1.11.1, python 0.12.1)
 
 ### Fixed
