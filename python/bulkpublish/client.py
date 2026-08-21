@@ -368,14 +368,17 @@ class BulkPublish(_BaseClient):
         """Get current plan quota usage.
 
         Returns:
-            Quota usage dict with ``posts``, ``channels``, ``media``,
-            and ``plan`` keys.
+            Quota usage dict with ``plan``, ``limits``, ``subscription``,
+            ``channelSlots`` and ``usage`` keys. ``usage`` counters pair with
+            ``limits`` keys (e.g. ``usage["postsToday"]`` vs
+            ``limits["postsPerDay"]``).
 
         Example::
 
             quotas = bp.quota_usage()
             print(f"Plan: {quotas['plan']}")
-            print(f"Posts: {quotas['posts']['used']}/{quotas['posts']['limit']}")
+            print(f"Posts today: {quotas['usage']['postsToday']}/{quotas['limits']['postsPerDay']}")
+            print(f"Channels: {quotas['usage']['channels']}/{quotas['channelSlots']['effectiveChannelLimit']}")
         """
         return self._request("GET", "/api/quotas/usage")
 

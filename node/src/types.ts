@@ -1117,20 +1117,82 @@ export interface CreateApiKeyResponse {
 
 // ---------- Quotas ----------
 
-/** Response from the quotas usage endpoint. */
+/**
+ * The plan's configured limits, as returned in `QuotasUsageResponse.limits`.
+ * `-1` = unlimited for that resource, `0` = disabled / not available on this plan.
+ */
+export interface QuotasPlanLimits {
+  channels: number;
+  channelsPerPlatform: number;
+  postsPerDay: number;
+  postsPerMonth: number;
+  maxPendingScheduled: number;
+  scheduledPerDay: number;
+  mediaStorageMB: number;
+  apiKeys: number;
+  apiRequestsPerDay: number;
+  recurringSchedules: number;
+  webhooks: number;
+  maxLabels: number;
+  maxOrgMembers: number;
+  /** Platform keys not available on this plan. */
+  excludedPlatforms: string[];
+  /** Monthly budget for X (Twitter) external API costs, in tenths of a cent. */
+  xMonthlyBudgetDcents: number;
+  /** Plan-included AI caption generations per month, in run-units. 0 = none, -1 = unlimited. */
+  aiMonthlyRuns: number;
+  rssFeeds: number;
+  rssAutoPublish: boolean;
+  rssPollIntervalMinutes: number;
+  [key: string]: unknown;
+}
+
+/**
+ * Response from `GET /api/quotas/usage`.
+ * Usage counters and plan limits are parallel objects: e.g. `usage.postsToday`
+ * pairs with `limits.postsPerDay`, `usage.scheduledToday` with
+ * `limits.scheduledPerDay`, `usage.pendingScheduled` with
+ * `limits.maxPendingScheduled`.
+ */
 export interface QuotasUsageResponse {
   organizationId: number;
-  plan: string;
-  daily: { used: number; limit: number; allowed: boolean };
-  monthly: { used: number; limit: number; allowed: boolean };
-  scheduled: { used: number; limit: number; allowed: boolean };
-  channels: { used: number; limit: number; allowed: boolean };
-  labels: { used: number; limit: number; allowed: boolean };
-  mediaStorage: { used: number; limit: number; allowed: boolean };
-  recurringSchedules: { used: number; limit: number; allowed: boolean };
-  webhooks: { used: number; limit: number; allowed: boolean };
-  apiKeys: { used: number; limit: number; allowed: boolean };
-  apiRequests: { used: number; limit: number; allowed: boolean };
+  plan: 'free' | 'pro' | 'business';
+  limits: QuotasPlanLimits;
+  subscription: {
+    status: string | null;
+    /** ISO timestamp, null when there is no active subscription. */
+    currentPeriodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+  };
+  usage: {
+    channels: number;
+    /** Posts *created* today (pairs with `limits.postsPerDay`). */
+    postsToday: number;
+    postsThisMonth: number;
+    /** All pending scheduled posts regardless of date (pairs with `limits.maxPendingScheduled`). */
+    pendingScheduled: number;
+    /** Posts scheduled FOR today, excluding drafts/failed (pairs with `limits.scheduledPerDay`). */
+    scheduledToday: number;
+    apiKeys: number;
+    webhooks: number;
+    recurringSchedules: number;
+    mediaStorageMB: number;
+    labels: number;
+    orgMembers: number;
+    /** X (Twitter) API spend this month, in tenths of a cent. */
+    xApiSpendDcents: number;
+    /** Purchased X credit balance, in tenths of a cent. */
+    xCreditDcents: number;
+    /** AI caption run-units consumed this month. */
+    aiRunsUsed: number;
+    /** Plan AI allowance (mirrors `limits.aiMonthlyRuns`). 0 = none, -1 = unlimited. */
+    aiRunsLimit: number;
+    /** Purchased AI credit balance, in tenths of a cent. */
+    aiCreditDcents: number;
+    /** Lifetime count of refunded subscription orders (support visibility, not enforced). */
+    subscriptionRefundCount: number;
+    [key: string]: unknown;
+  };
   /**
    * Purchased extra channel slots (the $2.99 / 30-day add-on, Pro & Business).
    * Each active slot raises the effective total channel limit by one and allows
@@ -1138,7 +1200,7 @@ export interface QuotasUsageResponse {
    * `effectiveChannelLimit` = base plan limit + active slots (`-1` stays `-1`)
    * and is what channel-connect quota checks actually enforce.
    */
-  channelSlots?: {
+  channelSlots: {
     active: number;
     slots: Array<{ id: number; expiresAt: string }>;
     baseChannelLimit: number;

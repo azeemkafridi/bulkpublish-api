@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-08-21 — Fix long-stale quota-usage SDK types (node 1.11.1, python 0.12.1)
+
+### Fixed
+
+- **`GET /api/quotas/usage` response types corrected in both SDKs.** The node
+  `QuotasUsageResponse` claimed per-resource `{used, limit, allowed}` objects
+  (`daily`, `monthly`, `scheduled`, …) and the Python `QuotaUsage` claimed
+  `posts`/`channels`/`media` dicts — shapes the server has never returned. The
+  real response (source: `getAllUsage()` in the webapp's `lib/quotas/check.ts`,
+  returned verbatim with `organizationId` added by the route) is
+  `{organizationId, plan, limits, subscription, channelSlots, usage}` where
+  `usage` holds flat counters (`channels`, `postsToday`, `postsThisMonth`,
+  `pendingScheduled`, `scheduledToday`, `apiKeys`, `webhooks`,
+  `recurringSchedules`, `mediaStorageMB`, `labels`, `orgMembers`,
+  `xApiSpendDcents`, `xCreditDcents`, `aiRunsUsed`, `aiRunsLimit`,
+  `aiCreditDcents`, `subscriptionRefundCount`) that pair with `limits` keys.
+  Node adds a `QuotasPlanLimits` interface for `limits`; `channelSlots` (added
+  in 1.11.0 / 0.12.0, already correct) is now non-optional. The Python
+  `quota_usage()` docstring example (`quotas['posts']['used']`) was updated to
+  the real keys.
+- **Python `__version__` was stale** (`0.11.0` while pyproject said `0.12.0`);
+  both now read `0.12.1`.
+
+
 ## 2026-08-21 — Extra channel slots add-on (node 1.11.0, mcp 1.16.0, python 0.12.0)
 
 ### Added

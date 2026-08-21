@@ -432,12 +432,35 @@ class ApiKeyUsageHistoryEntry(TypedDict, total=False):
 
 
 class QuotaUsage(TypedDict, total=False):
-    """Current plan quota usage."""
+    """Response of ``GET /api/quotas/usage``.
 
-    posts: Dict[str, int]
-    channels: Dict[str, int]
-    media: Dict[str, int]
+    ``usage`` counters pair with ``limits`` keys: ``usage["postsToday"]`` vs
+    ``limits["postsPerDay"]``, ``usage["scheduledToday"]`` vs
+    ``limits["scheduledPerDay"]``, ``usage["pendingScheduled"]`` vs
+    ``limits["maxPendingScheduled"]``.
+    """
+
+    organizationId: int
+    #: ``"free"`` | ``"pro"`` | ``"business"``
     plan: str
+    #: The plan's configured limits (``-1`` = unlimited, ``0`` = disabled):
+    #: ``channels``, ``channelsPerPlatform``, ``postsPerDay``, ``postsPerMonth``,
+    #: ``maxPendingScheduled``, ``scheduledPerDay``, ``mediaStorageMB``,
+    #: ``apiKeys``, ``apiRequestsPerDay``, ``recurringSchedules``, ``webhooks``,
+    #: ``maxLabels``, ``maxOrgMembers``, ``excludedPlatforms``,
+    #: ``xMonthlyBudgetDcents``, ``aiMonthlyRuns``, ``rssFeeds``,
+    #: ``rssAutoPublish``, ``rssPollIntervalMinutes``.
+    limits: Dict[str, Any]
+    #: ``{"status": str | None, "currentPeriodEnd": str | None,
+    #: "cancelAtPeriodEnd": bool}``
+    subscription: Dict[str, Any]
+    #: Current usage counters: ``channels``, ``postsToday`` (posts *created*
+    #: today), ``postsThisMonth``, ``pendingScheduled``, ``scheduledToday``
+    #: (posts scheduled FOR today, excluding drafts/failed), ``apiKeys``,
+    #: ``webhooks``, ``recurringSchedules``, ``mediaStorageMB``, ``labels``,
+    #: ``orgMembers``, ``xApiSpendDcents``, ``xCreditDcents``, ``aiRunsUsed``,
+    #: ``aiRunsLimit``, ``aiCreditDcents``, ``subscriptionRefundCount``.
+    usage: Dict[str, Any]
     #: Purchased extra channel slots (the $2.99 / 30-day add-on, Pro & Business).
     #: ``{"active": int, "slots": [{"id": int, "expiresAt": str}],
     #: "baseChannelLimit": int, "effectiveChannelLimit": int}`` — each active slot
