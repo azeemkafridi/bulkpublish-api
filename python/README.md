@@ -1,6 +1,6 @@
 # BulkPublish Python SDK
 
-Official Python SDK for the [BulkPublish](https://bulkpublish.com) social media API. Automate publishing to 11 platforms — built for developers, scripts, AI agents, LLMs, and agentic workflows.
+Official Python SDK for the [BulkPublish](https://bulkpublish.com) social media API. Automate publishing to 15 platforms — built for developers, scripts, AI agents, LLMs, and agentic workflows.
 
 ## Installation
 

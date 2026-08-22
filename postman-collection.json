@@ -9292,7 +9292,7 @@
     "name": "BulkPublish API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": {
-      "content": "Publish to 11 social media platforms from a single API.",
+      "content": "Publish to 15 social media platforms from a single API.",
       "type": "text/plain"
     }
   }

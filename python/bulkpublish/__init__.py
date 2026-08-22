@@ -1,4 +1,4 @@
-"""BulkPublish — Publish to 11 social media platforms from a single API."""
+"""BulkPublish — Publish to 15 social media platforms from a single API."""
 
 from .client import BulkPublish, AsyncBulkPublish
 from .exceptions import (

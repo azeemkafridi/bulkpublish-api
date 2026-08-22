@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-08-22 — Snapchat is live: platform counts corrected everywhere
+
+### Changed
+
+- `info.description` in both spec copies (this repo and the webapp's
+  `public/openapi.json`) went from "14 social media platforms" to **15** —
+  Snapchat's Public Profile API access is approved and the platform is a normal
+  connect option now. The count still deliberately excludes Reddit, which stays
+  off pending Reddit API approval.
+- Same correction in the Postman collection, the Python package docstring and
+  README, the Node README and package description, `mcp-server/server.json`,
+  and both Cursor plugin manifests — those variously claimed 11, 14 or 16.
+- No schema, enum, default or endpoint changed: Snapchat's post types
+  (`story`, `saved_story`, `spotlight`), options and media rules were already
+  documented across the spec, SDKs and MCP tools as of 2026-08-20.
+
 ## 2026-08-22 — Engagement: comment-scoped notice + disconnected-channel error (spec only)
 
 ### Added
