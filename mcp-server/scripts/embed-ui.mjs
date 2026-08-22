@@ -11,10 +11,32 @@ import { fileURLToPath } from "node:url";
 const outDir = new URL("../.vite-ui/", import.meta.url);
 const dirents = await readdir(outDir, { withFileTypes: true });
 
+// In-document CSP for every widget. The hosts already enforce the declared
+// _meta.ui.csp allowlist around the sandbox, but agent-readiness scanners (and
+// defense-in-depth) want the HTML itself to carry a policy. Vite inlines all
+// JS/CSS, hence 'unsafe-inline'; images come from the media CDN / app host /
+// data-URI previews; connect-src covers the MCP origin and the direct-to-R2
+// presigned upload (same origins as _meta.ui.csp in src/index.ts — keep the
+// two in sync). frame-ancestors names the two hosts that may embed widgets;
+// browsers ignore frame-ancestors in <meta>, so the hosts' own sandboxing
+// still governs, but the declaration documents intent and satisfies scanners.
+const WIDGET_CSP = [
+  "default-src 'none'",
+  "script-src 'unsafe-inline'",
+  "style-src 'unsafe-inline'",
+  "img-src https://images.bulkpublish.com https://app.bulkpublish.com data: blob:",
+  "connect-src https://mcp.bulkpublish.com https://d46a1bf4b4491a708ec851e1aade51e5.r2.cloudflarestorage.com",
+  "form-action 'none'",
+  "frame-ancestors https://chatgpt.com https://claude.ai",
+].join("; ");
+const CSP_META = `<meta http-equiv="Content-Security-Policy" content="${WIDGET_CSP}" />`;
+
 const widgets = {};
 for (const d of dirents) {
   if (!d.isDirectory()) continue;
-  widgets[d.name] = await readFile(new URL(`${d.name}/index.html`, outDir), "utf-8");
+  const html = await readFile(new URL(`${d.name}/index.html`, outDir), "utf-8");
+  if (!/<head>/.test(html)) throw new Error(`${d.name}/index.html has no <head> to carry the CSP meta`);
+  widgets[d.name] = html.replace("<head>", `<head>\n    ${CSP_META}`);
 }
 
 const banner =

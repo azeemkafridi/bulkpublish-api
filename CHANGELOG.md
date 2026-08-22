@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-08-23 — Agent-readiness: operationIds, per-operation OAuth scopes, widget CSP, server card (mcp 1.17.1)
+
+### Changed
+
+- **Every operation in both spec copies now has a unique `operationId`** (76 in
+  the webapp copy, 79 here including the api-keys endpoints). Names follow the
+  resource-verb convention (`listPosts`, `createPost`, `getQueueSlot`, …) so
+  LLM function-calling imports and SDK generators get stable, descriptive ids.
+- **Per-operation `security` now declares the minimal OAuth scope** next to the
+  API-key scheme (e.g. `oauth2: [posts:write]` on `POST /api/posts`), traced
+  from `webapp/src/lib/oauth-server/scopes.ts` `SCOPE_MAP`. Operations OAuth
+  tokens cannot reach at all (organizations, notifications, checkouts,
+  api-keys, `POST /api/analytics/refresh`, `DELETE /api/channels/{id}`) list
+  only `apiKey` — the existing prose in the oauth2 scheme description already
+  documents that boundary. `/api/oauth/token` and `/api/oauth/revoke` are
+  `security: []` (they are how you GET a token). This repo's spec copy also
+  gains the `oauth2` security scheme it was missing.
+- **mcp-server 1.17.1**: widget HTML now embeds a `Content-Security-Policy`
+  `<meta>` (injected at build time by `scripts/embed-ui.mjs`, same origin lists
+  as `_meta.ui.csp`), and `/.well-known/mcp/server-card.json` gains the
+  top-level `name`, `description`, `version`, `serverUrl` fields agents expect
+  (the `serverInfo` shape stays for MCP-initialize-style readers).
+- Postman collection, Node and Python SDKs are unchanged: none of them surface
+  `operationId` or per-operation security, and no endpoint, field, or default
+  moved.
+
 ## 2026-08-22 — Snapchat is live: platform counts corrected everywhere
 
 ### Changed

@@ -93,7 +93,14 @@ function firstId(body: unknown): string | number | null {
 // Static server card — built once from the live server so it never drifts
 // ---------------------------------------------------------------------------
 
+// Top-level name/description/version/serverUrl are required by agents that
+// preview the card before opening a transport connection; serverInfo mirrors
+// the MCP initialize payload for clients that read that shape instead.
 let serverCardJson = JSON.stringify({
+  name: "bulkpublish",
+  description: "Model Context Protocol server for BulkPublish — lets AI assistants manage social media posts, channels, media, and analytics.",
+  version: "1.0.0",
+  serverUrl: `${PUBLIC_BASE}${MCP_PATH}`,
   serverInfo: { name: "bulkpublish", version: "1.0.0" },
   authentication: { required: false },
   tools: [],
@@ -118,6 +125,10 @@ async function buildServerCard(): Promise<string> {
     }
     return JSON.stringify(
       {
+        name: info.name,
+        description: "Model Context Protocol server for BulkPublish — lets AI assistants manage social media posts, channels, media, and analytics.",
+        version: info.version,
+        serverUrl: `${PUBLIC_BASE}${MCP_PATH}`,
         serverInfo: { name: info.name, version: info.version },
         authentication: { required: false },
         tools: tools.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema })),

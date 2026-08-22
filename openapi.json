@@ -23,6 +23,26 @@
         "in": "header",
         "name": "Authorization",
         "description": "API key from Settings > API Keys. Pass as `Bearer bp_your_key_here`"
+      },
+      "oauth2": {
+        "type": "oauth2",
+        "description": "**Beta.** For products that embed BulkPublish and do not want their users pasting an API key. The user approves your app on BulkPublish and you receive a scoped token bound to the workspace they chose. PKCE (S256) is required for every client, `scope` is required (there is no implicit default), authorization codes are single-use, and refresh tokens rotate. Pass the token as `Bearer bpat_...`.\n\nOAuth tokens reach posts, schedules, labels, media, analytics, quota usage and read-only channel data — and nothing else. Account administration (team, organizations, billing and credit purchases, webhooks, API keys, OAuth app management) returns 403 for **any** OAuth token, including `full`, because those actions would outlive the user disconnecting the app. Use an API key (`Bearer bp_...`) for those; keys are unaffected by this and remain the default for server-to-server use.",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://app.bulkpublish.com/oauth/authorize",
+            "tokenUrl": "https://app.bulkpublish.com/api/oauth/token",
+            "refreshUrl": "https://app.bulkpublish.com/api/oauth/token",
+            "scopes": {
+              "posts:read": "View posts and their status",
+              "posts:write": "Create, update, schedule and publish posts",
+              "media:read": "View uploaded media",
+              "media:write": "Upload and delete media",
+              "analytics:read": "View analytics and post metrics",
+              "channels:read": "See which social accounts are connected",
+              "full": "Everything an app may do: read and write posts, schedules, labels and media, and read analytics and channels"
+            }
+          }
+        }
       }
     },
     "schemas": {
@@ -1140,7 +1160,18 @@
               }
             }
           }
-        }
+        },
+        "operationId": "listPosts",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:read"
+            ]
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -1482,7 +1513,18 @@
           "422": {
             "description": "Quota exceeded"
           }
-        }
+        },
+        "operationId": "createPost",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       }
     },
     "/api/posts/{id}": {
@@ -1516,7 +1558,18 @@
           "404": {
             "description": "Not found"
           }
-        }
+        },
+        "operationId": "getPost",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:read"
+            ]
+          }
+        ]
       },
       "put": {
         "tags": [
@@ -1639,7 +1692,18 @@
           "400": {
             "description": "Validation error"
           }
-        }
+        },
+        "operationId": "updatePost",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       },
       "patch": {
         "tags": [
@@ -1699,7 +1763,18 @@
           "404": {
             "description": "Post not found"
           }
-        }
+        },
+        "operationId": "patchPost",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -1720,7 +1795,18 @@
           "200": {
             "description": "Deleted"
           }
-        }
+        },
+        "operationId": "deletePost",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       }
     },
     "/api/posts/{id}/publish": {
@@ -1754,7 +1840,18 @@
             }
           }
         },
-        "description": "Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). Publishing a pending/rejected post as an approver implicitly approves it.\n\nReturns **403** with `code: \"PLATFORM_DISABLED\"` when one of the post's platforms has been switched off server-side (`PLATFORM_<NAME>=off`); the post is left untouched. Check `GET /api/platforms` for current availability. A channel's *variant* can be off on its own — LinkedIn company pages are gated separately from personal profiles — in which case the error also carries `accountType` (e.g. `\"organization\"`) naming the variant that is unavailable."
+        "description": "Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). Publishing a pending/rejected post as an approver implicitly approves it.\n\nReturns **403** with `code: \"PLATFORM_DISABLED\"` when one of the post's platforms has been switched off server-side (`PLATFORM_<NAME>=off`); the post is left untouched. Check `GET /api/platforms` for current availability. A channel's *variant* can be off on its own — LinkedIn company pages are gated separately from personal profiles — in which case the error also carries `accountType` (e.g. `\"organization\"`) naming the variant that is unavailable.",
+        "operationId": "publishPost",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       }
     },
     "/api/posts/{id}/retry": {
@@ -1798,7 +1895,18 @@
               }
             }
           }
-        }
+        },
+        "operationId": "retryPost",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       }
     },
     "/api/posts/{id}/metrics": {
@@ -1888,7 +1996,18 @@
               }
             }
           }
-        }
+        },
+        "operationId": "getPostMetrics",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:read"
+            ]
+          }
+        ]
       }
     },
     "/api/posts/{id}/engagement": {
@@ -2068,7 +2187,18 @@
           "404": {
             "description": "Post not found"
           }
-        }
+        },
+        "operationId": "getPostEngagement",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:read"
+            ]
+          }
+        ]
       }
     },
     "/api/posts/{id}/story": {
@@ -2141,7 +2271,18 @@
           "404": {
             "description": "Post not found"
           }
-        }
+        },
+        "operationId": "publishStory",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       }
     },
     "/api/posts/bulk": {
@@ -2187,7 +2328,18 @@
           "200": {
             "description": "Bulk action completed"
           }
-        }
+        },
+        "operationId": "bulkCreatePosts",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       }
     },
     "/api/posts/queue-slot": {
@@ -2212,7 +2364,18 @@
           "200": {
             "description": "Next available queue slot"
           }
-        }
+        },
+        "operationId": "getQueueSlot",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:read"
+            ]
+          }
+        ]
       }
     },
     "/api/channels": {
@@ -2253,7 +2416,18 @@
               }
             }
           }
-        }
+        },
+        "operationId": "listChannels",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "channels:read"
+            ]
+          }
+        ]
       }
     },
     "/api/channels/{id}": {
@@ -2276,7 +2450,18 @@
           "200": {
             "description": "Channel details"
           }
-        }
+        },
+        "operationId": "getChannel",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "channels:read"
+            ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -2297,7 +2482,13 @@
           "200": {
             "description": "Disconnected"
           }
-        }
+        },
+        "operationId": "deleteChannel",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/channels/{id}/health": {
@@ -2320,7 +2511,18 @@
           "200": {
             "description": "Health status"
           }
-        }
+        },
+        "operationId": "getChannelHealth",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "channels:read"
+            ]
+          }
+        ]
       }
     },
     "/api/channels/{id}/options": {
@@ -2378,7 +2580,18 @@
               }
             }
           }
-        }
+        },
+        "operationId": "getChannelOptions",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "channels:read"
+            ]
+          }
+        ]
       }
     },
     "/api/channels/{id}/mentions": {
@@ -2442,7 +2655,18 @@
               }
             }
           }
-        }
+        },
+        "operationId": "searchChannelMentions",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "channels:read"
+            ]
+          }
+        ]
       }
     },
     "/api/media": {
@@ -2495,7 +2719,18 @@
           "200": {
             "description": "Media list"
           }
-        }
+        },
+        "operationId": "listMedia",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "media:read"
+            ]
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -2522,7 +2757,18 @@
           "201": {
             "description": "File uploaded"
           }
-        }
+        },
+        "operationId": "uploadMedia",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "media:write"
+            ]
+          }
+        ]
       }
     },
     "/api/media/presign": {
@@ -2584,7 +2830,18 @@
           "403": {
             "description": "Storage quota exceeded"
           }
-        }
+        },
+        "operationId": "presignMediaUpload",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "media:write"
+            ]
+          }
+        ]
       }
     },
     "/api/media/finalize": {
@@ -2647,7 +2904,18 @@
           "403": {
             "description": "Storage quota exceeded"
           }
-        }
+        },
+        "operationId": "finalizeMediaUpload",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "media:write"
+            ]
+          }
+        ]
       }
     },
     "/api/media/{id}": {
@@ -2670,7 +2938,18 @@
           "200": {
             "description": "Media details"
           }
-        }
+        },
+        "operationId": "getMedia",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "media:read"
+            ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -2691,7 +2970,18 @@
           "200": {
             "description": "Deleted"
           }
-        }
+        },
+        "operationId": "deleteMedia",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "media:write"
+            ]
+          }
+        ]
       }
     },
     "/api/media/{id}/thumbnail": {
@@ -2718,7 +3008,18 @@
           "404": {
             "description": "Media not found or no thumbnail available"
           }
-        }
+        },
+        "operationId": "getMediaThumbnail",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "media:read"
+            ]
+          }
+        ]
       }
     },
     "/api/media/{id}/labels": {
@@ -2741,7 +3042,18 @@
           "200": {
             "description": "Labels"
           }
-        }
+        },
+        "operationId": "getMediaLabels",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "media:read"
+            ]
+          }
+        ]
       },
       "put": {
         "tags": [
@@ -2779,7 +3091,18 @@
           "200": {
             "description": "Updated"
           }
-        }
+        },
+        "operationId": "setMediaLabels",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "media:write"
+            ]
+          }
+        ]
       }
     },
     "/api/analytics/summary": {
@@ -2837,7 +3160,18 @@
           "200": {
             "description": "Summary data"
           }
-        }
+        },
+        "operationId": "getAnalyticsSummary",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "analytics:read"
+            ]
+          }
+        ]
       }
     },
     "/api/analytics/engagement": {
@@ -2926,7 +3260,18 @@
           "200": {
             "description": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts, allPosts, and unmeasuredPlatforms.\n\n`unmeasuredPlatforms` lists platforms present in the window that cannot report per-post metrics at all — either the platform has no readable metrics API (Google Business, Telegram, Tumblr) or, for LinkedIn, the channel is a personal/profile account (share statistics are exposed only for organization pages). Their rows still appear in every total with zeroes, so a zero for one of these platforms means \"not reported\", not \"measured zero\". Each entry in a post's `platformMetrics` carries the same signal as `metricsSupported`.\n\nAll figures come from the stored `post_metrics` snapshot, synced every 6 hours (or on demand via `POST /api/analytics/refresh`) — not a live read of the platform.\n\n`metricSupport` maps each platform present in the window to the list of metric keys its API can actually report (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `engagementRate`). Anything not listed is stored as 0 by the metrics sync because the platform has no such field — it is NOT a measurement. For example X reports impressions/likes/comments/shares/saves (bookmarks), so `reach`, `clicks` and `videoViews` are always 0 for X rows; Bluesky and Mastodon report no impressions, so `engagementRate` is always 0 for them; Pinterest reports no reach; YouTube reports no shares or reach; Reddit reports likes (score), comments and shares (crossposts) only; Discord reports likes (reaction counts) and comments (thread replies) only.\n\n`supportedTotals` is the union of `metricSupport` across the window — the org-wide `total*` fields are only measurements for keys listed here. A key absent from `supportedTotals` should be rendered as “not available” (a dash), never as 0. `partialTotals` maps a supported metric key to the platforms in the window that do NOT report it, so a consumer can note that the total covers only a subset of posts.\n\nEach entry of a post's `platformMetrics` also carries `supportedMetrics` (same per-platform list) alongside `metricsSupported`.\n\nFacebook's `impressions`, `reach`, `clicks` and `engagementRate` come from the Page Insights edge and require the `read_insights` permission; without it they stay 0 even though the metric is listed as supported.\n\n`metricsDisabledChannels` lists channels published to in the window whose metrics sync is switched off, so their posts contribute zeroes to every total. X is the only platform this applies to today: its reads are billed, so per-post metrics sync is opt-in per channel (`metadata.metricsSyncEnabled`, toggled on the Channels page) and runs at most once every 7 days. `POST /api/analytics/refresh` will not produce X figures for a channel that has not opted in.\n\n`conditionalMetrics` maps a platform in the window to metrics that are supported but permission-gated — a 0 there means \"may not be readable\", not \"no such metric\". Today only Facebook appears, for `impressions`, `reach`, `clicks` and `engagementRate`.\n\nEach post in `topPosts`/`allPosts` carries both a post-level `engagementRate` and, inside `platformMetrics[]`, a per-channel `engagementRate`. They are NOT the same number: the post-level value is the mean of the post's channels that reported a non-zero rate, while `platformMetrics[].engagementRate` is that one channel's own rate (engagements ÷ impressions). Render the per-channel value next to per-channel counters — using the post-level average there shows one network's percentage beside another network's zeros. Both are basis points (325 = 3.25%).\n\n`totalLinkClicks` (and `linkClicks` on each entry of `byPlatform`, `byDay`, `topPosts`, `allPosts` and `platformMetrics`) counts clicks on bulkpubli.sh short links, measured by BulkPublish rather than reported by the platform. It is deliberately NOT folded into `totalClicks`/`clicks`, which are the platform's own click figures: one visit can register in both, so adding them would double-count. Because we measure it ourselves it is available on every platform, including those listed in `unmeasuredPlatforms`, and it appears in `supportedTotals`/`metricSupport` for all of them. Bot and link-preview traffic is excluded. Zero for organizations that have not enabled Link Tracking."
           }
-        }
+        },
+        "operationId": "getAnalyticsEngagement",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "analytics:read"
+            ]
+          }
+        ]
       }
     },
     "/api/analytics/refresh": {
@@ -2940,7 +3285,13 @@
           "200": {
             "description": "Queued"
           }
-        }
+        },
+        "operationId": "refreshAnalytics",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/analytics/account": {
@@ -3049,7 +3400,18 @@
               }
             }
           }
-        }
+        },
+        "operationId": "getAccountAnalytics",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "analytics:read"
+            ]
+          }
+        ]
       }
     },
     "/api/labels": {
@@ -3077,7 +3439,18 @@
           "200": {
             "description": "Labels"
           }
-        }
+        },
+        "operationId": "listLabels",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:read"
+            ]
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -3117,7 +3490,18 @@
           "201": {
             "description": "Created"
           }
-        }
+        },
+        "operationId": "createLabel",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       }
     },
     "/api/labels/{id}": {
@@ -3157,7 +3541,18 @@
           "200": {
             "description": "Updated"
           }
-        }
+        },
+        "operationId": "updateLabel",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -3178,7 +3573,18 @@
           "200": {
             "description": "Deleted"
           }
-        }
+        },
+        "operationId": "deleteLabel",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       }
     },
     "/api/schedules": {
@@ -3191,7 +3597,18 @@
           "200": {
             "description": "Schedules"
           }
-        }
+        },
+        "operationId": "listSchedules",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:read"
+            ]
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -3299,7 +3716,18 @@
           "201": {
             "description": "Created"
           }
-        }
+        },
+        "operationId": "createSchedule",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       }
     },
     "/api/schedules/{id}": {
@@ -3413,7 +3841,18 @@
               }
             }
           }
-        }
+        },
+        "operationId": "updateSchedule",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -3434,7 +3873,18 @@
           "200": {
             "description": "Deleted"
           }
-        }
+        },
+        "operationId": "deleteSchedule",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       }
     },
     "/api/organizations": {
@@ -3447,7 +3897,13 @@
           "200": {
             "description": "Organizations"
           }
-        }
+        },
+        "operationId": "listOrganizations",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -3476,7 +3932,13 @@
           "201": {
             "description": "Created"
           }
-        }
+        },
+        "operationId": "createOrganization",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/organizations/{id}": {
@@ -3499,7 +3961,13 @@
           "200": {
             "description": "Organization details with user role"
           }
-        }
+        },
+        "operationId": "getOrganization",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       },
       "put": {
         "tags": [
@@ -3539,7 +4007,13 @@
           "200": {
             "description": "Updated organization"
           }
-        }
+        },
+        "operationId": "updateOrganization",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -3583,7 +4057,13 @@
           "400": {
             "description": "Confirmation required or cannot delete last organization"
           }
-        }
+        },
+        "operationId": "deleteOrganization",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/organizations/switch": {
@@ -3613,7 +4093,13 @@
           "200": {
             "description": "Switched"
           }
-        }
+        },
+        "operationId": "switchOrganization",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/organizations/leave": {
@@ -3647,7 +4133,13 @@
           "400": {
             "description": "Owner cannot leave, or invalid request"
           }
-        }
+        },
+        "operationId": "leaveOrganization",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/notifications": {
@@ -3689,7 +4181,13 @@
           "200": {
             "description": "Notifications"
           }
-        }
+        },
+        "operationId": "listNotifications",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       },
       "patch": {
         "tags": [
@@ -3720,7 +4218,13 @@
           "200": {
             "description": "Marked"
           }
-        }
+        },
+        "operationId": "updateNotifications",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -3751,7 +4255,13 @@
           "200": {
             "description": "Deleted"
           }
-        }
+        },
+        "operationId": "deleteNotifications",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/notifications/preferences": {
@@ -3764,7 +4274,13 @@
           "200": {
             "description": "Preferences"
           }
-        }
+        },
+        "operationId": "getNotificationPreferences",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       },
       "put": {
         "tags": [
@@ -3807,7 +4323,13 @@
           "200": {
             "description": "Updated"
           }
-        }
+        },
+        "operationId": "updateNotificationPreferences",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/link-preview": {
@@ -3833,7 +4355,13 @@
           "200": {
             "description": "Link metadata"
           }
-        }
+        },
+        "operationId": "getLinkPreview",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/quotas/usage": {
@@ -3858,6 +4386,17 @@
               "type": "string",
               "default": "UTC"
             }
+          }
+        ],
+        "operationId": "getQuotaUsage",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "analytics:read"
+            ]
           }
         ]
       }
@@ -3884,7 +4423,18 @@
           "200": {
             "description": "X usage data"
           }
-        }
+        },
+        "operationId": "getXUsage",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "analytics:read"
+            ]
+          }
+        ]
       }
     },
     "/api/quotas/x-credits/checkout": {
@@ -3917,7 +4467,13 @@
           "200": {
             "description": "Checkout URL"
           }
-        }
+        },
+        "operationId": "createXCreditsCheckout",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/quotas/ai-credits/checkout": {
@@ -3950,7 +4506,13 @@
           "200": {
             "description": "Checkout URL"
           }
-        }
+        },
+        "operationId": "createAiCreditsCheckout",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/quotas/channel-slots/checkout": {
@@ -3973,7 +4535,13 @@
           "400": {
             "description": "Already at the maximum of 20 extra slots (`code: SLOT_MAX_REACHED`)."
           }
-        }
+        },
+        "operationId": "createChannelSlotsCheckout",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/ai/caption": {
@@ -4056,7 +4624,13 @@
           "429": {
             "description": "Rate limited"
           }
-        }
+        },
+        "operationId": "generateCaption",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/activity": {
@@ -4107,7 +4681,13 @@
           "200": {
             "description": "Activities"
           }
-        }
+        },
+        "operationId": "listActivity",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/channel-sets": {
@@ -4121,7 +4701,18 @@
           "200": {
             "description": "Channel sets"
           }
-        }
+        },
+        "operationId": "listChannelSets",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "channels:read"
+            ]
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -4165,7 +4756,13 @@
           "409": {
             "description": "Duplicate name"
           }
-        }
+        },
+        "operationId": "createChannelSet",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/channel-sets/{id}": {
@@ -4217,7 +4814,13 @@
           "409": {
             "description": "Duplicate name"
           }
-        }
+        },
+        "operationId": "updateChannelSet",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -4241,7 +4844,13 @@
           "404": {
             "description": "Not found"
           }
-        }
+        },
+        "operationId": "deleteChannelSet",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/rss-feeds": {
@@ -4255,7 +4864,13 @@
           "200": {
             "description": "Feeds"
           }
-        }
+        },
+        "operationId": "listRssFeeds",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -4390,7 +5005,13 @@
             "description": "Invalid input"
           }
         },
-        "description": "Create an RSS/Atom feed. Plan-gated: max feeds per org (Free 1, Pro 10, Business 50) and auto-publish mode (`mode: \"publish\"`) is paid-only — Free is draft-only and a `publish` request returns 403. Over the feed limit returns 403. Feed poll cadence is also per-plan (Free 60 min, Pro 30 min, Business 15 min)."
+        "description": "Create an RSS/Atom feed. Plan-gated: max feeds per org (Free 1, Pro 10, Business 50) and auto-publish mode (`mode: \"publish\"`) is paid-only — Free is draft-only and a `publish` request returns 403. Over the feed limit returns 403. Feed poll cadence is also per-plan (Free 60 min, Pro 30 min, Business 15 min).",
+        "operationId": "createRssFeed",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/rss-feeds/{id}": {
@@ -4534,7 +5155,13 @@
           "404": {
             "description": "Not found"
           }
-        }
+        },
+        "operationId": "updateRssFeed",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -4558,7 +5185,13 @@
           "404": {
             "description": "Not found"
           }
-        }
+        },
+        "operationId": "deleteRssFeed",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/media/multipart/create": {
@@ -4598,7 +5231,18 @@
           "400": {
             "description": "Disallowed type or file too large"
           }
-        }
+        },
+        "operationId": "createMultipartUpload",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "media:write"
+            ]
+          }
+        ]
       }
     },
     "/api/media/multipart/complete": {
@@ -4679,7 +5323,18 @@
           "400": {
             "description": "Assembly or verification failed"
           }
-        }
+        },
+        "operationId": "completeMultipartUpload",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "media:write"
+            ]
+          }
+        ]
       }
     },
     "/api/media/multipart/abort": {
@@ -4714,7 +5369,18 @@
           "200": {
             "description": "Aborted"
           }
-        }
+        },
+        "operationId": "abortMultipartUpload",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "media:write"
+            ]
+          }
+        ]
       }
     },
     "/api/posts/{id}/approve": {
@@ -4755,7 +5421,17 @@
           "404": {
             "description": "Post not found"
           }
-        }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       }
     },
     "/api/posts/{id}/reject": {
@@ -4813,7 +5489,17 @@
           "404": {
             "description": "Post not found"
           }
-        }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       }
     },
     "/api/platforms": {
@@ -4845,7 +5531,18 @@
           "401": {
             "description": "Unauthorized"
           }
-        }
+        },
+        "operationId": "listPlatforms",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "channels:read"
+            ]
+          }
+        ]
       }
     },
     "/api/api-keys": {
@@ -4858,7 +5555,13 @@
           "200": {
             "description": "API keys (secrets masked)"
           }
-        }
+        },
+        "operationId": "listApiKeys",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -4890,7 +5593,13 @@
           "201": {
             "description": "Created (full key shown once)"
           }
-        }
+        },
+        "operationId": "createApiKey",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/api-keys/{id}": {
@@ -4913,7 +5622,13 @@
           "200": {
             "description": "Deleted"
           }
-        }
+        },
+        "operationId": "deleteApiKey",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/api-keys/usage": {
@@ -4927,7 +5642,13 @@
           "200": {
             "description": "Usage data with today's count, limit, plan, and per-key breakdown"
           }
-        }
+        },
+        "operationId": "getApiKeyUsage",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
     "/api/api-keys/usage/history": {
@@ -4952,7 +5673,13 @@
           "200": {
             "description": "Array of { date, count } entries"
           }
-        }
+        },
+        "operationId": "getApiKeyUsageHistory",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     }
   }
