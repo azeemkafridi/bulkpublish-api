@@ -2041,11 +2041,16 @@
                               "reactionsUnsupported": {
                                 "type": "boolean",
                                 "description": "True when the platform exposes commenters but never individual likers (Threads, Instagram, YouTube). `reactions` is always empty; clients should hide any reactors UI rather than render an empty list."
+                              },
+                              "commentsNotice": {
+                                "type": "string",
+                                "description": "Why the COMMENT list specifically is empty, set whenever the comment read did not succeed (missing token, a gate declined — e.g. X analytics not enabled — the platform API errored, or the platform has no thread for this post, like a Discord message without a thread). `notice` mixes comment- and reaction-scoped messages; a client that renders only comments should show this field and treat an empty `comments` with `commentsNotice` absent as a genuine measured zero."
                               }
                             }
                           },
                           "error": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "Route-level failure for this platform: the live read threw, or the post is published (`platformPostId` set) but the channel has no stored access token (needs reconnecting). When set alongside `engagement: null` the post IS live on this platform — the data simply could not be read."
                           },
                           "accountName": {
                             "type": "string",

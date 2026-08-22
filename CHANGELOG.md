@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-08-22 — Engagement: comment-scoped notice + disconnected-channel error (spec only)
+
+### Added
+
+- **`GET /api/posts/{id}/engagement`: `engagement.commentsNotice`** — why the
+  COMMENT list specifically is empty, set whenever the comment read did not
+  succeed (missing token, a declined gate such as X analytics being off, a
+  platform API error, or no thread existing for the post). `notice` mixes
+  comment- and reaction-scoped messages; clients that render only comments
+  should show `commentsNotice`, and treat empty `comments` with the field
+  absent as a genuine measured zero. Source: `EngagementData` in the webapp's
+  `lib/platforms/types.ts`; every handler that can fail a comment read sets it.
+- **Same endpoint: per-platform `error` documented** — set when the live read
+  threw, or when the post is published (`platformPostId` present) but the
+  channel has no stored token and needs reconnecting. `engagement: null` plus
+  `error` means the post IS live and the data could not be read; `null` without
+  `error` means the post never published to that channel.
+
+No SDK code changes: neither the node nor the Python SDK types this endpoint's
+per-platform payload beyond passthrough. Spec + webapp copy updated; Postman
+regeneration pending.
+
 ## 2026-08-21 — Channel slots become a monthly subscription (node 1.12.0, mcp 1.17.0, python 0.13.0)
 
 ### Changed
