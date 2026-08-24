@@ -14,21 +14,21 @@
   </p>
 
   <p>
-    <img alt="Facebook" src=".github/assets/platforms/facebook.svg" width="28">
-    <img alt="Instagram" src=".github/assets/platforms/instagram.svg" width="28">
-    <img alt="X / Twitter" src=".github/assets/platforms/x.svg" width="28">
-    <img alt="TikTok" src=".github/assets/platforms/tiktok.svg" width="28">
-    <img alt="YouTube" src=".github/assets/platforms/youtube.svg" width="28">
-    <img alt="Threads" src=".github/assets/platforms/threads.svg" width="28">
-    <img alt="Bluesky" src=".github/assets/platforms/bluesky.svg" width="28">
-    <img alt="Pinterest" src=".github/assets/platforms/pinterest.svg" width="28">
-    <img alt="Google Business" src=".github/assets/platforms/gmb.svg" width="28">
-    <img alt="LinkedIn" src=".github/assets/platforms/linkedin.svg" width="28">
-    <img alt="Mastodon" src=".github/assets/platforms/mastodon.svg" width="28">
-    <img alt="Discord" src=".github/assets/platforms/discord.svg" width="28">
-    <img alt="Telegram" src=".github/assets/platforms/telegram.svg" width="28">
-    <img alt="Tumblr" src=".github/assets/platforms/tumblr.svg" width="28">
-    <img alt="Snapchat" src=".github/assets/platforms/snapchat.svg" width="28">
+    <img alt="Facebook" src=".github/assets/platforms/badges/facebook.svg" width="36">
+    <img alt="Instagram" src=".github/assets/platforms/badges/instagram.svg" width="36">
+    <img alt="X / Twitter" src=".github/assets/platforms/badges/x.svg" width="36">
+    <img alt="TikTok" src=".github/assets/platforms/badges/tiktok.svg" width="36">
+    <img alt="YouTube" src=".github/assets/platforms/badges/youtube.svg" width="36">
+    <img alt="Threads" src=".github/assets/platforms/badges/threads.svg" width="36">
+    <img alt="Bluesky" src=".github/assets/platforms/badges/bluesky.svg" width="36">
+    <img alt="Pinterest" src=".github/assets/platforms/badges/pinterest.svg" width="36">
+    <img alt="Google Business" src=".github/assets/platforms/badges/gmb.svg" width="36">
+    <img alt="LinkedIn" src=".github/assets/platforms/badges/linkedin.svg" width="36">
+    <img alt="Mastodon" src=".github/assets/platforms/badges/mastodon.svg" width="36">
+    <img alt="Discord" src=".github/assets/platforms/badges/discord.svg" width="36">
+    <img alt="Telegram" src=".github/assets/platforms/badges/telegram.svg" width="36">
+    <img alt="Tumblr" src=".github/assets/platforms/badges/tumblr.svg" width="36">
+    <img alt="Snapchat" src=".github/assets/platforms/badges/snapchat.svg" width="36">
   </p>
 
   <p>
@@ -38,7 +38,12 @@
     <a href="mcp-server/README.md">MCP Server</a>
   </p>
 
+  <br/>
+
   <img alt="BulkPublish Multi-Platform Composer" src=".github/assets/multi-platform-composer.webp" width="720"/>
+
+  <br/>
+  <br/>
 </div>
 
 Programmatically publish to 15 platforms from a single API call. Built for developers, AI agents, LLMs, and agentic workflows that need reliable social media automation without browser sessions or manual interaction.
