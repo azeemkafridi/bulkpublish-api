@@ -1,6 +1,45 @@
-# BulkPublish API
+<div align="center">
+  <img alt="BulkPublish Logo" src="logo.svg" width="220"/>
 
-**The free social media API built for automation, AI agents, and LLMs.**
+  <h1>BulkPublish API</h1>
+
+  <p><strong>The free social media API built for automation, AI agents, and LLMs.</strong></p>
+
+  <p>
+    <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">
+    <img src="https://img.shields.io/badge/Platforms-15-orange.svg" alt="15 Platforms">
+    <img src="https://img.shields.io/badge/MCP-Server-purple.svg" alt="MCP Server">
+    <a href="https://pypi.org/project/bulkpublish/"><img src="https://img.shields.io/pypi/v/bulkpublish.svg" alt="PyPI"></a>
+    <a href="https://www.npmjs.com/package/bulkpublish"><img src="https://img.shields.io/npm/v/bulkpublish.svg" alt="npm"></a>
+  </p>
+
+  <p>
+    <img alt="Facebook" src=".github/assets/platforms/facebook.svg" width="28">
+    <img alt="Instagram" src=".github/assets/platforms/instagram.svg" width="28">
+    <img alt="X / Twitter" src=".github/assets/platforms/x.svg" width="28">
+    <img alt="TikTok" src=".github/assets/platforms/tiktok.svg" width="28">
+    <img alt="YouTube" src=".github/assets/platforms/youtube.svg" width="28">
+    <img alt="Threads" src=".github/assets/platforms/threads.svg" width="28">
+    <img alt="Bluesky" src=".github/assets/platforms/bluesky.svg" width="28">
+    <img alt="Pinterest" src=".github/assets/platforms/pinterest.svg" width="28">
+    <img alt="Google Business" src=".github/assets/platforms/gmb.svg" width="28">
+    <img alt="LinkedIn" src=".github/assets/platforms/linkedin.svg" width="28">
+    <img alt="Mastodon" src=".github/assets/platforms/mastodon.svg" width="28">
+    <img alt="Discord" src=".github/assets/platforms/discord.svg" width="28">
+    <img alt="Telegram" src=".github/assets/platforms/telegram.svg" width="28">
+    <img alt="Tumblr" src=".github/assets/platforms/tumblr.svg" width="28">
+    <img alt="Snapchat" src=".github/assets/platforms/snapchat.svg" width="28">
+  </p>
+
+  <p>
+    <a href="https://app.bulkpublish.com/register"><strong>Get Started »</strong></a> ·
+    <a href="https://app.bulkpublish.com/docs">API Docs</a> ·
+    <a href="https://www.bulkpublish.com">Website</a> ·
+    <a href="mcp-server/README.md">MCP Server</a>
+  </p>
+
+  <img alt="BulkPublish Multi-Platform Composer" src=".github/assets/multi-platform-composer.webp" width="720"/>
+</div>
 
 Programmatically publish to 15 platforms from a single API call. Built for developers, AI agents, LLMs, and agentic workflows that need reliable social media automation without browser sessions or manual interaction.
 
