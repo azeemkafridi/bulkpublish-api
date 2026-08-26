@@ -68,9 +68,11 @@
             ]
           },
           "scheduledAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           },
           "timezone": {
             "type": "string"
@@ -110,8 +112,10 @@
             "type": "boolean"
           },
           "autoPlugText": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "autoPlugThreshold": {
             "type": "integer"
@@ -129,12 +133,16 @@
             "type": "boolean"
           },
           "recurringScheduleId": {
-            "type": "integer",
-            "nullable": true
+            "type": [
+              "integer",
+              "null"
+            ]
           },
           "recurringSchedule": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "description": "Full recurring schedule details when linked"
           },
           "mediaFiles": {
@@ -160,9 +168,11 @@
             "format": "date-time"
           },
           "publishedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           },
           "approvalStatus": {
             "type": "string",
@@ -176,18 +186,24 @@
             "description": "Team approval state, orthogonal to status. 'pending' and 'rejected' posts are skipped by the scheduler even when scheduled and overdue; approving via POST /api/posts/{id}/approve releases them (an overdue post publishes immediately on approval). Members whose role lacks post:publish (contributors) always get 'pending' when scheduling; others can opt in with requestApproval."
           },
           "approvedBy": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "User ID of the approver (set when approvalStatus is 'approved')."
           },
           "approvedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           },
           "rejectionReason": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Reviewer's reason when approvalStatus is 'rejected'."
           }
         }
@@ -217,16 +233,22 @@
             "description": "Per-platform publish state. 'unconfirmed' is terminal: the publish request may have reached the platform but its response was lost — check the account, then retry with republish: true if the post is not live."
           },
           "platformPostId": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "platformUrl": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "errorMessage": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "retryCount": {
             "type": "integer"
@@ -270,8 +292,10 @@
             "type": "string"
           },
           "profileImage": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "isActive": {
             "type": "boolean"
@@ -285,9 +309,11 @@
             ]
           },
           "tokenExpiresAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           },
           "metadata": {
             "type": "object"
@@ -310,8 +336,10 @@
             "description": "Current availability of the platform, controlled by the `PLATFORM_<NAME>` environment flag on the server.\n\n- `on` — fully available.\n- `connect_off` — new channels cannot be connected, but channels already connected keep publishing normally (used while a platform app review is pending).\n- `off` — kill switch: the platform is unavailable, and posts targeting it are **held**, not failed. They publish automatically once the platform is switched back on.\n\nResolved for THIS channel: the `PLATFORM_<NAME>` flag narrowed by any variant flag matching its `accountType`. LinkedIn company pages (`accountType: \"organization\"`) are gated separately from personal profiles, so two LinkedIn channels in the same response can differ here."
           },
           "platformMessage": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "User-facing explanation when the platform is not fully available; `null` otherwise. When a variant rather than the whole platform is what is switched off, this names the variant (e.g. \"LinkedIn Company Pages\")."
           }
         }
@@ -332,33 +360,45 @@
             "type": "integer"
           },
           "width": {
-            "type": "integer",
-            "nullable": true
+            "type": [
+              "integer",
+              "null"
+            ]
           },
           "height": {
-            "type": "integer",
-            "nullable": true
+            "type": [
+              "integer",
+              "null"
+            ]
           },
           "duration": {
-            "type": "number",
-            "nullable": true
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "originalUrl": {
             "type": "string"
           },
           "thumbnailUrl": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "160x160 square crop (webp). For videos this is generated from an extracted poster frame; null until the derivative job has run."
           },
           "previewUrl": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "400px-wide derivative (webp) for grids. For videos, generated from the poster frame."
           },
           "largeUrl": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "1200px-wide derivative (webp) for lightboxes and large preview panes. For videos, generated from the poster frame. Null on media uploaded before this derivative existed until the backfill runs."
           }
         }
@@ -407,12 +447,16 @@
             ]
           },
           "dayOfWeek": {
-            "type": "integer",
-            "nullable": true
+            "type": [
+              "integer",
+              "null"
+            ]
           },
           "dayOfMonth": {
-            "type": "integer",
-            "nullable": true
+            "type": [
+              "integer",
+              "null"
+            ]
           },
           "timeOfDay": {
             "type": "string"
@@ -433,9 +477,11 @@
             "type": "boolean"
           },
           "nextRunAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           },
           "requireApproval": {
             "type": "boolean",
@@ -813,8 +859,10 @@
             "example": "LinkedIn"
           },
           "color": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Brand colour hex, for UI rendering.",
             "example": "#0A66C2"
           },
@@ -850,8 +898,10 @@
             "description": "Whether already-connected channels can publish right now."
           },
           "message": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "User-facing explanation. `null` when the platform is fully enabled."
           },
           "envVar": {
@@ -900,8 +950,10 @@
                   "description": "Whether already-connected channels of this account type can publish right now."
                 },
                 "message": {
-                  "type": "string",
-                  "nullable": true,
+                  "type": [
+                    "string",
+                    "null"
+                  ],
                   "description": "User-facing explanation. `null` when the variant is fully enabled."
                 },
                 "envVar": {
@@ -960,6 +1012,10 @@
     {
       "name": "API Keys",
       "description": "Manage API authentication keys. Available on all plans (Free: 1 key, Pro: 5, Business: 10)."
+    },
+    {
+      "name": "OAuth",
+      "description": "Beta: let your users connect their own BulkPublish account instead of pasting an API key. Register an app under Settings > API to get a client ID."
     },
     {
       "name": "Utilities",
@@ -1729,8 +1785,10 @@
                 "type": "object",
                 "properties": {
                   "recurringScheduleId": {
-                    "type": "integer",
-                    "nullable": true,
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
                     "description": "Repeat-schedule id to attach, or null to detach."
                   }
                 },
@@ -1946,12 +2004,16 @@
                             "type": "string"
                           },
                           "platformPostId": {
-                            "type": "string",
-                            "nullable": true
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           },
                           "platformUrl": {
-                            "type": "string",
-                            "nullable": true
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           },
                           "status": {
                             "type": "string"
@@ -1979,8 +2041,10 @@
                             "description": "Metric keys this platform's API can report. Keys not listed are stored zeroes, not measurements."
                           },
                           "latest": {
-                            "type": "object",
-                            "nullable": true
+                            "type": [
+                              "object",
+                              "null"
+                            ]
                           },
                           "history": {
                             "type": "array"
@@ -2016,7 +2080,7 @@
           "Posts"
         ],
         "summary": "Get post engagement (commenters + reactors)",
-        "description": "Returns per-platform lists of the people/pages who commented on or reacted to a published post — with name, handle/headline, profile photo and profile URL when the platform exposes them. Platforms that only expose aggregate counts (e.g. Instagram likers, YouTube likers) populate `comments` only and set a `notice` field. Platforms with no engagement API at all (e.g. TikTok) return `unsupported: true`.",
+        "description": "Returns per-platform lists of the people/pages who commented on or reacted to a published post — with name, handle/headline, profile photo and profile URL when the platform exposes them.\n\nEleven of the sixteen platforms return engagement: Facebook, Instagram, X, LinkedIn, YouTube, Threads, Bluesky, Mastodon, Reddit, Discord and Tumblr. Platforms that expose commenters but never individual likers (Instagram, YouTube, Threads, Reddit) populate `comments` only and set `reactionsUnsupported: true` plus an explanatory `notice`.\n\nExactly five platforms have no comment API at all and return `unsupported: true` with a `notice` saying why: **TikTok** (comments are Research-API only), **Pinterest** (v5 exposes no Pin comments), **Google Business** (local posts have no comment surface; reviews attach to the location, not the post), **Telegram** (a bot learns of comments only through pushed updates, so they cannot be read on request) and **Snapchat** (the Public Profile API reports reply counts only, never individual comments).\n\nPlatform-specific behaviour worth knowing: **X** bills for every read, so replies and likers are returned only when that channel has `metadata.metricsSyncEnabled` set (the same opt-in that governs X metrics) and the org is within its daily read budget — otherwise `comments`/`reactions` are empty and `notice` says which gate declined; X replies also come from recent search, which only covers the last 7 days. **Reddit** keeps votes anonymous, so it reports commenters only. **Tumblr** has no comments endpoint — replies and reblogs-with-commentary map to `comments`, and likes plus bare reblogs to `reactions`. **Discord** returns reactors plus the replies in a thread started from the message; plain channel replies are ordinary messages elsewhere in the channel and are not fetched.\n\n`engagement` is `null` (rather than an empty object) when the post was never published to that channel, or when the channel has no stored access token.",
         "parameters": [
           {
             "name": "id",
@@ -2067,16 +2131,22 @@
                             "type": "string"
                           },
                           "platformPostId": {
-                            "type": "string",
-                            "nullable": true
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           },
                           "platformUrl": {
-                            "type": "string",
-                            "nullable": true
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           },
                           "engagement": {
-                            "type": "object",
-                            "nullable": true,
+                            "type": [
+                              "object",
+                              "null"
+                            ],
                             "properties": {
                               "comments": {
                                 "type": "array",
@@ -2172,8 +2242,10 @@
                             "description": "Route-level failure for this platform: the live read threw, or the post is published (`platformPostId` set) but the channel has no stored access token (needs reconnecting). When set alongside `engagement: null` the post IS live on this platform — the data simply could not be read."
                           },
                           "accountName": {
-                            "type": "string",
-                            "nullable": true,
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "Name of the connected account/Page the content was read from. Shown in the UI so the source is identifiable."
                           }
                         }
@@ -2552,8 +2624,10 @@
                   "type": "object",
                   "properties": {
                     "type": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "enum": [
                         "boards",
                         "playlists",
@@ -2644,8 +2718,10 @@
                             "type": "string"
                           },
                           "profileImage": {
-                            "type": "string",
-                            "nullable": true
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           }
                         }
                       }
@@ -2737,7 +2813,7 @@
           "Media"
         ],
         "summary": "Upload media (single request)",
-        "description": "Upload an image or video file in one multipart request (server relays to storage). Max 100MB (for videos up to 1GB use the multipart endpoints: /api/media/multipart/create → PUT each part → /api/media/multipart/complete). Formats: JPEG, PNG, WebP, GIF, MP4, QuickTime, WebM. Browser clients should prefer the faster direct-to-storage flow: POST /api/media/presign then PUT the file to the returned URL then POST /api/media/finalize.",
+        "description": "Upload an image or video file in one multipart request (server relays to storage). Max 100MB (for videos up to 1GB use the multipart endpoints: /api/media/multipart/create → PUT each part → /api/media/multipart/complete). Formats: JPEG, PNG, WebP, GIF, MP4, QuickTime, WebM. Browser clients should prefer the faster direct-to-storage flow: POST /api/media/presign then PUT the file to the returned URL then POST /api/media/finalize. MP4/QuickTime files must be complete (contain a moov atom) — a video captured mid-encode or truncated in transit is rejected with 400 at upload instead of failing at publish time. The same check runs on /api/media/finalize (via ranged reads) and on remote URL imports.",
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -4373,7 +4449,7 @@
         "description": "Current usage vs limits for all resource types on your plan.",
         "responses": {
           "200": {
-            "description": "Current usage vs limits for all resource types on your plan.\n\n`usage.scheduledToday` counts posts scheduled FOR the current day (excluding `draft` and `failed`) and pairs with `limits.scheduledPerDay` — distinct from `usage.pendingScheduled`, which is every pending scheduled post regardless of date and pairs with `limits.maxPendingScheduled`. `usage.postsToday` counts posts *created* today and pairs with `limits.postsPerDay`.\n\nThe response also carries `channelSlots` — the org's purchased extra-channel add-on state: `{ active, slots: [{id, expiresAt}], baseChannelLimit, effectiveChannelLimit }`. Each slot is a one-time $2.99 purchase valid 30 days that raises the effective total channel limit by one and allows one channel above the per-platform cap (shared across platforms). `effectiveChannelLimit` (base plan limit + active slots; `-1` stays `-1`) is what channel-connect quota checks actually enforce."
+            "description": "Current usage vs limits for all resource types on your plan.\n\n`usage.scheduledToday` counts posts scheduled FOR the current day (excluding `draft` and `failed`) and pairs with `limits.scheduledPerDay` — distinct from `usage.pendingScheduled`, which is every pending scheduled post regardless of date and pairs with `limits.maxPendingScheduled`. `usage.postsToday` counts posts *created* today and pairs with `limits.postsPerDay`.\n\nThe response also carries `channelSlots` — the org's purchased extra-channel add-on state: `{ active, slots: [{id, expiresAt, autoRenews}], baseChannelLimit, effectiveChannelLimit }`. Slots are granted by a seat-based Polar subscription at $2.99 per slot per month (seats = slot count, one subscription per organization). Each active slot raises the effective total channel limit by one and allows one channel above the per-platform cap (shared across platforms). A slot's `autoRenews` says whether it rolls forward with the subscription (`expiresAt` moves each cycle) or lapses at `expiresAt`; slots no connected channel is using are auto-canceled shortly before renewal, so the org is never billed for unused headroom. `effectiveChannelLimit` (base plan limit + active slots; `-1` stays `-1`) is what channel-connect quota checks actually enforce."
           }
         },
         "parameters": [
@@ -5680,6 +5756,155 @@
             "apiKey": []
           }
         ]
+      }
+    },
+    "/api/oauth/token": {
+      "post": {
+        "tags": [
+          "OAuth"
+        ],
+        "summary": "Exchange an authorization code or refresh token",
+        "description": "Token endpoint (RFC 6749). No user authentication — the client authenticates itself. Confidential clients send `client_secret` (form field or HTTP Basic); public clients send none and rely on PKCE. Authorization codes are single-use and refresh tokens rotate: presenting either one twice revokes every token issued under that authorization, per OAuth 2.1. Failures return a single `invalid_grant` message for missing, expired and already-used credentials alike, so the endpoint cannot be used to probe which case applies.",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "grant_type",
+                  "client_id"
+                ],
+                "properties": {
+                  "grant_type": {
+                    "type": "string",
+                    "enum": [
+                      "authorization_code",
+                      "refresh_token"
+                    ],
+                    "description": "**required**"
+                  },
+                  "client_id": {
+                    "type": "string",
+                    "description": "**required** — e.g. `bpc_...`"
+                  },
+                  "client_secret": {
+                    "type": "string",
+                    "description": "**optional** — confidential clients only; may also be sent as HTTP Basic"
+                  },
+                  "code": {
+                    "type": "string",
+                    "description": "**required for authorization_code** — the code from the redirect"
+                  },
+                  "redirect_uri": {
+                    "type": "string",
+                    "description": "**required for authorization_code** — must byte-match the one used to authorize"
+                  },
+                  "code_verifier": {
+                    "type": "string",
+                    "description": "**required for authorization_code** — PKCE verifier, 43-128 chars"
+                  },
+                  "refresh_token": {
+                    "type": "string",
+                    "description": "**required for refresh_token**"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tokens issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string",
+                      "description": "`bpat_...`, valid 1 hour"
+                    },
+                    "token_type": {
+                      "type": "string",
+                      "example": "Bearer"
+                    },
+                    "expires_in": {
+                      "type": "integer",
+                      "example": 3600
+                    },
+                    "refresh_token": {
+                      "type": "string",
+                      "description": "`bprt_...`, valid 30 days, rotated on every use"
+                    },
+                    "scope": {
+                      "type": "string",
+                      "description": "Space-delimited scopes actually granted"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request, invalid_grant or unsupported_grant_type"
+          },
+          "401": {
+            "description": "invalid_client — unknown client or bad secret"
+          },
+          "429": {
+            "description": "Too many token requests from this IP"
+          }
+        },
+        "operationId": "exchangeOauthToken"
+      }
+    },
+    "/api/oauth/revoke": {
+      "post": {
+        "tags": [
+          "OAuth"
+        ],
+        "summary": "Revoke a token",
+        "description": "Token revocation (RFC 7009). Revoking either the access or the refresh token disconnects the whole authorization — the user sees the app disappear from Connected apps. Returns 200 whether or not the token existed, so it cannot be used to probe for valid tokens.",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token",
+                  "client_id"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "description": "**required** — an access or refresh token"
+                  },
+                  "client_id": {
+                    "type": "string",
+                    "description": "**required**"
+                  },
+                  "client_secret": {
+                    "type": "string",
+                    "description": "**optional** — confidential clients only"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Revoked (or the token did not exist)"
+          },
+          "401": {
+            "description": "invalid_client — client authentication failed"
+          }
+        },
+        "operationId": "revokeOauthToken"
       }
     }
   }

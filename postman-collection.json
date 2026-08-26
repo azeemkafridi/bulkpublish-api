@@ -8505,7 +8505,7 @@
           "request": {
             "name": "Get quota usage",
             "description": {
-              "content": "Current usage vs limits for all resource types on your plan.\n\nThe response also carries `channelSlots` — the org's purchased extra-channel add-on state: `{ active, slots: [{id, expiresAt}], baseChannelLimit, effectiveChannelLimit }`. Each slot is a one-time $2.99 purchase valid 30 days that raises the effective total channel limit by one and allows one channel above the per-platform cap (shared across platforms). `effectiveChannelLimit` (base plan limit + active slots; `-1` stays `-1`) is what channel-connect quota checks actually enforce.",
+              "content": "Current usage vs limits for all resource types on your plan.\n\nThe response also carries `channelSlots` — the org's purchased extra-channel add-on state: `{ active, slots: [{id, expiresAt, autoRenews}], baseChannelLimit, effectiveChannelLimit }`. Slots are granted by a seat-based Polar subscription at $2.99 per slot per month (seats = slot count, one subscription per organization). Each active slot raises the effective total channel limit by one and allows one channel above the per-platform cap (shared across platforms). A slot's `autoRenews` says whether it rolls forward with the subscription (`expiresAt` moves each cycle) or lapses at `expiresAt`; slots no connected channel is using are auto-canceled shortly before renewal, so the org is never billed for unused headroom. `effectiveChannelLimit` (base plan limit + active slots; `-1` stays `-1`) is what channel-connect quota checks actually enforce.",
               "type": "text/plain"
             },
             "url": {

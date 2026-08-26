@@ -1,5 +1,65 @@
 # Changelog
 
+## 2026-08-26 — SDK parity sweep, corrected utility types, OpenAPI 3.1 nullability (node 1.13.0, python 0.14.0)
+
+### Added
+
+- **Node SDK: twelve account-level methods that only existed in Python.**
+  `listApiKeys`, `createApiKey`, `deleteApiKey`, `apiKeyUsage`,
+  `apiKeyUsageHistory`, `quotaUsage`, `listNotifications`,
+  `getNotificationPreferences`, `updateNotificationPreferences`,
+  `listOrganizations`, `linkPreview` and `activityLog`. Their response types
+  were already declared in `types.ts` — only the methods were missing, so a
+  Node consumer had no way to read quotas (including the channel-slot add-on
+  state), API-key usage, notifications, organizations or the activity log.
+- **Python SDK: the `platforms` resource**, sync and async, mirroring Node's.
+  Both clients now expose the same nine resource namespaces. Without it a
+  Python caller could not check platform availability before offering a connect
+  button or creating a post against a platform in state `off`.
+- `ApiKeyUsage`, `ApiKeyPerKeyUsage`, `ApiKeyUsageHistoryEntry`,
+  `NotificationPreferences`, `UpdateNotificationPreferencesParams`,
+  `Organization` and `LinkPreview` types in the Node SDK.
+
+### Fixed
+
+- **Python's utility types described a contract the server does not return.**
+  Traced each against its route rather than the existing docstring:
+  - `ApiKeyUsage` claimed `{used, limit, remaining, resetsAt}`; the route
+    returns `{today, limit, plan, perKey[]}` — three of four names wrong. The
+    `api_key_usage()` docstring and its example were wrong to match.
+  - `NotificationPreferences` claimed `{email, push, publishSuccess,
+    publishFailure, weeklyDigest}`; every one of those is invented. The real
+    columns are `emailOnFailure`, `emailOnTokenExpiry`, `inAppPublished`,
+    `inAppFailed`, `inAppScheduleReminder`, `inAppTokenExpiry`.
+  - `Organization` typed `id` as a string (it is an integer) and omitted
+    `plan` and `ownerId`.
+  - `LinkPreview` omitted `domain`.
+- **`ListNotificationsResponse` omitted `unreadTotal`** in both SDKs. The
+  server returns it deliberately counted account-wide rather than from the
+  page, so clients reconstructing it from `notifications.filter(...)` under-
+  report it on any paginated fetch.
+- **`nullable: true` in an `openapi: 3.1.0` document.** 3.1 does not define the
+  keyword, so 36 fields that are routinely null — `publishedAt` on an
+  unpublished post, `recurringSchedule` on a one-off, media `width`/`height` —
+  were advertised to every 3.1 consumer and generator as never-null. Now
+  `"type": ["x", "null"]`; `redocly lint` goes from 36 errors to valid.
+- **The two `openapi.json` copies had diverged in both directions.** This one
+  documented `/api/api-keys` (4 paths) that the in-app copy did not; the in-app
+  copy documented the live OAuth 2.1 `/api/oauth/token` and `/api/oauth/revoke`
+  that partners reading this spec could not see. Both now carry all of them
+  with matching tag declarations, and are identical apart from
+  `/api/push/tokens`, which stays webapp-only as a mobile-app internal.
+- **Channel slots were still documented as "a one-time $2.99 purchase valid 30
+  days"** in the `quotas/usage` description here, in the webapp copy, and in
+  the Postman collection. They have been a seat-based subscription at $2.99 per
+  slot per month since the model changed; the checkout endpoint's own
+  description was already correct. The documented slot shape also gains
+  `autoRenews`, which the response has carried since.
+- **The engagement endpoint claimed "eleven of the fifteen platforms" and
+  "exactly four" with no comment API.** Snapchat's handler returns
+  `unsupported: true`, making five of sixteen. All sixteen classifications
+  re-verified against the handlers.
+
 ## 2026-08-23 — Agent-readiness: operationIds, per-operation OAuth scopes, widget CSP, server card (mcp 1.17.1)
 
 ### Changed

@@ -410,13 +410,32 @@ class ApiKey(TypedDict, total=False):
     createdAt: str
 
 
-class ApiKeyUsage(TypedDict, total=False):
-    """Current API usage stats."""
+class ApiKeyPerKeyUsage(TypedDict, total=False):
+    """Today's request count for one API key."""
 
-    used: int
+    id: int
+    name: str
+    #: Requests made with this key so far today (UTC).
+    today: int
+    lastUsedAt: Optional[str]
+    expiresAt: Optional[str]
+
+
+class ApiKeyUsage(TypedDict, total=False):
+    """Current API usage against the plan's daily request limit.
+
+    Mirrors ``GET /api/api-keys/usage``. ``today`` is the organization-wide
+    total across every key and pairs with ``limit``
+    (``limits["apiRequestsPerDay"]``); ``perKey`` breaks the same day down by
+    key. ``-1`` in ``limit`` means unlimited.
+    """
+
+    #: Organization-wide requests made today (UTC), across all keys.
+    today: int
+    #: The plan's daily request limit; ``-1`` = unlimited.
     limit: int
-    remaining: int
-    resetsAt: str
+    plan: str
+    perKey: List[ApiKeyPerKeyUsage]
 
 
 class ApiKeyUsageHistoryEntry(TypedDict, total=False):
@@ -489,13 +508,21 @@ class Notification(TypedDict, total=False):
 
 
 class NotificationPreferences(TypedDict, total=False):
-    """Notification preference settings."""
+    """Notification preference settings.
 
-    email: bool
-    push: bool
-    publishSuccess: bool
-    publishFailure: bool
-    weeklyDigest: bool
+    Email categories are **opt-in** (default ``False``) so no email is ever sent
+    that the user did not ask for; in-app categories cost nothing and default to
+    ``True``.
+    """
+
+    id: int
+    userId: str
+    emailOnFailure: bool
+    emailOnTokenExpiry: bool
+    inAppPublished: bool
+    inAppFailed: bool
+    inAppScheduleReminder: bool
+    inAppTokenExpiry: bool
 
 
 # ---------------------------------------------------------------------------
@@ -504,11 +531,18 @@ class NotificationPreferences(TypedDict, total=False):
 
 
 class Organization(TypedDict, total=False):
-    """An organization."""
+    """An organization the authenticated user belongs to.
 
-    id: str
+    ``role`` is the caller's own role in this organization — one of ``owner``,
+    ``admin``, ``approver``, ``contributor`` or ``viewer``.
+    """
+
+    id: int
     name: str
     slug: str
+    #: Plan tier: ``free``, ``pro`` or ``business``.
+    plan: str
+    ownerId: str
     role: str
     createdAt: str
 
@@ -526,6 +560,8 @@ class LinkPreview(TypedDict, total=False):
     image: str
     url: str
     siteName: str
+    #: Hostname with a leading ``www.`` stripped, e.g. ``example.com``.
+    domain: str
 
 
 # ---------------------------------------------------------------------------

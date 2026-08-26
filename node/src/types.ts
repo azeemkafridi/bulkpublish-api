@@ -1115,6 +1115,86 @@ export interface CreateApiKeyResponse {
   createdAt: string;
 }
 
+/** Today's request count for one API key, as returned in `ApiKeyUsage.perKey`. */
+export interface ApiKeyPerKeyUsage {
+  id: number;
+  name: string;
+  /** Requests made with this key so far today (UTC). */
+  today: number;
+  lastUsedAt: string | null;
+  expiresAt: string | null;
+}
+
+/**
+ * Response from `GET /api/api-keys/usage` — today's API request usage against
+ * the plan's daily cap. `today` is the ORGANIZATION-wide total across every
+ * key (not just the key authenticating the call) and pairs with `limit`
+ * (the same value as `QuotasPlanLimits.apiRequestsPerDay`); `-1` = unlimited.
+ */
+export interface ApiKeyUsage {
+  today: number;
+  limit: number;
+  plan: 'free' | 'pro' | 'business';
+  perKey: ApiKeyPerKeyUsage[];
+}
+
+/** One day's request count, as returned by `GET /api/api-keys/usage/history`. */
+export interface ApiKeyUsageHistoryEntry {
+  /** Calendar day, `YYYY-MM-DD` (UTC). */
+  date: string;
+  count: number;
+}
+
+/**
+ * Notification preferences for the authenticated user.
+ *
+ * Email categories are OPT-IN (default `false`) so no email is ever sent that
+ * the user did not ask for; in-app categories cost nothing and default to
+ * `true`.
+ */
+export interface NotificationPreferences {
+  id: number;
+  userId: string;
+  emailOnFailure: boolean | null;
+  emailOnTokenExpiry: boolean | null;
+  inAppPublished: boolean | null;
+  inAppFailed: boolean | null;
+  inAppScheduleReminder: boolean | null;
+  inAppTokenExpiry: boolean | null;
+}
+
+/** The subset of {@link NotificationPreferences} a caller may change. */
+export type UpdateNotificationPreferencesParams = Partial<
+  Omit<NotificationPreferences, 'id' | 'userId'>
+>;
+
+/**
+ * An organization the authenticated user belongs to.
+ *
+ * `role` is the CALLER's role in this organization, not the organization's own
+ * property: one of `owner`, `admin`, `approver`, `contributor` or `viewer`.
+ */
+export interface Organization {
+  id: number;
+  name: string;
+  slug: string;
+  plan: 'free' | 'pro' | 'business';
+  ownerId: string;
+  role: 'owner' | 'admin' | 'member' | 'approver' | 'contributor' | 'viewer';
+  createdAt: string;
+}
+
+/** Open Graph preview data for a URL, from `GET /api/link-preview`. */
+export interface LinkPreview {
+  title: string;
+  description: string;
+  image: string;
+  siteName: string;
+  /** Hostname with a leading `www.` stripped, e.g. `example.com`. */
+  domain: string;
+  url: string;
+}
+
 // ---------- Quotas ----------
 
 /**
@@ -1237,6 +1317,12 @@ export interface ListNotificationsParams extends PaginationParams {
 /** Response from listing notifications. */
 export interface ListNotificationsResponse {
   notifications: Notification[];
+  /**
+   * Unread notifications for the whole account, counted independently of
+   * `unreadOnly` and of the page size — so it means the same thing on every
+   * tab, and is not `notifications.filter(n => !n.isRead).length`.
+   */
+  unreadTotal: number;
   pagination: PaginationMeta;
 }
 

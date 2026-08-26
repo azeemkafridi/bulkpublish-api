@@ -43,6 +43,7 @@ from .exceptions import (
 from .labels import AsyncLabelsResource, LabelsResource
 from .media import AsyncMediaResource, MediaResource
 from .posts import AsyncPostsResource, PostsResource
+from .platforms import AsyncPlatformsResource, PlatformsResource
 from .rss_feeds import AsyncRssFeedsResource, RssFeedsResource
 from .schedules import AsyncSchedulesResource, SchedulesResource
 from .types import (
@@ -169,6 +170,7 @@ class BulkPublish(_BaseClient):
         labels: :class:`~bulkpublish.labels.LabelsResource`
         schedules: :class:`~bulkpublish.schedules.SchedulesResource`
         channel_sets: :class:`~bulkpublish.channel_sets.ChannelSetsResource`
+        platforms: :class:`~bulkpublish.platforms.PlatformsResource`
         rss_feeds: :class:`~bulkpublish.rss_feeds.RssFeedsResource`
     Example::
 
@@ -223,6 +225,7 @@ class BulkPublish(_BaseClient):
         self.schedules = SchedulesResource(self)
         self.channel_sets = ChannelSetsResource(self)
         self.rss_feeds = RssFeedsResource(self)
+        self.platforms = PlatformsResource(self)
 
     def close(self) -> None:
         """Close the underlying HTTP connection pool.
@@ -337,16 +340,21 @@ class BulkPublish(_BaseClient):
         return self._request("DELETE", f"/api/api-keys/{key_id}")
 
     def api_key_usage(self) -> ApiKeyUsage:
-        """Get current API usage for this key.
+        """Get today's API request usage for the organization.
+
+        Counts every key in the organization, not just the one authenticating
+        this call; ``perKey`` breaks the same day down by key.
 
         Returns:
-            Usage dict with ``used``, ``limit``, ``remaining``, and
-            ``resetsAt`` keys.
+            Usage dict with ``today``, ``limit``, ``plan`` and ``perKey`` keys.
+            ``limit`` is the plan's daily request cap, or ``-1`` for unlimited.
 
         Example::
 
             usage = bp.api_key_usage()
-            print(f"{usage['used']}/{usage['limit']} requests used")
+            print(f"{usage['today']}/{usage['limit']} requests used today")
+            for key in usage["perKey"]:
+                print(f"  {key['name']}: {key['today']}")
         """
         return self._request("GET", "/api/api-keys/usage")
 
@@ -532,6 +540,7 @@ class AsyncBulkPublish(_BaseClient):
         self.schedules = AsyncSchedulesResource(self)
         self.channel_sets = AsyncChannelSetsResource(self)
         self.rss_feeds = AsyncRssFeedsResource(self)
+        self.platforms = AsyncPlatformsResource(self)
 
     async def close(self) -> None:
         """Close the underlying async HTTP connection pool.
