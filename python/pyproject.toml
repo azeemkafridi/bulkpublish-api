@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bulkpublish"
-version = "0.14.0"
-description = "Social media automation API for AI agents, LLMs, and developers. Publish to 11 platforms programmatically."
+version = "0.14.1"
+description = "Social media automation API for AI agents, LLMs, and developers. Publish to 15 platforms programmatically."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.8"

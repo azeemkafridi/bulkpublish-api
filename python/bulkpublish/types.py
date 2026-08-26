@@ -465,7 +465,7 @@ class QuotaUsage(TypedDict, total=False):
     #: The plan's configured limits (``-1`` = unlimited, ``0`` = disabled):
     #: ``channels``, ``channelsPerPlatform``, ``postsPerDay``, ``postsPerMonth``,
     #: ``maxPendingScheduled``, ``scheduledPerDay``, ``mediaStorageMB``,
-    #: ``apiKeys``, ``apiRequestsPerDay``, ``recurringSchedules``, ``webhooks``,
+    #: ``apiKeys``, ``apiRequestsPerDay``, ``recurringSchedules``,
     #: ``maxLabels``, ``maxOrgMembers``, ``excludedPlatforms``,
     #: ``xMonthlyBudgetDcents``, ``aiMonthlyRuns``, ``rssFeeds``,
     #: ``rssAutoPublish``, ``rssPollIntervalMinutes``.
@@ -476,7 +476,7 @@ class QuotaUsage(TypedDict, total=False):
     #: Current usage counters: ``channels``, ``postsToday`` (posts *created*
     #: today), ``postsThisMonth``, ``pendingScheduled``, ``scheduledToday``
     #: (posts scheduled FOR today, excluding drafts/failed), ``apiKeys``,
-    #: ``webhooks``, ``recurringSchedules``, ``mediaStorageMB``, ``labels``,
+    #: ``recurringSchedules``, ``mediaStorageMB``, ``labels``,
     #: ``orgMembers``, ``xApiSpendDcents``, ``xCreditDcents``, ``aiRunsUsed``,
     #: ``aiRunsLimit``, ``aiCreditDcents``, ``subscriptionRefundCount``.
     usage: Dict[str, Any]

@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-08-26 — Drop outbound-webhook wording, correct the PyPI platform count (node 1.13.1, python 0.14.1, mcp 1.17.2)
+
+### Removed
+
+- **Every mention of outbound webhooks.** The BulkPublish API has no webhook
+  delivery: the `webhooks` table is written by a CRUD endpoint and read by a
+  quota counter, and nothing else in the codebase ever reads it — its
+  `lastTriggeredAt` and `failureCount` columns are never written by anything.
+  Documenting a limit for it (`limits.webhooks`, `usage.webhooks`) meant the
+  SDKs and the MCP quota widget advertised a capability that does not exist.
+  Removed from the Node types, the Python type docs, the MCP quota table, and
+  the OAuth scope prose in both spec copies.
+
+  This does not touch the publishing API, which is real and unchanged.
+
+### Fixed
+
+- **PyPI advertised 11 platforms.** `pyproject.toml`'s `description` is the
+  summary line PyPI renders, and it had never been updated past 11 — the README
+  in the same package said 15. The advertisable count is 15.
+
 ## 2026-08-26 — SDK parity sweep, corrected utility types, OpenAPI 3.1 nullability (node 1.13.0, python 0.14.0)
 
 ### Added

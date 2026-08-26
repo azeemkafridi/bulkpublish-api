@@ -2532,7 +2532,6 @@ if (!HIDE_BILLING_TOOLS) {
         ["Recurring schedules", used.recurringSchedules, limits.recurringSchedules],
         ["Media storage", Number(used.mediaStorageMB) * MB, Number(limits.mediaStorageMB) * MB],
         ["API keys", used.apiKeys, limits.apiKeys],
-        ["Webhooks", used.webhooks, limits.webhooks],
         ["Labels", used.labels, limits.maxLabels],
         ["Org members", used.orgMembers, limits.maxOrgMembers],
       ];

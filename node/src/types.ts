@@ -1212,7 +1212,6 @@ export interface QuotasPlanLimits {
   apiKeys: number;
   apiRequestsPerDay: number;
   recurringSchedules: number;
-  webhooks: number;
   maxLabels: number;
   maxOrgMembers: number;
   /** Platform keys not available on this plan. */
@@ -1254,7 +1253,6 @@ export interface QuotasUsageResponse {
     /** Posts scheduled FOR today, excluding drafts/failed (pairs with `limits.scheduledPerDay`). */
     scheduledToday: number;
     apiKeys: number;
-    webhooks: number;
     recurringSchedules: number;
     mediaStorageMB: number;
     labels: number;
