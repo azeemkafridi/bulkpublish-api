@@ -480,7 +480,7 @@ class QuotaUsage(TypedDict, total=False):
     #: ``orgMembers``, ``xApiSpendDcents``, ``xCreditDcents``, ``aiRunsUsed``,
     #: ``aiRunsLimit``, ``aiCreditDcents``, ``subscriptionRefundCount``.
     usage: Dict[str, Any]
-    #: Purchased extra channel slots (the $2.99/month add-on, Pro & Business — a
+    #: Purchased extra channel slots (the $2.99/month add-on, available on every plan — a
     #: seat-based subscription; unused slots are auto-canceled before renewal).
     #: ``{"active": int, "slots": [{"id": int, "expiresAt": str, "autoRenews": bool}],
     #: "baseChannelLimit": int, "effectiveChannelLimit": int}`` — each active slot

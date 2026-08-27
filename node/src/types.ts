@@ -1272,7 +1272,7 @@ export interface QuotasUsageResponse {
     [key: string]: unknown;
   };
   /**
-   * Purchased extra channel slots (the $2.99/month add-on, Pro & Business — a
+   * Purchased extra channel slots (the $2.99/month add-on, available on every plan — a
    * seat-based subscription; unused slots are auto-canceled before renewal).
    * Each active slot raises the effective total channel limit by one and allows
    * one channel above the per-platform cap (shared across platforms).

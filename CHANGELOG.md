@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-08-27 — Extra channel slots open to every plan (node 1.13.2, python 0.14.2, mcp 1.17.3)
+
+### Changed
+
+- **Extra channel slots are purchasable on every plan, Free included.**
+  `POST /api/quotas/channel-slots/checkout` no longer returns
+  `403 SLOT_PLAN_INELIGIBLE` for Free organizations (the code remains reserved),
+  and channel-limit `403 QUOTA_EXCEEDED` errors now include
+  `addon: "channel_slot"` on every plan. The per-subscription seat clamp rose
+  from 20 to 100 (`count` clamped to 1..100) — it is an abuse guard, not a
+  product limit. Updated in both spec copies, the Postman collection, the Node
+  and Python type docs, and the MCP quota tool description.
+
 ## 2026-08-26 — Drop outbound-webhook wording, correct the PyPI platform count (node 1.13.1, python 0.14.1, mcp 1.17.2)
 
 ### Removed
