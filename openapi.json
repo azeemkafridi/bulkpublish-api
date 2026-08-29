@@ -3684,7 +3684,8 @@
               "posts:read"
             ]
           }
-        ]
+        ],
+        "description": "Returns every recurring schedule in the organization, newest first. Schedules created here are fully visible in the web app: they are listed and manageable (pause/resume/delete) on the Repeat Posts page, and each active schedule's upcoming runs are projected onto the Calendar. An occurrence materialises as a real post (carrying recurringScheduleId) only at its run time - GET /api/posts?recurring=true returns those generated posts, not the schedules themselves."
       },
       "post": {
         "tags": [
@@ -3803,7 +3804,8 @@
               "posts:write"
             ]
           }
-        ]
+        ],
+        "description": "Creates a recurring schedule that generates and publishes a post from contentTemplate at each run time. No post exists until the first run: the schedule itself appears on the web app's Repeat Posts page (with pause/resume/delete) and its upcoming runs are projected onto the Calendar, while each fired occurrence becomes a post carrying recurringScheduleId."
       }
     },
     "/api/schedules/{id}": {

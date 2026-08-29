@@ -1600,7 +1600,7 @@ server.tool(
 
 server.tool(
   "list_schedules",
-  "List all recurring post schedules. Returns schedule name, cron expression, target channels, and active status.",
+  "List all recurring post schedules. Returns schedule name, frequency/timeOfDay timing fields, target channels, active status, and nextRunAt. These schedules also appear in the web app: managed on the Repeat Posts page, with upcoming runs shown on the Calendar.",
   {},
   async () => {
     const res = await api("GET", "/api/schedules");
@@ -1614,7 +1614,7 @@ server.tool(
 
 server.tool(
   "create_schedule",
-  "Create a new recurring post schedule. Posts are automatically created and published on the chosen frequency.",
+  "Create a new recurring post schedule. Posts are automatically created and published on the chosen frequency. The schedule is visible in the web app (Repeat Posts page, with upcoming runs on the Calendar); a post record exists only once an occurrence fires, carrying recurringScheduleId.",
   {
     name: z.string().describe("Schedule name."),
     channelIds: z

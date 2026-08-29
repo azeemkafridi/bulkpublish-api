@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-08-29 — Schedule surface docs: where API-created schedules appear in the app (mcp 1.17.6)
+
+### Changed
+
+- **`list_schedules` / `create_schedule` tool descriptions and the
+  `/api/schedules` OpenAPI prose now say where schedules surface in the web
+  app**: managed on the Repeat Posts page, upcoming runs projected on the
+  Calendar, and a post record existing only once an occurrence fires (carrying
+  `recurringScheduleId`). Agents kept concluding schedules were "not created"
+  because nothing showed in post lists before the first run.
+- **Drift fix:** `list_schedules` claimed schedules return a "cron expression" —
+  the model is `frequency`/`timeOfDay`/`dayOfWeek`/`dayOfMonth`, and always has
+  been.
+
 ## 2026-08-29 — Challenge unauthenticated `initialize` with 401 + WWW-Authenticate (mcp 1.17.5)
 
 ### Changed
