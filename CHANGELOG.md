@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-08-29 — Serve OAuth protected-resource metadata at the bare root path too (mcp 1.17.4)
+
+### Fixed
+
+- **Hosted MCP server: RFC 9728 root fallback for OAuth discovery.**
+  `GET /.well-known/oauth-protected-resource` (no `/mcp` suffix) 404'd; only the
+  path-suffixed document existed. Clients that connect through the anonymous
+  `initialize`/`tools/list` path never see our 401 `WWW-Authenticate` challenge,
+  so they have no `resource_metadata` hint and fall back to the bare root path —
+  Grok Bot showed "didn't provide a sign-in link" instead of starting OAuth.
+  The root path now rewrites to the suffixed route, so the two documents are the
+  same handler and cannot drift. No auth behavior changed: anonymous
+  initialize/tools-list, `?key=` connectors, and the 401-on-`tools/call`
+  challenge are all as before (regression-checked locally). Hosted-server-only —
+  no REST contract change, no SDK/spec surface touched.
+
 ## 2026-08-27 — Extra channel slots open to every plan (node 1.13.2, python 0.14.2, mcp 1.17.3)
 
 ### Changed

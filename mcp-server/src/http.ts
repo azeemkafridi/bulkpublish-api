@@ -268,6 +268,19 @@ app.get(
   }
 );
 
+// RFC 9728 root fallback: mcpAuthRouter only registers the path-suffixed
+// /.well-known/oauth-protected-resource/mcp (resource = PUBLIC_BASE + /mcp).
+// Clients that never see our 401 challenge during connect (Grok Bot connects
+// through anonymous initialize/tools-list, both 200) have no resource_metadata
+// hint and fall back to the BARE root path, which 404'd — so they showed
+// "didn't provide a sign-in link" instead of starting OAuth. Alias the root to
+// the suffixed route by URL-rewrite so the two documents can never drift.
+// Registered BEFORE mcpAuthRouter (Express matches in registration order).
+app.get("/.well-known/oauth-protected-resource", (req: Request, _res: Response, next: NextFunction) => {
+  req.url = `/.well-known/oauth-protected-resource${MCP_PATH}`;
+  next();
+});
+
 // OAuth 2.1 server: /.well-known/oauth-authorization-server, /.well-known/
 // oauth-protected-resource, /authorize, /token, /register, /revoke.
 app.use(
