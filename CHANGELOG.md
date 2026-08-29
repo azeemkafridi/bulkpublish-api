@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-29 — Challenge unauthenticated `initialize` with 401 + WWW-Authenticate (mcp 1.17.5)
+
+### Changed
+
+- **Hosted MCP server: `initialize` now requires credentials.** A packet capture
+  of Grok Bot's connector (Cursor MCP runtime) showed it never requests any
+  `/.well-known/*` path and never receives a 401 during connect — such clients
+  start the OAuth flow ONLY from a 401 + `WWW-Authenticate` challenge. With the
+  handshake fully anonymous they connected, listed all tools, then had nowhere
+  to sign in ("didn't provide a sign-in link"). Unauthenticated `initialize` now
+  returns the same 401 challenge `tools/call` always did. Keyed clients
+  (`?key=`, `Bearer bp_…`, `X-BulkPublish-Key`, Smithery `?config=`) and OAuth
+  token holders are unaffected — regression-checked locally (8-case matrix).
+  `tools/list` and resources stay anonymous for bare scanners, and
+  `server-card.json` now reports `authentication: { required: true, type:
+  "oauth2" }` instead of `false`. Hosted-server-only; no REST/SDK surface.
+
 ## 2026-08-29 — Serve OAuth protected-resource metadata at the bare root path too (mcp 1.17.4)
 
 ### Fixed

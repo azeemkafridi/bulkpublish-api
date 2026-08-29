@@ -16,9 +16,10 @@
  *   - Key-in-URL/header (for manual custom connectors + Smithery's gateway):
  *     ?key= / ?bulkpublishApiKey= / ?config= / X-BulkPublish-Key / Bearer bp_…
  *
- * initialize / tools-list / resources / ping need no auth (scans + discovery
- * work). A tools/call without a resolvable key → 401 + WWW-Authenticate that
- * advertises the protected-resource metadata, which triggers the OAuth flow.
+ * initialize and tools/call without a resolvable key → 401 + WWW-Authenticate
+ * advertising the protected-resource metadata, which is what actually triggers
+ * the OAuth flow in Cursor-runtime clients (Grok Bot), claude.ai and ChatGPT.
+ * tools/list / resources / ping stay anonymous for scanners.
  *
  * Other endpoints: GET /health, GET /.well-known/mcp/server-card.json.
  * Env: PORT (default 8080), PUBLIC_BASE_URL (the external https URL of THIS
@@ -76,10 +77,24 @@ async function resolveApiKey(req: Request): Promise<string | undefined> {
   return undefined;
 }
 
+// Methods that demand credentials. `tools/call` touches user data. `initialize`
+// is challenged too (2026-08-29): OAuth-capable clients (Cursor runtime — which
+// Grok Bot ships — claude.ai, ChatGPT) only start the OAuth flow when a request
+// returns 401 + WWW-Authenticate. Our fully-anonymous handshake meant such
+// clients connected, listed 51 tools, and then had no idea where to sign in
+// ("didn't provide a sign-in link"). Keyed/keyless is decided per request, so
+// ?key= / header / Bearer clients are unaffected. `tools/list` and resources
+// stay anonymous for bare scanners that skip initialize.
+const KEYED_METHODS = new Set(["initialize", "tools/call"]);
+
 function requiresKey(body: unknown): boolean {
   const msgs = Array.isArray(body) ? body : [body];
   return msgs.some(
-    (m) => m != null && typeof m === "object" && (m as { method?: unknown }).method === "tools/call"
+    (m) =>
+      m != null &&
+      typeof m === "object" &&
+      typeof (m as { method?: unknown }).method === "string" &&
+      KEYED_METHODS.has((m as { method: string }).method)
   );
 }
 
@@ -102,7 +117,7 @@ let serverCardJson = JSON.stringify({
   version: "1.0.0",
   serverUrl: `${PUBLIC_BASE}${MCP_PATH}`,
   serverInfo: { name: "bulkpublish", version: "1.0.0" },
-  authentication: { required: false },
+  authentication: { required: true, type: "oauth2" },
   tools: [],
   resources: [],
   prompts: [],
@@ -130,7 +145,7 @@ async function buildServerCard(): Promise<string> {
         version: info.version,
         serverUrl: `${PUBLIC_BASE}${MCP_PATH}`,
         serverInfo: { name: info.name, version: info.version },
-        authentication: { required: false },
+        authentication: { required: true, type: "oauth2" },
         tools: tools.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema })),
         resources,
         prompts: [],
