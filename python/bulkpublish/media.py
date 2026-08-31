@@ -46,6 +46,7 @@ class MediaResource:
         page: Optional[int] = None,
         limit: Optional[int] = None,
         label_ids: Optional[List[str]] = None,
+        type: Optional[str] = None,
     ) -> MediaList:
         """List uploaded media files with optional filtering.
 
@@ -54,10 +55,12 @@ class MediaResource:
             page: Page number (1-based).
             limit: Results per page.
             label_ids: Filter by label IDs.
+            type: Filter by media kind — ``"image"`` or ``"video"``
+                (matches the MIME type prefix).
 
         Returns:
-            Paginated media list with ``files``, ``total``, ``page``,
-            ``limit``, and ``totalPages``.
+            Paginated media list with ``files``, ``page``, ``limit``, and
+            ``total`` — the count of matching files across ALL pages.
 
         Example::
 
@@ -74,6 +77,8 @@ class MediaResource:
             params["limit"] = limit
         if label_ids is not None:
             params["labelIds"] = ",".join(label_ids)
+        if type is not None:
+            params["type"] = type
         return self._client._request("GET", "/api/media", params=params)
 
     def upload(
@@ -365,6 +370,7 @@ class AsyncMediaResource:
         page: Optional[int] = None,
         limit: Optional[int] = None,
         label_ids: Optional[List[str]] = None,
+        type: Optional[str] = None,
     ) -> MediaList:
         """List media — see :meth:`MediaResource.list` for full docs."""
         params: Dict[str, Any] = {}
@@ -376,6 +382,8 @@ class AsyncMediaResource:
             params["limit"] = limit
         if label_ids is not None:
             params["labelIds"] = ",".join(label_ids)
+        if type is not None:
+            params["type"] = type
         return await self._client._request("GET", "/api/media", params=params)
 
     async def upload(

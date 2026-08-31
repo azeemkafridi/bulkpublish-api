@@ -57,6 +57,9 @@ export class MediaResource {
    *
    * // Filter by labels
    * const { files } = await bp.media.list({ labelIds: '1,2' });
+   *
+   * // Only videos, with the library-wide count
+   * const { files: videos, total } = await bp.media.list({ type: 'video' });
    * ```
    */
   list(params?: ListMediaParams): Promise<ListMediaResponse> {

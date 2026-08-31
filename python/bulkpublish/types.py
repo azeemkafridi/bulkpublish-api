@@ -288,13 +288,15 @@ class MediaUploadResponse(TypedDict, total=False):
 
 
 class MediaList(TypedDict, total=False):
-    """Paginated list of media files."""
+    """Paginated list of media files.
+
+    ``total`` counts every file matching the filters across all pages.
+    """
 
     files: List[MediaFile]
     total: int
     page: int
     limit: int
-    totalPages: int
 
 
 # ---------------------------------------------------------------------------

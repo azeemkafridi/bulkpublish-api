@@ -4241,6 +4241,15 @@
                   },
                   "key": "labelIds",
                   "value": "<string>"
+                },
+                {
+                  "disabled": true,
+                  "description": {
+                    "content": "**optional** — Filter by media kind: `image` or `video` (matches the MIME type prefix)",
+                    "type": "text/plain"
+                  },
+                  "key": "type",
+                  "value": "image"
                 }
               ],
               "variable": []

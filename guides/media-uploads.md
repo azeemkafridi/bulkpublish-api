@@ -216,7 +216,15 @@ curl "https://app.bulkpublish.com/api/media?page=2&limit=50" \
 # Filter by labels
 curl "https://app.bulkpublish.com/api/media?labelIds=1,2" \
   -H "Authorization: Bearer bp_your_key_here"
+
+# Only images (or videos) — matches the MIME type prefix
+curl "https://app.bulkpublish.com/api/media?type=image" \
+  -H "Authorization: Bearer bp_your_key_here"
 ```
+
+The response is `{ files, page, limit, total }` — `total` counts every file
+matching the filters across all pages, so use it (not `files.length`, which is
+capped at `limit`, max 100) when displaying library size or paginating.
 
 ## Deleting Media
 

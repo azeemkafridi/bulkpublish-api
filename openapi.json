@@ -2789,11 +2789,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Filter by media kind: `image` or `video` (matches the MIME type prefix)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "image",
+                "video"
+              ]
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Media list"
+            "description": "Media list — `{ files, page, limit, total }`, where `total` counts every file matching the filters across all pages"
           }
         },
         "operationId": "listMedia",

@@ -1195,12 +1195,14 @@ server.tool(
     search: z.string().optional().describe("Search by filename."),
     page: z.number().optional().describe("Page number (default 1)."),
     limit: z.number().optional().describe("Results per page (default 20, max 100)."),
+    type: z.enum(["image", "video"]).optional().describe("Filter by media kind (matches the MIME type prefix). The response's `total` counts matches across all pages."),
   },
-  async ({ search, page, limit }) => {
+  async ({ search, page, limit, type }) => {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (page) params.set("page", String(page));
     if (limit) params.set("limit", String(limit));
+    if (type) params.set("type", type);
 
     const qs = params.toString();
     const res = await api("GET", `/api/media${qs ? `?${qs}` : ""}`);

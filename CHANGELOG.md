@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-08-31 — Media list: real `total` + server-side `type` filter (node 1.14.0, python 0.15.0, mcp 1.18.0)
+
+### Added
+
+- **`GET /api/media` now returns `total`** — the count of files matching the
+  filters across ALL pages. Clients were showing `files.length` (capped at
+  `limit`, max 100) as the library size, so libraries with more than 100 files
+  read as exactly 100.
+- **`GET /api/media` accepts `type=image|video`** (matches the MIME type
+  prefix), so image/video filtering is server-side instead of filtering only
+  the fetched page. Surfaced in the node SDK (`ListMediaParams.type`,
+  `ListMediaResponse.total`), python SDK (`type=` kwarg), the MCP
+  `list_media` tool, Postman, and the media-uploads guide.
+
+### Fixed
+
+- **Python docstring drift:** `media.list()` claimed the response carried
+  `totalPages` — it never did (and `total` only exists as of this release).
+
+
 ## 2026-08-29 — Schedule surface docs: where API-created schedules appear in the app (mcp 1.17.6)
 
 ### Changed

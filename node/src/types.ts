@@ -239,6 +239,8 @@ export interface ListMediaParams extends PaginationParams {
   search?: string;
   /** Comma-separated label IDs to filter by. */
   labelIds?: string;
+  /** Filter by media kind (matches the MIME type prefix). */
+  type?: 'image' | 'video';
 }
 
 /** Response from listing media files. */
@@ -246,6 +248,8 @@ export interface ListMediaResponse {
   files: MediaFile[];
   page: number;
   limit: number;
+  /** Files matching the filters across ALL pages (the page itself holds at most `limit`). */
+  total: number;
 }
 
 /** Response from uploading a media file. */
