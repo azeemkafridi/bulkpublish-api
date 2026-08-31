@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bulkpublish"
-version = "0.15.0"
+version = "0.15.1"
 description = "Social media automation API for AI agents, LLMs, and developers. Publish to 15 platforms programmatically."
 readme = "README.md"
 license = "MIT"
@@ -36,8 +36,8 @@ dependencies = ["httpx>=0.24.0"]
 dev = ["pytest>=7.0", "pytest-asyncio>=0.21", "respx>=0.20"]
 
 [project.urls]
-Homepage = "https://github.com/azeemkafridi/bulkpublish-api"
-Documentation = "https://bulkpublish.com/docs/api"
+Homepage = "https://www.bulkpublish.com"
+Documentation = "https://app.bulkpublish.com/docs"
 Repository = "https://github.com/azeemkafridi/bulkpublish-api"
 Issues = "https://github.com/azeemkafridi/bulkpublish-api/issues"
 

@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-31 — Package homepage points at the product site (node 1.14.1, python 0.15.1, mcp 1.18.1)
+
+### Changed
+
+- **`homepage` / `Homepage` is now https://www.bulkpublish.com** on the npm and PyPI packages
+  instead of the GitHub repo. The registry listings led with the source repo,
+  which is not where someone evaluating the SDK wants to land. `repository`
+  and `Issues` still point at GitHub, so the source is one click away on both
+  registry pages.
+
+### Fixed
+
+- **Python `Documentation` URL 404'd.** It pointed at
+  `https://bulkpublish.com/docs/api`, which does not exist on the marketing
+  site; the API reference lives at `https://app.bulkpublish.com/docs`.
+
+
 ## 2026-08-31 — Media list: real `total` + server-side `type` filter (node 1.14.0, python 0.15.0, mcp 1.18.0)
 
 ### Added

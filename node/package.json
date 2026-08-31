@@ -1,7 +1,8 @@
 {
   "name": "bulkpublish",
-  "version": "1.14.0",
+  "version": "1.14.1",
   "description": "Social media automation API for AI agents, LLMs, and developers. Publish to 15 platforms programmatically.",
+  "homepage": "https://www.bulkpublish.com",
   "author": "BulkPublish",
   "license": "MIT",
   "repository": {
