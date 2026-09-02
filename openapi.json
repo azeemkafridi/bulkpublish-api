@@ -230,7 +230,7 @@
               "processing",
               "unconfirmed"
             ],
-            "description": "Per-platform publish state. 'unconfirmed' is terminal: the publish request may have reached the platform but its response was lost — check the account, then retry with republish: true if the post is not live."
+            "description": "Per-platform publish state. 'unconfirmed' is terminal: the publish request may have reached the platform but its response was lost, or the platform was still processing the upload when we stopped polling (video processing can outlast the check window) — check the account, then retry with republish: true if the post is not live."
           },
           "platformPostId": {
             "type": [
@@ -1632,7 +1632,7 @@
           "Posts"
         ],
         "summary": "Update post",
-        "description": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged — send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a failed or partial post silently resets its status to draft and clears failed platform results (they revert to pending). Send the optional status field ('draft' or 'scheduled') to move a post between draft and scheduled; other status values are rejected. To publish immediately, use POST /api/posts/{id}/publish instead.",
+        "description": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged — send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a failed or partial post silently resets its status to draft and clears failed platform results (they revert to pending). Platforms in 'published', 'processing', or 'unconfirmed' are never reset by an edit. When `channels` is sent, rows for channels that remain keep their state (a published channel is NOT re-published on the next publish); removed channels are dropped and new ones added as pending. Send the optional status field ('draft' or 'scheduled') to move a post between draft and scheduled; other status values are rejected. To publish immediately, use POST /api/posts/{id}/publish instead.",
         "parameters": [
           {
             "name": "id",
@@ -1671,7 +1671,8 @@
                     "description": "Move the post between draft and scheduled. Setting 'scheduled' requires a future scheduledAt (in this body or already stored) and at least one channel; setting 'draft' unschedules it. Any other value is rejected. Omit to leave the status unchanged (failed/partial posts still auto-reset to draft on edit). To publish immediately, use POST /api/posts/{id}/publish instead."
                   },
                   "channels": {
-                    "type": "array"
+                    "type": "array",
+                    "description": "Full target channel list ({ channelId, platform } items). Rows for channels already on the post are kept with their current publish state; removed channels are deleted; new channels are added as pending."
                   },
                   "labels": {
                     "type": "array",

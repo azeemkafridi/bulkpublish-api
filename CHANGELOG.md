@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-02 — Spec prose: edit keeps existing channel rows; `unconfirmed` also covers processing timeouts (docs only, no package bump)
+
+### Changed
+
+- **`PUT /api/posts/{id}` with `channels`** now documents the server behaviour:
+  rows for channels that stay on the post keep their publish state (a channel
+  that already published is not re-published on the next publish); removed
+  channels are dropped, new ones added as `pending`.
+- **`postPlatforms[].status = 'unconfirmed'`** description now also covers the
+  case where the platform was still processing an upload when polling stopped
+  (long video transcodes). As before: check the account, then retry with
+  `republish: true` only if the post is not live.
+
 ## 2026-08-31 — Package homepage points at the product site (node 1.14.1, python 0.15.1, mcp 1.18.1)
 
 ### Changed
