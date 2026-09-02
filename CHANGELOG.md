@@ -13,6 +13,15 @@
   (long video transcodes). As before: check the account, then retry with
   `republish: true` only if the post is not live.
 
+- **`DELETE /api/posts/{id}`** returns `409 PUBLISH_IN_PROGRESS` while a post is
+  publishing/processing. **`POST /api/posts/{id}/publish`** on a failed/partial
+  post re-sends its failed channels; `400 UNCONFIRMED_REQUIRES_REPUBLISH` when
+  only unconfirmed rows remain. **`POST /api/posts/{id}/story`** is single-flight
+  per post+platform (`409 STORY_IN_PROGRESS`) and reports a lost response as
+  `422 STORY_UNCONFIRMED`. **`POST /api/posts/bulk`** `retry` honours
+  `maxRetries` and `delete` skips in-flight posts (`skippedInProgress`).
+  Editing a partial post no longer resets it to draft.
+
 ## 2026-08-31 — Package homepage points at the product site (node 1.14.1, python 0.15.1, mcp 1.18.1)
 
 ### Changed

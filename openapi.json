@@ -1632,7 +1632,7 @@
           "Posts"
         ],
         "summary": "Update post",
-        "description": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged — send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a failed or partial post silently resets its status to draft and clears failed platform results (they revert to pending). Platforms in 'published', 'processing', or 'unconfirmed' are never reset by an edit. When `channels` is sent, rows for channels that remain keep their state (a published channel is NOT re-published on the next publish); removed channels are dropped and new ones added as pending. Send the optional status field ('draft' or 'scheduled') to move a post between draft and scheduled; other status values are rejected. To publish immediately, use POST /api/posts/{id}/publish instead.",
+        "description": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged — send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a FAILED post silently resets its status to draft and clears its failed platform results (they revert to pending). Editing a PARTIAL post keeps it partial and leaves every platform row untouched — it is live on some channels; re-send the failed ones with POST /api/posts/{id}/retry. Platforms in 'published', 'processing', or 'unconfirmed' are never reset by an edit. When `channels` is sent, rows for channels that remain keep their state (a published channel is NOT re-published on the next publish); removed channels are dropped and new ones added as pending. Send the optional status field ('draft' or 'scheduled') to move a post between draft and scheduled; other status values are rejected. To publish immediately, use POST /api/posts/{id}/publish instead.",
         "parameters": [
           {
             "name": "id",
@@ -1853,6 +1853,16 @@
         "responses": {
           "200": {
             "description": "Deleted"
+          },
+          "409": {
+            "description": "Post is being published right now (code PUBLISH_IN_PROGRESS)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "operationId": "deletePost",
@@ -1865,7 +1875,8 @@
               "posts:write"
             ]
           }
-        ]
+        ],
+        "description": "Returns 409 with code PUBLISH_IN_PROGRESS while the post is 'publishing' or 'processing' — a post mid-publish cannot be deleted (the platform post would still go live with no record of it). Wait for it to settle, then delete."
       }
     },
     "/api/posts/{id}/publish": {
@@ -1897,9 +1908,29 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Validation error, or only unconfirmed platforms remain (code UNCONFIRMED_REQUIRES_REPUBLISH)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A publish for this post is already in flight (code ALREADY_PUBLISHING)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
-        "description": "Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). Publishing a pending/rejected post as an approver implicitly approves it.\n\nReturns **403** with `code: \"PLATFORM_DISABLED\"` when one of the post's platforms has been switched off server-side (`PLATFORM_<NAME>=off`); the post is left untouched. Check `GET /api/platforms` for current availability. A channel's *variant* can be off on its own — LinkedIn company pages are gated separately from personal profiles — in which case the error also carries `accountType` (e.g. `\"organization\"`) naming the variant that is unavailable.",
+        "description": "Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). Publishing a pending/rejected post as an approver implicitly approves it.\n\nReturns **403** with `code: \"PLATFORM_DISABLED\"` when one of the post's platforms has been switched off server-side (`PLATFORM_<NAME>=off`); the post is left untouched. Check `GET /api/platforms` for current availability. A channel's *variant* can be off on its own — LinkedIn company pages are gated separately from personal profiles — in which case the error also carries `accountType` (e.g. `\"organization\"`) naming the variant that is unavailable.\n\nOn a failed or partial post this re-sends exactly the platforms in status 'failed' (their retryCount is incremented); 'published', 'processing' and 'pending' rows are never re-sent. Platforms in 'unconfirmed' are never touched here — if they are the only rows left the request fails with **400** `code: \"UNCONFIRMED_REQUIRES_REPUBLISH\"`; check the account, then use POST /api/posts/{id}/retry with `republish: true`. Returns **409** `ALREADY_PUBLISHING` when a publish is already in flight.",
         "operationId": "publishPost",
         "security": [
           {
@@ -2280,7 +2311,7 @@
           "Posts"
         ],
         "summary": "Publish as Story",
-        "description": "Publish the post's first media as a Facebook or Instagram Story (disappears after 24h). The post must have media and a published platform entry for the target platform.",
+        "description": "Publish the post's first media as a Facebook or Instagram Story (disappears after 24h). The post must have media and a published platform entry for the target platform. Stories publish inline and are single-flight per post+platform: a second call within ~2 minutes of a success returns **409** `code: \"STORY_IN_PROGRESS\"`. If the request reached the platform but the response was lost, the call returns **422** `code: \"STORY_UNCONFIRMED\"` and stays locked for the same window — check the account before trying again, the story may already be live. Each attempt is recorded in the activity log (post.story_published / post.story_failed).",
         "parameters": [
           {
             "name": "id",
@@ -2343,6 +2374,26 @@
           },
           "404": {
             "description": "Post not found"
+          },
+          "409": {
+            "description": "A story for this post+platform is already being published (code STORY_IN_PROGRESS)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The platform rejected the story, or its outcome could not be confirmed (code STORY_UNCONFIRMED)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "operationId": "publishStory",
@@ -2412,7 +2463,8 @@
               "posts:write"
             ]
           }
-        ]
+        ],
+        "description": "`retry` re-sends only platforms in status 'failed' that still have retry budget (retryCount < maxRetries), skips posts already mid-publish, and never touches 'unconfirmed' platforms (use the single retry endpoint with republish: true). `delete` skips posts that are 'publishing' or 'processing' and reports them in `skippedInProgress`."
       }
     },
     "/api/posts/queue-slot": {
