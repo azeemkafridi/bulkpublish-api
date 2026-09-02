@@ -150,6 +150,10 @@ BulkPublish ships an MCP server so AI assistants can manage your social media di
 
 50 tools available: `create_post`, `list_channels`, `upload_media`, `get_analytics`, the interactive `compose_post` composer (MCP Apps), and more. Runs locally (stdio) or hosted over Streamable HTTP at `https://mcp.bulkpublish.com/mcp`. See [mcp-server/README.md](mcp-server/README.md).
 
+### Social Media Content Skills
+
+BulkPublish includes a 24-skill library for AI agents to plan, adapt, review, schedule, and publish social media content: [Social Media Content Skills](skills/social-media-content-skills/README.md).
+
 ### LLM Tool Use / Function Calling
 
 Ready-made tool definitions for autonomous AI agents:
@@ -412,15 +416,3 @@ See the [rate limits guide](guides/rate-limits.md) for headers, backoff strategi
 ## License
 
 MIT
-
-## Cursor plugin
-
-This repo doubles as a [Cursor](https://cursor.com) marketplace repository. The
-plugin in [`plugins/bulkpublish`](plugins/bulkpublish) points Cursor at the
-hosted MCP server and ships six reference skills.
-
-Install from **Cursor Settings → Plugins**, or run `/add-plugin bulkpublish`.
-
-```bash
-node scripts/validate-cursor-plugin.mjs
-```
