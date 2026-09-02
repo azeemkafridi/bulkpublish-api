@@ -31,3 +31,8 @@ dist/
 # Build/tooling artifacts
 mcp-server/.harness/
 mcp-server/.smithery/
+
+# Local directory-submission workflow — never push or deploy
+DIRECTORY_SUBMISSION_RULES.md
+SUBMISSION_LEDGER.md
+directory-submissions/
