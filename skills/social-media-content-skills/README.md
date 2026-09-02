@@ -35,3 +35,5 @@ Reusable skills for planning, adapting, reviewing, scheduling, and publishing so
 - [`check-quota`](check-quota/SKILL.md)
 
 The content skills decide what to publish; the operational skills provide the BulkPublish API details needed to execute it.
+
+For external directory listings, use the repository's [Directory Submission Rules](../../DIRECTORY_SUBMISSION_RULES.md) before submitting any skill or BulkPublish resource.
