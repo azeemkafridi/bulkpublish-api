@@ -468,7 +468,7 @@ export function createServer(): McpServer {
     finalize_media_upload: { title: "Finalize media upload", readOnlyHint: false, destructiveHint: false },
     create_multipart_upload: { title: "Start chunked media upload", readOnlyHint: false, destructiveHint: false },
     complete_multipart_upload: { title: "Complete chunked media upload", readOnlyHint: false, destructiveHint: false },
-    abort_multipart_upload: { title: "Abort chunked media upload", readOnlyHint: false, destructiveHint: false },
+    abort_multipart_upload: { title: "Abort chunked media upload", readOnlyHint: false, destructiveHint: true },
     create_channel_set: { title: "Create channel set", readOnlyHint: false, destructiveHint: false },
     update_channel_set: { title: "Update channel set", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
     create_rss_feed: { title: "Add RSS feed", readOnlyHint: false, destructiveHint: false },
@@ -2070,7 +2070,7 @@ server.tool(
 
 server.tool(
   "abort_multipart_upload",
-  "Abort an in-progress chunked upload and free its stored parts.",
+  "Abort an in-progress chunked upload and permanently free its stored parts. Use only when the upload should be cancelled; do not use this after all parts have been uploaded if you intend to complete the upload. This action cannot be undone.",
   {
     r2Key: z.string().describe("The r2Key returned by create_multipart_upload."),
     uploadId: z.string().describe("The uploadId returned by create_multipart_upload."),
