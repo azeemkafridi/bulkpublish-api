@@ -824,6 +824,16 @@ export interface AnalyticsDayCount {
   platforms: Record<string, number>;
 }
 
+/** The equal-length window before `from`, returned with `compare=1`. */
+export interface AnalyticsPreviousWindow {
+  from: string;
+  to: string;
+  /** Days in the current window. */
+  days: number;
+  /** False when the earlier window would reach past the 30-day retention floor; `previous` is then null. */
+  available: boolean;
+}
+
 /** Response from the analytics summary endpoint. */
 export interface AnalyticsSummaryResponse {
   totalPosts: number;
@@ -833,12 +843,42 @@ export interface AnalyticsSummaryResponse {
   partial: number;
   byPlatform: Record<string, AnalyticsPlatformBreakdown>;
   byDay: AnalyticsDayCount[];
+  from: string;
+  to: string;
+  /** Counts for the previous window when `compare=1` and it is available. */
+  previous?: Pick<AnalyticsSummaryResponse, 'totalPosts' | 'published' | 'failed' | 'scheduled' | 'partial' | 'from' | 'to'> | null;
+  previousWindow?: AnalyticsPreviousWindow | null;
 }
 
+/** Filters shared by every analytics endpoint. A post must match every filter that is set. */
+export interface AnalyticsFilterParams {
+  /** Comma-separated channel ids. */
+  channelIds?: string;
+  /** Comma-separated platform keys. */
+  platforms?: string;
+  /** Comma-separated label ids (ANY match). */
+  labelIds?: string;
+  postFormat?: 'post' | 'thread';
+  /** By the post's first media file. */
+  mediaType?: 'text' | 'image' | 'video';
+  /** `'1'` to also compute the previous equal-length window. */
+  compare?: '1';
+}
+
+export type AnalyticsRankField =
+  | 'impressions' | 'reach' | 'likes' | 'comments' | 'shares' | 'saves'
+  | 'clicks' | 'videoViews' | 'linkClicks' | 'engagements' | 'engagementRate';
+
 /** Parameters for the engagement analytics endpoint. */
-export interface AnalyticsEngagementParams extends AnalyticsDateParams {
-  /** Optional channel ID to filter by. */
+export interface AnalyticsEngagementParams extends AnalyticsDateParams, AnalyticsFilterParams {
+  /** Legacy single-channel filter; equivalent to `channelIds`. */
   channelId?: string;
+  /** Metric `topPosts` is ranked by. Default `impressions`. */
+  topBy?: AnalyticsRankField;
+  /** `desc` (default) for the best posts, `asc` for the worst. */
+  topOrder?: 'asc' | 'desc';
+  /** `'1'` to include `postTimes` for best-time-to-post views. */
+  heatmap?: '1';
   /**
    * Set to `'1'` to return only the ranked `topPosts` leaderboard; `allPosts`
    * comes back empty. Use it when you render a short list and don't want to
@@ -849,46 +889,80 @@ export interface AnalyticsEngagementParams extends AnalyticsDateParams {
    * Sort field for `allPosts`. `linkClicks` sorts by bulkpubli.sh click count.
    * Default: `'date'`.
    */
-  sort?: 'date' | 'impressions' | 'likes' | 'comments' | 'shares' | 'linkClicks';
+  sort?: 'date' | AnalyticsRankField;
   /** Sort direction for `allPosts`. Default: `'desc'`. */
   order?: 'asc' | 'desc';
 }
 
-/** Per-platform engagement breakdown. */
-export interface EngagementPlatformBreakdown {
+/** One bucket of engagement metrics — used per platform, per channel and per day. */
+export interface EngagementBucket {
   impressions: number;
+  reach: number;
   likes: number;
   comments: number;
   shares: number;
+  saves: number;
   clicks: number;
-  posts: number;
+  videoViews: number;
   /** bulkpubli.sh short-link clicks. Measured by BulkPublish, not the platform. */
   linkClicks: number;
+  /** likes + comments + shares + clicks. Never includes linkClicks. */
+  engagements: number;
+  /** Published post_platform rows in the bucket. */
+  posts: number;
+}
+
+/** Per-platform engagement breakdown. */
+export type EngagementPlatformBreakdown = EngagementBucket;
+
+/** Per-channel engagement breakdown. */
+export interface EngagementChannelBreakdown extends EngagementBucket {
+  channelId: number;
+  platform: string;
+  accountName: string | null;
 }
 
 /** Daily engagement data point. */
-export interface EngagementDayData {
+export interface EngagementDayData extends EngagementBucket {
   date: string;
-  impressions: number;
-  engagements: number;
-  reach: number;
-  /** bulkpubli.sh short-link clicks on this day. */
-  linkClicks: number;
+  /** The same bucket per platform for this day. */
+  platforms: Record<string, EngagementBucket>;
 }
 
-/** A top-performing post in engagement analytics. */
+/** A post in `topPosts` / `allPosts`. */
 export interface TopPost {
   postId: number;
   content: string;
   thumbnail?: string;
   publishedAt: string;
+  postFormat: 'post' | 'thread' | string;
+  mediaType: 'text' | 'image' | 'video';
+  labels: Array<{ id: number; name: string; color: string | null }>;
   impressions: number;
+  reach: number;
   likes: number;
   comments: number;
   shares: number;
+  saves: number;
+  clicks: number;
+  videoViews: number;
   /** bulkpubli.sh short-link clicks for this post. */
   linkClicks: number;
-  platforms: Array<{ platform: string; platformUrl: string }>;
+  engagements: number;
+  /** Basis points (325 = 3.25%), averaged over the post's measurable channels. */
+  engagementRate: number;
+  platforms: Array<{ platform: string; platformUrl: string | null }>;
+  platformMetrics: Array<EngagementBucket & {
+    platform: string;
+    platformUrl: string | null;
+    channelId: number | null;
+    accountName: string | null;
+    /** This channel's own rate, basis points. */
+    engagementRate: number;
+    metricsSupported: boolean;
+    supportedMetrics: string[];
+    fetchedAt: string | null;
+  }>;
 }
 
 /** Response from the engagement analytics endpoint. */
@@ -916,9 +990,82 @@ export interface AnalyticsEngagementResponse {
   totalLinkClicks: number;
   /** Average engagement rate in basis points (325 = 3.25%). */
   avgEngagementRate: number;
+  /** Published post_platform rows in the window. */
+  publishedCount: number;
+  from: string;
+  to: string;
   byPlatform: Record<string, EngagementPlatformBreakdown>;
+  byChannel: EngagementChannelBreakdown[];
   byDay: EngagementDayData[];
   topPosts: TopPost[];
+  allPosts: TopPost[];
+  /** `{t, e, i}` per published post_platform when `heatmap=1`; empty otherwise. */
+  postTimes: Array<{ t: string; e: number; i: number }>;
+  /** Totals (and `byDay`) for the previous window when `compare=1` and it is available. */
+  previous?: (Pick<AnalyticsEngagementResponse,
+    'totalImpressions' | 'totalEngagements' | 'totalLikes' | 'totalComments' | 'totalShares' | 'totalClicks' |
+    'totalSaves' | 'totalVideoViews' | 'totalReach' | 'totalLinkClicks' | 'avgEngagementRate' | 'publishedCount' | 'from' | 'to'
+  > & { byDay: EngagementDayData[] }) | null;
+  previousWindow?: AnalyticsPreviousWindow | null;
+}
+
+/** One stored metrics snapshot for a post_platform (GET /api/analytics/post-history). */
+export interface PostHistoryPoint {
+  fetchedAt: string;
+  impressions: number;
+  reach: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  saves: number;
+  clicks: number;
+  videoViews: number;
+  /** Basis points. */
+  engagementRate: number;
+}
+
+export interface PostHistorySeries {
+  postPlatformId: number;
+  platform: string;
+  channelId: number | null;
+  accountName: string | null;
+  supportedMetrics: string[];
+  /** False => every point is a stored 0, not a measurement. */
+  metricsSupported: boolean;
+  points: PostHistoryPoint[];
+}
+
+export interface AnalyticsPostHistoryResponse {
+  postId: number;
+  publishedAt: string | null;
+  series: PostHistorySeries[];
+}
+
+/** One tracked bulkpubli.sh link (GET /api/analytics/links). */
+export interface TrackedLink {
+  id: number;
+  shortUrl: string;
+  code: string;
+  originalUrl: string;
+  finalUrl: string;
+  destinationHost: string;
+  clicks: number;
+  lastClickAt: string | null;
+  createdAt: string | null;
+  platform: string;
+  channelId: number | null;
+  accountName: string | null;
+  postId: number;
+  postContent: string;
+  publishedAt: string | null;
+}
+
+export interface AnalyticsLinksResponse {
+  from: string;
+  to: string;
+  totalClicks: number;
+  totalLinks: number;
+  links: TrackedLink[];
 }
 
 /** Response from refreshing analytics. */
@@ -928,8 +1075,12 @@ export interface AnalyticsRefreshResponse {
 
 /** Parameters for account-level analytics. */
 export interface AnalyticsAccountParams {
-  /** Optional channel ID to filter by. */
+  /** Legacy single-channel filter; equivalent to `channelIds`. */
   channelId?: string;
+  /** Comma-separated channel ids. */
+  channelIds?: string;
+  /** Comma-separated platform keys. */
+  platforms?: string;
   /** Start date. Default: 30 days ago. */
   from?: string;
   /** End date. Default: today. */

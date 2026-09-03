@@ -1,5 +1,53 @@
 # Changelog
 
+## 2026-09-03 — Analytics filters, period comparison, post history and link performance
+
+Node **1.15.0** · Python **0.16.0** · MCP server **1.19.0** · spec + Postman
+
+### Added
+
+- **Shared analytics filters** on `GET /api/analytics/summary`, `/engagement`,
+  `/account` (channels/platforms only) and the new `/links`: `channelIds`,
+  `platforms`, `labelIds` (comma-separated), `postFormat` (`post` | `thread`)
+  and `mediaType` (`text` | `image` | `video`, by the post's first media file).
+  A post must match every filter that is set. The legacy `channelId` still
+  works and is merged into `channelIds`. Channel/platform filters also narrow
+  the per-platform breakdowns to the matching rows of a cross-post.
+- **`compare=1`** on summary and engagement: the equal-length window before
+  `from` comes back as `previous` (totals; engagement also returns its
+  `byDay`) with `previousWindow {from, to, days, available}`. `available` is
+  false — and `previous` null — when that window would reach past the 30-day
+  statistics-retention floor, i.e. comparison works for windows of 15 days
+  or fewer.
+- **`GET /api/analytics/post-history?postId=`** — every stored metrics
+  snapshot for one post, per platform, oldest first. `post_metrics` is
+  append-only, so this is the trend since publish (about one point per
+  6-hour sync; weekly for opted-in X channels).
+- **`GET /api/analytics/links`** — every bulkpubli.sh short link for a post
+  published in the window with its click count, short URL, destination host,
+  platform, account and post. Clicks are measured by BulkPublish's redirector,
+  so they exist on every network.
+- **Engagement response**: `byDay[]` now carries every metric (`reach`,
+  `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`,
+  `engagements`, `posts`) plus a per-platform `platforms` map; `byPlatform`
+  entries carry the same full set; new `byChannel[]`; each post has
+  `engagements`, `reach`, `postFormat`, `mediaType` and `labels[]`; each
+  `platformMetrics[]` entry has `channelId`, `accountName`, `reach`,
+  `engagements`, `fetchedAt`; new `publishedCount`, `from`, `to`, `filters`.
+  All additive — nothing was removed or renamed.
+- **`sort`** accepts `reach`, `saves`, `clicks`, `videoViews`, `engagements`
+  and `engagementRate` too. New **`topBy`** / **`topOrder`** rank `topPosts`
+  by any metric, best or worst. **`heatmap=1`** returns `postTimes` for
+  engagement-weighted best-time-to-post views.
+- Node: `AnalyticsFilterParams`, `analytics.postHistory()`, `analytics.links()`,
+  full response types (`EngagementBucket`, `EngagementDayData.platforms`,
+  `AnalyticsPostHistoryResponse`, `AnalyticsLinksResponse`, …).
+  `analytics.account()` now takes the shared filters and dates.
+- Python: the same keyword arguments (`channel_ids`, `platforms`, `label_ids`,
+  `post_format`, `media_type`, `compare`, `top_by`, `top_order`, `heatmap`),
+  `analytics.post_history()` and `analytics.links()`, sync and async.
+- MCP: `get_analytics` accepts the filters and `compare`.
+
 ## 2026-09-02 — Spec prose: edit keeps existing channel rows; `unconfirmed` also covers processing timeouts (docs only, no package bump)
 
 ### Changed

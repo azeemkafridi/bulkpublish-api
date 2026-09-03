@@ -1216,13 +1216,25 @@ server.tool(
 
 server.tool(
   "get_analytics",
-  "Get an analytics summary for a date range. Returns total posts, status breakdown (published, failed, scheduled), per-platform stats, and daily post counts.",
+  "Get an analytics summary for a date range. Returns total posts, status breakdown (published, failed, scheduled), per-platform stats, and daily post counts. Optional filters narrow every figure to matching posts; `compare` adds the equal-length previous window under `previous` (available for windows of 15 days or fewer — the 30-day statistics-retention cap applies).",
   {
     from: z.string().describe("Start date in ISO format (e.g. 2025-01-01)."),
     to: z.string().describe("End date in ISO format (e.g. 2025-01-31)."),
+    channelIds: z.string().optional().describe("Comma-separated channel ids to include, e.g. \"12,15\"."),
+    platforms: z.string().optional().describe("Comma-separated platform keys to include, e.g. \"x,linkedin\"."),
+    labelIds: z.string().optional().describe("Comma-separated label ids; a post matches when it carries ANY of them."),
+    postFormat: z.enum(["post", "thread"]).optional().describe("Only single posts or only threads."),
+    mediaType: z.enum(["text", "image", "video"]).optional().describe("By the post's first media file: text (no media), image or video."),
+    compare: z.boolean().optional().describe("Also return the previous equal-length window as `previous` / `previousWindow`."),
   },
-  async ({ from, to }) => {
+  async ({ from, to, channelIds, platforms, labelIds, postFormat, mediaType, compare }) => {
     const params = new URLSearchParams({ from, to });
+    if (channelIds) params.set("channelIds", channelIds);
+    if (platforms) params.set("platforms", platforms);
+    if (labelIds) params.set("labelIds", labelIds);
+    if (postFormat) params.set("postFormat", postFormat);
+    if (mediaType) params.set("mediaType", mediaType);
+    if (compare) params.set("compare", "1");
     const res = await api("GET", `/api/analytics/summary?${params}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }

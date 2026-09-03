@@ -318,7 +318,9 @@ Authorization: Bearer bp_your_key_here
 | `POST` | `/api/media/multipart/complete` | Assemble uploaded parts and record the media file |
 | `GET` | `/api/media` | List uploaded media |
 | `GET` | `/api/analytics/summary` | Analytics summary for a date range |
-| `GET` | `/api/analytics/engagement` | Engagement data grouped by day/week/month |
+| `GET` | `/api/analytics/engagement` | Engagement totals, per-day / per-platform / per-channel breakdowns, ranked and full post lists — filterable by channels, platforms, labels, format and media type; `compare=1` adds the previous period |
+| `GET` | `/api/analytics/post-history` | Every stored metrics snapshot for one post, per platform (trend since publish) |
+| `GET` | `/api/analytics/links` | Tracked bulkpubli.sh links with click counts |
 | `POST` | `/api/schedules` | Create a recurring schedule |
 | `GET` | `/api/quotas/usage` | Check current plan limits and usage |
 

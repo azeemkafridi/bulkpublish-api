@@ -3253,7 +3253,7 @@
           "Analytics"
         ],
         "summary": "Summary stats",
-        "description": "Post counts by status, platform, and day. The date window is capped at 30 days: `from` is silently clamped so that it is never more than 30 days before `to`.",
+        "description": "Post counts by status, platform, and day. The date window is capped at 30 days: `from` is silently clamped so that it is never more than 30 days before `to`. Every response echoes the window in `from`/`to`. Channel/platform filters also narrow `byPlatform` and the per-day platform breakdown to the matching rows of a cross-post, not just the matching posts.",
         "parameters": [
           {
             "name": "from",
@@ -3296,11 +3296,80 @@
                 "1"
               ]
             }
+          },
+          {
+            "name": "channelIds",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Comma-separated channel ids. Only post_platform rows on these channels are counted. Combines with `platforms`, `labelIds`, `postFormat` and `mediaType` (all must match).",
+            "schema": {
+              "type": "string",
+              "example": "12,15"
+            }
+          },
+          {
+            "name": "platforms",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Comma-separated platform keys (`x,youtube,…`). Unknown keys are ignored.",
+            "schema": {
+              "type": "string",
+              "example": "x,linkedin"
+            }
+          },
+          {
+            "name": "labelIds",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Comma-separated label ids. A post matches when it carries ANY of them.",
+            "schema": {
+              "type": "string",
+              "example": "3,7"
+            }
+          },
+          {
+            "name": "postFormat",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — `post` (single) or `thread`. Reads `posts.post_format`.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "post",
+                "thread"
+              ]
+            }
+          },
+          {
+            "name": "mediaType",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — `text` (no media), `image` or `video`, decided by the post's FIRST media file (`media_files.mime_type`).",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "text",
+                "image",
+                "video"
+              ]
+            }
+          },
+          {
+            "name": "compare",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Set to `1` to also compute the equal-length window immediately before `from`. The result carries `previous` (same totals for that window, plus `byDay` on the engagement endpoint) and `previousWindow` (`{from, to, days, available}`). `previous` is `null` and `available` is `false` when the earlier window would reach past the 30-day statistics-retention floor — in practice comparison works for windows of 15 days or fewer.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Summary data"
+            "description": "Summary data: `totalPosts`, `published`, `scheduled`, `failed`, `partial`, `byPlatform`, `byDay`, `publishedTimes`, `from`, `to`, plus `previous`/`previousWindow` when `compare=1`."
           }
         },
         "operationId": "getAnalyticsSummary",
@@ -3348,7 +3417,7 @@
             "name": "channelId",
             "in": "query",
             "required": false,
-            "description": "**optional** — Filter to a single channel",
+            "description": "**optional** — Legacy single-channel filter; equivalent to `channelIds=<id>` and merged with it.",
             "schema": {
               "type": "integer"
             }
@@ -3374,14 +3443,20 @@
               "enum": [
                 "date",
                 "impressions",
+                "reach",
                 "likes",
                 "comments",
                 "shares",
-                "linkClicks"
+                "saves",
+                "clicks",
+                "videoViews",
+                "linkClicks",
+                "engagements",
+                "engagementRate"
               ],
               "default": "date"
             },
-            "description": "Sort field for `allPosts`. `linkClicks` sorts by bulkpubli.sh click count."
+            "description": "Sort field for `allPosts`. `engagements` = likes + comments + shares + clicks; `linkClicks` sorts by bulkpubli.sh click count; `engagementRate` by the post-level rate."
           },
           {
             "name": "order",
@@ -3396,11 +3471,129 @@
               "default": "desc"
             },
             "description": "Sort direction for `allPosts`."
+          },
+          {
+            "name": "topBy",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Metric `topPosts` is ranked by. Same values as `sort` except `date`. Default `impressions`.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "impressions",
+                "reach",
+                "likes",
+                "comments",
+                "shares",
+                "saves",
+                "clicks",
+                "videoViews",
+                "linkClicks",
+                "engagements",
+                "engagementRate"
+              ],
+              "default": "impressions"
+            }
+          },
+          {
+            "name": "topOrder",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — `desc` (default) for the best posts, `asc` for the worst.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            }
+          },
+          {
+            "name": "heatmap",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Set to `1` to include `postTimes`: one `{t, e, i}` per published post_platform (publish instant, engagements, impressions; up to 5000), for engagement-weighted best-time-to-post views. Empty array otherwise.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
+          },
+          {
+            "name": "channelIds",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Comma-separated channel ids. Only post_platform rows on these channels are counted. Combines with `platforms`, `labelIds`, `postFormat` and `mediaType` (all must match).",
+            "schema": {
+              "type": "string",
+              "example": "12,15"
+            }
+          },
+          {
+            "name": "platforms",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Comma-separated platform keys (`x,youtube,…`). Unknown keys are ignored.",
+            "schema": {
+              "type": "string",
+              "example": "x,linkedin"
+            }
+          },
+          {
+            "name": "labelIds",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Comma-separated label ids. A post matches when it carries ANY of them.",
+            "schema": {
+              "type": "string",
+              "example": "3,7"
+            }
+          },
+          {
+            "name": "postFormat",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — `post` (single) or `thread`. Reads `posts.post_format`.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "post",
+                "thread"
+              ]
+            }
+          },
+          {
+            "name": "mediaType",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — `text` (no media), `image` or `video`, decided by the post's FIRST media file (`media_files.mime_type`).",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "text",
+                "image",
+                "video"
+              ]
+            }
+          },
+          {
+            "name": "compare",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Set to `1` to also compute the equal-length window immediately before `from`. The result carries `previous` (same totals for that window, plus `byDay` on the engagement endpoint) and `previousWindow` (`{from, to, days, available}`). `previous` is `null` and `available` is `false` when the earlier window would reach past the 30-day statistics-retention floor — in practice comparison works for windows of 15 days or fewer.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts, allPosts, and unmeasuredPlatforms.\n\n`unmeasuredPlatforms` lists platforms present in the window that cannot report per-post metrics at all — either the platform has no readable metrics API (Google Business, Telegram, Tumblr) or, for LinkedIn, the channel is a personal/profile account (share statistics are exposed only for organization pages). Their rows still appear in every total with zeroes, so a zero for one of these platforms means \"not reported\", not \"measured zero\". Each entry in a post's `platformMetrics` carries the same signal as `metricsSupported`.\n\nAll figures come from the stored `post_metrics` snapshot, synced every 6 hours (or on demand via `POST /api/analytics/refresh`) — not a live read of the platform.\n\n`metricSupport` maps each platform present in the window to the list of metric keys its API can actually report (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `engagementRate`). Anything not listed is stored as 0 by the metrics sync because the platform has no such field — it is NOT a measurement. For example X reports impressions/likes/comments/shares/saves (bookmarks), so `reach`, `clicks` and `videoViews` are always 0 for X rows; Bluesky and Mastodon report no impressions, so `engagementRate` is always 0 for them; Pinterest reports no reach; YouTube reports no shares or reach; Reddit reports likes (score), comments and shares (crossposts) only; Discord reports likes (reaction counts) and comments (thread replies) only.\n\n`supportedTotals` is the union of `metricSupport` across the window — the org-wide `total*` fields are only measurements for keys listed here. A key absent from `supportedTotals` should be rendered as “not available” (a dash), never as 0. `partialTotals` maps a supported metric key to the platforms in the window that do NOT report it, so a consumer can note that the total covers only a subset of posts.\n\nEach entry of a post's `platformMetrics` also carries `supportedMetrics` (same per-platform list) alongside `metricsSupported`.\n\nFacebook's `impressions`, `reach`, `clicks` and `engagementRate` come from the Page Insights edge and require the `read_insights` permission; without it they stay 0 even though the metric is listed as supported.\n\n`metricsDisabledChannels` lists channels published to in the window whose metrics sync is switched off, so their posts contribute zeroes to every total. X is the only platform this applies to today: its reads are billed, so per-post metrics sync is opt-in per channel (`metadata.metricsSyncEnabled`, toggled on the Channels page) and runs at most once every 7 days. `POST /api/analytics/refresh` will not produce X figures for a channel that has not opted in.\n\n`conditionalMetrics` maps a platform in the window to metrics that are supported but permission-gated — a 0 there means \"may not be readable\", not \"no such metric\". Today only Facebook appears, for `impressions`, `reach`, `clicks` and `engagementRate`.\n\nEach post in `topPosts`/`allPosts` carries both a post-level `engagementRate` and, inside `platformMetrics[]`, a per-channel `engagementRate`. They are NOT the same number: the post-level value is the mean of the post's channels that reported a non-zero rate, while `platformMetrics[].engagementRate` is that one channel's own rate (engagements ÷ impressions). Render the per-channel value next to per-channel counters — using the post-level average there shows one network's percentage beside another network's zeros. Both are basis points (325 = 3.25%).\n\n`totalLinkClicks` (and `linkClicks` on each entry of `byPlatform`, `byDay`, `topPosts`, `allPosts` and `platformMetrics`) counts clicks on bulkpubli.sh short links, measured by BulkPublish rather than reported by the platform. It is deliberately NOT folded into `totalClicks`/`clicks`, which are the platform's own click figures: one visit can register in both, so adding them would double-count. Because we measure it ourselves it is available on every platform, including those listed in `unmeasuredPlatforms`, and it appears in `supportedTotals`/`metricSupport` for all of them. Bot and link-preview traffic is excluded. Zero for organizations that have not enabled Link Tracking."
+            "description": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts, allPosts, and unmeasuredPlatforms.\n\n`unmeasuredPlatforms` lists platforms present in the window that cannot report per-post metrics at all — either the platform has no readable metrics API (Google Business, Telegram, Tumblr) or, for LinkedIn, the channel is a personal/profile account (share statistics are exposed only for organization pages). Their rows still appear in every total with zeroes, so a zero for one of these platforms means \"not reported\", not \"measured zero\". Each entry in a post's `platformMetrics` carries the same signal as `metricsSupported`.\n\nAll figures come from the stored `post_metrics` snapshot, synced every 6 hours (or on demand via `POST /api/analytics/refresh`) — not a live read of the platform.\n\n`metricSupport` maps each platform present in the window to the list of metric keys its API can actually report (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `engagementRate`). Anything not listed is stored as 0 by the metrics sync because the platform has no such field — it is NOT a measurement. For example X reports impressions/likes/comments/shares/saves (bookmarks), so `reach`, `clicks` and `videoViews` are always 0 for X rows; Bluesky and Mastodon report no impressions, so `engagementRate` is always 0 for them; Pinterest reports no reach; YouTube reports no shares or reach; Reddit reports likes (score), comments and shares (crossposts) only; Discord reports likes (reaction counts) and comments (thread replies) only.\n\n`supportedTotals` is the union of `metricSupport` across the window — the org-wide `total*` fields are only measurements for keys listed here. A key absent from `supportedTotals` should be rendered as “not available” (a dash), never as 0. `partialTotals` maps a supported metric key to the platforms in the window that do NOT report it, so a consumer can note that the total covers only a subset of posts.\n\nEach entry of a post's `platformMetrics` also carries `supportedMetrics` (same per-platform list) alongside `metricsSupported`.\n\nFacebook's `impressions`, `reach`, `clicks` and `engagementRate` come from the Page Insights edge and require the `read_insights` permission; without it they stay 0 even though the metric is listed as supported.\n\n`metricsDisabledChannels` lists channels published to in the window whose metrics sync is switched off, so their posts contribute zeroes to every total. X is the only platform this applies to today: its reads are billed, so per-post metrics sync is opt-in per channel (`metadata.metricsSyncEnabled`, toggled on the Channels page) and runs at most once every 7 days. `POST /api/analytics/refresh` will not produce X figures for a channel that has not opted in.\n\n`conditionalMetrics` maps a platform in the window to metrics that are supported but permission-gated — a 0 there means \"may not be readable\", not \"no such metric\". Today only Facebook appears, for `impressions`, `reach`, `clicks` and `engagementRate`.\n\nEach post in `topPosts`/`allPosts` carries both a post-level `engagementRate` and, inside `platformMetrics[]`, a per-channel `engagementRate`. They are NOT the same number: the post-level value is the mean of the post's channels that reported a non-zero rate, while `platformMetrics[].engagementRate` is that one channel's own rate (engagements ÷ impressions). Render the per-channel value next to per-channel counters — using the post-level average there shows one network's percentage beside another network's zeros. Both are basis points (325 = 3.25%).\n\n`totalLinkClicks` (and `linkClicks` on each entry of `byPlatform`, `byDay`, `topPosts`, `allPosts` and `platformMetrics`) counts clicks on bulkpubli.sh short links, measured by BulkPublish rather than reported by the platform. It is deliberately NOT folded into `totalClicks`/`clicks`, which are the platform's own click figures: one visit can register in both, so adding them would double-count. Because we measure it ourselves it is available on every platform, including those listed in `unmeasuredPlatforms`, and it appears in `supportedTotals`/`metricSupport` for all of them. Bot and link-preview traffic is excluded. Zero for organizations that have not enabled Link Tracking.\n\n**Added 2026-09-03.** `byDay[]` entries now carry every metric (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `linkClicks`, `engagements`, `posts`) plus `platforms`: the same bucket per platform for that day. `byPlatform` entries carry the same full set. `byChannel[]` lists `{channelId, platform, accountName, …same metrics…}` per channel. Each post in `topPosts`/`allPosts` also has `reach`, `engagements`, `postFormat` (`post`|`thread`), `mediaType` (`text`|`image`|`video`) and `labels[] {id, name, color}`; each `platformMetrics[]` entry has `channelId`, `accountName`, `reach`, `engagements` and `fetchedAt`. `publishedCount` is the number of published post_platform rows in the window. `filters` echoes the parsed filter set. With `compare=1`, `previous` holds the `total*`/`avgEngagementRate`/`publishedCount` fields and `byDay` for the preceding window (or `null` if unavailable) and `previousWindow` says which window that is."
           }
         },
         "operationId": "getAnalyticsEngagement",
@@ -3442,13 +3635,13 @@
           "Analytics"
         ],
         "summary": "Account-level analytics",
-        "description": "Daily snapshots of followers, impressions, reach, and profile views per connected channel. Data is synced automatically every 4 hours.",
+        "description": "Daily snapshots of followers, impressions, reach, and profile views per connected channel. Data is synced automatically every 4 hours. Accepts the shared `channelIds` / `platforms` filters; the post-level filters (`labelIds`, `postFormat`, `mediaType`, `compare`) have no meaning for account snapshots and are ignored.",
         "parameters": [
           {
             "name": "channelId",
             "in": "query",
             "required": false,
-            "description": "**optional** — Filter to a single channel",
+            "description": "**optional** — Legacy single-channel filter; equivalent to `channelIds=<id>`. A non-numeric value is a 400.",
             "schema": {
               "type": "integer"
             }
@@ -3471,6 +3664,26 @@
             "schema": {
               "type": "string",
               "format": "date"
+            }
+          },
+          {
+            "name": "channelIds",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Comma-separated channel ids. Only post_platform rows on these channels are counted. Combines with `platforms`, `labelIds`, `postFormat` and `mediaType` (all must match).",
+            "schema": {
+              "type": "string",
+              "example": "12,15"
+            }
+          },
+          {
+            "name": "platforms",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Comma-separated platform keys (`x,youtube,…`). Unknown keys are ignored.",
+            "schema": {
+              "type": "string",
+              "example": "x,linkedin"
             }
           }
         ],
@@ -3544,6 +3757,152 @@
           }
         },
         "operationId": "getAccountAnalytics",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "analytics:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/analytics/post-history": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Per-post metric history",
+        "description": "Every metrics snapshot stored for one post, per platform, oldest first — the series behind the \"since publish\" trend sparklines. `post_metrics` is append-only (one row per metrics sync per post_platform), so the history is whatever the sync cadence produced: roughly every 6 hours for most platforms, at most weekly for X channels that opted in. Snapshots older than the 30-day retention floor are excluded. Returns `{postId, publishedAt, series[]}` where each series is `{postPlatformId, platform, channelId, accountName, supportedMetrics, metricsSupported, points[]}` and each point is `{fetchedAt, impressions, reach, likes, comments, shares, saves, clicks, videoViews, engagementRate}`. A platform whose `metricsSupported` is `false` contributes stored zeroes, not measurements.",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "query",
+            "required": true,
+            "description": "**required** — The post id.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "History series"
+          },
+          "400": {
+            "description": "postId missing or not a positive integer"
+          },
+          "404": {
+            "description": "Post not found in this organization"
+          }
+        },
+        "operationId": "getAnalyticsPostHistory",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "analytics:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/analytics/links": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Tracked-link performance",
+        "description": "Every bulkpubli.sh short link minted for a post published in the window, with its click count. Clicks are measured by BulkPublish's own redirector (bot and link-preview traffic excluded) rather than reported by the platform, so they exist for every network — including those in `unmeasuredPlatforms`. Totals sync from the redirector every 15 minutes; referrer and country splits are not stored. Ordered by clicks desc, capped at 2000 links. The date window is capped at 30 days like every other analytics endpoint. Returns `{from, to, totalClicks, totalLinks, links[]}`; each link is `{id, shortUrl, code, originalUrl, finalUrl, destinationHost, clicks, lastClickAt, createdAt, platform, channelId, accountName, postId, postContent, publishedAt}`. Empty for organizations that have not enabled Link Tracking.",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "description": "**required** — Start date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "description": "**required** — End date (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "channelIds",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Comma-separated channel ids. Only post_platform rows on these channels are counted. Combines with `platforms`, `labelIds`, `postFormat` and `mediaType` (all must match).",
+            "schema": {
+              "type": "string",
+              "example": "12,15"
+            }
+          },
+          {
+            "name": "platforms",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Comma-separated platform keys (`x,youtube,…`). Unknown keys are ignored.",
+            "schema": {
+              "type": "string",
+              "example": "x,linkedin"
+            }
+          },
+          {
+            "name": "labelIds",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Comma-separated label ids. A post matches when it carries ANY of them.",
+            "schema": {
+              "type": "string",
+              "example": "3,7"
+            }
+          },
+          {
+            "name": "postFormat",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — `post` (single) or `thread`. Reads `posts.post_format`.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "post",
+                "thread"
+              ]
+            }
+          },
+          {
+            "name": "mediaType",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — `text` (no media), `image` or `video`, decided by the post's FIRST media file (`media_files.mime_type`).",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "text",
+                "image",
+                "video"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Link performance"
+          }
+        },
+        "operationId": "getAnalyticsLinks",
         "security": [
           {
             "apiKey": []

@@ -9,7 +9,7 @@ from .exceptions import (
     ValidationError,
 )
 
-__version__ = "0.14.2"
+__version__ = "0.16.0"
 __all__ = [
     "BulkPublish",
     "AsyncBulkPublish",
