@@ -593,7 +593,7 @@ export function createServer(): McpServer {
 
 server.tool(
   "list_channels",
-  "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status.",
+  "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status, plus a `capabilities` object saying whether the caller may create, publish or approve posts. Check that before attempting a write rather than discovering the permission from a 403.",
   {
     active: z
       .boolean()
@@ -968,7 +968,7 @@ server.tool(
 
 server.tool(
   "get_post",
-  "Get a single post by ID with full details including platform statuses, labels, media files, recurring schedule info, and metrics.",
+  "Get a single post by ID with full details including platform statuses, labels, media files, recurring schedule info, and metrics. For a thread post, `threadParts` holds the parts and `threadMediaFiles` resolves the media they reference: that media is NOT in `mediaFiles`, which carries only the media on the post itself.",
   {
     postId: z.number().describe("The post ID."),
   },

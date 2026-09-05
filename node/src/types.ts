@@ -298,6 +298,19 @@ export interface Channel {
 /** Response from listing channels. */
 export interface ListChannelsResponse {
   channels: Channel[];
+  /**
+   * What the CALLING member may do in this organization, resolved from their
+   * team role. Returned alongside the list so a client does not have to
+   * re-derive permissions from a role string.
+   */
+  capabilities: MemberCapabilities;
+}
+
+/** Permissions of the member whose key made the request. */
+export interface MemberCapabilities {
+  canCreatePosts: boolean;
+  canPublishPosts: boolean;
+  canApprovePosts: boolean;
 }
 
 /** Parameters for listing channels. */
@@ -425,6 +438,15 @@ export interface Post {
   postTypeOverrides: Record<string, string>;
   platformSpecific: Record<string, Record<string, unknown>>;
   threadParts: ThreadPart[] | null;
+  /**
+   * Media referenced by `threadParts[].mediaFileIds`, resolved to full objects
+   * and de-duplicated across parts.
+   *
+   * Distinct from `mediaFiles`, which is the media on the post itself. A thread
+   * post can carry both, so a client that reads only `mediaFiles` renders a
+   * thread without its images.
+   */
+  threadMediaFiles: MediaFile[];
   platformThreadParts: Record<string, ThreadPart[]>;
   recurringScheduleId: number | null;
   deleteMediaAfterPublish: boolean | null;

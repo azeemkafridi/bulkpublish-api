@@ -3,7 +3,7 @@
   "info": {
     "title": "BulkPublish API",
     "version": "1.0.0",
-    "description": "Publish to 15 social media platforms from a single API.\n\n## Using this API from an AI agent\n\nEverything below is also available as an [MCP](https://modelcontextprotocol.io) server, so Claude, ChatGPT, Cursor and other agents can drive BulkPublish directly.\n\n**Hosted (web-based hosts):** add `https://mcp.bulkpublish.com/mcp` as a custom connector. It supports OAuth 2.1 — you paste your API key once on the consent screen — or a key in the URL (`?key=bp_...`) for hosts without OAuth.\n\n**Local (Claude Code, Cursor, Codex, Windsurf):** `npx -y @bulkpublish/mcp-server`, with `BULKPUBLISH_API_KEY` in the environment.\n\nPer-client config and the full tool list: [BulkPublish AI Toolkit](https://github.com/azeemkafridi/bulkpublish-ai-toolkit). Get an API key at [/developer](https://app.bulkpublish.com/developer)."
+    "description": "Publish to 15 social media platforms from a single API.\n\n## Using this API from an AI agent\n\nEverything below is also available as an [MCP](https://modelcontextprotocol.io) server, so Claude, ChatGPT, Cursor and other agents can drive BulkPublish directly.\n\n**Hosted (web-based hosts):** add `https://mcp.bulkpublish.com/mcp` as a custom connector. It supports OAuth 2.1 \u2014 you paste your API key once on the consent screen \u2014 or a key in the URL (`?key=bp_...`) for hosts without OAuth.\n\n**Local (Claude Code, Cursor, Codex, Windsurf):** `npx -y @bulkpublish/mcp-server`, with `BULKPUBLISH_API_KEY` in the environment.\n\nPer-client config and the full tool list: [BulkPublish AI Toolkit](https://github.com/azeemkafridi/bulkpublish-ai-toolkit). Get an API key at [/developer](https://app.bulkpublish.com/developer)."
   },
   "servers": [
     {
@@ -26,7 +26,7 @@
       },
       "oauth2": {
         "type": "oauth2",
-        "description": "**Beta.** For products that embed BulkPublish and do not want their users pasting an API key. The user approves your app on BulkPublish and you receive a scoped token bound to the workspace they chose. PKCE (S256) is required for every client, `scope` is required (there is no implicit default), authorization codes are single-use, and refresh tokens rotate. Pass the token as `Bearer bpat_...`.\n\nOAuth tokens reach posts, schedules, labels, media, analytics, quota usage and read-only channel data — and nothing else. Account administration (team, organizations, billing and credit purchases, API keys, OAuth app management) returns 403 for **any** OAuth token, including `full`, because those actions would outlive the user disconnecting the app. Use an API key (`Bearer bp_...`) for those; keys are unaffected by this and remain the default for server-to-server use.",
+        "description": "**Beta.** For products that embed BulkPublish and do not want their users pasting an API key. The user approves your app on BulkPublish and you receive a scoped token bound to the workspace they chose. PKCE (S256) is required for every client, `scope` is required (there is no implicit default), authorization codes are single-use, and refresh tokens rotate. Pass the token as `Bearer bpat_...`.\n\nOAuth tokens reach posts, schedules, labels, media, analytics, quota usage and read-only channel data \u2014 and nothing else. Account administration (team, organizations, billing and credit purchases, API keys, OAuth app management) returns 403 for **any** OAuth token, including `full`, because those actions would outlive the user disconnecting the app. Use an API key (`Bearer bp_...`) for those; keys are unaffected by this and remain the default for server-to-server use.",
         "flows": {
           "authorizationCode": {
             "authorizationUrl": "https://app.bulkpublish.com/oauth/authorize",
@@ -94,19 +94,19 @@
           },
           "platformSpecific": {
             "type": "object",
-            "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto' — any other value is rejected with 400 VALIDATION_ERROR), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX' — any other value is rejected with 400 VALIDATION_ERROR), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus ('public'|'unlisted'|'private' — any other value is rejected with 400 VALIDATION_ERROR), categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType ('BOOK'|'ORDER'|'SHOP'|'LEARN_MORE'|'SIGN_UP'|'CALL' — any other value is rejected with 400 VALIDATION_ERROR), ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'verified'|'subscribers'|'mentionedUsers' — any other value is rejected with 400 VALIDATION_ERROR) }. Threads: { quotePostId }. Snapchat: { [channelId]: { title (Saved Story title, max 45 chars — defaults to the caption's first line), locale (Spotlight locale, default 'en_US'), saveToProfile (Spotlight only, default true) } }. Use _firstComment (string) for auto-posted reply after publish."
+            "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto' \u2014 any other value is rejected with 400 VALIDATION_ERROR), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX' \u2014 any other value is rejected with 400 VALIDATION_ERROR), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus ('public'|'unlisted'|'private' \u2014 any other value is rejected with 400 VALIDATION_ERROR), categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType ('BOOK'|'ORDER'|'SHOP'|'LEARN_MORE'|'SIGN_UP'|'CALL' \u2014 any other value is rejected with 400 VALIDATION_ERROR), ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'verified'|'subscribers'|'mentionedUsers' \u2014 any other value is rejected with 400 VALIDATION_ERROR) }. Threads: { quotePostId }. Snapchat: { [channelId]: { title (Saved Story title, max 45 chars \u2014 defaults to the caption's first line), locale (Spotlight locale, default 'en_US'), saveToProfile (Spotlight only, default true) } }. Use _firstComment (string) for auto-posted reply after publish."
           },
           "platformContent": {
             "type": "object",
             "additionalProperties": {
               "type": "string"
             },
-            "description": "Per-platform content overrides mapping platform name to a plain string, e.g. { \"x\": \"Short version\" }. Values must be strings — nested objects are rejected with 400 VALIDATION_ERROR."
+            "description": "Per-platform content overrides mapping platform name to a plain string, e.g. { \"x\": \"Short version\" }. Values must be strings \u2014 nested objects are rejected with 400 VALIDATION_ERROR."
           },
           "deleteMediaAfterPublish": {
             "type": "boolean",
             "default": false,
-            "description": "Whether uploaded media is deleted right after publishing. Defaults to false — media is kept and reclaimed by the 3-month retention sweep. Always false for recurring-schedule posts and bulk-created posts."
+            "description": "Whether uploaded media is deleted right after publishing. Defaults to false \u2014 media is kept and reclaimed by the 3-month retention sweep. Always false for recurring-schedule posts and bulk-created posts."
           },
           "autoPlugEnabled": {
             "type": "boolean"
@@ -205,6 +205,34 @@
               "null"
             ],
             "description": "Reviewer's reason when approvalStatus is 'rejected'."
+          },
+          "threadParts": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string"
+                },
+                "mediaFileIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            },
+            "description": "The ordered parts of a thread post. Null unless postFormat is 'thread'. Accepted on create and update; returned here since 2026-09."
+          },
+          "threadMediaFiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MediaFile"
+            },
+            "description": "Media referenced by threadParts[].mediaFileIds, resolved to full objects and de-duplicated across parts. Distinct from mediaFiles, which is the media on the post itself: a thread post can carry both, and a client that reads only mediaFiles will render a thread without its images."
           }
         }
       },
@@ -230,7 +258,7 @@
               "processing",
               "unconfirmed"
             ],
-            "description": "Per-platform publish state. 'unconfirmed' is terminal: the publish request may have reached the platform but its response was lost, or the platform was still processing the upload when we stopped polling (video processing can outlast the check window) — check the account, then retry with republish: true if the post is not live."
+            "description": "Per-platform publish state. 'unconfirmed' is terminal: the publish request may have reached the platform but its response was lost, or the platform was still processing the upload when we stopped polling (video processing can outlast the check window) \u2014 check the account, then retry with republish: true if the post is not live."
           },
           "platformPostId": {
             "type": [
@@ -324,7 +352,7 @@
           },
           "platformAvailable": {
             "type": "boolean",
-            "description": "Whether this channel can publish right now. `false` means it is switched off server-side — the channel itself is healthy, but its scheduled posts are being held.\n\nResolved for THIS channel: the `PLATFORM_<NAME>` flag narrowed by any variant flag matching its `accountType`. LinkedIn company pages (`accountType: \"organization\"`) are gated separately from personal profiles, so two LinkedIn channels in the same response can differ here."
+            "description": "Whether this channel can publish right now. `false` means it is switched off server-side \u2014 the channel itself is healthy, but its scheduled posts are being held.\n\nResolved for THIS channel: the `PLATFORM_<NAME>` flag narrowed by any variant flag matching its `accountType`. LinkedIn company pages (`accountType: \"organization\"`) are gated separately from personal profiles, so two LinkedIn channels in the same response can differ here."
           },
           "platformState": {
             "type": "string",
@@ -333,7 +361,7 @@
               "connect_off",
               "off"
             ],
-            "description": "Current availability of the platform, controlled by the `PLATFORM_<NAME>` environment flag on the server.\n\n- `on` — fully available.\n- `connect_off` — new channels cannot be connected, but channels already connected keep publishing normally (used while a platform app review is pending).\n- `off` — kill switch: the platform is unavailable, and posts targeting it are **held**, not failed. They publish automatically once the platform is switched back on.\n\nResolved for THIS channel: the `PLATFORM_<NAME>` flag narrowed by any variant flag matching its `accountType`. LinkedIn company pages (`accountType: \"organization\"`) are gated separately from personal profiles, so two LinkedIn channels in the same response can differ here."
+            "description": "Current availability of the platform, controlled by the `PLATFORM_<NAME>` environment flag on the server.\n\n- `on` \u2014 fully available.\n- `connect_off` \u2014 new channels cannot be connected, but channels already connected keep publishing normally (used while a platform app review is pending).\n- `off` \u2014 kill switch: the platform is unavailable, and posts targeting it are **held**, not failed. They publish automatically once the platform is switched back on.\n\nResolved for THIS channel: the `PLATFORM_<NAME>` flag narrowed by any variant flag matching its `accountType`. LinkedIn company pages (`accountType: \"organization\"`) are gated separately from personal profiles, so two LinkedIn channels in the same response can differ here."
           },
           "platformMessage": {
             "type": [
@@ -486,7 +514,7 @@
           "requireApproval": {
             "type": "boolean",
             "default": false,
-            "description": "Optional. Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
+            "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
           }
         }
       },
@@ -532,7 +560,7 @@
       },
       "PlatformSpecific": {
         "type": "object",
-        "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto' — any other value is rejected with 400 VALIDATION_ERROR), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX' — any other value is rejected with 400 VALIDATION_ERROR), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus ('public'|'unlisted'|'private' — any other value is rejected with 400 VALIDATION_ERROR), categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType ('BOOK'|'ORDER'|'SHOP'|'LEARN_MORE'|'SIGN_UP'|'CALL' — any other value is rejected with 400 VALIDATION_ERROR), ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'verified'|'subscribers'|'mentionedUsers' — any other value is rejected with 400 VALIDATION_ERROR) }. Threads: { quotePostId }. Reddit: { [channelId]: { subreddit (required), title, type, url, flairId, thumbnailUrl } }; subreddit falls back to the one stored on the channel, and title falls back to the first line of content truncated to 300 chars. thumbnailUrl is optional on video posts — when omitted the server falls back to the video's auto-extracted poster frame, and the publish fails only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file. Discord: { [channelId]: { channelId } } — the outer key is the BulkPublish channel id, the inner channelId is the target Discord text channel. Telegram: no options — the destination chat is fixed when the channel is connected. Tumblr: { [channelId]: { blogName, title, tags (array of strings, no leading '#'), link, sourceUrl } }; blogName defaults to the blog the channel was connected as. Snapchat: { [channelId]: { title (Saved Story title, max 45 chars — defaults to the caption's first line), locale (Spotlight locale, default 'en_US'), saveToProfile (Spotlight only — false sends skip_save_to_profile) } }; post types are story (default; caption not sent to Snapchat), saved_story and spotlight (video only, caption becomes the 160-char description); every Snapchat post requires exactly one image or video. Reddit, Discord, Tumblr and Snapchat also accept a flat (non channel-id-keyed) object that applies to every channel of that platform on the post. Use _firstComment (string), at the TOP level of platformSpecific rather than inside a platform key, for an auto-posted reply after publish. Supported on x, instagram, facebook, linkedin, youtube, threads, bluesky, mastodon, reddit and telegram; NOT supported on discord, pinterest, tiktok, gmb or tumblr, where the main post still publishes and the comment is recorded as failed. Snapchat does not support first comments either.",
+        "description": "Per-platform options. Keys are platform names. Facebook: { shareToStory }. Instagram: { collaborators, shareToStory, trialReel, graduationStrategy ('manual'|'auto' \u2014 any other value is rejected with 400 VALIDATION_ERROR), thumbnailTimestamp (seconds) }. TikTok: { privacyLevel ('PUBLIC_TO_EVERYONE'|'MUTUAL_FOLLOW_FRIENDS'|'FOLLOWER_OF_CREATOR'|'SELF_ONLY'|'SEND_TO_USER_INBOX' \u2014 any other value is rejected with 400 VALIDATION_ERROR), disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, thumbnailTimestamp }. YouTube: { title, privacyStatus ('public'|'unlisted'|'private' \u2014 any other value is rejected with 400 VALIDATION_ERROR), categoryId, madeForKids, playlistId, thumbnailUrl }. Pinterest: { title, description, link, [channelId]: { boardId } }. GMB: { ctaType ('BOOK'|'ORDER'|'SHOP'|'LEARN_MORE'|'SIGN_UP'|'CALL' \u2014 any other value is rejected with 400 VALIDATION_ERROR), ctaUrl, eventTitle, startDate, startTime, endDate, endTime, couponCode, redeemOnlineUrl, termsConditions }. X: { replySettings ('everyone'|'following'|'verified'|'subscribers'|'mentionedUsers' \u2014 any other value is rejected with 400 VALIDATION_ERROR) }. Threads: { quotePostId }. Reddit: { [channelId]: { subreddit (required), title, type, url, flairId, thumbnailUrl } }; subreddit falls back to the one stored on the channel, and title falls back to the first line of content truncated to 300 chars. thumbnailUrl is optional on video posts \u2014 when omitted the server falls back to the video's auto-extracted poster frame, and the publish fails only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file. Discord: { [channelId]: { channelId } } \u2014 the outer key is the BulkPublish channel id, the inner channelId is the target Discord text channel. Telegram: no options \u2014 the destination chat is fixed when the channel is connected. Tumblr: { [channelId]: { blogName, title, tags (array of strings, no leading '#'), link, sourceUrl } }; blogName defaults to the blog the channel was connected as. Snapchat: { [channelId]: { title (Saved Story title, max 45 chars \u2014 defaults to the caption's first line), locale (Spotlight locale, default 'en_US'), saveToProfile (Spotlight only \u2014 false sends skip_save_to_profile) } }; post types are story (default; caption not sent to Snapchat), saved_story and spotlight (video only, caption becomes the 160-char description); every Snapchat post requires exactly one image or video. Reddit, Discord, Tumblr and Snapchat also accept a flat (non channel-id-keyed) object that applies to every channel of that platform on the post. Use _firstComment (string), at the TOP level of platformSpecific rather than inside a platform key, for an auto-posted reply after publish. Supported on x, instagram, facebook, linkedin, youtube, threads, bluesky, mastodon, reddit and telegram; NOT supported on discord, pinterest, tiktok, gmb or tumblr, where the main post still publishes and the comment is recorded as failed. Snapchat does not support first comments either.",
         "properties": {
           "facebook": {
             "type": "object",
@@ -647,7 +675,7 @@
               },
               "coverImageUrl": {
                 "type": "string",
-                "description": "Cover image URL for video pins. Optional — when omitted, an image attached alongside the video is used, otherwise the auto-extracted poster frame of the video. Publishing fails only if none of the three is available."
+                "description": "Cover image URL for video pins. Optional \u2014 when omitted, an image attached alongside the video is used, otherwise the auto-extracted poster frame of the video. Publishing fails only if none of the three is available."
               }
             }
           },
@@ -740,7 +768,7 @@
             "properties": {
               "subreddit": {
                 "type": "string",
-                "description": "Required. Target subreddit. Accepts 'webdev', 'r/webdev' or '/r/webdev' — normalized to a bare lowercase name. Falls back to the subreddit stored on the channel."
+                "description": "Required. Target subreddit. Accepts 'webdev', 'r/webdev' or '/r/webdev' \u2014 normalized to a bare lowercase name. Falls back to the subreddit stored on the channel."
               },
               "title": {
                 "type": "string",
@@ -760,7 +788,7 @@
               },
               "thumbnailUrl": {
                 "type": "string",
-                "description": "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, and publishing fails only when neither is available. Unlike Pinterest's coverImageUrl there is no attached-image fallback: a Reddit media post accepts exactly one file, so a video post cannot also carry a cover image."
+                "description": "Poster image URL for video posts. Optional \u2014 when omitted the server falls back to the video's auto-extracted poster frame, and publishing fails only when neither is available. Unlike Pinterest's coverImageUrl there is no attached-image fallback: a Reddit media post accepts exactly one file, so a video post cannot also carry a cover image."
               }
             }
           },
@@ -776,7 +804,7 @@
           },
           "telegram": {
             "type": "object",
-            "description": "Telegram accepts no platform-specific options — the destination chat is fixed when the channel is connected. Content is sent as plain text (no parse mode). Text longer than the 1024-character caption limit is posted as a second message alongside captionless media.",
+            "description": "Telegram accepts no platform-specific options \u2014 the destination chat is fixed when the channel is connected. Content is sent as plain text (no parse mode). Text longer than the 1024-character caption limit is posted as a second message alongside captionless media.",
             "properties": {}
           },
           "tumblr": {
@@ -810,7 +838,7 @@
           },
           "snapchat": {
             "type": "object",
-            "description": "Keyed by BulkPublish channel id (e.g. \"12\"), or flat to apply to every Snapchat channel on the post. Post types: story (default), saved_story, spotlight. Every Snapchat post requires exactly one image or video; spotlight is video-only (6–60s). The caption is used only for Spotlight (160-char description) and as the Saved Story title fallback — plain stories carry no text.",
+            "description": "Keyed by BulkPublish channel id (e.g. \"12\"), or flat to apply to every Snapchat channel on the post. Post types: story (default), saved_story, spotlight. Every Snapchat post requires exactly one image or video; spotlight is video-only (6\u201360s). The caption is used only for Spotlight (160-char description) and as the Saved Story title fallback \u2014 plain stories carry no text.",
             "properties": {
               "title": {
                 "type": "string",
@@ -831,7 +859,7 @@
       },
       "PlatformAvailability": {
         "type": "object",
-        "description": "Availability of one social platform. Disabled platforms are always included in responses with `enabled: false` — never omitted — so clients can tell \"switched off right now\" apart from \"not supported\".",
+        "description": "Availability of one social platform. Disabled platforms are always included in responses with `enabled: false` \u2014 never omitted \u2014 so clients can tell \"switched off right now\" apart from \"not supported\".",
         "properties": {
           "platform": {
             "type": "string",
@@ -877,7 +905,7 @@
               "connect_off",
               "off"
             ],
-            "description": "Current availability of the platform, controlled by the `PLATFORM_<NAME>` environment flag on the server.\n\n- `on` — fully available.\n- `connect_off` — new channels cannot be connected, but channels already connected keep publishing normally (used while a platform app review is pending).\n- `off` — kill switch: the platform is unavailable, and posts targeting it are **held**, not failed. They publish automatically once the platform is switched back on."
+            "description": "Current availability of the platform, controlled by the `PLATFORM_<NAME>` environment flag on the server.\n\n- `on` \u2014 fully available.\n- `connect_off` \u2014 new channels cannot be connected, but channels already connected keep publishing normally (used while a platform app review is pending).\n- `off` \u2014 kill switch: the platform is unavailable, and posts targeting it are **held**, not failed. They publish automatically once the platform is switched back on."
           },
           "reason": {
             "type": "string",
@@ -911,7 +939,7 @@
           },
           "variants": {
             "type": "object",
-            "description": "Sub-platforms gated independently of their parent, keyed by the channel `accountType` they cover. Present only for platforms that have one. Today: `linkedin.organization` — LinkedIn company pages, which run on a separate LinkedIn app (Community Management API) reviewed separately from personal profiles, so pages can be paused while personal-profile posting stays fully live. A variant is never more permissive than its parent: `state: \"off\"` on the platform means every variant is off too.",
+            "description": "Sub-platforms gated independently of their parent, keyed by the channel `accountType` they cover. Present only for platforms that have one. Today: `linkedin.organization` \u2014 LinkedIn company pages, which run on a separate LinkedIn app (Community Management API) reviewed separately from personal profiles, so pages can be paused while personal-profile posting stays fully live. A variant is never more permissive than its parent: `state: \"off\"` on the platform means every variant is off too.",
             "additionalProperties": {
               "type": "object",
               "properties": {
@@ -1029,13 +1057,13 @@
           "Posts"
         ],
         "summary": "List posts",
-        "description": "Retrieve posts with pagination, filtering, and search. Results are ordered newest-first by the timestamp that applies to each post — publishedAt if it is live, else scheduledAt if it is due, else createdAt — with id descending as a tiebreaker. A post written weeks before it publishes therefore sorts by when it went live, not when it was drafted.",
+        "description": "Retrieve posts with pagination, filtering, and search. Results are ordered newest-first by the timestamp that applies to each post \u2014 publishedAt if it is live, else scheduledAt if it is due, else createdAt \u2014 with id descending as a tiebreaker. A post written weeks before it publishes therefore sorts by when it went live, not when it was drafted.",
         "parameters": [
           {
             "name": "page",
             "in": "query",
             "required": false,
-            "description": "**optional** — Page number (default: 1)",
+            "description": "**optional** \u2014 Page number (default: 1)",
             "schema": {
               "type": "integer",
               "default": 1
@@ -1045,7 +1073,7 @@
             "name": "limit",
             "in": "query",
             "required": false,
-            "description": "**optional** — Items per page, max 500 (default: 20)",
+            "description": "**optional** \u2014 Items per page, max 500 (default: 20)",
             "schema": {
               "type": "integer",
               "default": 20,
@@ -1056,7 +1084,7 @@
             "name": "status",
             "in": "query",
             "required": false,
-            "description": "**optional** — Filter by post status",
+            "description": "**optional** \u2014 Filter by post status",
             "schema": {
               "type": "string",
               "enum": [
@@ -1074,7 +1102,7 @@
             "name": "channelId",
             "in": "query",
             "required": false,
-            "description": "**optional** — Filter by channel ID",
+            "description": "**optional** \u2014 Filter by channel ID",
             "schema": {
               "type": "integer"
             }
@@ -1083,7 +1111,7 @@
             "name": "labelIds",
             "in": "query",
             "required": false,
-            "description": "**optional** — Comma-separated label IDs to filter by",
+            "description": "**optional** \u2014 Comma-separated label IDs to filter by",
             "schema": {
               "type": "string"
             }
@@ -1092,7 +1120,7 @@
             "name": "labelId",
             "in": "query",
             "required": false,
-            "description": "**optional** — Filter by single label ID (legacy, prefer labelIds)",
+            "description": "**optional** \u2014 Filter by single label ID (legacy, prefer labelIds)",
             "schema": {
               "type": "integer"
             }
@@ -1101,7 +1129,7 @@
             "name": "labelMode",
             "in": "query",
             "required": false,
-            "description": "**optional** — How to combine label filters (default: or)",
+            "description": "**optional** \u2014 How to combine label filters (default: or)",
             "schema": {
               "type": "string",
               "enum": [
@@ -1115,7 +1143,7 @@
             "name": "search",
             "in": "query",
             "required": false,
-            "description": "**optional** — Search in post content",
+            "description": "**optional** \u2014 Search in post content",
             "schema": {
               "type": "string"
             }
@@ -1124,7 +1152,7 @@
             "name": "from",
             "in": "query",
             "required": false,
-            "description": "**optional** — Filter posts created on or after this date",
+            "description": "**optional** \u2014 Filter posts created on or after this date",
             "schema": {
               "type": "string",
               "format": "date"
@@ -1134,7 +1162,7 @@
             "name": "to",
             "in": "query",
             "required": false,
-            "description": "**optional** — Filter posts created on or before this date",
+            "description": "**optional** \u2014 Filter posts created on or before this date",
             "schema": {
               "type": "string",
               "format": "date"
@@ -1144,7 +1172,7 @@
             "name": "scheduledFrom",
             "in": "query",
             "required": false,
-            "description": "**optional** — Filter posts scheduled on or after this date",
+            "description": "**optional** \u2014 Filter posts scheduled on or after this date",
             "schema": {
               "type": "string",
               "format": "date"
@@ -1154,7 +1182,7 @@
             "name": "scheduledTo",
             "in": "query",
             "required": false,
-            "description": "**optional** — Filter posts scheduled on or before this date",
+            "description": "**optional** \u2014 Filter posts scheduled on or before this date",
             "schema": {
               "type": "string",
               "format": "date"
@@ -1164,7 +1192,7 @@
             "name": "recurring",
             "in": "query",
             "required": false,
-            "description": "**optional** — Set to \"true\" to filter recurring posts only",
+            "description": "**optional** \u2014 Set to \"true\" to filter recurring posts only",
             "schema": {
               "type": "string"
             }
@@ -1234,7 +1262,7 @@
           "Posts"
         ],
         "summary": "Create post",
-        "description": "Create a new post as draft or scheduled. Validates character limits per platform, media ownership, channel ownership, and plan quotas.\n\n**Character limits:** X: 280, Bluesky: 300, Threads: 500, Mastodon: 500, Pinterest: 500, GMB: 1500, Instagram: 2200, TikTok: 2200, LinkedIn: 3000, YouTube: 5000, Facebook: 63206. On X and Mastodon every URL counts as a flat 23 characters (t.co wrapping / Mastodon link counting), regardless of its real length.\n\n**Link cards:** for a text-only post (no media) containing a URL, the first URL is unfurled at publish time. Facebook receives it as the `link` param, Bluesky as an external embed (with thumbnail), and LinkedIn as a `content.article` card (LinkedIn's API never scrapes URLs itself; if the page yields no title, the post publishes as plain text without a card). Other platforms unfurl the URL themselves or render it as plain text (links in Instagram/TikTok captions are not clickable).\n\nReturns **403** with `code: \"PLATFORM_DISABLED\"` when a target channel's platform has been switched off server-side (`PLATFORM_<NAME>=off`). This is distinct from `FEATURE_DISABLED`, which means the platform is not on the organization's plan. Check `GET /api/platforms` for current availability. A channel's *variant* can be off on its own — LinkedIn company pages are gated separately from personal profiles — in which case the error also carries `accountType` (e.g. `\"organization\"`) naming the variant that is unavailable.",
+        "description": "Create a new post as draft or scheduled. Validates character limits per platform, media ownership, channel ownership, and plan quotas.\n\n**Character limits:** X: 280, Bluesky: 300, Threads: 500, Mastodon: 500, Pinterest: 500, GMB: 1500, Instagram: 2200, TikTok: 2200, LinkedIn: 3000, YouTube: 5000, Facebook: 63206. On X and Mastodon every URL counts as a flat 23 characters (t.co wrapping / Mastodon link counting), regardless of its real length.\n\n**Link cards:** for a text-only post (no media) containing a URL, the first URL is unfurled at publish time. Facebook receives it as the `link` param, Bluesky as an external embed (with thumbnail), and LinkedIn as a `content.article` card (LinkedIn's API never scrapes URLs itself; if the page yields no title, the post publishes as plain text without a card). Other platforms unfurl the URL themselves or render it as plain text (links in Instagram/TikTok captions are not clickable).\n\nReturns **403** with `code: \"PLATFORM_DISABLED\"` when a target channel's platform has been switched off server-side (`PLATFORM_<NAME>=off`). This is distinct from `FEATURE_DISABLED`, which means the platform is not on the organization's plan. Check `GET /api/platforms` for current availability. A channel's *variant* can be off on its own \u2014 LinkedIn company pages are gated separately from personal profiles \u2014 in which case the error also carries `accountType` (e.g. `\"organization\"`) naming the variant that is unavailable.",
         "requestBody": {
           "required": true,
           "content": {
@@ -1261,7 +1289,7 @@
                         },
                         "platform": {
                           "type": "string",
-                          "description": "Platform name. Optional — the server always resolves the platform from the channel record; a supplied value is ignored."
+                          "description": "Platform name. Optional \u2014 the server always resolves the platform from the channel record; a supplied value is ignored."
                         }
                       },
                       "required": [
@@ -1328,12 +1356,12 @@
                     "additionalProperties": {
                       "type": "string"
                     },
-                    "description": "Optional. Per-platform content overrides mapping platform name to a plain string, e.g. { \"x\": \"Short version\" }. Values must be strings — nested objects are rejected with 400 VALIDATION_ERROR."
+                    "description": "Optional. Per-platform content overrides mapping platform name to a plain string, e.g. { \"x\": \"Short version\" }. Values must be strings \u2014 nested objects are rejected with 400 VALIDATION_ERROR."
                   },
                   "deleteMediaAfterPublish": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Optional. Delete uploaded media right after publishing (default: false — media is kept and reclaimed by the 3-month retention sweep). Forced to false when the post has a repeatSchedule."
+                    "description": "Optional. Delete uploaded media right after publishing (default: false \u2014 media is kept and reclaimed by the 3-month retention sweep). Forced to false when the post has a repeatSchedule."
                   },
                   "threadParts": {
                     "type": "array",
@@ -1372,7 +1400,7 @@
                         }
                       }
                     },
-                    "description": "Optional. Per-platform thread overrides, e.g. { \"x\": [{ \"content\": \"Part 1\" }] }. Part content must be a plain string — non-string shapes are rejected with 400 VALIDATION_ERROR."
+                    "description": "Optional. Per-platform thread overrides, e.g. { \"x\": [{ \"content\": \"Part 1\" }] }. Part content must be a plain string \u2014 non-string shapes are rejected with 400 VALIDATION_ERROR."
                   },
                   "repeatSchedule": {
                     "type": "object",
@@ -1632,7 +1660,7 @@
           "Posts"
         ],
         "summary": "Update post",
-        "description": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged — send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a FAILED post silently resets its status to draft and clears its failed platform results (they revert to pending). Editing a PARTIAL post keeps it partial and leaves every platform row untouched — it is live on some channels; re-send the failed ones with POST /api/posts/{id}/retry. Platforms in 'published', 'processing', or 'unconfirmed' are never reset by an edit. When `channels` is sent, rows for channels that remain keep their state (a published channel is NOT re-published on the next publish); removed channels are dropped and new ones added as pending. Send the optional status field ('draft' or 'scheduled') to move a post between draft and scheduled; other status values are rejected. To publish immediately, use POST /api/posts/{id}/publish instead.",
+        "description": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged \u2014 send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a FAILED post silently resets its status to draft and clears its failed platform results (they revert to pending). Editing a PARTIAL post keeps it partial and leaves every platform row untouched \u2014 it is live on some channels; re-send the failed ones with POST /api/posts/{id}/retry. Platforms in 'published', 'processing', or 'unconfirmed' are never reset by an edit. When `channels` is sent, rows for channels that remain keep their state (a published channel is NOT re-published on the next publish); removed channels are dropped and new ones added as pending. Send the optional status field ('draft' or 'scheduled') to move a post between draft and scheduled; other status values are rejected. To publish immediately, use POST /api/posts/{id}/publish instead.",
         "parameters": [
           {
             "name": "id",
@@ -1767,7 +1795,7 @@
           "Posts"
         ],
         "summary": "Attach or detach a post's recurring schedule",
-        "description": "Narrow companion to PUT. This endpoint ONLY accepts `recurringScheduleId` — passing `null` detaches the post from its repeat schedule (and deactivates that schedule if it is left orphaned).\n\nAny other field (including `status` and `scheduledAt`) is rejected with **400** and `unsupportedFields` listing what was sent. **To edit a post — including moving a draft to `scheduled` — use `PUT /api/posts/{id}` with `{ \"status\": \"scheduled\", \"scheduledAt\": \"<future ISO 8601>\" }`.**",
+        "description": "Narrow companion to PUT. This endpoint ONLY accepts `recurringScheduleId` \u2014 passing `null` detaches the post from its repeat schedule (and deactivates that schedule if it is left orphaned).\n\nAny other field (including `status` and `scheduledAt`) is rejected with **400** and `unsupportedFields` listing what was sent. **To edit a post \u2014 including moving a draft to `scheduled` \u2014 use `PUT /api/posts/{id}` with `{ \"status\": \"scheduled\", \"scheduledAt\": \"<future ISO 8601>\" }`.**",
         "parameters": [
           {
             "name": "id",
@@ -1876,7 +1904,7 @@
             ]
           }
         ],
-        "description": "Returns 409 with code PUBLISH_IN_PROGRESS while the post is 'publishing' or 'processing' — a post mid-publish cannot be deleted (the platform post would still go live with no record of it). Wait for it to settle, then delete."
+        "description": "Returns 409 with code PUBLISH_IN_PROGRESS while the post is 'publishing' or 'processing' \u2014 a post mid-publish cannot be deleted (the platform post would still go live with no record of it). Wait for it to settle, then delete."
       }
     },
     "/api/posts/{id}/publish": {
@@ -1930,7 +1958,7 @@
             }
           }
         },
-        "description": "Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). Publishing a pending/rejected post as an approver implicitly approves it.\n\nReturns **403** with `code: \"PLATFORM_DISABLED\"` when one of the post's platforms has been switched off server-side (`PLATFORM_<NAME>=off`); the post is left untouched. Check `GET /api/platforms` for current availability. A channel's *variant* can be off on its own — LinkedIn company pages are gated separately from personal profiles — in which case the error also carries `accountType` (e.g. `\"organization\"`) naming the variant that is unavailable.\n\nOn a failed or partial post this re-sends exactly the platforms in status 'failed' (their retryCount is incremented); 'published', 'processing' and 'pending' rows are never re-sent. Platforms in 'unconfirmed' are never touched here — if they are the only rows left the request fails with **400** `code: \"UNCONFIRMED_REQUIRES_REPUBLISH\"`; check the account, then use POST /api/posts/{id}/retry with `republish: true`. Returns **409** `ALREADY_PUBLISHING` when a publish is already in flight.",
+        "description": "Requires a role with post:publish \u2014 contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). Publishing a pending/rejected post as an approver implicitly approves it.\n\nReturns **403** with `code: \"PLATFORM_DISABLED\"` when one of the post's platforms has been switched off server-side (`PLATFORM_<NAME>=off`); the post is left untouched. Check `GET /api/platforms` for current availability. A channel's *variant* can be off on its own \u2014 LinkedIn company pages are gated separately from personal profiles \u2014 in which case the error also carries `accountType` (e.g. `\"organization\"`) naming the variant that is unavailable.\n\nOn a failed or partial post this re-sends exactly the platforms in status 'failed' (their retryCount is incremented); 'published', 'processing' and 'pending' rows are never re-sent. Platforms in 'unconfirmed' are never touched here \u2014 if they are the only rows left the request fails with **400** `code: \"UNCONFIRMED_REQUIRES_REPUBLISH\"`; check the account, then use POST /api/posts/{id}/retry with `republish: true`. Returns **409** `ALREADY_PUBLISHING` when a publish is already in flight.",
         "operationId": "publishPost",
         "security": [
           {
@@ -1968,7 +1996,7 @@
             "description": "No failed platforms, or unconfirmed platforms present without republish: true (code UNCONFIRMED_REQUIRES_REPUBLISH)"
           }
         },
-        "description": "Re-queues this post's failed platforms. Platforms in status 'unconfirmed' (the publish request may have reached the platform but its response was lost — the post may already be live) are NOT retried unless the body passes republish: true; without it the request fails with code UNCONFIRMED_REQUIRES_REPUBLISH. Check the account before passing republish: true — retrying an unconfirmed platform can duplicate the post.",
+        "description": "Re-queues this post's failed platforms. Platforms in status 'unconfirmed' (the publish request may have reached the platform but its response was lost \u2014 the post may already be live) are NOT retried unless the body passes republish: true; without it the request fails with code UNCONFIRMED_REQUIRES_REPUBLISH. Check the account before passing republish: true \u2014 retrying an unconfirmed platform can duplicate the post.",
         "requestBody": {
           "required": false,
           "content": {
@@ -2018,7 +2046,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Metrics per platform.\n\nEach entry in `platforms` carries `metricsSupported` (false when the platform exposes no readable per-post statistics API — Google Business, Telegram, Tumblr (which reports only a combined note count that cannot be split into likes/reblogs/replies), and LinkedIn personal/profile channels) and `supportedMetrics`, the list of metric keys that platform's API can populate. Every other key on `latest` is stored as 0 by the metrics sync regardless of what the platform returned, so those zeroes mean “not reported” and must not be presented as measurements.\n\nEach platform entry carries `linkClicks`, and `totals.linkClicks` sums them: clicks on bulkpubli.sh short links in this post, measured by BulkPublish. It sits OUTSIDE `latest` because it is not a platform snapshot — a platform that reports nothing still has link clicks — and is distinct from the platform-reported `clicks` field. `supportedMetrics` therefore always includes `linkClicks`, even when `metricsSupported` is false.",
+            "description": "Metrics per platform.\n\nEach entry in `platforms` carries `metricsSupported` (false when the platform exposes no readable per-post statistics API \u2014 Google Business, Telegram, Tumblr (which reports only a combined note count that cannot be split into likes/reblogs/replies), and LinkedIn personal/profile channels) and `supportedMetrics`, the list of metric keys that platform's API can populate. Every other key on `latest` is stored as 0 by the metrics sync regardless of what the platform returned, so those zeroes mean \u201cnot reported\u201d and must not be presented as measurements.\n\nEach platform entry carries `linkClicks`, and `totals.linkClicks` sums them: clicks on bulkpubli.sh short links in this post, measured by BulkPublish. It sits OUTSIDE `latest` because it is not a platform snapshot \u2014 a platform that reports nothing still has link clicks \u2014 and is distinct from the platform-reported `clicks` field. `supportedMetrics` therefore always includes `linkClicks`, even when `metricsSupported` is false.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2112,7 +2140,7 @@
           "Posts"
         ],
         "summary": "Get post engagement (commenters + reactors)",
-        "description": "Returns per-platform lists of the people/pages who commented on or reacted to a published post — with name, handle/headline, profile photo and profile URL when the platform exposes them.\n\nEleven of the sixteen platforms return engagement: Facebook, Instagram, X, LinkedIn, YouTube, Threads, Bluesky, Mastodon, Reddit, Discord and Tumblr. Platforms that expose commenters but never individual likers (Instagram, YouTube, Threads, Reddit) populate `comments` only and set `reactionsUnsupported: true` plus an explanatory `notice`.\n\nExactly five platforms have no comment API at all and return `unsupported: true` with a `notice` saying why: **TikTok** (comments are Research-API only), **Pinterest** (v5 exposes no Pin comments), **Google Business** (local posts have no comment surface; reviews attach to the location, not the post), **Telegram** (a bot learns of comments only through pushed updates, so they cannot be read on request) and **Snapchat** (the Public Profile API reports reply counts only, never individual comments).\n\nPlatform-specific behaviour worth knowing: **X** bills for every read, so replies and likers are returned only when that channel has `metadata.metricsSyncEnabled` set (the same opt-in that governs X metrics) and the org is within its daily read budget — otherwise `comments`/`reactions` are empty and `notice` says which gate declined; X replies also come from recent search, which only covers the last 7 days. **Reddit** keeps votes anonymous, so it reports commenters only. **Tumblr** has no comments endpoint — replies and reblogs-with-commentary map to `comments`, and likes plus bare reblogs to `reactions`. **Discord** returns reactors plus the replies in a thread started from the message; plain channel replies are ordinary messages elsewhere in the channel and are not fetched.\n\n`engagement` is `null` (rather than an empty object) when the post was never published to that channel, or when the channel has no stored access token.",
+        "description": "Returns per-platform lists of the people/pages who commented on or reacted to a published post \u2014 with name, handle/headline, profile photo and profile URL when the platform exposes them.\n\nEleven of the sixteen platforms return engagement: Facebook, Instagram, X, LinkedIn, YouTube, Threads, Bluesky, Mastodon, Reddit, Discord and Tumblr. Platforms that expose commenters but never individual likers (Instagram, YouTube, Threads, Reddit) populate `comments` only and set `reactionsUnsupported: true` plus an explanatory `notice`.\n\nExactly five platforms have no comment API at all and return `unsupported: true` with a `notice` saying why: **TikTok** (comments are Research-API only), **Pinterest** (v5 exposes no Pin comments), **Google Business** (local posts have no comment surface; reviews attach to the location, not the post), **Telegram** (a bot learns of comments only through pushed updates, so they cannot be read on request) and **Snapchat** (the Public Profile API reports reply counts only, never individual comments).\n\nPlatform-specific behaviour worth knowing: **X** bills for every read, so replies and likers are returned only when that channel has `metadata.metricsSyncEnabled` set (the same opt-in that governs X metrics) and the org is within its daily read budget \u2014 otherwise `comments`/`reactions` are empty and `notice` says which gate declined; X replies also come from recent search, which only covers the last 7 days. **Reddit** keeps votes anonymous, so it reports commenters only. **Tumblr** has no comments endpoint \u2014 replies and reblogs-with-commentary map to `comments`, and likes plus bare reblogs to `reactions`. **Discord** returns reactors plus the replies in a thread started from the message; plain channel replies are ordinary messages elsewhere in the channel and are not fetched.\n\n`engagement` is `null` (rather than an empty object) when the post was never published to that channel, or when the channel has no stored access token.",
         "parameters": [
           {
             "name": "id",
@@ -2126,7 +2154,7 @@
             "name": "commentsLimit",
             "in": "query",
             "required": false,
-            "description": "**optional** — Max comments per platform (default 25, max 100). Counts replies as well as top-level comments; when replies push a platform past the cap, `hasMoreComments` is true.",
+            "description": "**optional** \u2014 Max comments per platform (default 25, max 100). Counts replies as well as top-level comments; when replies push a platform past the cap, `hasMoreComments` is true.",
             "schema": {
               "type": "integer",
               "default": 25
@@ -2136,7 +2164,7 @@
             "name": "reactionsLimit",
             "in": "query",
             "required": false,
-            "description": "**optional** — Max reactors per platform (default 25, max 100)",
+            "description": "**optional** \u2014 Max reactors per platform (default 25, max 100)",
             "schema": {
               "type": "integer",
               "default": 25
@@ -2222,7 +2250,7 @@
                                     },
                                     "parentId": {
                                       "type": "string",
-                                      "description": "Set when this comment is a reply — the id of the comment it replies to. Absent for top-level comments. Clients can use it to nest replies; a parentId not present in the returned page should be rendered at top level."
+                                      "description": "Set when this comment is a reply \u2014 the id of the comment it replies to. Absent for top-level comments. Clients can use it to nest replies; a parentId not present in the returned page should be rendered at top level."
                                     }
                                   }
                                 }
@@ -2265,13 +2293,13 @@
                               },
                               "commentsNotice": {
                                 "type": "string",
-                                "description": "Why the COMMENT list specifically is empty, set whenever the comment read did not succeed (missing token, a gate declined — e.g. X analytics not enabled — the platform API errored, or the platform has no thread for this post, like a Discord message without a thread). `notice` mixes comment- and reaction-scoped messages; a client that renders only comments should show this field and treat an empty `comments` with `commentsNotice` absent as a genuine measured zero."
+                                "description": "Why the COMMENT list specifically is empty, set whenever the comment read did not succeed (missing token, a gate declined \u2014 e.g. X analytics not enabled \u2014 the platform API errored, or the platform has no thread for this post, like a Discord message without a thread). `notice` mixes comment- and reaction-scoped messages; a client that renders only comments should show this field and treat an empty `comments` with `commentsNotice` absent as a genuine measured zero."
                               }
                             }
                           },
                           "error": {
                             "type": "string",
-                            "description": "Route-level failure for this platform: the live read threw, or the post is published (`platformPostId` set) but the channel has no stored access token (needs reconnecting). When set alongside `engagement: null` the post IS live on this platform — the data simply could not be read."
+                            "description": "Route-level failure for this platform: the live read threw, or the post is published (`platformPostId` set) but the channel has no stored access token (needs reconnecting). When set alongside `engagement: null` the post IS live on this platform \u2014 the data simply could not be read."
                           },
                           "accountName": {
                             "type": [
@@ -2311,7 +2339,7 @@
           "Posts"
         ],
         "summary": "Publish as Story",
-        "description": "Publish the post's first media as a Facebook or Instagram Story (disappears after 24h). The post must have media and a published platform entry for the target platform. Stories publish inline and are single-flight per post+platform: a second call within ~2 minutes of a success returns **409** `code: \"STORY_IN_PROGRESS\"`. If the request reached the platform but the response was lost, the call returns **422** `code: \"STORY_UNCONFIRMED\"` and stays locked for the same window — check the account before trying again, the story may already be live. Each attempt is recorded in the activity log (post.story_published / post.story_failed).",
+        "description": "Publish the post's first media as a Facebook or Instagram Story (disappears after 24h). The post must have media and a published platform entry for the target platform. Stories publish inline and are single-flight per post+platform: a second call within ~2 minutes of a success returns **409** `code: \"STORY_IN_PROGRESS\"`. If the request reached the platform but the response was lost, the call returns **422** `code: \"STORY_UNCONFIRMED\"` and stays locked for the same window \u2014 check the account before trying again, the story may already be live. Each attempt is recorded in the activity log (post.story_published / post.story_failed).",
         "parameters": [
           {
             "name": "id",
@@ -2337,7 +2365,7 @@
                       "facebook",
                       "instagram"
                     ],
-                    "description": "**required** — Target platform for the story"
+                    "description": "**required** \u2014 Target platform for the story"
                   }
                 }
               }
@@ -2479,7 +2507,7 @@
             "name": "timezone",
             "in": "query",
             "required": false,
-            "description": "**optional** — IANA timezone (default: UTC)",
+            "description": "**optional** \u2014 IANA timezone (default: UTC)",
             "schema": {
               "type": "string"
             }
@@ -2515,7 +2543,7 @@
             "name": "active",
             "in": "query",
             "required": false,
-            "description": "**optional** — Filter by active status (default: true)",
+            "description": "**optional** \u2014 Filter by active status (default: true)",
             "schema": {
               "type": "boolean",
               "default": true
@@ -2534,6 +2562,21 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/Channel"
+                      }
+                    },
+                    "capabilities": {
+                      "type": "object",
+                      "description": "What the CALLING member may do in this organization, resolved from their team role. Returned alongside the channel list so a client does not have to re-derive permissions from a role string.",
+                      "properties": {
+                        "canCreatePosts": {
+                          "type": "boolean"
+                        },
+                        "canPublishPosts": {
+                          "type": "boolean"
+                        },
+                        "canApprovePosts": {
+                          "type": "boolean"
+                        }
                       }
                     }
                   }
@@ -2809,7 +2852,7 @@
             "name": "page",
             "in": "query",
             "required": false,
-            "description": "**optional** — Page number (default: 1)",
+            "description": "**optional** \u2014 Page number (default: 1)",
             "schema": {
               "type": "integer",
               "default": 1
@@ -2819,7 +2862,7 @@
             "name": "limit",
             "in": "query",
             "required": false,
-            "description": "**optional** — Items per page (default: 20)",
+            "description": "**optional** \u2014 Items per page (default: 20)",
             "schema": {
               "type": "integer",
               "default": 20
@@ -2829,7 +2872,7 @@
             "name": "search",
             "in": "query",
             "required": false,
-            "description": "**optional** — Search by filename",
+            "description": "**optional** \u2014 Search by filename",
             "schema": {
               "type": "string"
             }
@@ -2838,7 +2881,7 @@
             "name": "labelIds",
             "in": "query",
             "required": false,
-            "description": "**optional** — Comma-separated label IDs",
+            "description": "**optional** \u2014 Comma-separated label IDs",
             "schema": {
               "type": "string"
             }
@@ -2847,7 +2890,7 @@
             "name": "type",
             "in": "query",
             "required": false,
-            "description": "**optional** — Filter by media kind: `image` or `video` (matches the MIME type prefix)",
+            "description": "**optional** \u2014 Filter by media kind: `image` or `video` (matches the MIME type prefix)",
             "schema": {
               "type": "string",
               "enum": [
@@ -2859,7 +2902,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Media list — `{ files, page, limit, total }`, where `total` counts every file matching the filters across all pages"
+            "description": "Media list \u2014 `{ files, page, limit, total }`, where `total` counts every file matching the filters across all pages"
           }
         },
         "operationId": "listMedia",
@@ -2879,7 +2922,7 @@
           "Media"
         ],
         "summary": "Upload media (single request)",
-        "description": "Upload an image or video file in one multipart request (server relays to storage). Max 100MB (for videos up to 1GB use the multipart endpoints: /api/media/multipart/create → PUT each part → /api/media/multipart/complete). Formats: JPEG, PNG, WebP, GIF, MP4, QuickTime, WebM. Browser clients should prefer the faster direct-to-storage flow: POST /api/media/presign then PUT the file to the returned URL then POST /api/media/finalize. MP4/QuickTime files must be complete (contain a moov atom) — a video captured mid-encode or truncated in transit is rejected with 400 at upload instead of failing at publish time. The same check runs on /api/media/finalize (via ranged reads) and on remote URL imports.",
+        "description": "Upload an image or video file in one multipart request (server relays to storage). Max 100MB (for videos up to 1GB use the multipart endpoints: /api/media/multipart/create \u2192 PUT each part \u2192 /api/media/multipart/complete). Formats: JPEG, PNG, WebP, GIF, MP4, QuickTime, WebM. Browser clients should prefer the faster direct-to-storage flow: POST /api/media/presign then PUT the file to the returned URL then POST /api/media/finalize. MP4/QuickTime files must be complete (contain a moov atom) \u2014 a video captured mid-encode or truncated in transit is rejected with 400 at upload instead of failing at publish time. The same check runs on /api/media/finalize (via ranged reads) and on remote URL imports.",
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -2919,7 +2962,7 @@
           "Media"
         ],
         "summary": "Get a direct upload URL",
-        "description": "Step 1 of the direct-to-storage upload. Checks the storage quota and returns a presigned PUT URL plus the object key. PUT the file (max 100MB — videos up to 1GB go through the multipart endpoints instead) to `uploadUrl` with a matching `Content-Type` header, then call POST /api/media/finalize.",
+        "description": "Step 1 of the direct-to-storage upload. Checks the storage quota and returns a presigned PUT URL plus the object key. PUT the file (max 100MB \u2014 videos up to 1GB go through the multipart endpoints instead) to `uploadUrl` with a matching `Content-Type` header, then call POST /api/media/finalize.",
         "requestBody": {
           "required": true,
           "content": {
@@ -3021,15 +3064,15 @@
                   },
                   "width": {
                     "type": "integer",
-                    "description": "**optional** — image/video width"
+                    "description": "**optional** \u2014 image/video width"
                   },
                   "height": {
                     "type": "integer",
-                    "description": "**optional** — image/video height"
+                    "description": "**optional** \u2014 image/video height"
                   },
                   "duration": {
                     "type": "integer",
-                    "description": "**optional** — video duration in seconds"
+                    "description": "**optional** \u2014 video duration in seconds"
                   }
                 }
               }
@@ -3259,7 +3302,7 @@
             "name": "from",
             "in": "query",
             "required": true,
-            "description": "**required** — Start date (YYYY-MM-DD)",
+            "description": "**required** \u2014 Start date (YYYY-MM-DD)",
             "schema": {
               "type": "string",
               "format": "date"
@@ -3269,7 +3312,7 @@
             "name": "to",
             "in": "query",
             "required": true,
-            "description": "**required** — End date (YYYY-MM-DD)",
+            "description": "**required** \u2014 End date (YYYY-MM-DD)",
             "schema": {
               "type": "string",
               "format": "date"
@@ -3279,7 +3322,7 @@
             "name": "tz",
             "in": "query",
             "required": false,
-            "description": "**optional** — IANA timezone (e.g. `Asia/Karachi`) used for day boundaries and per-day bucketing. Defaults to `UTC`. Invalid names fall back to UTC.",
+            "description": "**optional** \u2014 IANA timezone (e.g. `Asia/Karachi`) used for day boundaries and per-day bucketing. Defaults to `UTC`. Invalid names fall back to UTC.",
             "schema": {
               "type": "string",
               "default": "UTC"
@@ -3289,7 +3332,7 @@
             "name": "heatmap",
             "in": "query",
             "required": false,
-            "description": "**optional** — set to `1` to include `publishedTimes` (raw publish timestamps for the posting-activity heatmap, up to 5000 entries). Omitted by default; `publishedTimes` is then an empty array.",
+            "description": "**optional** \u2014 set to `1` to include `publishedTimes` (raw publish timestamps for the posting-activity heatmap, up to 5000 entries). Omitted by default; `publishedTimes` is then an empty array.",
             "schema": {
               "type": "string",
               "enum": [
@@ -3301,7 +3344,7 @@
             "name": "channelIds",
             "in": "query",
             "required": false,
-            "description": "**optional** — Comma-separated channel ids. Only post_platform rows on these channels are counted. Combines with `platforms`, `labelIds`, `postFormat` and `mediaType` (all must match).",
+            "description": "**optional** \u2014 Comma-separated channel ids. Only post_platform rows on these channels are counted. Combines with `platforms`, `labelIds`, `postFormat` and `mediaType` (all must match).",
             "schema": {
               "type": "string",
               "example": "12,15"
@@ -3311,7 +3354,7 @@
             "name": "platforms",
             "in": "query",
             "required": false,
-            "description": "**optional** — Comma-separated platform keys (`x,youtube,…`). Unknown keys are ignored.",
+            "description": "**optional** \u2014 Comma-separated platform keys (`x,youtube,\u2026`). Unknown keys are ignored.",
             "schema": {
               "type": "string",
               "example": "x,linkedin"
@@ -3321,7 +3364,7 @@
             "name": "labelIds",
             "in": "query",
             "required": false,
-            "description": "**optional** — Comma-separated label ids. A post matches when it carries ANY of them.",
+            "description": "**optional** \u2014 Comma-separated label ids. A post matches when it carries ANY of them.",
             "schema": {
               "type": "string",
               "example": "3,7"
@@ -3331,7 +3374,7 @@
             "name": "postFormat",
             "in": "query",
             "required": false,
-            "description": "**optional** — `post` (single) or `thread`. Reads `posts.post_format`.",
+            "description": "**optional** \u2014 `post` (single) or `thread`. Reads `posts.post_format`.",
             "schema": {
               "type": "string",
               "enum": [
@@ -3344,7 +3387,7 @@
             "name": "mediaType",
             "in": "query",
             "required": false,
-            "description": "**optional** — `text` (no media), `image` or `video`, decided by the post's FIRST media file (`media_files.mime_type`).",
+            "description": "**optional** \u2014 `text` (no media), `image` or `video`, decided by the post's FIRST media file (`media_files.mime_type`).",
             "schema": {
               "type": "string",
               "enum": [
@@ -3358,7 +3401,7 @@
             "name": "compare",
             "in": "query",
             "required": false,
-            "description": "**optional** — Set to `1` to also compute the equal-length window immediately before `from`. The result carries `previous` (same totals for that window, plus `byDay` on the engagement endpoint) and `previousWindow` (`{from, to, days, available}`). `previous` is `null` and `available` is `false` when the earlier window would reach past the 30-day statistics-retention floor — in practice comparison works for windows of 15 days or fewer.",
+            "description": "**optional** \u2014 Set to `1` to also compute the equal-length window immediately before `from`. The result carries `previous` (same totals for that window, plus `byDay` on the engagement endpoint) and `previousWindow` (`{from, to, days, available}`). `previous` is `null` and `available` is `false` when the earlier window would reach past the 30-day statistics-retention floor \u2014 in practice comparison works for windows of 15 days or fewer.",
             "schema": {
               "type": "string",
               "enum": [
@@ -3397,7 +3440,7 @@
             "name": "from",
             "in": "query",
             "required": true,
-            "description": "**required** — Start date (YYYY-MM-DD)",
+            "description": "**required** \u2014 Start date (YYYY-MM-DD)",
             "schema": {
               "type": "string",
               "format": "date"
@@ -3407,7 +3450,7 @@
             "name": "to",
             "in": "query",
             "required": true,
-            "description": "**required** — End date (YYYY-MM-DD)",
+            "description": "**required** \u2014 End date (YYYY-MM-DD)",
             "schema": {
               "type": "string",
               "format": "date"
@@ -3417,7 +3460,7 @@
             "name": "channelId",
             "in": "query",
             "required": false,
-            "description": "**optional** — Legacy single-channel filter; equivalent to `channelIds=<id>` and merged with it.",
+            "description": "**optional** \u2014 Legacy single-channel filter; equivalent to `channelIds=<id>` and merged with it.",
             "schema": {
               "type": "integer"
             }
@@ -3426,7 +3469,7 @@
             "name": "top",
             "in": "query",
             "required": false,
-            "description": "**optional** — Set to `1` to return only the ranked `topPosts` list; `allPosts` comes back as an empty array. Used by dashboards that render a short leaderboard and would otherwise download every post in the window.",
+            "description": "**optional** \u2014 Set to `1` to return only the ranked `topPosts` list; `allPosts` comes back as an empty array. Used by dashboards that render a short leaderboard and would otherwise download every post in the window.",
             "schema": {
               "type": "string",
               "enum": [
@@ -3476,7 +3519,7 @@
             "name": "topBy",
             "in": "query",
             "required": false,
-            "description": "**optional** — Metric `topPosts` is ranked by. Same values as `sort` except `date`. Default `impressions`.",
+            "description": "**optional** \u2014 Metric `topPosts` is ranked by. Same values as `sort` except `date`. Default `impressions`.",
             "schema": {
               "type": "string",
               "enum": [
@@ -3499,7 +3542,7 @@
             "name": "topOrder",
             "in": "query",
             "required": false,
-            "description": "**optional** — `desc` (default) for the best posts, `asc` for the worst.",
+            "description": "**optional** \u2014 `desc` (default) for the best posts, `asc` for the worst.",
             "schema": {
               "type": "string",
               "enum": [
@@ -3513,7 +3556,7 @@
             "name": "heatmap",
             "in": "query",
             "required": false,
-            "description": "**optional** — Set to `1` to include `postTimes`: one `{t, e, i}` per published post_platform (publish instant, engagements, impressions; up to 5000), for engagement-weighted best-time-to-post views. Empty array otherwise.",
+            "description": "**optional** \u2014 Set to `1` to include `postTimes`: one `{t, e, i}` per published post_platform (publish instant, engagements, impressions; up to 5000), for engagement-weighted best-time-to-post views. Empty array otherwise.",
             "schema": {
               "type": "string",
               "enum": [
@@ -3525,7 +3568,7 @@
             "name": "channelIds",
             "in": "query",
             "required": false,
-            "description": "**optional** — Comma-separated channel ids. Only post_platform rows on these channels are counted. Combines with `platforms`, `labelIds`, `postFormat` and `mediaType` (all must match).",
+            "description": "**optional** \u2014 Comma-separated channel ids. Only post_platform rows on these channels are counted. Combines with `platforms`, `labelIds`, `postFormat` and `mediaType` (all must match).",
             "schema": {
               "type": "string",
               "example": "12,15"
@@ -3535,7 +3578,7 @@
             "name": "platforms",
             "in": "query",
             "required": false,
-            "description": "**optional** — Comma-separated platform keys (`x,youtube,…`). Unknown keys are ignored.",
+            "description": "**optional** \u2014 Comma-separated platform keys (`x,youtube,\u2026`). Unknown keys are ignored.",
             "schema": {
               "type": "string",
               "example": "x,linkedin"
@@ -3545,7 +3588,7 @@
             "name": "labelIds",
             "in": "query",
             "required": false,
-            "description": "**optional** — Comma-separated label ids. A post matches when it carries ANY of them.",
+            "description": "**optional** \u2014 Comma-separated label ids. A post matches when it carries ANY of them.",
             "schema": {
               "type": "string",
               "example": "3,7"
@@ -3555,7 +3598,7 @@
             "name": "postFormat",
             "in": "query",
             "required": false,
-            "description": "**optional** — `post` (single) or `thread`. Reads `posts.post_format`.",
+            "description": "**optional** \u2014 `post` (single) or `thread`. Reads `posts.post_format`.",
             "schema": {
               "type": "string",
               "enum": [
@@ -3568,7 +3611,7 @@
             "name": "mediaType",
             "in": "query",
             "required": false,
-            "description": "**optional** — `text` (no media), `image` or `video`, decided by the post's FIRST media file (`media_files.mime_type`).",
+            "description": "**optional** \u2014 `text` (no media), `image` or `video`, decided by the post's FIRST media file (`media_files.mime_type`).",
             "schema": {
               "type": "string",
               "enum": [
@@ -3582,7 +3625,7 @@
             "name": "compare",
             "in": "query",
             "required": false,
-            "description": "**optional** — Set to `1` to also compute the equal-length window immediately before `from`. The result carries `previous` (same totals for that window, plus `byDay` on the engagement endpoint) and `previousWindow` (`{from, to, days, available}`). `previous` is `null` and `available` is `false` when the earlier window would reach past the 30-day statistics-retention floor — in practice comparison works for windows of 15 days or fewer.",
+            "description": "**optional** \u2014 Set to `1` to also compute the equal-length window immediately before `from`. The result carries `previous` (same totals for that window, plus `byDay` on the engagement endpoint) and `previousWindow` (`{from, to, days, available}`). `previous` is `null` and `available` is `false` when the earlier window would reach past the 30-day statistics-retention floor \u2014 in practice comparison works for windows of 15 days or fewer.",
             "schema": {
               "type": "string",
               "enum": [
@@ -3593,7 +3636,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts, allPosts, and unmeasuredPlatforms.\n\n`unmeasuredPlatforms` lists platforms present in the window that cannot report per-post metrics at all — either the platform has no readable metrics API (Google Business, Telegram, Tumblr) or, for LinkedIn, the channel is a personal/profile account (share statistics are exposed only for organization pages). Their rows still appear in every total with zeroes, so a zero for one of these platforms means \"not reported\", not \"measured zero\". Each entry in a post's `platformMetrics` carries the same signal as `metricsSupported`.\n\nAll figures come from the stored `post_metrics` snapshot, synced every 6 hours (or on demand via `POST /api/analytics/refresh`) — not a live read of the platform.\n\n`metricSupport` maps each platform present in the window to the list of metric keys its API can actually report (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `engagementRate`). Anything not listed is stored as 0 by the metrics sync because the platform has no such field — it is NOT a measurement. For example X reports impressions/likes/comments/shares/saves (bookmarks), so `reach`, `clicks` and `videoViews` are always 0 for X rows; Bluesky and Mastodon report no impressions, so `engagementRate` is always 0 for them; Pinterest reports no reach; YouTube reports no shares or reach; Reddit reports likes (score), comments and shares (crossposts) only; Discord reports likes (reaction counts) and comments (thread replies) only.\n\n`supportedTotals` is the union of `metricSupport` across the window — the org-wide `total*` fields are only measurements for keys listed here. A key absent from `supportedTotals` should be rendered as “not available” (a dash), never as 0. `partialTotals` maps a supported metric key to the platforms in the window that do NOT report it, so a consumer can note that the total covers only a subset of posts.\n\nEach entry of a post's `platformMetrics` also carries `supportedMetrics` (same per-platform list) alongside `metricsSupported`.\n\nFacebook's `impressions`, `reach`, `clicks` and `engagementRate` come from the Page Insights edge and require the `read_insights` permission; without it they stay 0 even though the metric is listed as supported.\n\n`metricsDisabledChannels` lists channels published to in the window whose metrics sync is switched off, so their posts contribute zeroes to every total. X is the only platform this applies to today: its reads are billed, so per-post metrics sync is opt-in per channel (`metadata.metricsSyncEnabled`, toggled on the Channels page) and runs at most once every 7 days. `POST /api/analytics/refresh` will not produce X figures for a channel that has not opted in.\n\n`conditionalMetrics` maps a platform in the window to metrics that are supported but permission-gated — a 0 there means \"may not be readable\", not \"no such metric\". Today only Facebook appears, for `impressions`, `reach`, `clicks` and `engagementRate`.\n\nEach post in `topPosts`/`allPosts` carries both a post-level `engagementRate` and, inside `platformMetrics[]`, a per-channel `engagementRate`. They are NOT the same number: the post-level value is the mean of the post's channels that reported a non-zero rate, while `platformMetrics[].engagementRate` is that one channel's own rate (engagements ÷ impressions). Render the per-channel value next to per-channel counters — using the post-level average there shows one network's percentage beside another network's zeros. Both are basis points (325 = 3.25%).\n\n`totalLinkClicks` (and `linkClicks` on each entry of `byPlatform`, `byDay`, `topPosts`, `allPosts` and `platformMetrics`) counts clicks on bulkpubli.sh short links, measured by BulkPublish rather than reported by the platform. It is deliberately NOT folded into `totalClicks`/`clicks`, which are the platform's own click figures: one visit can register in both, so adding them would double-count. Because we measure it ourselves it is available on every platform, including those listed in `unmeasuredPlatforms`, and it appears in `supportedTotals`/`metricSupport` for all of them. Bot and link-preview traffic is excluded. Zero for organizations that have not enabled Link Tracking.\n\n**Added 2026-09-03.** `byDay[]` entries now carry every metric (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `linkClicks`, `engagements`, `posts`) plus `platforms`: the same bucket per platform for that day. `byPlatform` entries carry the same full set. `byChannel[]` lists `{channelId, platform, accountName, …same metrics…}` per channel. Each post in `topPosts`/`allPosts` also has `reach`, `engagements`, `postFormat` (`post`|`thread`), `mediaType` (`text`|`image`|`video`) and `labels[] {id, name, color}`; each `platformMetrics[]` entry has `channelId`, `accountName`, `reach`, `engagements` and `fetchedAt`. `publishedCount` is the number of published post_platform rows in the window. `filters` echoes the parsed filter set. With `compare=1`, `previous` holds the `total*`/`avgEngagementRate`/`publishedCount` fields and `byDay` for the preceding window (or `null` if unavailable) and `previousWindow` says which window that is."
+            "description": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts, allPosts, and unmeasuredPlatforms.\n\n`unmeasuredPlatforms` lists platforms present in the window that cannot report per-post metrics at all \u2014 either the platform has no readable metrics API (Google Business, Telegram, Tumblr) or, for LinkedIn, the channel is a personal/profile account (share statistics are exposed only for organization pages). Their rows still appear in every total with zeroes, so a zero for one of these platforms means \"not reported\", not \"measured zero\". Each entry in a post's `platformMetrics` carries the same signal as `metricsSupported`.\n\nAll figures come from the stored `post_metrics` snapshot, synced every 6 hours (or on demand via `POST /api/analytics/refresh`) \u2014 not a live read of the platform.\n\n`metricSupport` maps each platform present in the window to the list of metric keys its API can actually report (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `engagementRate`). Anything not listed is stored as 0 by the metrics sync because the platform has no such field \u2014 it is NOT a measurement. For example X reports impressions/likes/comments/shares/saves (bookmarks), so `reach`, `clicks` and `videoViews` are always 0 for X rows; Bluesky and Mastodon report no impressions, so `engagementRate` is always 0 for them; Pinterest reports no reach; YouTube reports no shares or reach; Reddit reports likes (score), comments and shares (crossposts) only; Discord reports likes (reaction counts) and comments (thread replies) only.\n\n`supportedTotals` is the union of `metricSupport` across the window \u2014 the org-wide `total*` fields are only measurements for keys listed here. A key absent from `supportedTotals` should be rendered as \u201cnot available\u201d (a dash), never as 0. `partialTotals` maps a supported metric key to the platforms in the window that do NOT report it, so a consumer can note that the total covers only a subset of posts.\n\nEach entry of a post's `platformMetrics` also carries `supportedMetrics` (same per-platform list) alongside `metricsSupported`.\n\nFacebook's `impressions`, `reach`, `clicks` and `engagementRate` come from the Page Insights edge and require the `read_insights` permission; without it they stay 0 even though the metric is listed as supported.\n\n`metricsDisabledChannels` lists channels published to in the window whose metrics sync is switched off, so their posts contribute zeroes to every total. X is the only platform this applies to today: its reads are billed, so per-post metrics sync is opt-in per channel (`metadata.metricsSyncEnabled`, toggled on the Channels page) and runs at most once every 7 days. `POST /api/analytics/refresh` will not produce X figures for a channel that has not opted in.\n\n`conditionalMetrics` maps a platform in the window to metrics that are supported but permission-gated \u2014 a 0 there means \"may not be readable\", not \"no such metric\". Today only Facebook appears, for `impressions`, `reach`, `clicks` and `engagementRate`.\n\nEach post in `topPosts`/`allPosts` carries both a post-level `engagementRate` and, inside `platformMetrics[]`, a per-channel `engagementRate`. They are NOT the same number: the post-level value is the mean of the post's channels that reported a non-zero rate, while `platformMetrics[].engagementRate` is that one channel's own rate (engagements \u00f7 impressions). Render the per-channel value next to per-channel counters \u2014 using the post-level average there shows one network's percentage beside another network's zeros. Both are basis points (325 = 3.25%).\n\n`totalLinkClicks` (and `linkClicks` on each entry of `byPlatform`, `byDay`, `topPosts`, `allPosts` and `platformMetrics`) counts clicks on bulkpubli.sh short links, measured by BulkPublish rather than reported by the platform. It is deliberately NOT folded into `totalClicks`/`clicks`, which are the platform's own click figures: one visit can register in both, so adding them would double-count. Because we measure it ourselves it is available on every platform, including those listed in `unmeasuredPlatforms`, and it appears in `supportedTotals`/`metricSupport` for all of them. Bot and link-preview traffic is excluded. Zero for organizations that have not enabled Link Tracking.\n\n**Added 2026-09-03.** `byDay[]` entries now carry every metric (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `linkClicks`, `engagements`, `posts`) plus `platforms`: the same bucket per platform for that day. `byPlatform` entries carry the same full set. `byChannel[]` lists `{channelId, platform, accountName, \u2026same metrics\u2026}` per channel. Each post in `topPosts`/`allPosts` also has `reach`, `engagements`, `postFormat` (`post`|`thread`), `mediaType` (`text`|`image`|`video`) and `labels[] {id, name, color}`; each `platformMetrics[]` entry has `channelId`, `accountName`, `reach`, `engagements` and `fetchedAt`. `publishedCount` is the number of published post_platform rows in the window. `filters` echoes the parsed filter set. With `compare=1`, `previous` holds the `total*`/`avgEngagementRate`/`publishedCount` fields and `byDay` for the preceding window (or `null` if unavailable) and `previousWindow` says which window that is."
           }
         },
         "operationId": "getAnalyticsEngagement",
@@ -3641,7 +3684,7 @@
             "name": "channelId",
             "in": "query",
             "required": false,
-            "description": "**optional** — Legacy single-channel filter; equivalent to `channelIds=<id>`. A non-numeric value is a 400.",
+            "description": "**optional** \u2014 Legacy single-channel filter; equivalent to `channelIds=<id>`. A non-numeric value is a 400.",
             "schema": {
               "type": "integer"
             }
@@ -3650,7 +3693,7 @@
             "name": "from",
             "in": "query",
             "required": false,
-            "description": "**optional** — Start date (YYYY-MM-DD, default 30 days ago). Clamped to at most 30 days before the end date.",
+            "description": "**optional** \u2014 Start date (YYYY-MM-DD, default 30 days ago). Clamped to at most 30 days before the end date.",
             "schema": {
               "type": "string",
               "format": "date"
@@ -3660,7 +3703,7 @@
             "name": "to",
             "in": "query",
             "required": false,
-            "description": "**optional** — End date (YYYY-MM-DD, default today)",
+            "description": "**optional** \u2014 End date (YYYY-MM-DD, default today)",
             "schema": {
               "type": "string",
               "format": "date"
@@ -3670,7 +3713,7 @@
             "name": "channelIds",
             "in": "query",
             "required": false,
-            "description": "**optional** — Comma-separated channel ids. Only post_platform rows on these channels are counted. Combines with `platforms`, `labelIds`, `postFormat` and `mediaType` (all must match).",
+            "description": "**optional** \u2014 Comma-separated channel ids. Only post_platform rows on these channels are counted. Combines with `platforms`, `labelIds`, `postFormat` and `mediaType` (all must match).",
             "schema": {
               "type": "string",
               "example": "12,15"
@@ -3680,7 +3723,7 @@
             "name": "platforms",
             "in": "query",
             "required": false,
-            "description": "**optional** — Comma-separated platform keys (`x,youtube,…`). Unknown keys are ignored.",
+            "description": "**optional** \u2014 Comma-separated platform keys (`x,youtube,\u2026`). Unknown keys are ignored.",
             "schema": {
               "type": "string",
               "example": "x,linkedin"
@@ -3689,7 +3732,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Account metrics with channel list.\n\n`engagementRate` on each row is ALWAYS `null`: no platform handler computes an account-level engagement rate (the `getAccountAnalytics` contract has no such field), so the stored column is its default 0 for every row. It is returned as null rather than 0 so it cannot be mistaken for a measured 0%. For a real rate, use the per-post `engagementRate` inside `platformMetrics[]` on `GET /api/analytics/engagement`.\n\n`websiteClicks` is populated by Google Business only; `profileViews` by Facebook only (`page_views_total`). Both are 0 for every other platform because no other handler reports them — not because the value was measured as zero.",
+            "description": "Account metrics with channel list.\n\n`engagementRate` on each row is ALWAYS `null`: no platform handler computes an account-level engagement rate (the `getAccountAnalytics` contract has no such field), so the stored column is its default 0 for every row. It is returned as null rather than 0 so it cannot be mistaken for a measured 0%. For a real rate, use the per-post `engagementRate` inside `platformMetrics[]` on `GET /api/analytics/engagement`.\n\n`websiteClicks` is populated by Google Business only; `profileViews` by Facebook only (`page_views_total`). Both are 0 for every other platform because no other handler reports them \u2014 not because the value was measured as zero.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3775,13 +3818,13 @@
           "Analytics"
         ],
         "summary": "Per-post metric history",
-        "description": "Every metrics snapshot stored for one post, per platform, oldest first — the series behind the \"since publish\" trend sparklines. `post_metrics` is append-only (one row per metrics sync per post_platform), so the history is whatever the sync cadence produced: roughly every 6 hours for most platforms, at most weekly for X channels that opted in. Snapshots older than the 30-day retention floor are excluded. Returns `{postId, publishedAt, series[]}` where each series is `{postPlatformId, platform, channelId, accountName, supportedMetrics, metricsSupported, points[]}` and each point is `{fetchedAt, impressions, reach, likes, comments, shares, saves, clicks, videoViews, engagementRate}`. A platform whose `metricsSupported` is `false` contributes stored zeroes, not measurements.",
+        "description": "Every metrics snapshot stored for one post, per platform, oldest first \u2014 the series behind the \"since publish\" trend sparklines. `post_metrics` is append-only (one row per metrics sync per post_platform), so the history is whatever the sync cadence produced: roughly every 6 hours for most platforms, at most weekly for X channels that opted in. Snapshots older than the 30-day retention floor are excluded. Returns `{postId, publishedAt, series[]}` where each series is `{postPlatformId, platform, channelId, accountName, supportedMetrics, metricsSupported, points[]}` and each point is `{fetchedAt, impressions, reach, likes, comments, shares, saves, clicks, videoViews, engagementRate}`. A platform whose `metricsSupported` is `false` contributes stored zeroes, not measurements.",
         "parameters": [
           {
             "name": "postId",
             "in": "query",
             "required": true,
-            "description": "**required** — The post id.",
+            "description": "**required** \u2014 The post id.",
             "schema": {
               "type": "integer"
             }
@@ -3817,13 +3860,13 @@
           "Analytics"
         ],
         "summary": "Tracked-link performance",
-        "description": "Every bulkpubli.sh short link minted for a post published in the window, with its click count. Clicks are measured by BulkPublish's own redirector (bot and link-preview traffic excluded) rather than reported by the platform, so they exist for every network — including those in `unmeasuredPlatforms`. Totals sync from the redirector every 15 minutes; referrer and country splits are not stored. Ordered by clicks desc, capped at 2000 links. The date window is capped at 30 days like every other analytics endpoint. Returns `{from, to, totalClicks, totalLinks, links[]}`; each link is `{id, shortUrl, code, originalUrl, finalUrl, destinationHost, clicks, lastClickAt, createdAt, platform, channelId, accountName, postId, postContent, publishedAt}`. Empty for organizations that have not enabled Link Tracking.",
+        "description": "Every bulkpubli.sh short link minted for a post published in the window, with its click count. Clicks are measured by BulkPublish's own redirector (bot and link-preview traffic excluded) rather than reported by the platform, so they exist for every network \u2014 including those in `unmeasuredPlatforms`. Totals sync from the redirector every 15 minutes; referrer and country splits are not stored. Ordered by clicks desc, capped at 2000 links. The date window is capped at 30 days like every other analytics endpoint. Returns `{from, to, totalClicks, totalLinks, links[]}`; each link is `{id, shortUrl, code, originalUrl, finalUrl, destinationHost, clicks, lastClickAt, createdAt, platform, channelId, accountName, postId, postContent, publishedAt}`. Empty for organizations that have not enabled Link Tracking.",
         "parameters": [
           {
             "name": "from",
             "in": "query",
             "required": true,
-            "description": "**required** — Start date (YYYY-MM-DD)",
+            "description": "**required** \u2014 Start date (YYYY-MM-DD)",
             "schema": {
               "type": "string",
               "format": "date"
@@ -3833,7 +3876,7 @@
             "name": "to",
             "in": "query",
             "required": true,
-            "description": "**required** — End date (YYYY-MM-DD)",
+            "description": "**required** \u2014 End date (YYYY-MM-DD)",
             "schema": {
               "type": "string",
               "format": "date"
@@ -3843,7 +3886,7 @@
             "name": "channelIds",
             "in": "query",
             "required": false,
-            "description": "**optional** — Comma-separated channel ids. Only post_platform rows on these channels are counted. Combines with `platforms`, `labelIds`, `postFormat` and `mediaType` (all must match).",
+            "description": "**optional** \u2014 Comma-separated channel ids. Only post_platform rows on these channels are counted. Combines with `platforms`, `labelIds`, `postFormat` and `mediaType` (all must match).",
             "schema": {
               "type": "string",
               "example": "12,15"
@@ -3853,7 +3896,7 @@
             "name": "platforms",
             "in": "query",
             "required": false,
-            "description": "**optional** — Comma-separated platform keys (`x,youtube,…`). Unknown keys are ignored.",
+            "description": "**optional** \u2014 Comma-separated platform keys (`x,youtube,\u2026`). Unknown keys are ignored.",
             "schema": {
               "type": "string",
               "example": "x,linkedin"
@@ -3863,7 +3906,7 @@
             "name": "labelIds",
             "in": "query",
             "required": false,
-            "description": "**optional** — Comma-separated label ids. A post matches when it carries ANY of them.",
+            "description": "**optional** \u2014 Comma-separated label ids. A post matches when it carries ANY of them.",
             "schema": {
               "type": "string",
               "example": "3,7"
@@ -3873,7 +3916,7 @@
             "name": "postFormat",
             "in": "query",
             "required": false,
-            "description": "**optional** — `post` (single) or `thread`. Reads `posts.post_format`.",
+            "description": "**optional** \u2014 `post` (single) or `thread`. Reads `posts.post_format`.",
             "schema": {
               "type": "string",
               "enum": [
@@ -3886,7 +3929,7 @@
             "name": "mediaType",
             "in": "query",
             "required": false,
-            "description": "**optional** — `text` (no media), `image` or `video`, decided by the post's FIRST media file (`media_files.mime_type`).",
+            "description": "**optional** \u2014 `text` (no media), `image` or `video`, decided by the post's FIRST media file (`media_files.mime_type`).",
             "schema": {
               "type": "string",
               "enum": [
@@ -3926,7 +3969,7 @@
             "name": "type",
             "in": "query",
             "required": false,
-            "description": "**optional** — Filter by label type",
+            "description": "**optional** \u2014 Filter by label type",
             "schema": {
               "type": "string",
               "enum": [
@@ -4207,7 +4250,7 @@
                   "requireApproval": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Optional. Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
+                    "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
                   }
                 }
               }
@@ -4338,7 +4381,7 @@
                   "requireApproval": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Optional. Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
+                    "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false."
                   }
                 }
               }
@@ -4656,7 +4699,7 @@
             "name": "page",
             "in": "query",
             "required": false,
-            "description": "**optional** — Page number (default: 1)",
+            "description": "**optional** \u2014 Page number (default: 1)",
             "schema": {
               "type": "integer"
             }
@@ -4665,7 +4708,7 @@
             "name": "limit",
             "in": "query",
             "required": false,
-            "description": "**optional** — Items per page (default: 20)",
+            "description": "**optional** \u2014 Items per page (default: 20)",
             "schema": {
               "type": "integer"
             }
@@ -4674,7 +4717,7 @@
             "name": "unreadOnly",
             "in": "query",
             "required": false,
-            "description": "**optional** — Show only unread notifications",
+            "description": "**optional** \u2014 Show only unread notifications",
             "schema": {
               "type": "boolean"
             }
@@ -4847,7 +4890,7 @@
             "name": "url",
             "in": "query",
             "required": true,
-            "description": "**required** — HTTP/HTTPS URL to preview",
+            "description": "**required** \u2014 HTTP/HTTPS URL to preview",
             "schema": {
               "type": "string",
               "format": "uri"
@@ -4876,7 +4919,7 @@
         "description": "Current usage vs limits for all resource types on your plan.",
         "responses": {
           "200": {
-            "description": "Current usage vs limits for all resource types on your plan.\n\n`usage.scheduledToday` counts posts scheduled FOR the current day (excluding `draft` and `failed`) and pairs with `limits.scheduledPerDay` — distinct from `usage.pendingScheduled`, which is every pending scheduled post regardless of date and pairs with `limits.maxPendingScheduled`. `usage.postsToday` counts posts *created* today and pairs with `limits.postsPerDay`.\n\nThe response also carries `channelSlots` — the org's purchased extra-channel add-on state: `{ active, slots: [{id, expiresAt, autoRenews}], baseChannelLimit, effectiveChannelLimit }`. Slots are granted by a seat-based Polar subscription at $2.99 per slot per month (seats = slot count, one subscription per organization). Each active slot raises the effective total channel limit by one and allows one channel above the per-platform cap (shared across platforms). A slot's `autoRenews` says whether it rolls forward with the subscription (`expiresAt` moves each cycle) or lapses at `expiresAt`; slots no connected channel is using are auto-canceled shortly before renewal, so the org is never billed for unused headroom. `effectiveChannelLimit` (base plan limit + active slots; `-1` stays `-1`) is what channel-connect quota checks actually enforce."
+            "description": "Current usage vs limits for all resource types on your plan.\n\n`usage.scheduledToday` counts posts scheduled FOR the current day (excluding `draft` and `failed`) and pairs with `limits.scheduledPerDay` \u2014 distinct from `usage.pendingScheduled`, which is every pending scheduled post regardless of date and pairs with `limits.maxPendingScheduled`. `usage.postsToday` counts posts *created* today and pairs with `limits.postsPerDay`.\n\nThe response also carries `channelSlots` \u2014 the org's purchased extra-channel add-on state: `{ active, slots: [{id, expiresAt, autoRenews}], baseChannelLimit, effectiveChannelLimit }`. Slots are granted by a seat-based Polar subscription at $2.99 per slot per month (seats = slot count, one subscription per organization). Each active slot raises the effective total channel limit by one and allows one channel above the per-platform cap (shared across platforms). A slot's `autoRenews` says whether it rolls forward with the subscription (`expiresAt` moves each cycle) or lapses at `expiresAt`; slots no connected channel is using are auto-canceled shortly before renewal, so the org is never billed for unused headroom. `effectiveChannelLimit` (base plan limit + active slots; `-1` stays `-1`) is what channel-connect quota checks actually enforce."
           }
         },
         "parameters": [
@@ -4884,7 +4927,7 @@
             "name": "tz",
             "in": "query",
             "required": false,
-            "description": "**optional** — IANA timezone name (e.g. `Asia/Karachi`) used only for the day boundary of `usage.scheduledToday`, so it matches the same calendar day the `scheduledPerDay` limit is enforced against at write time. Defaults to `UTC`; a malformed value falls back to `UTC` rather than erroring.",
+            "description": "**optional** \u2014 IANA timezone name (e.g. `Asia/Karachi`) used only for the day boundary of `usage.scheduledToday`, so it matches the same calendar day the `scheduledPerDay` limit is enforced against at write time. Defaults to `UTC`; a malformed value falls back to `UTC` rather than erroring.",
             "schema": {
               "type": "string",
               "default": "UTC"
@@ -4910,13 +4953,13 @@
           "Utilities"
         ],
         "summary": "X (Twitter) API spend",
-        "description": "Per-org X API call costs. Writes AND metered reads (metrics, engagement, user search, health checks) draw from ONE monthly budget — plan allowance first, purchased credits as overage; there is no separate read quota, and metered reads are unavailable on the Free plan (credits unlock Free-plan publishing only). `absorbedDcents` is retained for compatibility and covers only historical pre-2026-08 read usage. Returns today's breakdown, monthly budget status, and 30-day history.",
+        "description": "Per-org X API call costs. Writes AND metered reads (metrics, engagement, user search, health checks) draw from ONE monthly budget \u2014 plan allowance first, purchased credits as overage; there is no separate read quota, and metered reads are unavailable on the Free plan (credits unlock Free-plan publishing only). `absorbedDcents` is retained for compatibility and covers only historical pre-2026-08 read usage. Returns today's breakdown, monthly budget status, and 30-day history.",
         "parameters": [
           {
             "name": "days",
             "in": "query",
             "required": false,
-            "description": "**optional** — History window in days (default 30, max 90)",
+            "description": "**optional** \u2014 History window in days (default 30, max 90)",
             "schema": {
               "type": "integer"
             }
@@ -5024,13 +5067,13 @@
           "Utilities"
         ],
         "summary": "Add extra channel slots",
-        "description": "Purchase extra channel slots — a seat-based Polar subscription at $2.99 per slot per month (seats = slot count, one subscription per organization). Each active slot raises the organization's effective total channel limit by one and allows one channel above the per-platform cap (slots are generic and shared across platforms). Body: `{ count?: number }` — slots to add, default 1, clamped to 1..100. With no existing slot subscription this returns `{ url, checkoutId }` — redirect the user to `url` to subscribe. With an existing slot subscription the seats are increased server-side (prorated) and the response is `{ updated: true, seats }` with no redirect. Purchase is available on every plan, including Free; already-granted slots keep working on any tier until they lapse. Slots renew automatically with the subscription; shortly before each renewal, slots no connected channel is using are automatically canceled or reduced so the organization is never billed for unused headroom (an email explains how to keep them). When slots lapse (cancellation, refund, or payment failure) and the organization is left over its limit, the most recently connected excess channels are suspended (paused, tokens kept) after 7-day and 1-day warning emails. Channel-limit `403 QUOTA_EXCEEDED` errors on every plan include `addon: \"channel_slot\"` to signal this purchase as a remedy.",
+        "description": "Purchase extra channel slots \u2014 a seat-based Polar subscription at $2.99 per slot per month (seats = slot count, one subscription per organization). Each active slot raises the organization's effective total channel limit by one and allows one channel above the per-platform cap (slots are generic and shared across platforms). Body: `{ count?: number }` \u2014 slots to add, default 1, clamped to 1..100. With no existing slot subscription this returns `{ url, checkoutId }` \u2014 redirect the user to `url` to subscribe. With an existing slot subscription the seats are increased server-side (prorated) and the response is `{ updated: true, seats }` with no redirect. Purchase is available on every plan, including Free; already-granted slots keep working on any tier until they lapse. Slots renew automatically with the subscription; shortly before each renewal, slots no connected channel is using are automatically canceled or reduced so the organization is never billed for unused headroom (an email explains how to keep them). When slots lapse (cancellation, refund, or payment failure) and the organization is left over its limit, the most recently connected excess channels are suspended (paused, tokens kept) after 7-day and 1-day warning emails. Channel-limit `403 QUOTA_EXCEEDED` errors on every plan include `addon: \"channel_slot\"` to signal this purchase as a remedy.",
         "responses": {
           "200": {
-            "description": "New subscription: `{ url, checkoutId }` — redirect the user to `url` to pay. Existing subscription: `{ updated: true, seats }` — slots added by prorated seat increase, no redirect."
+            "description": "New subscription: `{ url, checkoutId }` \u2014 redirect the user to `url` to pay. Existing subscription: `{ updated: true, seats }` \u2014 slots added by prorated seat increase, no redirect."
           },
           "403": {
-            "description": "Reserved: organization is on a plan that cannot purchase slots (`code: SLOT_PLAN_INELIGIBLE`). Currently unused — every plan may purchase slots."
+            "description": "Reserved: organization is on a plan that cannot purchase slots (`code: SLOT_PLAN_INELIGIBLE`). Currently unused \u2014 every plan may purchase slots."
           },
           "503": {
             "description": "Payments are disabled (`code: PAYMENTS_DISABLED`) or the product is not configured."
@@ -5053,7 +5096,7 @@
           "Utilities"
         ],
         "summary": "Generate an AI caption",
-        "description": "Generate, rephrase, improve, shorten, expand, or restyle a caption — or caption an image via vision (Cloudflare Workers AI). Consumes one AI run-unit (image = 2) from the plan's monthly allowance, then from purchased credits. Returns up to several variants plus a usage snapshot.",
+        "description": "Generate, rephrase, improve, shorten, expand, or restyle a caption \u2014 or caption an image via vision (Cloudflare Workers AI). Consumes one AI run-unit (image = 2) from the plan's monthly allowance, then from purchased credits. Returns up to several variants plus a usage snapshot.",
         "requestBody": {
           "required": true,
           "content": {
@@ -5122,7 +5165,7 @@
             "description": "Caption variants + usage"
           },
           "402": {
-            "description": "Out of AI runs — buy credits"
+            "description": "Out of AI runs \u2014 buy credits"
           },
           "429": {
             "description": "Rate limited"
@@ -5147,7 +5190,7 @@
             "name": "page",
             "in": "query",
             "required": false,
-            "description": "**optional** — Page number (default: 1)",
+            "description": "**optional** \u2014 Page number (default: 1)",
             "schema": {
               "type": "integer"
             }
@@ -5156,7 +5199,7 @@
             "name": "limit",
             "in": "query",
             "required": false,
-            "description": "**optional** — Items per page (default: 20)",
+            "description": "**optional** \u2014 Items per page (default: 20)",
             "schema": {
               "type": "integer"
             }
@@ -5165,7 +5208,7 @@
             "name": "action",
             "in": "query",
             "required": false,
-            "description": "**optional** — Filter by action type",
+            "description": "**optional** \u2014 Filter by action type",
             "schema": {
               "type": "string"
             }
@@ -5174,7 +5217,7 @@
             "name": "resource",
             "in": "query",
             "required": false,
-            "description": "**optional** — Filter by resource type",
+            "description": "**optional** \u2014 Filter by resource type",
             "schema": {
               "type": "string"
             }
@@ -5493,7 +5536,7 @@
                   "requireApproval": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Optional. Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for POST /api/posts/{id}/approve. Only meaningful when mode is 'publish' (draft items never publish on their own). Default false."
+                    "description": "Optional. Hold items auto-published from this feed for team approval \u2014 each generated post lands with approvalStatus 'pending' and waits for POST /api/posts/{id}/approve. Only meaningful when mode is 'publish' (draft items never publish on their own). Default false."
                   }
                 }
               }
@@ -5508,7 +5551,7 @@
             "description": "Invalid input"
           }
         },
-        "description": "Create an RSS/Atom feed. Plan-gated: max feeds per org (Free 1, Pro 10, Business 50) and auto-publish mode (`mode: \"publish\"`) is paid-only — Free is draft-only and a `publish` request returns 403. Over the feed limit returns 403. Feed poll cadence is also per-plan (Free 60 min, Pro 30 min, Business 15 min).",
+        "description": "Create an RSS/Atom feed. Plan-gated: max feeds per org (Free 1, Pro 10, Business 50) and auto-publish mode (`mode: \"publish\"`) is paid-only \u2014 Free is draft-only and a `publish` request returns 403. Over the feed limit returns 403. Feed poll cadence is also per-plan (Free 60 min, Pro 30 min, Business 15 min).",
         "operationId": "createRssFeed",
         "security": [
           {
@@ -5644,7 +5687,7 @@
                   "requireApproval": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Optional. Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for POST /api/posts/{id}/approve. Only meaningful when mode is 'publish' (draft items never publish on their own). Default false."
+                    "description": "Optional. Hold items auto-published from this feed for team approval \u2014 each generated post lands with approvalStatus 'pending' and waits for POST /api/posts/{id}/approve. Only meaningful when mode is 'publish' (draft items never publish on their own). Default false."
                   }
                 }
               }
@@ -5703,7 +5746,7 @@
           "Media"
         ],
         "summary": "Start multipart upload (large videos, up to 1GB)",
-        "description": "Step 1 of the chunked direct-to-storage upload for large files. Returns an uploadId, the fixed part size (10MB), and a presigned PUT URL per part. Upload each 10MB slice of the file to its URL (a failed part can be retried on its own — a network drop never restarts the whole file), collect each response's ETag header, then call /api/media/multipart/complete.",
+        "description": "Step 1 of the chunked direct-to-storage upload for large files. Returns an uploadId, the fixed part size (10MB), and a presigned PUT URL per part. Upload each 10MB slice of the file to its URL (a failed part can be retried on its own \u2014 a network drop never restarts the whole file), collect each response's ETag header, then call /api/media/multipart/complete.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -6011,7 +6054,7 @@
           "Channels"
         ],
         "summary": "List platforms and their availability",
-        "description": "Returns every social platform BulkPublish supports, together with its current availability. Use this to render an accurate \"temporarily unavailable\" or \"connections paused\" state rather than assuming every platform can be connected or published to.\n\nPlatforms that are switched off are still listed, with `enabled: false` and a `reason`. `envVar` is only included for organization owners and admins.\n\nA platform may also expose `variants` — sub-platforms gated separately because the vendor reviews them as a separate app. LinkedIn reports `variants.organization` for company pages; personal-profile availability is the platform-level state.",
+        "description": "Returns every social platform BulkPublish supports, together with its current availability. Use this to render an accurate \"temporarily unavailable\" or \"connections paused\" state rather than assuming every platform can be connected or published to.\n\nPlatforms that are switched off are still listed, with `enabled: false` and a `reason`. `envVar` is only included for organization owners and admins.\n\nA platform may also expose `variants` \u2014 sub-platforms gated separately because the vendor reviews them as a separate app. LinkedIn reports `variants.organization` for company pages; personal-profile availability is the platform-level state.",
         "responses": {
           "200": {
             "description": "Platform list",
@@ -6191,7 +6234,7 @@
           "OAuth"
         ],
         "summary": "Exchange an authorization code or refresh token",
-        "description": "Token endpoint (RFC 6749). No user authentication — the client authenticates itself. Confidential clients send `client_secret` (form field or HTTP Basic); public clients send none and rely on PKCE. Authorization codes are single-use and refresh tokens rotate: presenting either one twice revokes every token issued under that authorization, per OAuth 2.1. Failures return a single `invalid_grant` message for missing, expired and already-used credentials alike, so the endpoint cannot be used to probe which case applies.",
+        "description": "Token endpoint (RFC 6749). No user authentication \u2014 the client authenticates itself. Confidential clients send `client_secret` (form field or HTTP Basic); public clients send none and rely on PKCE. Authorization codes are single-use and refresh tokens rotate: presenting either one twice revokes every token issued under that authorization, per OAuth 2.1. Failures return a single `invalid_grant` message for missing, expired and already-used credentials alike, so the endpoint cannot be used to probe which case applies.",
         "security": [],
         "requestBody": {
           "required": true,
@@ -6214,23 +6257,23 @@
                   },
                   "client_id": {
                     "type": "string",
-                    "description": "**required** — e.g. `bpc_...`"
+                    "description": "**required** \u2014 e.g. `bpc_...`"
                   },
                   "client_secret": {
                     "type": "string",
-                    "description": "**optional** — confidential clients only; may also be sent as HTTP Basic"
+                    "description": "**optional** \u2014 confidential clients only; may also be sent as HTTP Basic"
                   },
                   "code": {
                     "type": "string",
-                    "description": "**required for authorization_code** — the code from the redirect"
+                    "description": "**required for authorization_code** \u2014 the code from the redirect"
                   },
                   "redirect_uri": {
                     "type": "string",
-                    "description": "**required for authorization_code** — must byte-match the one used to authorize"
+                    "description": "**required for authorization_code** \u2014 must byte-match the one used to authorize"
                   },
                   "code_verifier": {
                     "type": "string",
-                    "description": "**required for authorization_code** — PKCE verifier, 43-128 chars"
+                    "description": "**required for authorization_code** \u2014 PKCE verifier, 43-128 chars"
                   },
                   "refresh_token": {
                     "type": "string",
@@ -6278,7 +6321,7 @@
             "description": "invalid_request, invalid_grant or unsupported_grant_type"
           },
           "401": {
-            "description": "invalid_client — unknown client or bad secret"
+            "description": "invalid_client \u2014 unknown client or bad secret"
           },
           "429": {
             "description": "Too many token requests from this IP"
@@ -6293,7 +6336,7 @@
           "OAuth"
         ],
         "summary": "Revoke a token",
-        "description": "Token revocation (RFC 7009). Revoking either the access or the refresh token disconnects the whole authorization — the user sees the app disappear from Connected apps. Returns 200 whether or not the token existed, so it cannot be used to probe for valid tokens.",
+        "description": "Token revocation (RFC 7009). Revoking either the access or the refresh token disconnects the whole authorization \u2014 the user sees the app disappear from Connected apps. Returns 200 whether or not the token existed, so it cannot be used to probe for valid tokens.",
         "security": [],
         "requestBody": {
           "required": true,
@@ -6308,7 +6351,7 @@
                 "properties": {
                   "token": {
                     "type": "string",
-                    "description": "**required** — an access or refresh token"
+                    "description": "**required** \u2014 an access or refresh token"
                   },
                   "client_id": {
                     "type": "string",
@@ -6316,7 +6359,7 @@
                   },
                   "client_secret": {
                     "type": "string",
-                    "description": "**optional** — confidential clients only"
+                    "description": "**optional** \u2014 confidential clients only"
                   }
                 }
               }
@@ -6328,7 +6371,7 @@
             "description": "Revoked (or the token did not exist)"
           },
           "401": {
-            "description": "invalid_client — client authentication failed"
+            "description": "invalid_client \u2014 client authentication failed"
           }
         },
         "operationId": "revokeOauthToken"

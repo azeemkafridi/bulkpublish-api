@@ -38,12 +38,20 @@ class ChannelsResource:
                 channels, ``False`` only inactive, ``None`` returns all.
 
         Returns:
-            List of channel objects.
+            The ``GET /api/channels`` envelope, which carries ``channels`` and,
+            since 2026-09, ``capabilities`` (a :class:`MemberCapabilities` for
+            the member whose key made the request).
+
+            Note the annotation says ``List[Channel]`` and the response is the
+            envelope. That mismatch predates ``capabilities`` and is shared by
+            ``labels.list`` and ``schedules.list``; it is left alone here
+            because changing it is a breaking change across the SDK rather than
+            a docs fix.
 
         Example::
 
             # All channels
-            channels = bp.channels.list()
+            channels = bp.channels.list()["channels"]
 
             # Only active channels
             active = bp.channels.list(active=True)

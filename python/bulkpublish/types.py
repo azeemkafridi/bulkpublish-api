@@ -94,6 +94,10 @@ class Post(TypedDict, total=False):
     platformThreadParts: Dict[str, Any]
     deleteMediaAfterPublish: bool
     threadParts: Optional[List[Dict[str, Any]]]
+    # Media referenced by threadParts[].mediaFileIds, resolved and de-duplicated
+    # across parts. Separate from mediaFiles, which is the media on the post
+    # itself: a thread post can carry both.
+    threadMediaFiles: List["MediaFile"]
     autoPlugEnabled: bool
     autoPlugText: Optional[str]
     autoPlugThreshold: int
@@ -155,6 +159,18 @@ class BulkOperationResult(TypedDict, total=False):
 # ---------------------------------------------------------------------------
 # Channels
 # ---------------------------------------------------------------------------
+
+
+class MemberCapabilities(TypedDict):
+    """What the member whose key made the request may do in the organization.
+
+    Returned in the ``GET /api/channels`` envelope alongside ``channels``, so a
+    client does not have to re-derive permissions from a role string.
+    """
+
+    canCreatePosts: bool
+    canPublishPosts: bool
+    canApprovePosts: bool
 
 
 class Channel(TypedDict, total=False):

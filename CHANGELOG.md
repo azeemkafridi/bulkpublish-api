@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-09-05 — Thread media, member capabilities
+
+Node **1.16.0** · Python **0.17.0** · MCP server **1.20.0** · spec + Postman
+
+### Added
+
+- **`threadMediaFiles` on the post object**, returned by `GET /api/posts` and
+  `GET /api/posts/{id}`. Media referenced by `threadParts[].mediaFileIds`,
+  resolved to full objects and de-duplicated across parts. It is NOT in
+  `mediaFiles`, which carries only the media on the post itself, so a client
+  that reads `mediaFiles` alone renders a thread without its images. Typed in
+  both SDKs; the MCP `get_post` description now says which field holds what.
+- **`capabilities` in the `GET /api/channels` envelope**: `canCreatePosts`,
+  `canPublishPosts`, `canApprovePosts` for the member whose key made the
+  request. Check it before a write instead of learning the answer from a 403.
+  Typed as `MemberCapabilities` in both SDKs.
+- **`threadParts` documented on the response object.** It was already accepted
+  on create and update and already returned; it had simply never been described
+  as a field you get back.
+
+### Notes
+
+- `channels.list()` in the Python SDK is annotated `List[Channel]` but returns
+  the response envelope, so read `["channels"]`. That predates this release and
+  is shared by `labels.list()` and `schedules.list()`. Left as-is: changing it
+  is a breaking change across the SDK rather than a documentation fix. The
+  docstring now says so and the example was corrected.
+
 ## 2026-09-03 — Analytics filters, period comparison, post history and link performance
 
 Node **1.15.0** · Python **0.16.0** · MCP server **1.19.0** · spec + Postman
