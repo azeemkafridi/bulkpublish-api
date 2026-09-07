@@ -574,6 +574,7 @@ class PostsResource:
         *,
         timezone: Optional[str] = None,
         position: Optional[str] = None,
+        exclude_post_id: Optional[int] = None,
     ) -> QueueSlot:
         """Get the organization's next optimal publishing time slot.
 
@@ -582,6 +583,8 @@ class PostsResource:
             position: ``"next"`` (default) for the next free slot, ``"end"`` for
                 the slot after the last pending scheduled post (the bottom of
                 the queue).
+            exclude_post_id: Leave this post's own slot out of the booked set
+                when the answer is for rescheduling it.
 
         Returns:
             Dict with ``suggestedTime`` and ``timezone``.
@@ -596,6 +599,8 @@ class PostsResource:
             params["timezone"] = timezone
         if position is not None:
             params["position"] = position
+        if exclude_post_id is not None:
+            params["excludePostId"] = exclude_post_id
         return self._client._request("GET", "/api/posts/queue-slot", params=params)
 
 
@@ -672,13 +677,15 @@ class AsyncPostsResource:
             body["scheduledAt"] = scheduled_at
         return await self._client._request("POST", "/api/posts/bulk", json=body)
 
-    async def queue_slot(self, *, timezone: Optional[str] = None, position: Optional[str] = None) -> QueueSlot:
+    async def queue_slot(self, *, timezone: Optional[str] = None, position: Optional[str] = None, exclude_post_id: Optional[int] = None) -> QueueSlot:
         """Queue slot — see :meth:`PostsResource.queue_slot`."""
         params: Dict[str, Any] = {}
         if timezone is not None:
             params["timezone"] = timezone
         if position is not None:
             params["position"] = position
+        if exclude_post_id is not None:
+            params["excludePostId"] = exclude_post_id
         return await self._client._request("GET", "/api/posts/queue-slot", params=params)
 
 

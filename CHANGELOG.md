@@ -22,6 +22,11 @@ Node **1.19.0** · Python **0.19.0** · MCP **1.22.0** · spec
   after the last pending scheduled post (the bottom of the queue); `next`
   stays the default. Node `bp.posts.queueSlot(tz, 'end')`, Python
   `bp.posts.queue_slot(position="end")`, MCP `get_queue_slot` `position`.
+  `excludePostId` leaves a post's own slot out of the booked set when the
+  answer is for rescheduling that post.
+- **Mentions and options endpoints documented** as they behave: LinkedIn on
+  `/api/channels/{id}/mentions` (with the `notice` field), `q`/`subreddit`
+  and the Threads `locations` type on `/api/channels/{id}/options`.
 
 ## 2026-09-07 — LinkedIn mentions, Threads topic and location tags
 

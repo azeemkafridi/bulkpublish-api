@@ -1577,11 +1577,16 @@ server.tool(
       .enum(["next", "end"])
       .optional()
       .describe('"next" (default): the next free slot. "end": the slot after the last pending scheduled post, i.e. the bottom of the queue.'),
+    excludePostId: z
+      .number()
+      .optional()
+      .describe("When the slot is for rescheduling an existing post, its ID — so its current slot is not counted as booked."),
   },
-  async ({ timezone, position }) => {
+  async ({ timezone, position, excludePostId }) => {
     const params = new URLSearchParams();
     if (timezone) params.set("timezone", timezone);
     if (position) params.set("position", position);
+    if (excludePostId !== undefined) params.set("excludePostId", String(excludePostId));
     const qs = params.toString();
     const res = await api("GET", `/api/posts/queue-slot${qs ? `?${qs}` : ""}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };

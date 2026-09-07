@@ -339,6 +339,8 @@ export class PostsResource {
    * @param timezone - IANA timezone string (default: 'UTC').
    * @param position - `'next'` (default) for the next free slot, `'end'` for the
    *   slot after the last pending scheduled post (the bottom of the queue).
+   * @param excludePostId - Leave this post's own slot out of the booked set when
+   *   the answer is for rescheduling it.
    * @returns The suggested time slot.
    *
    * @example
@@ -348,7 +350,7 @@ export class PostsResource {
    * const last = await bp.posts.queueSlot('America/New_York', 'end');
    * ```
    */
-  queueSlot(timezone?: string, position?: 'next' | 'end'): Promise<QueueSlotResponse> {
-    return this.http.get<QueueSlotResponse>('/api/posts/queue-slot', { timezone, position });
+  queueSlot(timezone?: string, position?: 'next' | 'end', excludePostId?: number): Promise<QueueSlotResponse> {
+    return this.http.get<QueueSlotResponse>('/api/posts/queue-slot', { timezone, position, excludePostId });
   }
 }

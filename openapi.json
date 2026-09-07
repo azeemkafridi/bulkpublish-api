@@ -1399,7 +1399,7 @@
                 "properties": {
                   "content": {
                     "type": "string",
-                    "description": "Post text content (optional if media attached). LinkedIn mentions: write @[Display Name](urn:li:organization:ID) to mention a Page or @[Display Name](urn:li:person:ID) to mention a person; the token publishes as a real mention on LinkedIn and as plain @Display Name on every other channel of the same post, and counts as @Display Name toward every character limit. GET /api/channels/{id}/mentions?q=<vanity-name> on a LinkedIn channel returns ready-made tokens for Pages (exact match on the Page's URL slug; a personal channel borrows a connected Page's access for the lookup). Reserved LinkedIn formatting characters in the rest of the text are escaped for you at publish time."
+                    "description": "Post text content (optional if media attached). LinkedIn mentions: write @[Display Name](urn:li:organization:ID) to mention a Page or @[Display Name](urn:li:person:ID) to mention a person; the token publishes as a real mention on LinkedIn and as plain @Display Name on every other channel of the same post, and counts as @Display Name toward every character limit. GET /api/channels/{id}/mentions?q=<vanity-name> on a LinkedIn channel returns ready-made tokens for Pages (exact match on the Page's URL slug; a personal channel borrows a connected Page's access for the lookup). Reserved LinkedIn formatting characters in the rest of the text are escaped for you at publish time, so send plain text and never pre-escape it yourself."
                   },
                   "channels": {
                     "type": "array",
@@ -2649,6 +2649,15 @@
               ],
               "default": "next"
             }
+          },
+          {
+            "name": "excludePostId",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Leave this post's current slot out of the booked set, for rescheduling it: the queue's \"move to top/bottom\" passes the post being moved, then updates it with PUT /api/posts/{id}. Must be a numeric post ID.",
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -2837,7 +2846,7 @@
           "Channels"
         ],
         "summary": "Get platform-specific options for a channel",
-        "description": "Returns boards (Pinterest), playlists (YouTube), or organizations (LinkedIn) depending on the channel's platform. Returns empty items for platforms without sub-resources.",
+        "description": "Returns boards (Pinterest), playlists (YouTube), or organizations (LinkedIn) depending on the channel's platform. Returns empty items for platforms without sub-resources. Threads: `?q=<place>` returns `{ type: 'locations', items: [{ id, name, address? }] }`; until the connected account has granted location tagging the response is `{ type: 'locations', items: [], unavailable: true }`.",
         "parameters": [
           {
             "name": "id",
@@ -2846,6 +2855,24 @@
             "description": "Channel ID",
             "schema": {
               "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Search term. Reddit: subreddit name search. Threads: place search for `platformSpecific.threads.locationId`.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "subreddit",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Reddit only: return that subreddit's post flairs instead of searching.",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -2908,7 +2935,7 @@
           "Channels"
         ],
         "summary": "Search users for @mention",
-        "description": "Search for users on a channel's platform to @mention in post content. Currently supported on X (Twitter) and Bluesky. Other platforms return an empty array.",
+        "description": "Search accounts on a channel's platform to @mention in post content. Supported on X, Bluesky and LinkedIn; other platforms return an empty array. LinkedIn matches Pages by their exact URL slug (linkedin.com/company/<slug>, a pasted URL works) and each result's `handle` is the ready-to-insert token `@[Name](urn:li:organization:ID)`; people cannot be searched. A personal LinkedIn profile channel uses a connected, active Page in the same workspace for the lookup; when none is connected the response is `{ users: [], notice }` with a sentence to show the user. Queries under 2 characters return an empty list without a lookup; results are cached for about a minute.",
         "parameters": [
           {
             "name": "id",
@@ -2931,7 +2958,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Matching users",
+            "description": "{ users: [{ id, handle, name, profileImage? }], notice? }. `notice` is present only when nothing could be searched (LinkedIn personal channel without a connected Page).",
             "content": {
               "application/json": {
                 "schema": {
