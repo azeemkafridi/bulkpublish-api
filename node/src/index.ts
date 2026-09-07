@@ -8,6 +8,8 @@ import { SchedulesResource } from './schedules.js';
 import { ChannelSetsResource } from './channel-sets.js';
 import { RssFeedsResource } from './rss-feeds.js';
 import { PlatformsResource } from './platforms.js';
+import { OrganizationsResource } from './organizations.js';
+import { NotificationsResource } from './notifications.js';
 import type {
   ActivityLog,
   ApiKeyInfo,
@@ -61,6 +63,8 @@ export class BulkPublish {
   readonly channelSets: ChannelSetsResource;
   readonly rssFeeds: RssFeedsResource;
   readonly platforms: PlatformsResource;
+  readonly organizations: OrganizationsResource;
+  readonly notifications: NotificationsResource;
 
   private readonly http: HttpClient;
 
@@ -76,6 +80,8 @@ export class BulkPublish {
     this.channelSets = new ChannelSetsResource(http);
     this.rssFeeds = new RssFeedsResource(http);
     this.platforms = new PlatformsResource(http);
+    this.organizations = new OrganizationsResource(http);
+    this.notifications = new NotificationsResource(http);
   }
 
   // ---------------------------------------------------------------------
@@ -195,6 +201,8 @@ export { SchedulesResource } from './schedules.js';
 export { ChannelSetsResource } from './channel-sets.js';
 export { RssFeedsResource } from './rss-feeds.js';
 export { PlatformsResource } from './platforms.js';
+export { OrganizationsResource } from './organizations.js';
+export { NotificationsResource } from './notifications.js';
 export {
   BulkPublishError,
   AuthenticationError,

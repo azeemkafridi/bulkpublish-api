@@ -43,6 +43,8 @@ from .exceptions import (
 from .labels import AsyncLabelsResource, LabelsResource
 from .media import AsyncMediaResource, MediaResource
 from .posts import AsyncPostsResource, PostsResource
+from .notifications import AsyncNotificationsResource, NotificationsResource
+from .organizations import AsyncOrganizationsResource, OrganizationsResource
 from .platforms import AsyncPlatformsResource, PlatformsResource
 from .rss_feeds import AsyncRssFeedsResource, RssFeedsResource
 from .schedules import AsyncSchedulesResource, SchedulesResource
@@ -171,6 +173,8 @@ class BulkPublish(_BaseClient):
         schedules: :class:`~bulkpublish.schedules.SchedulesResource`
         channel_sets: :class:`~bulkpublish.channel_sets.ChannelSetsResource`
         platforms: :class:`~bulkpublish.platforms.PlatformsResource`
+        organizations: :class:`~bulkpublish.organizations.OrganizationsResource`
+        notifications: :class:`~bulkpublish.notifications.NotificationsResource`
         rss_feeds: :class:`~bulkpublish.rss_feeds.RssFeedsResource`
     Example::
 
@@ -226,6 +230,8 @@ class BulkPublish(_BaseClient):
         self.channel_sets = ChannelSetsResource(self)
         self.rss_feeds = RssFeedsResource(self)
         self.platforms = PlatformsResource(self)
+        self.organizations = OrganizationsResource(self)
+        self.notifications = NotificationsResource(self)
 
     def close(self) -> None:
         """Close the underlying HTTP connection pool.
@@ -541,6 +547,8 @@ class AsyncBulkPublish(_BaseClient):
         self.channel_sets = AsyncChannelSetsResource(self)
         self.rss_feeds = AsyncRssFeedsResource(self)
         self.platforms = AsyncPlatformsResource(self)
+        self.organizations = AsyncOrganizationsResource(self)
+        self.notifications = AsyncNotificationsResource(self)
 
     async def close(self) -> None:
         """Close the underlying async HTTP connection pool.

@@ -88,6 +88,8 @@ asyncio.run(main())
 | `bp.schedules` | `list`, `create`, `update`, `delete` |
 | `bp.channel_sets` | `list`, `create`, `update`, `delete` — saved channel groups for one-click targeting |
 | `bp.rss_feeds` | `list`, `create`, `update`, `delete` — RSS/Atom autopost feeds (new items become posts; optional `field_mapping` controls caption template, media, truncation, per-channel overrides) |
+| `bp.organizations` | `list`, `create` — the organizations this key's user belongs to, and the role held in each. API key only: not reachable with an OAuth token |
+| `bp.notifications` | `list`, `mark_read`, `delete`, `preferences`, `update_preferences` — publish failures, expiring connections. API key only |
 
 Every method has docstrings with usage examples — works great with IDE autocomplete and LLM code generation.
 

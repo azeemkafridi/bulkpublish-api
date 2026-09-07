@@ -78,6 +78,8 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 | `bp.schedules` | `list`, `create`, `update`, `delete` |
 | `bp.channelSets` | `list`, `create`, `update`, `delete` — saved channel groups for one-click targeting |
 | `bp.rssFeeds` | `list`, `create`, `update`, `delete` — RSS/Atom autopost feeds (new items become posts; optional `fieldMapping` controls caption template, media, truncation, per-channel overrides) |
+| `bp.organizations` | `list`, `create` — the organizations this key's user belongs to, and the role held in each. API key only: not reachable with an OAuth token |
+| `bp.notifications` | `list`, `markRead`, `delete`, `preferences`, `updatePreferences` — publish failures, expiring connections. API key only |
 
 ## Platform Requirements
 

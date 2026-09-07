@@ -515,14 +515,36 @@ class QuotaUsage(TypedDict, total=False):
 
 
 class Notification(TypedDict, total=False):
-    """A user notification."""
+    """Something the app recorded for you: a publish, a failure, an expiry.
 
-    id: str
+    ``type`` is the event kind, e.g. ``post_published`` or ``post_failed``, and
+    ``data`` carries whatever that kind attaches.
+    """
+
+    id: int
+    userId: str
+    organizationId: Optional[int]
+    #: Name of the organization it belongs to, when it has one.
+    organizationName: Optional[str]
     type: str
     title: str
     message: str
-    read: bool
+    data: Optional[Dict[str, Any]]
+    isRead: bool
     createdAt: str
+
+
+class NotificationList(TypedDict, total=False):
+    """A page of notifications.
+
+    ``unreadTotal`` counts unread across the whole account rather than this
+    page, and is unaffected by ``unreadOnly``, so the number means the same
+    thing however the list was filtered.
+    """
+
+    notifications: List[Notification]
+    unreadTotal: int
+    pagination: Dict[str, int]
 
 
 class NotificationPreferences(TypedDict, total=False):
@@ -537,10 +559,12 @@ class NotificationPreferences(TypedDict, total=False):
     userId: str
     emailOnFailure: bool
     emailOnTokenExpiry: bool
+    emailOnChannelSlots: bool
     inAppPublished: bool
     inAppFailed: bool
     inAppScheduleReminder: bool
     inAppTokenExpiry: bool
+    inAppInbox: bool
 
 
 # ---------------------------------------------------------------------------

@@ -524,6 +524,18 @@
           "id": {
             "type": "integer"
           },
+          "userId": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "integer",
+            "nullable": true
+          },
+          "organizationName": {
+            "type": "string",
+            "nullable": true,
+            "description": "Name of the organization it belongs to, when it has one."
+          },
           "type": {
             "type": "string"
           },
@@ -533,8 +545,50 @@
           "message": {
             "type": "string"
           },
+          "data": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "Payload for this notification type."
+          },
           "isRead": {
             "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "NotificationPreferences": {
+        "type": "object",
+        "description": "Which notifications are delivered and by which route. Email categories are opt-in and default off; in-app categories default on.",
+        "properties": {
+          "emailOnFailure": { "type": "boolean" },
+          "emailOnTokenExpiry": { "type": "boolean" },
+          "emailOnChannelSlots": { "type": "boolean" },
+          "inAppPublished": { "type": "boolean" },
+          "inAppFailed": { "type": "boolean" },
+          "inAppScheduleReminder": { "type": "boolean" },
+          "inAppTokenExpiry": { "type": "boolean" },
+          "inAppInbox": { "type": "boolean" }
+        }
+      },
+      "Organization": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "slug": { "type": "string" },
+          "plan": {
+            "type": "string",
+            "enum": ["free", "pro", "business"]
+          },
+          "ownerId": { "type": "string" },
+          "role": {
+            "type": "string",
+            "enum": ["owner", "admin", "member", "approver", "contributor", "viewer"],
+            "description": "The caller's role in this organization. 'member' is legacy; no new code assigns it."
           },
           "createdAt": {
             "type": "string",

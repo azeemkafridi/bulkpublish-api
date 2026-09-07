@@ -1,5 +1,49 @@
 # Changelog
 
+## 2026-09-07 — Organizations and notifications
+
+Node **1.17.0** · Python **0.18.0** · spec
+
+Two endpoints that have been in the published spec for a while had no SDK
+method, so nothing could be written against them without hand-rolling a
+request.
+
+### Added
+
+- **`organizations`**: `list()` and `create()`. `list()` returns every
+  organization the key's user belongs to, with the role held in each. Where a
+  user owns several, the `plan` reported is the highest among them, because
+  owned organizations share a plan and that is the figure the app enforces.
+- **`notifications`**: `list()`, `markRead()`, `delete()`, `preferences()` and
+  `updatePreferences()`. `list()` returns a page plus `unreadTotal`, which
+  counts unread across the account rather than the page and is unaffected by
+  `unreadOnly`, so the number means the same thing however the list is
+  filtered.
+
+Both are available to an API key and **not** to an OAuth token. Account
+administration is outside the OAuth scope allowlist, so it outlives a
+disconnection and no third-party token reaches it whatever the user approved.
+That is also why neither gained an MCP tool: the MCP server authenticates over
+OAuth, and the tool would 403 on every call.
+
+### Fixed
+
+- **`Notification`** was missing four fields the endpoint returns
+  (`userId`, `organizationId`, `organizationName`, `data`), and in the Python
+  SDK it also had `id` as a string and the read flag as `read` rather than
+  `isRead`. Corrected against the route.
+- **`NotificationPreferences`** was missing `emailOnChannelSlots` and
+  `inAppInbox`.
+- Python's `__init__.__version__` had drifted a minor version behind
+  `pyproject.toml`. Both now read 0.18.0.
+
+### Not added
+
+- **Webhooks.** They are registered, capped by plan and delivered by nothing:
+  the delivery job has no callers, its queue has no worker, and the columns
+  that would record a delivery have never been written. An SDK method would
+  have published a contract for a feature that does not function.
+
 ## 2026-09-05 — Thread media, member capabilities
 
 Node **1.16.0** · Python **0.17.0** · MCP server **1.20.0** · spec + Postman
