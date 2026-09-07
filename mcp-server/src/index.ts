@@ -303,7 +303,17 @@ const PLATFORM_SPECIFIC_SCHEMA = z
       .passthrough()
       .optional(),
     threads: z
-      .object({ quotePostId: z.string().optional() })
+      .object({
+        quotePostId: z.string().optional(),
+        topicTag: z
+          .string()
+          .optional()
+          .describe("One topic tag for the post, without a leading '#'. Must not contain periods or ampersands."),
+        locationId: z
+          .string()
+          .optional()
+          .describe("Numeric place ID from get_channel_options with a `q` search on a Threads channel. Only works once the channel has granted location tagging."),
+      })
       .passthrough()
       .optional(),
     linkedin: z.object({}).passthrough().optional(),
@@ -743,7 +753,11 @@ server.tool(
     content: z
       .string()
       .optional()
-      .describe("The post text content. Optional — defaults to empty for media-only posts."),
+      .describe(
+        "The post text content. Optional — defaults to empty for media-only posts. " +
+        "LinkedIn mentions: write @[Display Name](urn:li:organization:ID) for a Page or @[Display Name](urn:li:person:ID) for a person; " +
+        "search_mentions on a LinkedIn channel returns ready-made Page tokens. The token publishes as a real mention on LinkedIn and as plain @Display Name on other channels."
+      ),
     channels: z
       .array(
         z.object({
@@ -1508,12 +1522,21 @@ server.tool(
 
 server.tool(
   "get_channel_options",
-  "Get platform-specific options for a channel (e.g. available post types, character limits, media requirements).",
+  "Get platform-specific options for a channel: Pinterest boards, YouTube playlists, Tumblr blogs, Discord text channels, Reddit subreddit search or flairs, Threads location search.",
   {
     channelId: z.number().describe("The channel ID to get options for."),
+    q: z
+      .string()
+      .optional()
+      .describe("Search term. Reddit: subreddit name search. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging)."),
+    subreddit: z.string().optional().describe("Reddit only: return that subreddit's post flairs instead of searching."),
   },
-  async ({ channelId }) => {
-    const res = await api("GET", `/api/channels/${channelId}/options`);
+  async ({ channelId, q, subreddit }) => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (subreddit) params.set("subreddit", subreddit);
+    const qs = params.toString();
+    const res = await api("GET", `/api/channels/${channelId}/options${qs ? `?${qs}` : ""}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );
@@ -1524,7 +1547,7 @@ server.tool(
 
 server.tool(
   "search_mentions",
-  "Search for @mention suggestions on a channel. Useful for finding users/pages to mention in posts.",
+  "Search for @mention suggestions on a channel (X, Bluesky, LinkedIn). On LinkedIn the query is a Page's URL slug (exact match) and each result's handle is a ready-to-paste @[Name](urn:li:organization:ID) token.",
   {
     channelId: z.number().describe("The channel ID to search mentions on."),
     query: z.string().describe("Search query for the mention lookup."),

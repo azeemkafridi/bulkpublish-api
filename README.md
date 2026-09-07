@@ -309,8 +309,8 @@ Authorization: Bearer bp_your_key_here
 | `POST` | `/api/posts/bulk` | Bulk delete or retry |
 | `GET` | `/api/channels` | List connected social media channels |
 | `GET` | `/api/channels/:id/health` | Check channel token health |
-| `GET` | `/api/channels/:id/options` | Get platform options (Pinterest boards, YouTube playlists) |
-| `GET` | `/api/channels/:id/mentions` | Search users for @mention (X, Bluesky) |
+| `GET` | `/api/channels/:id/options` | Get platform options (Pinterest boards, YouTube playlists, Tumblr blogs, Discord channels, Reddit `?q=`/`?subreddit=`, Threads `?q=` place search) |
+| `GET` | `/api/channels/:id/mentions` | Search accounts for @mention (X, Bluesky, LinkedIn Pages — LinkedIn results are `@[Name](urn:li:organization:ID)` tokens) |
 | `GET`/`POST` | `/api/channel-sets` | Saved channel groups for one-click targeting (update/delete via `/api/channel-sets/:id`) |
 | `GET`/`POST` | `/api/rss-feeds` | RSS/Atom autopost feeds — new items become posts (update/delete via `/api/rss-feeds/:id`) |
 | `POST` | `/api/media` | Upload a media file (multipart form, up to 100MB) |

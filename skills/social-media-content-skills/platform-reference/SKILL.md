@@ -176,6 +176,8 @@ The two run on separate LinkedIn apps (company pages use the Community Managemen
 - `url` — **REQUIRED for article type**, link URL
 - `carouselTitle` — PDF carousel title
 
+**Mentions:** write `@[Acme Corp](urn:li:organization:1337)` (Page) or `@[Jane Doe](urn:li:person:ID)` in `content`. `search_mentions` on a LinkedIn channel takes the Page's URL slug (exact match) and returns the token to paste. Other channels on the same post get plain `@Acme Corp`.
+
 ---
 
 ## Pinterest
@@ -227,7 +229,7 @@ The two run on separate LinkedIn apps (company pages use the Community Managemen
 
 **Media specs:** Image max 8MB (jpg/png), max 20. Video max 500MB (mp4/mov), max 20.
 
-**platformSpecific options:** `quotePostId` — quote another Threads post
+**platformSpecific options:** `quotePostId` — quote another Threads post; `topicTag` — one topic, no leading `#`, no periods/ampersands; `locationId` — numeric place ID from `get_channel_options` with `q` (only once the channel has granted location tagging)
 
 ---
 

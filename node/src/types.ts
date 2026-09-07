@@ -523,7 +523,13 @@ export interface ListPostsResponse {
 
 /** Parameters for creating a new post. */
 export interface CreatePostParams {
-  /** The post text content. */
+  /**
+   * The post text content.
+   *
+   * LinkedIn mentions: `@[Display Name](urn:li:organization:ID)` (Page) or `@[Display Name](urn:li:person:ID)`
+   * publish as real mentions on LinkedIn and as plain `@Display Name` everywhere else.
+   * `GET /api/channels/{id}/mentions?q=<vanity-name>` on a LinkedIn channel returns ready-made Page tokens.
+   */
   content?: string;
   /** Array of media file IDs to attach. */
   mediaFiles?: number[];
@@ -570,7 +576,7 @@ export interface CreatePostParams {
    * - **linkedin**: Optional: `title`, `description`, `url` (required for article type), `carouselTitle`
    * - **gmb**: Optional: `ctaType`, `ctaUrl`, `eventTitle`, `startDate`, `endDate`, `startTime`, `endTime`, `couponCode`, `redeemOnlineUrl`
    * - **mastodon**: Optional: `visibility` (public|unlisted|private|direct), `spoilerText`, `language`
-   * - **threads**: Optional: `quotePostId`
+   * - **threads**: Optional: `quotePostId`, `topicTag` (one topic, no leading '#', no periods or ampersands), `locationId` (numeric place ID from `GET /api/channels/{id}/options?q=<place>`; needs location tagging granted on the channel)
    * - **reddit**: `{ subreddit }` (required; accepts `webdev`, `r/webdev` or `/r/webdev`, else falls back to the
    *   subreddit stored on the channel). Optional: `title` (defaults to the first line of `content`, truncated to
    *   300 chars), `type` (`'link'` forces a link post), `url`, `flairId`, `thumbnailUrl`.

@@ -533,7 +533,9 @@ curl "https://app.bulkpublish.com/api/channels/5/options" \
 ```json
 {
   "threads": {
-    "quotePostId": "12345678901234567"
+    "quotePostId": "12345678901234567",
+    "topicTag": "photography",
+    "locationId": "987654321"
   }
 }
 ```
@@ -541,6 +543,10 @@ curl "https://app.bulkpublish.com/api/channels/5/options" \
 | Field | Type | Description |
 |-------|------|-------------|
 | `quotePostId` | string | ID of a Threads post to quote |
+| `topicTag` | string | One topic per post, without a leading `#`. A value containing a period or an ampersand is rejected with `400 VALIDATION_ERROR`. |
+| `locationId` | string | Numeric place ID from `GET /api/channels/{id}/options?q=<place>` on the Threads channel. Location search answers `{ "unavailable": true }` until the connected account has granted location tagging; reconnect the channel after it is enabled. |
+
+Both apply to the root post of a thread, never to its replies.
 
 ### Notes
 
@@ -588,6 +594,19 @@ Override via `postTypeOverrides.linkedin`:
 | `title` | string | Article or video title |
 | `description` | string | Article description |
 | `carouselTitle` | string | Title shown on a `pdf_carousel` |
+
+### Mentions
+
+Write a mention straight into `content` in LinkedIn's own form:
+
+```
+Big news with @[Acme Corp](urn:li:organization:1337) and @[Jane Doe](urn:li:person:AbC-dEf)
+```
+
+- `GET /api/channels/{id}/mentions?q=<vanity-name>` on a LinkedIn channel returns ready-made Page tokens in `handle`. The lookup is an exact match on the Page's URL slug (`linkedin.com/company/<vanity-name>`), not a name search; a pasted company URL works too. A personal-profile channel borrows a connected Page's access for the lookup, and answers with a `notice` when the workspace has no Page connected.
+- People have no search API; a person token needs the member's URN from elsewhere.
+- On every other channel of the same post the token publishes as plain `@Acme Corp`, and it counts as `@Acme Corp` toward character limits everywhere.
+- Reserved LinkedIn formatting characters in the rest of the text (`( ) [ ] { } < > | ~ _ * @ \`) are escaped at publish time, so they appear literally. `#hashtags` still work.
 
 ### Media rules
 

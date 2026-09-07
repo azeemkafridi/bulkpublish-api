@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-09-07 — LinkedIn mentions, Threads topic and location tags
+
+Node **1.18.0** · MCP **1.21.0** · spec
+
+### Added
+
+- **LinkedIn mentions.** `content` accepts `@[Display Name](urn:li:organization:ID)`
+  for a Page and `@[Display Name](urn:li:person:ID)` for a person. The token
+  publishes as a real mention on LinkedIn and as plain `@Display Name` on every
+  other channel of the same post, and counts as `@Display Name` toward every
+  character limit. `GET /api/channels/{id}/mentions` (and `search_mentions`)
+  now works on LinkedIn channels: the query is a Page's URL slug, matched
+  exactly, and each result's `handle` is the ready-to-paste token. A
+  personal-profile channel borrows a connected Page's access for the lookup and
+  returns a `notice` when none is connected. Reserved LinkedIn formatting
+  characters elsewhere in the text are escaped at publish time.
+- **Threads `topicTag` and `locationId`** in `platformSpecific.threads`. One
+  topic per post without a leading `#` (periods and ampersands are rejected
+  with `400 VALIDATION_ERROR`); `locationId` is a numeric place ID from
+  `GET /api/channels/{id}/options?q=<place>` on a Threads channel, which
+  answers `{ unavailable: true }` until the account has granted location
+  tagging. Both apply to the root post of a thread only.
+- **`get_channel_options`** (MCP) takes optional `q` and `subreddit`, matching
+  what the endpoint already accepted for Reddit and now uses for Threads.
+
 ## 2026-09-07 — Organizations and notifications
 
 Node **1.17.0** · Python **0.18.0** · spec
