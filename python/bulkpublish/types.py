@@ -381,6 +381,12 @@ class CalendarNote(TypedDict, total=False):
     updatedAt: str
 
 
+class RepostOptions(TypedDict, total=False):
+    """``platformSpecific.<platform>`` for post type ``repost`` on x, threads, bluesky, mastodon."""
+
+    repostId: str
+
+
 class HashtagGroup(TypedDict, total=False):
     """A saved set of hashtags. ``hashtags`` are normalised with a leading ``#``."""
 

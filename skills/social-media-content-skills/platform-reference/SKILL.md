@@ -81,6 +81,7 @@ description: Complete reference for all 15 BulkPublish platforms — post types,
 |---|---|---|
 | `tweet` (default) | 0-4 images OR 0-1 video | Text-only OK. No mixing images+video |
 | `thread` | Per-part media | Use `postFormat: "thread"` + `threadParts` |
+| `repost` | None | Reposts (retweets) an existing post; `platformSpecific.repostId` = status URL or ID; own text/media ignored |
 
 **Media specs:** Image max 5MB (jpg/png/gif/webp), max 4. Video max 512MB (mp4/mov), max 1, max 140s.
 
@@ -226,6 +227,7 @@ The two run on separate LinkedIn apps (company pages use the Community Managemen
 | `video` | 1 video required | Video post |
 | `carousel` | 2-20 images/videos | Mixed media OK |
 | `thread` | Per-part | Use `postFormat: "thread"` + `threadParts` |
+| `repost` | None | Reposts an existing post; `platformSpecific.repostId` = numeric post ID; own text/media ignored |
 
 **Media specs:** Image max 8MB (jpg/png), max 20. Video max 500MB (mp4/mov), max 20.
 
@@ -247,6 +249,7 @@ The two run on separate LinkedIn apps (company pages use the Community Managemen
 |---|---|---|
 | `post` (default) | 0-4 images OR 0-1 video | Text-only OK. No mixing. |
 | `thread` | Per-part | Use `postFormat: "thread"` + `threadParts` |
+| `repost` | None | Reposts an existing post; `platformSpecific.repostId` = post URL or ID; own text/media ignored |
 
 **Media specs:** Image max 10MB auto-resized to <976KB (jpg/png/webp), max 4. Video max 100MB (mp4 only), max 1, max 60s.
 
@@ -296,6 +299,7 @@ The two run on separate LinkedIn apps (company pages use the Community Managemen
 |---|---|---|
 | `post` (default) | 0-4 images OR 0-1 video | Text-only OK. No mixing. |
 | `thread` | Per-part | Use `postFormat: "thread"` + `threadParts` |
+| `repost` | None | Reposts an existing post; `platformSpecific.repostId` = post URL or ID; own text/media ignored |
 
 **Media specs:** Image max 16MB (jpg/png/webp/avif/gif), max 4. Video max 99MB (mp4 only), max 1, max 300s.
 

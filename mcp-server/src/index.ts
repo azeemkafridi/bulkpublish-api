@@ -308,7 +308,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
     threads: z
       .object({
         quotePostId: z.string().optional(),
-        repostId: z.string().optional().describe("With postTypeOverrides.threads = 'repost': the numeric ID of the Threads post to repost."),
+        repostId: z.string().optional().describe("With postTypeOverrides.threads = 'repost': the numeric ID of the Threads post to repost (Threads links cannot be used; the ID of a post published through BulkPublish is in get_post's platforms[].platformPostId)."),
         topicTag: z
           .string()
           .optional()

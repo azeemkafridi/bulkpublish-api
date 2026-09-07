@@ -281,6 +281,11 @@ class PostsResource:
                 post_type_overrides={"instagram": "reel"},
                 platform_specific={"youtube": {"title": "My Video Title"}},
             )
+        
+        Reposts: any of x, threads, bluesky, mastodon accept
+        ``post_type_overrides[platform] = "repost"`` with
+        ``platform_specific[platform]["repostId"]`` = the post URL or ID (Threads
+        needs the numeric ID); the post's own text and media are ignored.
         """
         body: Dict[str, Any] = {
             "content": content,

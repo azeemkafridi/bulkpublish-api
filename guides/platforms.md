@@ -128,10 +128,10 @@ Use the `postTypeOverrides` field to set a specific post type per platform:
 | YouTube | `video`, `short` |
 | LinkedIn | `post`, `multi_image`, `pdf_carousel`, `article` |
 | Pinterest | `pin`, `video_pin`, `carousel` |
-| Threads | `text`, `image`, `video`, `carousel` |
-| X (Twitter) | `tweet` (use `postFormat: "thread"` for threads) |
-| Bluesky | `post` (use `postFormat: "thread"` for threads) |
-| Mastodon | `post` (use `postFormat: "thread"` for threads) |
+| Threads | `text`, `image`, `video`, `carousel`, `repost` |
+| X (Twitter) | `tweet` (use `postFormat: "thread"` for threads), `repost` |
+| Bluesky | `post` (use `postFormat: "thread"` for threads), `repost` |
+| Mastodon | `post` (use `postFormat: "thread"` for threads), `repost` |
 | Google Business | `standard`, `event`, `offer` |
 | Tumblr | `post` |
 | Snapchat | `story` (default), `saved_story`, `spotlight` |

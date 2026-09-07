@@ -573,6 +573,8 @@ export interface CreatePostParams {
    * - **pinterest**: `{ title }` (required, 1-100 chars). Optional: `boardId` (or falls back to channel default), `description`, `link`, `dominantColor` (hex e.g. #FF5733), `coverImageUrl` (video pins; when omitted the server falls back to an attached image, then the video's auto-extracted poster frame)
    * - **instagram**: Optional: `collaborators`, `trialReel`, `thumbnailTimestamp`
    * - **tiktok**: Optional: `privacyLevel` (SELF_ONLY|PUBLIC|FRIENDS), `disableDuet`, `disableStitch`, `disableComment`, `isAigc`
+   * - **x**: Optional: `replySettings`, `repostId` (with post type `repost`: status URL or ID to repost)
+   * - **bluesky**: Optional: `repostId` (with post type `repost`: bsky.app post URL or at:// URI)
    * - **linkedin**: Optional: `title`, `description`, `url` (required for article type), `carouselTitle`
    * - **gmb**: Optional: `ctaType`, `ctaUrl`, `eventTitle`, `startDate`, `endDate`, `startTime`, `endTime`, `couponCode`, `redeemOnlineUrl`
    * - **mastodon**: Optional: `visibility` (public|unlisted|private|direct), `spoilerText`, `language`, `repostId` (with post type `repost`: status URL or ID to boost)
