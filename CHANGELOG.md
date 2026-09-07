@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-09-08 — Post templates, review links, calendar notes
+
+Node **1.20.0** · Python **0.20.0** · MCP **1.23.0** · spec
+
+### Added
+
+- **Post templates.** `GET/POST /api/templates`, `GET/PUT/DELETE
+  /api/templates/{id}`: named, org-wide post text to start a new post from
+  (up to 200; names unique). Node `bp.templates`, Python `bp.templates`, MCP
+  `list_templates`, `create_template`, `update_template`, `delete_template`.
+- **Review links.** `POST /api/posts/{id}/share` returns a read-only page
+  URL (`/p/<token>`) anyone can open without signing in, showing the post's
+  text, media, destinations and timing; the first call creates the token
+  (201), later calls return it (200), `{ regenerate: true }` replaces it.
+  `DELETE` revokes. Posts now carry `shareToken`. Node `bp.posts.share` /
+  `unshare`, Python `bp.posts.share` / `unshare`, MCP `share_post`,
+  `unshare_post`.
+- **Calendar notes.** `GET /api/calendar-notes?from&to`, `POST`, `PUT/DELETE
+  /api/calendar-notes/{id}`: free text pinned to a calendar day with a
+  colour; never published. Node `bp.calendarNotes`, Python
+  `bp.calendar_notes`, MCP `list_calendar_notes`, `create_calendar_note`,
+  `update_calendar_note`, `delete_calendar_note`.
+
 ## 2026-09-07 — Hashtag groups, media alt text, queue position
 
 Node **1.19.0** · Python **0.19.0** · MCP **1.22.0** · spec

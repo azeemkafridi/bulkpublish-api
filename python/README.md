@@ -80,12 +80,14 @@ asyncio.run(main())
 
 | Resource | Methods |
 |----------|---------|
-| `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `approve`, `reject`, `bulk`, `queue_slot` |
+| `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `approve`, `reject`, `bulk`, `queue_slot`, `share`, `unshare` |
 | `bp.channels` | `list`, `get`, `delete`, `health` |
 | `bp.media` | `upload`, `list`, `get`, `update` (alt text), `delete`, `get_labels`, `set_labels`, `create_multipart`, `complete_multipart`, `abort_multipart` |
 | `bp.analytics` | `summary`, `engagement`, `refresh`, `account` |
 | `bp.labels` | `list`, `create`, `update`, `delete` |
 | `bp.hashtag_groups` | `list`, `get`, `create`, `update`, `delete` |
+| `bp.templates` | `list`, `get`, `create`, `update`, `delete` |
+| `bp.calendar_notes` | `list`, `create`, `update`, `delete` |
 | `bp.schedules` | `list`, `create`, `update`, `delete` |
 | `bp.channel_sets` | `list`, `create`, `update`, `delete` — saved channel groups for one-click targeting |
 | `bp.rss_feeds` | `list`, `create`, `update`, `delete` — RSS/Atom autopost feeds (new items become posts; optional `field_mapping` controls caption template, media, truncation, per-channel overrides) |

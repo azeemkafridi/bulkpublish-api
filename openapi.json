@@ -233,6 +233,11 @@
               "$ref": "#/components/schemas/MediaFile"
             },
             "description": "Media referenced by threadParts[].mediaFileIds, resolved to full objects and de-duplicated across parts. Distinct from mediaFiles, which is the media on the post itself: a thread post can carry both, and a client that reads only mediaFiles will render a thread without its images."
+          },
+          "shareToken": {
+            "type": "string",
+            "nullable": true,
+            "description": "Token of the post's read-only review link (/p/<token>), or null. Manage with POST/DELETE /api/posts/{id}/share."
           }
         }
       },
@@ -1113,6 +1118,54 @@
             "format": "date-time"
           }
         }
+      },
+      "PostTemplate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CalendarNote": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "body": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     }
   },
@@ -1148,6 +1201,14 @@
     {
       "name": "Hashtag Groups",
       "description": "Saved sets of hashtags to drop into a post"
+    },
+    {
+      "name": "Templates",
+      "description": "Saved post text to start a new post from"
+    },
+    {
+      "name": "Calendar Notes",
+      "description": "Free-text notes pinned to calendar days"
     },
     {
       "name": "Schedules",
@@ -6814,6 +6875,520 @@
           }
         },
         "operationId": "deleteHashtagGroup",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/posts/{id}/share": {
+      "post": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Create or get the post's review link",
+        "description": "Returns a read-only review link (https://app.bulkpublish.com/p/<token>) that anyone holding it can open without signing in. It shows the post's text, media, destinations and timing, always the current version. The first call creates the token (201); later calls return the same one (200). Body `{ \"regenerate\": true }` mints a new token and kills the old link. Posts expose the token as `shareToken` (null when no link exists).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "regenerate": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing link: { shareToken, url, created: false }"
+          },
+          "201": {
+            "description": "New link: { shareToken, url, created: true }"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "operationId": "createPostShareLink",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Revoke the post's review link",
+        "description": "Idempotent. Returns { success: true, revoked } where revoked says whether a link existed.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revoked"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "operationId": "revokePostShareLink",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/templates": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "List post templates",
+        "description": "Every saved template in the organization, sorted by name. Returns { templates: PostTemplate[] }. Templates are text only; media, channels and per-platform options belong to the post.",
+        "responses": {
+          "200": {
+            "description": "Templates"
+          }
+        },
+        "operationId": "listTemplates",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:read"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Create post template",
+        "description": "Up to 200 templates per organization (400 LIMIT_REACHED beyond that). Returns 201 { template }.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "content"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "description": "1-100 characters, trimmed; unique per organization (409 CONFLICT on a clash)."
+                  },
+                  "content": {
+                    "type": "string",
+                    "maxLength": 10000,
+                    "description": "Template text. CRLF is normalised to LF and surrounding whitespace trimmed."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "409": {
+            "description": "Duplicate name"
+          }
+        },
+        "operationId": "createTemplate",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/templates/{id}": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Get post template",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ template }"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "operationId": "getTemplate",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:read"
+            ]
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Update post template",
+        "description": "At least one of `name` or `content`.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "description": "1-100 characters, trimmed; unique per organization (409 CONFLICT on a clash)."
+                  },
+                  "content": {
+                    "type": "string",
+                    "maxLength": 10000,
+                    "description": "Template text. CRLF is normalised to LF and surrounding whitespace trimmed."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Duplicate name"
+          }
+        },
+        "operationId": "updateTemplate",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Delete post template",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "operationId": "deleteTemplate",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/calendar-notes": {
+      "get": {
+        "tags": [
+          "Calendar Notes"
+        ],
+        "summary": "List calendar notes",
+        "description": "Notes whose date falls in [from, to] (both inclusive, at most a year apart), ordered by date. Returns { notes: CalendarNote[] }. Notes are free text pinned to a day on the calendar (a campaign, a holiday, \"no posts this week\"); they never publish anywhere.",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notes"
+          },
+          "400": {
+            "description": "Missing or invalid range"
+          }
+        },
+        "operationId": "listCalendarNotes",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:read"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Calendar Notes"
+        ],
+        "summary": "Create calendar note",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "date",
+                  "body"
+                ],
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Calendar date, YYYY-MM-DD. A plain date: it reads the same in every timezone."
+                  },
+                  "body": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "color": {
+                    "type": "string",
+                    "pattern": "^#[0-9a-fA-F]{6}$",
+                    "description": "Six-digit hex colour. Default #F59E0B."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created: { note }"
+          },
+          "400": {
+            "description": "Validation error"
+          }
+        },
+        "operationId": "createCalendarNote",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/calendar-notes/{id}": {
+      "put": {
+        "tags": [
+          "Calendar Notes"
+        ],
+        "summary": "Update calendar note",
+        "description": "At least one of `date`, `body`, `color`.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Calendar date, YYYY-MM-DD. A plain date: it reads the same in every timezone."
+                  },
+                  "body": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "color": {
+                    "type": "string",
+                    "pattern": "^#[0-9a-fA-F]{6}$",
+                    "description": "Six-digit hex colour. Default #F59E0B."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated: { note }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "operationId": "updateCalendarNote",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Calendar Notes"
+        ],
+        "summary": "Delete calendar note",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "operationId": "deleteCalendarNote",
         "security": [
           {
             "apiKey": []

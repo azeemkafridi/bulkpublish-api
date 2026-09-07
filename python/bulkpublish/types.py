@@ -360,6 +360,27 @@ class AccountMetrics(TypedDict, total=False):
 # ---------------------------------------------------------------------------
 
 
+class PostTemplate(TypedDict, total=False):
+    """Saved post text to start a new post from."""
+
+    id: int
+    name: str
+    content: str
+    createdAt: str
+    updatedAt: str
+
+
+class CalendarNote(TypedDict, total=False):
+    """Free text pinned to a calendar day (``date`` is YYYY-MM-DD, ``color`` a hex colour)."""
+
+    id: int
+    date: str
+    body: str
+    color: str
+    createdAt: str
+    updatedAt: str
+
+
 class HashtagGroup(TypedDict, total=False):
     """A saved set of hashtags. ``hashtags`` are normalised with a leading ``#``."""
 

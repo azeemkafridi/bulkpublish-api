@@ -271,6 +271,9 @@ More examples in [`examples/`](examples/) — including [Python automation scrip
 - **Link tracking** — Opt in per organization, or per post via `linkTrackingOverride`, to rewrite links through `bulkpubli.sh` and count the clicks. Reported as `linkClicks` / `totalLinkClicks` and measured by BulkPublish rather than the platform, so it works even where the platform reports nothing — see [Character Limits](guides/platforms.md#character-limits)
 - **Labels** — Organize posts and media with color-coded labels
 - **Hashtag groups** — Save sets of hashtags and drop them into a post in one call
+- **Templates** — Save post text and start new posts from it
+- **Review links** — Share a read-only page of a post with someone who has no account
+- **Calendar notes** — Pin campaigns, holidays and reminders to calendar days
 - **Bulk operations** — Delete or retry multiple posts in a single request
 - **Threads** — Multi-part thread posts for X, Threads, Bluesky, and Mastodon
 - **Auto first comment** — Automatically add a comment after publishing on any platform
@@ -312,6 +315,9 @@ Authorization: Bearer bp_your_key_here
 | `GET` | `/api/channels/:id/health` | Check channel token health |
 | `GET` | `/api/channels/:id/options` | Get platform options (Pinterest boards, YouTube playlists, Tumblr blogs, Discord channels, Reddit `?q=`/`?subreddit=`, Threads `?q=` place search) |
 | `GET` | `/api/channels/:id/mentions` | Search accounts for @mention (X, Bluesky, LinkedIn Pages — LinkedIn results are `@[Name](urn:li:organization:ID)` tokens) |
+| `GET`/`POST` | `/api/templates` | Saved post templates (get/update/delete via `/api/templates/:id`) |
+| `GET`/`POST` | `/api/calendar-notes` | Notes pinned to calendar days, `?from&to` range (update/delete via `/api/calendar-notes/:id`) |
+| `POST`/`DELETE` | `/api/posts/:id/share` | Create or revoke the post's read-only review link (`/p/<token>`) |
 | `GET`/`POST` | `/api/hashtag-groups` | Saved hashtag groups, 1-30 hashtags each (get/update/delete via `/api/hashtag-groups/:id`) |
 | `GET`/`POST` | `/api/channel-sets` | Saved channel groups for one-click targeting (update/delete via `/api/channel-sets/:id`) |
 | `GET`/`POST` | `/api/rss-feeds` | RSS/Atom autopost feeds — new items become posts (update/delete via `/api/rss-feeds/:id`) |

@@ -42,6 +42,8 @@ from .exceptions import (
 )
 from .labels import AsyncLabelsResource, LabelsResource
 from .hashtag_groups import AsyncHashtagGroupsResource, HashtagGroupsResource
+from .templates import AsyncTemplatesResource, TemplatesResource
+from .calendar_notes import AsyncCalendarNotesResource, CalendarNotesResource
 from .media import AsyncMediaResource, MediaResource
 from .posts import AsyncPostsResource, PostsResource
 from .notifications import AsyncNotificationsResource, NotificationsResource
@@ -172,6 +174,8 @@ class BulkPublish(_BaseClient):
         analytics: :class:`~bulkpublish.analytics.AnalyticsResource`
         labels: :class:`~bulkpublish.labels.LabelsResource`
         hashtag_groups: :class:`~bulkpublish.hashtag_groups.HashtagGroupsResource`
+        templates: :class:`~bulkpublish.templates.TemplatesResource`
+        calendar_notes: :class:`~bulkpublish.calendar_notes.CalendarNotesResource`
         schedules: :class:`~bulkpublish.schedules.SchedulesResource`
         channel_sets: :class:`~bulkpublish.channel_sets.ChannelSetsResource`
         platforms: :class:`~bulkpublish.platforms.PlatformsResource`
@@ -229,6 +233,8 @@ class BulkPublish(_BaseClient):
         self.analytics = AnalyticsResource(self)
         self.labels = LabelsResource(self)
         self.hashtag_groups = HashtagGroupsResource(self)
+        self.templates = TemplatesResource(self)
+        self.calendar_notes = CalendarNotesResource(self)
         self.schedules = SchedulesResource(self)
         self.channel_sets = ChannelSetsResource(self)
         self.rss_feeds = RssFeedsResource(self)
@@ -547,6 +553,8 @@ class AsyncBulkPublish(_BaseClient):
         self.analytics = AsyncAnalyticsResource(self)
         self.labels = AsyncLabelsResource(self)
         self.hashtag_groups = AsyncHashtagGroupsResource(self)
+        self.templates = AsyncTemplatesResource(self)
+        self.calendar_notes = AsyncCalendarNotesResource(self)
         self.schedules = AsyncSchedulesResource(self)
         self.channel_sets = AsyncChannelSetsResource(self)
         self.rss_feeds = AsyncRssFeedsResource(self)

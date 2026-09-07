@@ -353,4 +353,18 @@ export class PostsResource {
   queueSlot(timezone?: string, position?: 'next' | 'end', excludePostId?: number): Promise<QueueSlotResponse> {
     return this.http.get<QueueSlotResponse>('/api/posts/queue-slot', { timezone, position, excludePostId });
   }
+
+  /**
+   * Create (or return) the post's read-only review link. Anyone with the URL
+   * can open it without signing in. `{ regenerate: true }` mints a new token
+   * and kills the old link.
+   */
+  share(id: number, params?: { regenerate?: boolean }): Promise<{ shareToken: string; url: string; created: boolean }> {
+    return this.http.post(`/api/posts/${id}/share`, params ?? {});
+  }
+
+  /** Revoke the post's review link. Idempotent. */
+  unshare(id: number): Promise<{ success: boolean; revoked: boolean }> {
+    return this.http.delete(`/api/posts/${id}/share`);
+  }
 }

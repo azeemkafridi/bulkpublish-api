@@ -70,12 +70,14 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 
 | Resource | Methods |
 |----------|---------|
-| `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `approve`, `reject`, `bulk`, `queueSlot`, `metrics`, `story` |
+| `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `approve`, `reject`, `bulk`, `queueSlot`, `metrics`, `story`, `share`, `unshare` |
 | `bp.channels` | `list`, `get`, `delete`, `health` |
 | `bp.media` | `upload`, `list`, `get`, `delete`, `getLabels`, `setLabels`, `createMultipart`, `completeMultipart`, `abortMultipart` |
 | `bp.analytics` | `summary`, `engagement`, `refresh`, `account` |
 | `bp.labels` | `list`, `create`, `update`, `delete` |
 | `bp.hashtagGroups` | `list`, `get`, `create`, `update`, `delete` |
+| `bp.templates` | `list`, `get`, `create`, `update`, `delete` |
+| `bp.calendarNotes` | `list`, `create`, `update`, `delete` |
 | `bp.schedules` | `list`, `create`, `update`, `delete` |
 | `bp.channelSets` | `list`, `create`, `update`, `delete` — saved channel groups for one-click targeting |
 | `bp.rssFeeds` | `list`, `create`, `update`, `delete` — RSS/Atom autopost feeds (new items become posts; optional `fieldMapping` controls caption template, media, truncation, per-channel overrides) |

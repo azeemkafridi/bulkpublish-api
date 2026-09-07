@@ -567,6 +567,23 @@ class PostsResource:
             body["scheduledAt"] = scheduled_at
         return self._client._request("POST", "/api/posts/bulk", json=body)
 
+    # -- Review link ----------------------------------------------------------
+
+    def share(self, post_id: str, *, regenerate: bool = False) -> Dict[str, Any]:
+        """Create (or return) the post's read-only review link.
+
+        Anyone with the URL can open it without signing in. ``regenerate=True``
+        mints a new token and kills the old link.
+
+        Returns:
+            ``{"shareToken", "url", "created"}``.
+        """
+        return self._client._request("POST", f"/api/posts/{post_id}/share", json={"regenerate": regenerate})
+
+    def unshare(self, post_id: str) -> Dict[str, Any]:
+        """Revoke the post's review link (idempotent)."""
+        return self._client._request("DELETE", f"/api/posts/{post_id}/share")
+
     # -- Queue slot -----------------------------------------------------------
 
     def queue_slot(
@@ -676,6 +693,14 @@ class AsyncPostsResource:
         if scheduled_at is not None:
             body["scheduledAt"] = scheduled_at
         return await self._client._request("POST", "/api/posts/bulk", json=body)
+
+    async def share(self, post_id: str, *, regenerate: bool = False) -> Dict[str, Any]:
+        """Review link — see :meth:`PostsResource.share`."""
+        return await self._client._request("POST", f"/api/posts/{post_id}/share", json={"regenerate": regenerate})
+
+    async def unshare(self, post_id: str) -> Dict[str, Any]:
+        """Revoke review link — see :meth:`PostsResource.unshare`."""
+        return await self._client._request("DELETE", f"/api/posts/{post_id}/share")
 
     async def queue_slot(self, *, timezone: Optional[str] = None, position: Optional[str] = None, exclude_post_id: Optional[int] = None) -> QueueSlot:
         """Queue slot — see :meth:`PostsResource.queue_slot`."""

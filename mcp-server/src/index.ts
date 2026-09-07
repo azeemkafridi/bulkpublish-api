@@ -456,6 +456,8 @@ export function createServer(): McpServer {
     get_media: { title: "Get media file", readOnlyHint: true },
     list_labels: { title: "List labels", readOnlyHint: true },
     list_hashtag_groups: { title: "List hashtag groups", readOnlyHint: true },
+    list_templates: { title: "List post templates", readOnlyHint: true },
+    list_calendar_notes: { title: "List calendar notes", readOnlyHint: true },
     list_schedules: { title: "List recurring schedules", readOnlyHint: true },
     get_analytics: { title: "Get analytics", readOnlyHint: true },
     get_quota_usage: { title: "Get quota usage", readOnlyHint: true },
@@ -471,6 +473,14 @@ export function createServer(): McpServer {
     update_hashtag_group: { title: "Update hashtag group", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
     delete_hashtag_group: { title: "Delete hashtag group", readOnlyHint: false, destructiveHint: true },
     update_media: { title: "Set media alt text", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+    create_template: { title: "Create post template", readOnlyHint: false, destructiveHint: false },
+    update_template: { title: "Update post template", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+    delete_template: { title: "Delete post template", readOnlyHint: false, destructiveHint: true },
+    create_calendar_note: { title: "Create calendar note", readOnlyHint: false, destructiveHint: false },
+    update_calendar_note: { title: "Update calendar note", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+    delete_calendar_note: { title: "Delete calendar note", readOnlyHint: false, destructiveHint: true },
+    share_post: { title: "Create post review link", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+    unshare_post: { title: "Revoke post review link", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     update_post: { title: "Update post", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
     list_platforms: { title: "List platforms", readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     // openWorldHint: the "retry" action re-publishes to the external platforms,
@@ -531,6 +541,16 @@ export function createServer(): McpServer {
     update_hashtag_group: "the user wants to rename a hashtag group or change its hashtags.",
     delete_hashtag_group: "the user wants to remove a saved hashtag group.",
     update_media: "the user wants to add or change an image's alt text / accessibility description.",
+    list_templates: "the user wants their saved post templates, or wants to start a post from one.",
+    create_template: "the user wants to save post text for reuse.",
+    update_template: "the user wants to rename a template or change its text.",
+    delete_template: "the user wants to remove a saved template.",
+    list_calendar_notes: "the user asks what is noted on the content calendar for a period (campaigns, holidays, reminders).",
+    create_calendar_note: "the user wants to pin a note, reminder or campaign marker to a calendar day without creating a post.",
+    update_calendar_note: "the user wants to move, reword or recolour a calendar note.",
+    delete_calendar_note: "the user wants to remove a calendar note.",
+    share_post: "the user wants a link a client or colleague can open to review a post without an account.",
+    unshare_post: "the user wants to stop a shared review link from working.",
     list_schedules: "the user wants their recurring posting schedules.",
     get_analytics: "the user asks how their content performed overall, across channels and over a date range.",
     get_quota_usage: "the user asks about plan limits or current usage.",
@@ -1365,6 +1385,149 @@ server.tool(
   },
   async ({ groupId }) => {
     const res = await api("DELETE", `/api/hashtag-groups/${groupId}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tools: post templates
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "list_templates",
+  "List the organization's saved post templates — reusable text to start a new post from.",
+  {},
+  async () => {
+    const res = await api("GET", "/api/templates");
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "create_template",
+  "Save post text as a named template for reuse (text only; media and channels belong to the post). Up to 200 per organization; names are unique.",
+  {
+    name: z.string().max(100).describe("Template name."),
+    content: z.string().max(10000).describe("Template text."),
+  },
+  async ({ name, content }) => {
+    const res = await api("POST", "/api/templates", { name, content });
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "update_template",
+  "Rename a template and/or replace its text (partial update — at least one field is required).",
+  {
+    templateId: z.number().describe("The template ID."),
+    name: z.string().max(100).optional(),
+    content: z.string().max(10000).optional(),
+  },
+  async ({ templateId, name, content }) => {
+    const body: Record<string, unknown> = {};
+    if (name !== undefined) body.name = name;
+    if (content !== undefined) body.content = content;
+    const res = await api("PUT", `/api/templates/${templateId}`, body);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "delete_template",
+  "Delete a saved post template.",
+  { templateId: z.number().describe("The template ID to delete.") },
+  async ({ templateId }) => {
+    const res = await api("DELETE", `/api/templates/${templateId}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tools: calendar notes
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "list_calendar_notes",
+  "List calendar notes (free text pinned to a day — campaigns, holidays, 'no posts this week'; they never publish) in a date range of at most a year.",
+  {
+    from: z.string().describe("Start date, YYYY-MM-DD (inclusive)."),
+    to: z.string().describe("End date, YYYY-MM-DD (inclusive)."),
+  },
+  async ({ from, to }) => {
+    const res = await api("GET", `/api/calendar-notes?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "create_calendar_note",
+  "Pin a note to a day on the content calendar. Not a post: nothing is published.",
+  {
+    date: z.string().describe("Calendar date, YYYY-MM-DD."),
+    body: z.string().max(2000).describe("Note text."),
+    color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().describe("Six-digit hex colour, default #F59E0B."),
+  },
+  async ({ date, body, color }) => {
+    const payload: Record<string, unknown> = { date, body };
+    if (color) payload.color = color;
+    const res = await api("POST", "/api/calendar-notes", payload);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "update_calendar_note",
+  "Change a calendar note's day, text and/or colour (partial update — at least one field is required).",
+  {
+    noteId: z.number().describe("The note ID."),
+    date: z.string().optional().describe("New date, YYYY-MM-DD."),
+    body: z.string().max(2000).optional(),
+    color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  },
+  async ({ noteId, date, body, color }) => {
+    const payload: Record<string, unknown> = {};
+    if (date !== undefined) payload.date = date;
+    if (body !== undefined) payload.body = body;
+    if (color !== undefined) payload.color = color;
+    const res = await api("PUT", `/api/calendar-notes/${noteId}`, payload);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "delete_calendar_note",
+  "Delete a calendar note.",
+  { noteId: z.number().describe("The note ID to delete.") },
+  async ({ noteId }) => {
+    const res = await api("DELETE", `/api/calendar-notes/${noteId}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tools: post review links
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "share_post",
+  "Create (or fetch) a post's read-only review link that anyone can open without signing in — for client approval outside the app. Returns { shareToken, url, created }. regenerate=true mints a new link and kills the old one.",
+  {
+    postId: z.number().describe("The post ID."),
+    regenerate: z.boolean().optional().describe("Mint a new token, invalidating the previous link."),
+  },
+  async ({ postId, regenerate }) => {
+    const res = await api("POST", `/api/posts/${postId}/share`, regenerate ? { regenerate: true } : {});
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "unshare_post",
+  "Revoke a post's review link so the URL stops working. Idempotent.",
+  { postId: z.number().describe("The post ID.") },
+  async ({ postId }) => {
+    const res = await api("DELETE", `/api/posts/${postId}/share`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );
