@@ -234,10 +234,9 @@
             },
             "description": "Media referenced by threadParts[].mediaFileIds, resolved to full objects and de-duplicated across parts. Distinct from mediaFiles, which is the media on the post itself: a thread post can carry both, and a client that reads only mediaFiles will render a thread without its images."
           },
-          "shareToken": {
-            "type": "string",
-            "nullable": true,
-            "description": "Token of the post's read-only review link (/p/<token>), or null. Manage with POST/DELETE /api/posts/{id}/share."
+          "hasShareLink": {
+            "type": "boolean",
+            "description": "Whether a read-only review link exists for the post. The token itself is never returned on reads; POST /api/posts/{id}/share returns the URL to the roles allowed to manage links."
           }
         }
       },
@@ -3399,7 +3398,7 @@
           "Media"
         ],
         "summary": "Set alt text",
-        "description": "Sets the accessibility description of a media file. Alt text belongs to the file, so one value covers every post that reuses it. It is sent wherever the destination accepts a description: Instagram (feed photos and carousel images), LinkedIn (single and multi-image posts) and Bluesky. Video files accept a value but no platform receives it yet. Send `null` or an empty string to clear. Trimmed to 1000 characters.",
+        "description": "Sets the accessibility description of a media file. Alt text belongs to the file, so one value covers every post that reuses it. It is sent wherever the destination accepts a description: Instagram (feed photos and carousel images), LinkedIn (single and multi-image posts) and Bluesky. Video files accept a value but no platform receives it yet. Send `null` or an empty string to clear. Trimmed to 1000 characters. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
         "parameters": [
           {
             "name": "id",
@@ -6668,7 +6667,7 @@
           "Hashtag Groups"
         ],
         "summary": "List hashtag groups",
-        "description": "Every saved hashtag group in the organization, sorted by name. Returns { groups: HashtagGroup[] }.",
+        "description": "Every saved hashtag group in the organization, sorted by name. Returns { groups: HashtagGroup[] }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
         "responses": {
           "200": {
             "description": "Hashtag groups"
@@ -6691,7 +6690,7 @@
           "Hashtag Groups"
         ],
         "summary": "Create hashtag group",
-        "description": "Saves a named set of hashtags the composer can insert in one click. An organization may keep up to 100 groups (400 LIMIT_REACHED beyond that). Returns 201 with { group }.",
+        "description": "Saves a named set of hashtags the composer can insert in one click. An organization may keep up to 100 groups (400 LIMIT_REACHED beyond that). Returns 201 with { group }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
         "requestBody": {
           "required": true,
           "content": {
@@ -6780,14 +6779,15 @@
               "posts:read"
             ]
           }
-        ]
+        ],
+        "description": "Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED."
       },
       "put": {
         "tags": [
           "Hashtag Groups"
         ],
         "summary": "Update hashtag group",
-        "description": "At least one of `name` or `hashtags` is required. `hashtags` replaces the whole list.",
+        "description": "At least one of `name` or `hashtags` is required. `hashtags` replaces the whole list. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
         "parameters": [
           {
             "name": "id",
@@ -6855,7 +6855,7 @@
           "Hashtag Groups"
         ],
         "summary": "Delete hashtag group",
-        "description": "Removes the group. Posts that already contain its hashtags are untouched.",
+        "description": "Removes the group. Posts that already contain its hashtags are untouched. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
         "parameters": [
           {
             "name": "id",
@@ -6893,7 +6893,7 @@
           "Posts"
         ],
         "summary": "Create or get the post's review link",
-        "description": "Returns a read-only review link (https://app.bulkpublish.com/p/<token>) that anyone holding it can open without signing in. It shows the post's text, media, destinations and timing, always the current version. The first call creates the token (201); later calls return the same one (200). Body `{ \"regenerate\": true }` mints a new token and kills the old link. Posts expose the token as `shareToken` (null when no link exists).",
+        "description": "Returns a read-only review link (https://app.bulkpublish.com/p/<token>) that anyone holding it can open without signing in. It shows the post's text, media, destinations and timing, always the current version. The first call creates the token (201); later calls return the same one (200). Body `{ \"regenerate\": true }` mints a new token and kills the old link. Posts expose the token as `shareToken` (null when no link exists). Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "parameters": [
           {
             "name": "id",
@@ -6948,7 +6948,7 @@
           "Posts"
         ],
         "summary": "Revoke the post's review link",
-        "description": "Idempotent. Returns { success: true, revoked } where revoked says whether a link existed.",
+        "description": "Idempotent. Returns { success: true, revoked } where revoked says whether a link existed. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
         "parameters": [
           {
             "name": "id",
@@ -6986,7 +6986,7 @@
           "Templates"
         ],
         "summary": "List post templates",
-        "description": "Every saved template in the organization, sorted by name. Returns { templates: PostTemplate[] }. Templates are text only; media, channels and per-platform options belong to the post.",
+        "description": "Every saved template in the organization, sorted by name. Returns { templates: PostTemplate[] }. Templates are text only; media, channels and per-platform options belong to the post. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
         "responses": {
           "200": {
             "description": "Templates"
@@ -7009,7 +7009,7 @@
           "Templates"
         ],
         "summary": "Create post template",
-        "description": "Up to 200 templates per organization (400 LIMIT_REACHED beyond that). Returns 201 { template }.",
+        "description": "Up to 200 templates per organization (400 LIMIT_REACHED beyond that). Returns 201 { template }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
         "requestBody": {
           "required": true,
           "content": {
@@ -7094,14 +7094,15 @@
               "posts:read"
             ]
           }
-        ]
+        ],
+        "description": "Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED."
       },
       "put": {
         "tags": [
           "Templates"
         ],
         "summary": "Update post template",
-        "description": "At least one of `name` or `content`.",
+        "description": "At least one of `name` or `content`. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
         "parameters": [
           {
             "name": "id",
@@ -7193,7 +7194,8 @@
               "posts:write"
             ]
           }
-        ]
+        ],
+        "description": "Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED."
       }
     },
     "/api/calendar-notes": {
@@ -7202,7 +7204,7 @@
           "Calendar Notes"
         ],
         "summary": "List calendar notes",
-        "description": "Notes whose date falls in [from, to] (both inclusive, at most a year apart), ordered by date. Returns { notes: CalendarNote[] }. Notes are free text pinned to a day on the calendar (a campaign, a holiday, \"no posts this week\"); they never publish anywhere.",
+        "description": "Notes whose date falls in [from, to] (both inclusive, at most a year apart), ordered by date. Returns { notes: CalendarNote[] }. Notes are free text pinned to a day on the calendar (a campaign, a holiday, \"no posts this week\"); they never publish anywhere. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
         "parameters": [
           {
             "name": "from",
@@ -7296,7 +7298,8 @@
               "posts:write"
             ]
           }
-        ]
+        ],
+        "description": "Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED."
       }
     },
     "/api/calendar-notes/{id}": {
@@ -7305,7 +7308,7 @@
           "Calendar Notes"
         ],
         "summary": "Update calendar note",
-        "description": "At least one of `date`, `body`, `color`.",
+        "description": "At least one of `date`, `body`, `color`. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
         "parameters": [
           {
             "name": "id",
@@ -7398,7 +7401,8 @@
               "posts:write"
             ]
           }
-        ]
+        ],
+        "description": "Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED."
       }
     }
   }

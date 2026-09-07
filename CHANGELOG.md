@@ -4,6 +4,14 @@
 
 Node **1.20.0** · Python **0.20.0** · MCP **1.23.0** · spec
 
+### Rollout
+
+Everything in this entry, plus hashtag groups, media alt text and the
+queue-move parameters from the previous entry, is switched on per account.
+Until then the routes answer `403 { code: "FEATURE_DISABLED", feature }`.
+Reads of posts expose `hasShareLink` (boolean) rather than the review-link
+token, and only roles that can edit posts may create or revoke links.
+
 ### Added
 
 - **Post templates.** `GET/POST /api/templates`, `GET/PUT/DELETE
