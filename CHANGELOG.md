@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-09-07 — Hashtag groups, media alt text, queue position
+
+Node **1.19.0** · Python **0.19.0** · MCP **1.22.0** · spec
+
+### Added
+
+- **Hashtag groups.** `GET/POST /api/hashtag-groups` and
+  `GET/PUT/DELETE /api/hashtag-groups/{id}`: named sets of 1-30 hashtags,
+  org-wide, up to 100 per organization. Hashtags are normalised (leading `#`,
+  deduplicated case-insensitively); spaces or punctuation are rejected with
+  `400 VALIDATION_ERROR`, a duplicate name with `409 CONFLICT`. Node
+  `bp.hashtagGroups`, Python `bp.hashtag_groups`, MCP `list_hashtag_groups`,
+  `create_hashtag_group`, `update_hashtag_group`, `delete_hashtag_group`.
+- **Media alt text.** `PATCH /api/media/{id}` with `{ altText }` sets the
+  file's accessibility description; `GET /api/media` and `GET /api/media/{id}`
+  return it. Sent to Instagram (feed photos and carousel images), LinkedIn and
+  Bluesky. Node `bp.media.update(id, { altText })`, Python
+  `bp.media.update(id, alt_text=...)`, MCP `update_media`.
+- **Queue position.** `GET /api/posts/queue-slot?position=end` returns the slot
+  after the last pending scheduled post (the bottom of the queue); `next`
+  stays the default. Node `bp.posts.queueSlot(tz, 'end')`, Python
+  `bp.posts.queue_slot(position="end")`, MCP `get_queue_slot` `position`.
+
 ## 2026-09-07 — LinkedIn mentions, Threads topic and location tags
 
 Node **1.18.0** · MCP **1.21.0** · spec

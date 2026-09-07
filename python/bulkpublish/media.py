@@ -166,6 +166,19 @@ class MediaResource:
         """
         return self._client._request("GET", f"/api/media/{media_id}")
 
+    def update(self, media_id: str, *, alt_text: Optional[str]) -> Dict[str, Any]:
+        """Set the accessibility description of a media file.
+
+        Alt text belongs to the file, so one value covers every post that
+        reuses it; it is sent to Instagram, LinkedIn and Bluesky. Pass ``None``
+        or ``""`` to clear. Trimmed to 1000 characters.
+
+        Example::
+
+            bp.media.update("42", alt_text="A red bicycle against a white wall")
+        """
+        return self._client._request("PATCH", f"/api/media/{media_id}", json={"altText": alt_text})
+
     def delete(self, media_id: str) -> Dict[str, Any]:
         """Delete a media file.
 
@@ -426,6 +439,10 @@ class AsyncMediaResource:
     async def get(self, media_id: str) -> MediaFile:
         """Get a media file — see :meth:`MediaResource.get` for full docs."""
         return await self._client._request("GET", f"/api/media/{media_id}")
+
+    async def update(self, media_id: str, *, alt_text: Optional[str]) -> Dict[str, Any]:
+        """Set alt text — see :meth:`MediaResource.update` for full docs."""
+        return await self._client._request("PATCH", f"/api/media/{media_id}", json={"altText": alt_text})
 
     async def delete(self, media_id: str) -> Dict[str, Any]:
         """Delete media — see :meth:`MediaResource.delete` for full docs."""

@@ -41,6 +41,7 @@ from .exceptions import (
     ValidationError,
 )
 from .labels import AsyncLabelsResource, LabelsResource
+from .hashtag_groups import AsyncHashtagGroupsResource, HashtagGroupsResource
 from .media import AsyncMediaResource, MediaResource
 from .posts import AsyncPostsResource, PostsResource
 from .notifications import AsyncNotificationsResource, NotificationsResource
@@ -170,6 +171,7 @@ class BulkPublish(_BaseClient):
         media: :class:`~bulkpublish.media.MediaResource`
         analytics: :class:`~bulkpublish.analytics.AnalyticsResource`
         labels: :class:`~bulkpublish.labels.LabelsResource`
+        hashtag_groups: :class:`~bulkpublish.hashtag_groups.HashtagGroupsResource`
         schedules: :class:`~bulkpublish.schedules.SchedulesResource`
         channel_sets: :class:`~bulkpublish.channel_sets.ChannelSetsResource`
         platforms: :class:`~bulkpublish.platforms.PlatformsResource`
@@ -226,6 +228,7 @@ class BulkPublish(_BaseClient):
         self.media = MediaResource(self)
         self.analytics = AnalyticsResource(self)
         self.labels = LabelsResource(self)
+        self.hashtag_groups = HashtagGroupsResource(self)
         self.schedules = SchedulesResource(self)
         self.channel_sets = ChannelSetsResource(self)
         self.rss_feeds = RssFeedsResource(self)
@@ -543,6 +546,7 @@ class AsyncBulkPublish(_BaseClient):
         self.media = AsyncMediaResource(self)
         self.analytics = AsyncAnalyticsResource(self)
         self.labels = AsyncLabelsResource(self)
+        self.hashtag_groups = AsyncHashtagGroupsResource(self)
         self.schedules = AsyncSchedulesResource(self)
         self.channel_sets = AsyncChannelSetsResource(self)
         self.rss_feeds = AsyncRssFeedsResource(self)

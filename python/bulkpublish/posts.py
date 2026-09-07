@@ -573,11 +573,15 @@ class PostsResource:
         self,
         *,
         timezone: Optional[str] = None,
+        position: Optional[str] = None,
     ) -> QueueSlot:
         """Get the organization's next optimal publishing time slot.
 
         Args:
             timezone: IANA timezone for the slot calculation (defaults to UTC).
+            position: ``"next"`` (default) for the next free slot, ``"end"`` for
+                the slot after the last pending scheduled post (the bottom of
+                the queue).
 
         Returns:
             Dict with ``suggestedTime`` and ``timezone``.
@@ -590,6 +594,8 @@ class PostsResource:
         params: Dict[str, Any] = {}
         if timezone is not None:
             params["timezone"] = timezone
+        if position is not None:
+            params["position"] = position
         return self._client._request("GET", "/api/posts/queue-slot", params=params)
 
 
@@ -666,11 +672,13 @@ class AsyncPostsResource:
             body["scheduledAt"] = scheduled_at
         return await self._client._request("POST", "/api/posts/bulk", json=body)
 
-    async def queue_slot(self, *, timezone: Optional[str] = None) -> QueueSlot:
+    async def queue_slot(self, *, timezone: Optional[str] = None, position: Optional[str] = None) -> QueueSlot:
         """Queue slot — see :meth:`PostsResource.queue_slot`."""
         params: Dict[str, Any] = {}
         if timezone is not None:
             params["timezone"] = timezone
+        if position is not None:
+            params["position"] = position
         return await self._client._request("GET", "/api/posts/queue-slot", params=params)
 
 

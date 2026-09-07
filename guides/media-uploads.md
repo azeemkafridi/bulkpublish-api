@@ -186,6 +186,24 @@ All media files must belong to your organization. Attempting to use another orga
 }
 ```
 
+## Alt Text
+
+Alt text belongs to the file, not the post: set it once and every post that
+reuses the image sends the same description.
+
+```bash
+curl -X PATCH https://app.bulkpublish.com/api/media/42 \
+  -H "Authorization: Bearer $BULKPUBLISH_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"altText": "A red bicycle against a white wall"}'
+```
+
+It is delivered wherever the destination accepts a description: Instagram
+(feed photos and carousel images), LinkedIn (single and multi-image posts) and
+Bluesky. Video files accept a value, but no platform receives it yet. Send
+`null` or an empty string to clear. Trimmed to 1000 characters. `GET
+/api/media` and `GET /api/media/{id}` return it as `altText`.
+
 ## Thumbnails and Variants
 
 After uploading an image, BulkPublish automatically generates:

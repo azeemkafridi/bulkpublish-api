@@ -270,6 +270,7 @@ More examples in [`examples/`](examples/) — including [Python automation scrip
 - **Analytics** — Track impressions, likes, comments, shares, and engagement. Each platform reports a different subset of metrics, and the response says which (`supportedMetrics` / `supportedTotals`) so a `0` is never mistaken for a measurement — see [Metrics by Platform](guides/platforms.md#metrics-by-platform)
 - **Link tracking** — Opt in per organization, or per post via `linkTrackingOverride`, to rewrite links through `bulkpubli.sh` and count the clicks. Reported as `linkClicks` / `totalLinkClicks` and measured by BulkPublish rather than the platform, so it works even where the platform reports nothing — see [Character Limits](guides/platforms.md#character-limits)
 - **Labels** — Organize posts and media with color-coded labels
+- **Hashtag groups** — Save sets of hashtags and drop them into a post in one call
 - **Bulk operations** — Delete or retry multiple posts in a single request
 - **Threads** — Multi-part thread posts for X, Threads, Bluesky, and Mastodon
 - **Auto first comment** — Automatically add a comment after publishing on any platform
@@ -311,6 +312,7 @@ Authorization: Bearer bp_your_key_here
 | `GET` | `/api/channels/:id/health` | Check channel token health |
 | `GET` | `/api/channels/:id/options` | Get platform options (Pinterest boards, YouTube playlists, Tumblr blogs, Discord channels, Reddit `?q=`/`?subreddit=`, Threads `?q=` place search) |
 | `GET` | `/api/channels/:id/mentions` | Search accounts for @mention (X, Bluesky, LinkedIn Pages — LinkedIn results are `@[Name](urn:li:organization:ID)` tokens) |
+| `GET`/`POST` | `/api/hashtag-groups` | Saved hashtag groups, 1-30 hashtags each (get/update/delete via `/api/hashtag-groups/:id`) |
 | `GET`/`POST` | `/api/channel-sets` | Saved channel groups for one-click targeting (update/delete via `/api/channel-sets/:id`) |
 | `GET`/`POST` | `/api/rss-feeds` | RSS/Atom autopost feeds — new items become posts (update/delete via `/api/rss-feeds/:id`) |
 | `POST` | `/api/media` | Upload a media file (multipart form, up to 100MB) |

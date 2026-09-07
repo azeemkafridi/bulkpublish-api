@@ -337,15 +337,18 @@ export class PostsResource {
    * Useful for auto-suggesting optimal publish times.
    *
    * @param timezone - IANA timezone string (default: 'UTC').
+   * @param position - `'next'` (default) for the next free slot, `'end'` for the
+   *   slot after the last pending scheduled post (the bottom of the queue).
    * @returns The suggested time slot.
    *
    * @example
    * ```typescript
    * const slot = await bp.posts.queueSlot('America/New_York');
    * console.log('Next available slot:', slot.suggestedTime);
+   * const last = await bp.posts.queueSlot('America/New_York', 'end');
    * ```
    */
-  queueSlot(timezone?: string): Promise<QueueSlotResponse> {
-    return this.http.get<QueueSlotResponse>('/api/posts/queue-slot', { timezone });
+  queueSlot(timezone?: string, position?: 'next' | 'end'): Promise<QueueSlotResponse> {
+    return this.http.get<QueueSlotResponse>('/api/posts/queue-slot', { timezone, position });
   }
 }

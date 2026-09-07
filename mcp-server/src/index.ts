@@ -455,6 +455,7 @@ export function createServer(): McpServer {
     list_media: { title: "List media", readOnlyHint: true },
     get_media: { title: "Get media file", readOnlyHint: true },
     list_labels: { title: "List labels", readOnlyHint: true },
+    list_hashtag_groups: { title: "List hashtag groups", readOnlyHint: true },
     list_schedules: { title: "List recurring schedules", readOnlyHint: true },
     get_analytics: { title: "Get analytics", readOnlyHint: true },
     get_quota_usage: { title: "Get quota usage", readOnlyHint: true },
@@ -466,6 +467,10 @@ export function createServer(): McpServer {
     list_rss_feeds: { title: "List RSS feeds", readOnlyHint: true },
     // Create / update (non-destructive writes)
     create_post: { title: "Create post", readOnlyHint: false, destructiveHint: false },
+    create_hashtag_group: { title: "Create hashtag group", readOnlyHint: false, destructiveHint: false },
+    update_hashtag_group: { title: "Update hashtag group", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+    delete_hashtag_group: { title: "Delete hashtag group", readOnlyHint: false, destructiveHint: true },
+    update_media: { title: "Set media alt text", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
     update_post: { title: "Update post", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
     list_platforms: { title: "List platforms", readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     // openWorldHint: the "retry" action re-publishes to the external platforms,
@@ -521,10 +526,15 @@ export function createServer(): McpServer {
     list_media: "the user wants a list of their uploaded media files.",
     get_media: "the user references one specific media file by ID.",
     list_labels: "the user wants their post labels/tags.",
+    list_hashtag_groups: "the user wants their saved hashtag sets, or you need hashtags to add to a post.",
+    create_hashtag_group: "the user wants to save a set of hashtags for reuse.",
+    update_hashtag_group: "the user wants to rename a hashtag group or change its hashtags.",
+    delete_hashtag_group: "the user wants to remove a saved hashtag group.",
+    update_media: "the user wants to add or change an image's alt text / accessibility description.",
     list_schedules: "the user wants their recurring posting schedules.",
     get_analytics: "the user asks how their content performed overall, across channels and over a date range.",
     get_quota_usage: "the user asks about plan limits or current usage.",
-    get_queue_slot: "the user asks when the next available scheduling slot is.",
+    get_queue_slot: "the user asks when the next available scheduling slot is, or wants a post moved to the top or bottom of the queue (then update_post with the returned scheduledAt).",
     get_channel_health: "the user asks whether a channel's connection/token is healthy.",
     get_channel_options: "you need a platform's valid post types before creating a post for it.",
     search_mentions: "you need @mention suggestions from a connected channel while drafting a post.",
@@ -1304,6 +1314,79 @@ server.tool(
 );
 
 // ---------------------------------------------------------------------------
+// Tools: hashtag groups
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "list_hashtag_groups",
+  "List the organization's saved hashtag groups — named sets of hashtags to drop into a post.",
+  {},
+  async () => {
+    const res = await api("GET", "/api/hashtag-groups");
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "create_hashtag_group",
+  "Save a named set of hashtags (1-30) for reuse in posts. Hashtags may be given with or without the leading '#'; letters, digits and underscores only. Up to 100 groups per organization.",
+  {
+    name: z.string().max(100).describe("Group name, unique per organization."),
+    hashtags: z.array(z.string()).min(1).max(30).describe("Hashtags, e.g. [\"launch\", \"#newproduct\"]."),
+  },
+  async ({ name, hashtags }) => {
+    const res = await api("POST", "/api/hashtag-groups", { name, hashtags });
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "update_hashtag_group",
+  "Rename a hashtag group and/or replace its hashtags (partial update — at least one field is required).",
+  {
+    groupId: z.number().describe("The hashtag group ID."),
+    name: z.string().max(100).optional().describe("New name."),
+    hashtags: z.array(z.string()).min(1).max(30).optional().describe("Replacement hashtag list."),
+  },
+  async ({ groupId, name, hashtags }) => {
+    const body: Record<string, unknown> = {};
+    if (name !== undefined) body.name = name;
+    if (hashtags !== undefined) body.hashtags = hashtags;
+    const res = await api("PUT", `/api/hashtag-groups/${groupId}`, body);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "delete_hashtag_group",
+  "Delete a saved hashtag group. Posts that already contain its hashtags are untouched.",
+  {
+    groupId: z.number().describe("The hashtag group ID to delete."),
+  },
+  async ({ groupId }) => {
+    const res = await api("DELETE", `/api/hashtag-groups/${groupId}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: update_media (alt text)
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "update_media",
+  "Set a media file's alt text (accessibility description). It belongs to the file, so one value covers every post that reuses it, and is sent to Instagram, LinkedIn and Bluesky. Pass an empty string to clear.",
+  {
+    mediaId: z.number().describe("The media file ID."),
+    altText: z.string().max(1000).describe("Description of the image for people who cannot see it. Empty string clears it."),
+  },
+  async ({ mediaId, altText }) => {
+    const res = await api("PATCH", `/api/media/${mediaId}`, { altText: altText || null });
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
 // Tool: get_quota_usage — gated behind HIDE_BILLING_TOOLS so it doesn't appear
 // in tools/list when the server is run for the ChatGPT submission, which is
 // subject to OpenAI's no-digital-subscriptions policy.
@@ -1490,10 +1573,15 @@ server.tool(
       .string()
       .optional()
       .describe('IANA timezone for the slot calculation (e.g. "America/New_York"). Defaults to UTC.'),
+    position: z
+      .enum(["next", "end"])
+      .optional()
+      .describe('"next" (default): the next free slot. "end": the slot after the last pending scheduled post, i.e. the bottom of the queue.'),
   },
-  async ({ timezone }) => {
+  async ({ timezone, position }) => {
     const params = new URLSearchParams();
     if (timezone) params.set("timezone", timezone);
+    if (position) params.set("position", position);
     const qs = params.toString();
     const res = await api("GET", `/api/posts/queue-slot${qs ? `?${qs}` : ""}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };

@@ -360,6 +360,16 @@ class AccountMetrics(TypedDict, total=False):
 # ---------------------------------------------------------------------------
 
 
+class HashtagGroup(TypedDict, total=False):
+    """A saved set of hashtags. ``hashtags`` are normalised with a leading ``#``."""
+
+    id: int
+    name: str
+    hashtags: List[str]
+    createdAt: str
+    updatedAt: str
+
+
 class Label(TypedDict, total=False):
     """A label (tag) for organizing posts and media.
 

@@ -428,6 +428,11 @@
               "null"
             ],
             "description": "1200px-wide derivative (webp) for lightboxes and large preview panes. For videos, generated from the poster frame. Null on media uploaded before this derivative existed until the backfill runs."
+          },
+          "altText": {
+            "type": "string",
+            "nullable": true,
+            "description": "Accessibility description sent to Instagram, LinkedIn and Bluesky. Set with PATCH /api/media/{id}."
           }
         }
       },
@@ -564,30 +569,65 @@
         "type": "object",
         "description": "Which notifications are delivered and by which route. Email categories are opt-in and default off; in-app categories default on.",
         "properties": {
-          "emailOnFailure": { "type": "boolean" },
-          "emailOnTokenExpiry": { "type": "boolean" },
-          "emailOnChannelSlots": { "type": "boolean" },
-          "inAppPublished": { "type": "boolean" },
-          "inAppFailed": { "type": "boolean" },
-          "inAppScheduleReminder": { "type": "boolean" },
-          "inAppTokenExpiry": { "type": "boolean" },
-          "inAppInbox": { "type": "boolean" }
+          "emailOnFailure": {
+            "type": "boolean"
+          },
+          "emailOnTokenExpiry": {
+            "type": "boolean"
+          },
+          "emailOnChannelSlots": {
+            "type": "boolean"
+          },
+          "inAppPublished": {
+            "type": "boolean"
+          },
+          "inAppFailed": {
+            "type": "boolean"
+          },
+          "inAppScheduleReminder": {
+            "type": "boolean"
+          },
+          "inAppTokenExpiry": {
+            "type": "boolean"
+          },
+          "inAppInbox": {
+            "type": "boolean"
+          }
         }
       },
       "Organization": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer" },
-          "name": { "type": "string" },
-          "slug": { "type": "string" },
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
           "plan": {
             "type": "string",
-            "enum": ["free", "pro", "business"]
+            "enum": [
+              "free",
+              "pro",
+              "business"
+            ]
           },
-          "ownerId": { "type": "string" },
+          "ownerId": {
+            "type": "string"
+          },
           "role": {
             "type": "string",
-            "enum": ["owner", "admin", "member", "approver", "contributor", "viewer"],
+            "enum": [
+              "owner",
+              "admin",
+              "member",
+              "approver",
+              "contributor",
+              "viewer"
+            ],
             "description": "The caller's role in this organization. 'member' is legacy; no new code assigns it."
           },
           "createdAt": {
@@ -1047,6 +1087,32 @@
             }
           }
         }
+      },
+      "HashtagGroup": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "hashtags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Stored normalised: leading '#', no spaces, deduplicated case-insensitively, in the order given."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     }
   },
@@ -1078,6 +1144,10 @@
     {
       "name": "Labels",
       "description": "Organize posts and media with labels"
+    },
+    {
+      "name": "Hashtag Groups",
+      "description": "Saved sets of hashtags to drop into a post"
     },
     {
       "name": "Schedules",
@@ -2565,6 +2635,20 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "position",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 `next` (default) returns the next free slot. `end` returns the slot after the last pending scheduled post, i.e. the bottom of the queue; with nothing queued it equals `next`. Any other value is rejected with 400 VALIDATION_ERROR.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "next",
+                "end"
+              ],
+              "default": "next"
+            }
           }
         ],
         "responses": {
@@ -3211,6 +3295,65 @@
           }
         },
         "operationId": "deleteMedia",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "media:write"
+            ]
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Set alt text",
+        "description": "Sets the accessibility description of a media file. Alt text belongs to the file, so one value covers every post that reuses it. It is sent wherever the destination accepts a description: Instagram (feed photos and carousel images), LinkedIn (single and multi-image posts) and Bluesky. Video files accept a value but no platform receives it yet. Send `null` or an empty string to clear. Trimmed to 1000 characters.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "altText"
+                ],
+                "properties": {
+                  "altText": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated: { file: { id, altText } }"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "operationId": "updateMedia",
         "security": [
           {
             "apiKey": []
@@ -6429,6 +6572,231 @@
           }
         },
         "operationId": "revokeOauthToken"
+      }
+    },
+    "/api/hashtag-groups": {
+      "get": {
+        "tags": [
+          "Hashtag Groups"
+        ],
+        "summary": "List hashtag groups",
+        "description": "Every saved hashtag group in the organization, sorted by name. Returns { groups: HashtagGroup[] }.",
+        "responses": {
+          "200": {
+            "description": "Hashtag groups"
+          }
+        },
+        "operationId": "listHashtagGroups",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:read"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Hashtag Groups"
+        ],
+        "summary": "Create hashtag group",
+        "description": "Saves a named set of hashtags the composer can insert in one click. An organization may keep up to 100 groups (400 LIMIT_REACHED beyond that). Returns 201 with { group }.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "hashtags"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "description": "1-100 characters, trimmed. Unique per organization (case-insensitive); a clash returns 409 CONFLICT."
+                  },
+                  "hashtags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "maxItems": 30,
+                    "description": "1-30 hashtags, with or without the leading '#'. Letters, digits and underscores in any script, up to 100 characters each; anything else (spaces, hyphens) is rejected with 400 VALIDATION_ERROR. Duplicates are dropped case-insensitively."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "409": {
+            "description": "Duplicate name"
+          }
+        },
+        "operationId": "createHashtagGroup",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/hashtag-groups/{id}": {
+      "get": {
+        "tags": [
+          "Hashtag Groups"
+        ],
+        "summary": "Get hashtag group",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hashtag group"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "operationId": "getHashtagGroup",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:read"
+            ]
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Hashtag Groups"
+        ],
+        "summary": "Update hashtag group",
+        "description": "At least one of `name` or `hashtags` is required. `hashtags` replaces the whole list.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "description": "1-100 characters, trimmed. Unique per organization (case-insensitive); a clash returns 409 CONFLICT."
+                  },
+                  "hashtags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "maxItems": 30,
+                    "description": "1-30 hashtags, with or without the leading '#'. Letters, digits and underscores in any script, up to 100 characters each; anything else (spaces, hyphens) is rejected with 400 VALIDATION_ERROR. Duplicates are dropped case-insensitively."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Duplicate name"
+          }
+        },
+        "operationId": "updateHashtagGroup",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Hashtag Groups"
+        ],
+        "summary": "Delete hashtag group",
+        "description": "Removes the group. Posts that already contain its hashtags are untouched.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "operationId": "deleteHashtagGroup",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
       }
     }
   }

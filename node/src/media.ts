@@ -83,6 +83,20 @@ export class MediaResource {
   }
 
   /**
+   * Set the accessibility description of a media file. Alt text belongs to the
+   * file, so one value covers every post that reuses it; it is sent to
+   * Instagram, LinkedIn and Bluesky. Pass `null` (or '') to clear.
+   *
+   * @example
+   * ```typescript
+   * await bp.media.update(42, { altText: 'A red bicycle against a white wall' });
+   * ```
+   */
+  update(id: number, params: { altText: string | null }): Promise<{ file: { id: number; altText: string | null } }> {
+    return this.http.patch(`/api/media/${id}`, params);
+  }
+
+  /**
    * Upload a media file.
    *
    * Accepts a file path (string), a Node.js Buffer, or a Blob/File object.
