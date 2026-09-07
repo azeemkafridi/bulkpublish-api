@@ -101,15 +101,15 @@ const POST_TYPE_OVERRIDES_SCHEMA = z
       .enum(["feed_photo", "feed_video", "reel", "story", "carousel"])
       .optional(),
     facebook: z.enum(["post", "video", "reel", "story", "carousel"]).optional(),
-    x: z.enum(["tweet", "video", "thread"]).optional(),
+    x: z.enum(["tweet", "video", "thread", "repost"]).optional(),
     tiktok: z.enum(["video", "photo_slideshow"]).optional(),
     youtube: z.enum(["video", "short"]).optional(),
-    threads: z.enum(["text", "image", "video", "carousel"]).optional(),
-    bluesky: z.enum(["post", "video"]).optional(),
+    threads: z.enum(["text", "image", "video", "carousel", "repost"]).optional(),
+    bluesky: z.enum(["post", "video", "thread", "repost"]).optional(),
     linkedin: z.enum(["post", "multi_image", "pdf_carousel", "article"]).optional(),
     pinterest: z.enum(["pin", "video_pin", "carousel"]).optional(),
     gmb: z.enum(["standard", "event", "offer"]).optional(),
-    mastodon: z.enum(["post"]).optional(),
+    mastodon: z.enum(["post", "thread", "repost"]).optional(),
     reddit: z.enum(["post"]).optional(),
     discord: z.enum(["post"]).optional(),
     telegram: z.enum(["post"]).optional(),
@@ -285,7 +285,10 @@ const PLATFORM_SPECIFIC_SCHEMA = z
       .passthrough()
       .optional(),
     x: z
-      .object({ replySettings: z.string().optional() })
+      .object({
+        replySettings: z.string().optional(),
+        repostId: z.string().optional().describe("With postTypeOverrides.x = 'repost': the X post URL or ID to repost (retweet)."),
+      })
       .passthrough()
       .optional(),
     facebook: z
@@ -305,6 +308,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
     threads: z
       .object({
         quotePostId: z.string().optional(),
+        repostId: z.string().optional().describe("With postTypeOverrides.threads = 'repost': the numeric ID of the Threads post to repost."),
         topicTag: z
           .string()
           .optional()
@@ -317,8 +321,8 @@ const PLATFORM_SPECIFIC_SCHEMA = z
       .passthrough()
       .optional(),
     linkedin: z.object({}).passthrough().optional(),
-    bluesky: z.object({}).passthrough().optional(),
-    mastodon: z.object({}).passthrough().optional(),
+    bluesky: z.object({ repostId: z.string().optional().describe("With postTypeOverrides.bluesky = 'repost': the bsky.app post URL (or at:// URI) to repost.") }).passthrough().optional(),
+    mastodon: z.object({ repostId: z.string().optional().describe("With postTypeOverrides.mastodon = 'repost': the status URL or ID to boost.") }).passthrough().optional(),
     reddit: channelKeyedOrFlat(REDDIT_OPTIONS)
       .optional()
       .describe(

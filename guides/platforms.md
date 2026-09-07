@@ -197,6 +197,27 @@ If you need different text for different platforms, use `platformContent` instea
 
 Platforms listed in `platformContent` use that text. All others fall back to the `content` field.
 
+## Reposts
+
+Post type `repost` (via `postTypeOverrides`) on **X, Threads, Bluesky and Mastodon**
+reposts an existing post at the scheduled time. The post's own text and media
+are ignored; the target goes in `platformSpecific.<platform>.repostId`:
+
+| Platform | Accepts |
+|---|---|
+| `x` | status URL or ID |
+| `mastodon` | status URL or ID |
+| `bluesky` | `https://bsky.app/profile/<handle>/post/<rkey>` or an `at://` URI |
+| `threads` | the numeric post ID (Threads links carry a short code the API cannot resolve) |
+
+```json
+{ "content": "", "channels": [{ "channelId": 12, "platform": "x" }],
+  "postTypeOverrides": { "x": "repost" },
+  "platformSpecific": { "x": { "repostId": "https://x.com/jack/status/20" } } }
+```
+
+A missing or unparsable target is rejected with `400 VALIDATION_ERROR`.
+
 ## Auto First Comment
 
 Most platforms support `_firstComment` in `platformSpecific`. After the post is published, BulkPublish automatically posts a comment on the published content:

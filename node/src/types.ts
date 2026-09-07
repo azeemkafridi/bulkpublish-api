@@ -551,14 +551,14 @@ export interface CreatePostParams {
    * Valid types per platform:
    * - facebook: `post`, `reel`, `story`
    * - instagram: `feed_photo`, `feed_video`, `reel`, `story`, `carousel`
-   * - x: `tweet`
+   * - x: `tweet`, `video`, `thread`, `repost`
    * - youtube: `video`, `short` (video file required)
    * - tiktok: `video`, `photo_slideshow`
    * - linkedin: `post`, `multi_image`, `pdf_carousel`, `article`
    * - pinterest: `pin`, `video_pin`, `carousel`
-   * - threads: `text`, `image`, `video`, `carousel`
+   * - threads: `text`, `image`, `video`, `carousel`, `repost`
    * - bluesky: `post`
-   * - mastodon: `post`
+   * - mastodon: `post`, `repost`
    * - gmb: `standard`, `event`, `offer`
    * - snapchat: `story` (default), `saved_story`, `spotlight` (video only)
    *
@@ -575,8 +575,8 @@ export interface CreatePostParams {
    * - **tiktok**: Optional: `privacyLevel` (SELF_ONLY|PUBLIC|FRIENDS), `disableDuet`, `disableStitch`, `disableComment`, `isAigc`
    * - **linkedin**: Optional: `title`, `description`, `url` (required for article type), `carouselTitle`
    * - **gmb**: Optional: `ctaType`, `ctaUrl`, `eventTitle`, `startDate`, `endDate`, `startTime`, `endTime`, `couponCode`, `redeemOnlineUrl`
-   * - **mastodon**: Optional: `visibility` (public|unlisted|private|direct), `spoilerText`, `language`
-   * - **threads**: Optional: `quotePostId`, `topicTag` (one topic, no leading '#', no periods or ampersands), `locationId` (numeric place ID from `GET /api/channels/{id}/options?q=<place>`; needs location tagging granted on the channel)
+   * - **mastodon**: Optional: `visibility` (public|unlisted|private|direct), `spoilerText`, `language`, `repostId` (with post type `repost`: status URL or ID to boost)
+   * - **threads**: Optional: `repostId` (with post type `repost`: the numeric Threads post ID to repost), `quotePostId`, `topicTag` (one topic, no leading '#', no periods or ampersands), `locationId` (numeric place ID from `GET /api/channels/{id}/options?q=<place>`; needs location tagging granted on the channel)
    * - **reddit**: `{ subreddit }` (required; accepts `webdev`, `r/webdev` or `/r/webdev`, else falls back to the
    *   subreddit stored on the channel). Optional: `title` (defaults to the first line of `content`, truncated to
    *   300 chars), `type` (`'link'` forces a link post), `url`, `flairId`, `thumbnailUrl`.

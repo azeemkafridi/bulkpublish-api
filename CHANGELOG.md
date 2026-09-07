@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-08 — Reposts
+
+Node **1.21.0** · Python **0.21.0** · MCP **1.24.0** · spec
+
+### Added
+
+- **Repost post type** on X, Threads, Bluesky and Mastodon:
+  `postTypeOverrides.<platform> = "repost"` with the target in
+  `platformSpecific.<platform>.repostId` (URL or ID; Threads needs the numeric
+  post ID). The post's own text and media are ignored. Rolling out per
+  account like the rest of the recent additions. MCP `create_post` enums and
+  option schemas updated.
+
 ## 2026-09-08 — Post templates, review links, calendar notes
 
 Node **1.20.0** · Python **0.20.0** · MCP **1.23.0** · spec
