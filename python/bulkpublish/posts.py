@@ -178,7 +178,18 @@ class PostsResource:
                   Optional: ``boardId``, ``description``, ``link``, ``dominantColor``,
                   ``coverImageUrl`` (video pins; when omitted the server falls back to an
                   attached image, then the video's auto-extracted poster frame)
-                - **instagram**: Optional: ``collaborators``, ``trialReel``, ``thumbnailTimestamp``
+                - **instagram**: Optional: ``collaborators``, ``shareToStory``, ``trialReel``,
+                  ``graduationStrategy`` (``"manual"``/``"auto"``), ``thumbnailTimestamp``,
+                  ``coverUrl``. ``trialReel`` applies only to the ``reel`` post type and is
+                  ignored on ``feed_video``, even though both publish through the same reel
+                  container; ``graduationStrategy`` is ignored unless ``trialReel`` is true. The last two both set the still shown before a video or Reel
+                  plays (post types ``feed_video`` and ``reel``); ``coverUrl`` wins when both are
+                  sent, because Instagram rejects a request carrying both.
+                - **facebook**: Optional: ``shareToStory``, ``thumbnailUrl``. ``thumbnailUrl`` is
+                  the cover for a video or Reel; Facebook only accepts one once the video exists, so
+                  it is applied after the video publishes and lands a moment after the post. A cover
+                  that cannot be fetched, or that Facebook rejects, leaves the video published with
+                  Facebook's own chosen frame rather than failing the post.
                 - **tiktok**: Optional: ``privacyLevel`` (SELF_ONLY|PUBLIC|FRIENDS), ``disableDuet``, ``disableStitch``
                 - **linkedin**: Optional: ``title``, ``description``, ``url`` (required for article type)
                 - **gmb**: Optional: ``ctaType``, ``ctaUrl``, ``eventTitle``, ``startDate``, ``endDate``
@@ -219,7 +230,10 @@ class PostsResource:
 
             platform_content: Per-platform content overrides for different char limits
                 (bluesky: 300, pinterest/threads/mastodon: 500, etc.).
-            delete_media_after_publish: Remove attached media after publishing.
+            delete_media_after_publish: Remove attached media after publishing,
+                once every channel has published, freeing the storage it counted
+                against. The media records remain, flagged as having their
+                originals deleted.
             thread_parts: Parts of a thread post (min 2 required).
             post_type_overrides: Per-platform post type. Valid types:
 

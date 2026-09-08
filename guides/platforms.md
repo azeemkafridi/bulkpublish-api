@@ -273,7 +273,8 @@ inside a platform key, so it applies to every channel on the post.
     "shareToStory": true,
     "trialReel": true,
     "graduationStrategy": "auto",
-    "thumbnailTimestamp": 3.5
+    "thumbnailTimestamp": 3.5,
+    "coverUrl": "https://example.com/cover.jpg"
   }
 }
 ```
@@ -282,15 +283,20 @@ inside a platform key, so it applies to every channel on the post.
 |-------|------|-------------|
 | `collaborators` | string | Comma-separated usernames to invite as collaborators |
 | `shareToStory` | boolean | Also share the post to your story |
-| `trialReel` | boolean | Post as a trial reel (limited audience first) |
-| `graduationStrategy` | string | `"manual"` or `"auto"` -- how trial reels graduate to full audience |
-| `thumbnailTimestamp` | number | Seconds into the video to use as the cover thumbnail |
+| `trialReel` | boolean | Post as a trial reel, shown to non-followers first. **Post type `reel` only** -- ignored on `feed_video`, which publishes as an ordinary reel |
+| `graduationStrategy` | string | `"manual"` or `"auto"` -- how a trial reel graduates to the full audience. Ignored unless `trialReel` is true |
+| `thumbnailTimestamp` | number | Seconds into the video to use as the cover frame. Post types `feed_video` and `reel`. Ignored when `coverUrl` is set |
+| `coverUrl` | string | Cover image for a video or Reel, as a public image URL. Post types `feed_video` and `reel` |
 
 ### Notes
 
 - Instagram requires JPEG images. BulkPublish auto-converts PNG/WebP to JPEG before publishing.
 - Carousels support up to 10 items (images or videos).
 - Reels must be vertical video.
+- **A video cover, two ways.** `thumbnailTimestamp` names a moment in the video;
+  `coverUrl` supplies a separate image. Instagram accepts one or the other and
+  rejects a request carrying both, so when both are set only `coverUrl` is sent.
+  Both apply to `feed_video` as well as `reel` — they are the same container.
 
 ---
 
@@ -583,7 +589,8 @@ Both apply to the root post of a thread, never to its replies.
 ```json
 {
   "facebook": {
-    "shareToStory": true
+    "shareToStory": true,
+    "thumbnailUrl": "https://example.com/cover.jpg"
   }
 }
 ```
@@ -591,6 +598,15 @@ Both apply to the root post of a thread, never to its replies.
 | Field | Type | Description |
 |-------|------|-------------|
 | `shareToStory` | boolean | Also share the post to your Facebook story |
+| `thumbnailUrl` | string | Cover image for a video or Reel, as a public image URL. Omit to let Facebook choose a frame |
+
+### Notes
+
+- **The cover lands a moment after the post.** Facebook only accepts a cover
+  once the video exists, so it is applied after the video publishes rather than
+  as part of it. The post is reported successful as soon as the video is live.
+- **A cover never fails a post.** If the image cannot be fetched, or Facebook
+  rejects it, the video stays published with the frame Facebook chose.
 
 ---
 

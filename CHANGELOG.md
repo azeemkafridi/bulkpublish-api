@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-09-09 — Custom video covers on Instagram and Facebook
+
+Node **1.22.0** · Python **0.22.0** · MCP **1.26.0** · spec
+
+### Added
+
+- **`platformSpecific.instagram.coverUrl`** — the still shown before a video or
+  Reel plays, as a public image URL. Instagram accepts either a cover image or
+  a cover *moment* (`thumbnailTimestamp`) and rejects a request carrying both,
+  so when both are sent only `coverUrl` is forwarded. Both apply to post types
+  `feed_video` and `reel`.
+- **`platformSpecific.facebook.thumbnailUrl`** — the same idea for a Facebook
+  video or Reel. Facebook only accepts a cover once the video exists, so it is
+  applied after the video publishes and lands a moment after the post. A cover
+  that cannot be fetched, or that Facebook rejects, leaves the video published
+  with Facebook's own chosen frame rather than failing the post.
+
+### Fixed
+
+- **`platformSpecific.instagram.thumbnailTimestamp` now applies to a feed video,
+  not only a Reel.** Both post through the identical container, but only the
+  Reel path read the field, so a timestamp set on a `feed_video` post was
+  silently dropped. No request shape changed; a value that was being ignored is
+  now sent.
+
+### Documented
+
+- **`platformSpecific.instagram.trialReel` applies to the `reel` post type
+  only.** It has always been read on the Reel path alone, so a `feed_video`
+  carrying it published as an ordinary reel with no indication that the trial
+  had been dropped. Behaviour is unchanged; the spec, the MCP tool schema, the
+  Python docstring and the platform guide now all say so, and
+  `graduationStrategy` is marked as ignored unless `trialReel` is true.
+
 ## 2026-09-08 — Mention lookups say which Page they matched
 
 MCP **1.25.0** · spec

@@ -280,7 +280,10 @@ const PLATFORM_SPECIFIC_SCHEMA = z
         isAigc: z.boolean().optional(),
         brandContentToggle: z.boolean().optional(),
         brandOrganicToggle: z.boolean().optional(),
-        thumbnailTimestamp: z.number().optional(),
+        thumbnailTimestamp: z
+          .number()
+          .optional()
+          .describe("Cover frame for the video, in seconds from the start."),
       })
       .passthrough()
       .optional(),
@@ -292,16 +295,45 @@ const PLATFORM_SPECIFIC_SCHEMA = z
       .passthrough()
       .optional(),
     facebook: z
-      .object({ shareToStory: z.boolean().optional() })
+      .object({
+        shareToStory: z.boolean().optional(),
+        thumbnailUrl: z
+          .string()
+          .optional()
+          .describe(
+            "Cover image URL for a video or Reel. Facebook only accepts a cover once the video exists, so it is applied after the video publishes and appears a moment after the post; a cover that cannot be fetched or that Facebook rejects leaves the video published with Facebook's own chosen frame rather than failing the post."
+          ),
+      })
       .passthrough()
       .optional(),
     instagram: z
       .object({
         collaborators: z.string().optional(),
         shareToStory: z.boolean().optional(),
-        trialReel: z.boolean().optional(),
-        graduationStrategy: z.enum(["manual", "auto"]).optional(),
-        thumbnailTimestamp: z.number().optional(),
+        trialReel: z
+          .boolean()
+          .optional()
+          .describe(
+            "Publish as a trial reel, shown to people who do not follow the account first. Only takes effect with postTypeOverrides.instagram of 'reel' \u2014 a 'feed_video' publishes as an ordinary reel and this is ignored, even though both use the same underlying reel container."
+          ),
+        graduationStrategy: z
+          .enum(["manual", "auto"])
+          .optional()
+          .describe(
+            "How a trial reel becomes a normal one: 'manual' (the creator releases it) or 'auto' (released automatically if it performs well). Default 'manual'. Ignored unless trialReel is true."
+          ),
+        thumbnailTimestamp: z
+          .number()
+          .optional()
+          .describe(
+            "Cover frame for a video or Reel, in seconds from the start. Applies to postTypeOverrides.instagram of 'feed_video' or 'reel'. Ignored when coverUrl is also set."
+          ),
+        coverUrl: z
+          .string()
+          .optional()
+          .describe(
+            "Cover image URL for a video or Reel. Takes precedence over thumbnailTimestamp: Instagram accepts one or the other and rejects a request carrying both, so only this one is forwarded when both are sent."
+          ),
       })
       .passthrough()
       .optional(),

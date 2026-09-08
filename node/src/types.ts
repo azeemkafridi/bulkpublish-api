@@ -571,7 +571,14 @@ export interface CreatePostParams {
    * Required fields by platform:
    * - **youtube**: `{ title }` (required, 1-100 chars). Optional: `privacyStatus`, `categoryId`, `tags`, `playlistId`, `thumbnailUrl`, `madeForKids`
    * - **pinterest**: `{ title }` (required, 1-100 chars). Optional: `boardId` (or falls back to channel default), `description`, `link`, `dominantColor` (hex e.g. #FF5733), `coverImageUrl` (video pins; when omitted the server falls back to an attached image, then the video's auto-extracted poster frame)
-   * - **instagram**: Optional: `collaborators`, `trialReel`, `thumbnailTimestamp`
+   * - **instagram**: Optional: `collaborators`, `shareToStory`, `trialReel`, `graduationStrategy`
+   *   (`'manual'|'auto'`), `thumbnailTimestamp`, `coverUrl`. The last two both set the still shown
+   *   before a video or Reel plays (post types `feed_video` and `reel`); `coverUrl` wins when both
+   *   are sent, because Instagram rejects a request carrying both.
+   * - **facebook**: Optional: `shareToStory`, `thumbnailUrl`. `thumbnailUrl` is the cover for a video
+   *   or Reel; Facebook only accepts one once the video exists, so it is applied after the video
+   *   publishes and lands a moment after the post. A cover that cannot be fetched, or that Facebook
+   *   rejects, leaves the video published with Facebook's own chosen frame rather than failing the post.
    * - **tiktok**: Optional: `privacyLevel` (SELF_ONLY|PUBLIC|FRIENDS), `disableDuet`, `disableStitch`, `disableComment`, `isAigc`
    * - **x**: Optional: `replySettings`, `repostId` (with post type `repost`: status URL or ID to repost)
    * - **bluesky**: Optional: `repostId` (with post type `repost`: bsky.app post URL or at:// URI)
@@ -617,6 +624,12 @@ export interface CreatePostParams {
    * Whether to delete uploaded media right after publishing. Default: false —
    * media is kept and reclaimed by the server's 3-month retention sweep.
    * Forced to false by the server when the post has a repeatSchedule.
+   *
+   * When true, the original is removed once every channel on the post has
+   * published, freeing the storage it counted against (`usage.mediaStorageMB`
+   * from `quotas.usage()`). The media record survives with `isOriginalDeleted`
+   * set and its original `sizeBytes` still reported, so it stays listed but
+   * cannot be attached to a new post.
    */
   deleteMediaAfterPublish?: boolean;
   /** Recurring schedule configuration. */
