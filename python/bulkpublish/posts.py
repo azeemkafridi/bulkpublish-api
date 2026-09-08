@@ -182,9 +182,10 @@ class PostsResource:
                   ``graduationStrategy`` (``"manual"``/``"auto"``), ``thumbnailTimestamp``,
                   ``coverUrl``. ``trialReel`` applies only to the ``reel`` post type and is
                   ignored on ``feed_video``, even though both publish through the same reel
-                  container; ``graduationStrategy`` is ignored unless ``trialReel`` is true. The last two both set the still shown before a video or Reel
-                  plays (post types ``feed_video`` and ``reel``); ``coverUrl`` wins when both are
-                  sent, because Instagram rejects a request carrying both.
+                  container; ``graduationStrategy`` is ignored unless ``trialReel`` is true.
+                  ``thumbnailTimestamp`` and ``coverUrl`` both set the still shown before a
+                  video or Reel plays (post types ``feed_video`` and ``reel``); ``coverUrl``
+                  wins when both are sent, because Instagram rejects a request carrying both.
                 - **facebook**: Optional: ``shareToStory``, ``thumbnailUrl``. ``thumbnailUrl`` is
                   the cover for a video or Reel; Facebook only accepts one once the video exists, so
                   it is applied after the video publishes and lands a moment after the post. A cover
