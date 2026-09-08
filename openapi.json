@@ -1576,6 +1576,7 @@
                     "description": "Optional. Required when postFormat is 'thread' (min 2 parts)"
                   },
                   "platformThreadParts": {
+                    "description": "Per-platform thread segments, keyed by platform name. A platform's own list replaces `threadParts` for that platform when it has entries, so its parts are the ones measured against that platform's limit; a platform with no entries here uses `threadParts`. Same 400 VALIDATION_ERROR on an over-long part as `threadParts`.",
                     "type": "object",
                     "additionalProperties": {
                       "type": "array",
@@ -1930,7 +1931,7 @@
                   },
                   "threadParts": {
                     "type": "array",
-                    "description": "Thread segments (required when postFormat is 'thread'; at least 2). Each part: { content, mediaFileIds }.",
+                    "description": "Thread segments (required when postFormat is 'thread'; at least 2). Each part: { content, mediaFileIds }. EVERY part is measured against the character limit of every platform the post targets, not just the first one \u2014 a part over the limit is rejected with 400 VALIDATION_ERROR naming the part number, the platform and its limit. URLs count the way the platform counts them (23 characters on X and Mastodon).",
                     "items": {
                       "type": "object",
                       "properties": {
@@ -4525,7 +4526,7 @@
                   },
                   "threadParts": {
                     "type": "array",
-                    "description": "Thread segments (required when postFormat is 'thread'; at least 2). Each part: { content, mediaFileIds }.",
+                    "description": "Thread segments (required when postFormat is 'thread'; at least 2). Each part: { content, mediaFileIds }. EVERY part is measured against the character limit of every platform the post targets, not just the first one \u2014 a part over the limit is rejected with 400 VALIDATION_ERROR naming the part number, the platform and its limit. URLs count the way the platform counts them (23 characters on X and Mastodon).",
                     "items": {
                       "type": "object",
                       "properties": {
@@ -4656,7 +4657,7 @@
                   },
                   "threadParts": {
                     "type": "array",
-                    "description": "Thread segments (required when postFormat is 'thread'; at least 2). Each part: { content, mediaFileIds }.",
+                    "description": "Thread segments (required when postFormat is 'thread'; at least 2). Each part: { content, mediaFileIds }. EVERY part is measured against the character limit of every platform the post targets, not just the first one \u2014 a part over the limit is rejected with 400 VALIDATION_ERROR naming the part number, the platform and its limit. URLs count the way the platform counts them (23 characters on X and Mastodon).",
                     "items": {
                       "type": "object",
                       "properties": {

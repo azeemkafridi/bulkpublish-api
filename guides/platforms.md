@@ -549,6 +549,10 @@ curl "https://app.bulkpublish.com/api/channels/5/options" \
 
 - X has a 280-character limit for tweets.
 - Thread posts (multi-part) are supported via `postFormat: "thread"` with `threadParts`.
+  Every part is checked against the limit of every platform the post targets, so a long
+  part 3 is rejected up front (400 `VALIDATION_ERROR`, naming the part) rather than
+  failing mid-thread with the earlier parts already public. `platformThreadParts` lets one
+  platform carry its own parts, and those are the ones checked for it.
 - X is excluded from the Free plan. Pro or Business plan required.
 
 ---

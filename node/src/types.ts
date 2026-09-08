@@ -634,9 +634,22 @@ export interface CreatePostParams {
   deleteMediaAfterPublish?: boolean;
   /** Recurring schedule configuration. */
   repeatSchedule?: RepeatScheduleConfig;
-  /** Thread parts for thread format. Requires at least 2 parts. */
+  /**
+   * Thread parts for thread format. Requires at least 2 parts.
+   *
+   * Every part is measured against the character limit of every platform the
+   * post targets, not only the first one: an over-long part is rejected with
+   * 400 VALIDATION_ERROR naming the part number, the platform and its limit.
+   * URLs count as 23 characters on X and Mastodon, their real length elsewhere.
+   */
   threadParts?: ThreadPart[];
-  /** Per-platform thread part overrides. */
+  /**
+   * Per-platform thread part overrides.
+   *
+   * A platform's own list replaces `threadParts` for that platform when it has
+   * entries, and those are the parts measured against that platform's limit; a
+   * platform absent from here uses `threadParts`.
+   */
   platformThreadParts?: Record<string, ThreadPart[]>;
   /** Enable auto-plug (reply with promo after engagement threshold). */
   autoPlugEnabled?: boolean;

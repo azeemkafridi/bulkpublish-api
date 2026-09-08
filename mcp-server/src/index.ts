@@ -878,7 +878,7 @@ server.tool(
       )
       .optional()
       .describe(
-        "Thread parts array. Required when postFormat is thread (min 2 parts)."
+        "Thread parts array. Required when postFormat is thread (min 2 parts). EVERY part is measured against the character limit of every platform the post targets, not only the first \u2014 an over-long part is rejected with 400 VALIDATION_ERROR naming the part number, the platform and its limit. URLs count as 23 characters on X and Mastodon, their real length elsewhere."
       ),
     postTypeOverrides: POST_TYPE_OVERRIDES_SCHEMA,
     requestApproval: z

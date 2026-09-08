@@ -235,7 +235,12 @@ class PostsResource:
                 once every channel has published, freeing the storage it counted
                 against. The media records remain, flagged as having their
                 originals deleted.
-            thread_parts: Parts of a thread post (min 2 required).
+            thread_parts: Parts of a thread post (min 2 required). Every part is
+                measured against the character limit of every platform the post
+                targets, not only the first one: an over-long part is rejected
+                with 400 VALIDATION_ERROR naming the part number, the platform
+                and its limit. URLs count as 23 characters on X and Mastodon,
+                their real length elsewhere.
             post_type_overrides: Per-platform post type. Valid types:
 
                 - facebook: ``post``, ``reel``, ``story``

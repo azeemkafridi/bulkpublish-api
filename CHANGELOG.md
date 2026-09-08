@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-09-09 — Every thread part is length-checked
+
+Node **1.23.0** · Python **0.23.0** · MCP **1.27.0** · spec
+
+### Fixed
+
+- **A thread's parts past the first were never measured.** `content` on a
+  thread post is only its head part, so the per-platform character check saw
+  part 1 and nothing else; `platformThreadParts` was never measured at all. An
+  over-long part 3 was accepted, then rejected by the platform mid-thread,
+  which leaves the post `partial` with its earlier segments already public and
+  no way to take them back. Every part is now checked against every platform
+  the post targets — on create, on update, and on a recurring schedule — and an
+  over-long one is refused with 400 `VALIDATION_ERROR` naming the part number,
+  the platform and its limit.
+- **A per-platform override is measured against its own platform's limit.**
+  A platform's `platformThreadParts` list replaces `threadParts` for that
+  platform when it has entries, exactly as it does at publish time, so those
+  are the parts checked for it.
+
+Lengths count the way each platform counts: a URL is 23 characters on X and
+Mastodon and its real length elsewhere, so a link-heavy part is not rejected
+for length it does not have.
+
 ## 2026-09-09 — Custom video covers on Instagram and Facebook
 
 Node **1.22.0** · Python **0.22.0** · MCP **1.26.0** · spec

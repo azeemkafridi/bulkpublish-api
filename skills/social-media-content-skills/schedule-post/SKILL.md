@@ -18,7 +18,9 @@ mediaFileIds   (number[])         — IDs from upload_media
 platformContent (object)          — per-platform text: {"x": "Short", "linkedin": "Longer version"}
 postTypeOverrides (object)        — per-platform format: {"instagram": "reel", "facebook": "story"}
 postFormat     ("post"|"video"|"reel"|"story"|"carousel"|"thread") — "thread" requires threadParts
-threadParts    (array)            — [{content: string, mediaFileIds?: number[]}], min 2 parts
+threadParts    (array)            — [{content: string, mediaFileIds?: number[]}], min 2 parts.
+                                    EVERY part is length-checked against every target platform,
+                                    not just the first — an over-long part 400s the whole request
 platformSpecific (object)         — per-platform options; see the
                                     platform-reference skill. Auto-reply after
                                     publishing goes here as the top-level key
