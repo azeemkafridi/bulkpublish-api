@@ -2995,7 +2995,7 @@
           "Channels"
         ],
         "summary": "Search users for @mention",
-        "description": "Search accounts on a channel's platform to @mention in post content. Supported on X, Bluesky and LinkedIn; other platforms return an empty array. LinkedIn matches Pages by their exact URL slug (linkedin.com/company/<slug>, a pasted URL works) and each result's `handle` is the ready-to-insert token `@[Name](urn:li:organization:ID)`; people cannot be searched. A personal LinkedIn profile channel uses a connected, active Page in the same workspace for the lookup; when none is connected the response is `{ users: [], notice }` with a sentence to show the user. Queries under 2 characters return an empty list without a lookup; results are cached for about a minute.",
+        "description": "Search accounts on a channel's platform to @mention in post content. Supported on X, Bluesky and LinkedIn; other platforms return an empty array. LinkedIn matches Pages by their exact URL slug (linkedin.com/company/<slug>, a pasted URL works) and each result's `handle` is the ready-to-insert token `@[Name](urn:li:organization:ID)` and `vanityName` is the slug it matched on, so a caller can confirm the right Page before inserting the token (a display name alone is ambiguous); people cannot be searched. A personal LinkedIn profile channel uses a connected, active Page in the same workspace for the lookup; when none is connected the response is `{ users: [], notice }` with a sentence to show the user. Queries under 2 characters return an empty list without a lookup; results are cached for about a minute.",
         "parameters": [
           {
             "name": "id",
@@ -3018,7 +3018,7 @@
         ],
         "responses": {
           "200": {
-            "description": "{ users: [{ id, handle, name, profileImage? }], notice? }. `notice` is present only when nothing could be searched (LinkedIn personal channel without a connected Page).",
+            "description": "{ users: [{ id, handle, name, profileImage?, vanityName? }], notice? }. `vanityName` is present on LinkedIn results only: it is the Page's URL slug (linkedin.com/company/<slug>), which is what the search matched on. `notice` is present only when nothing could be searched (LinkedIn personal channel without a connected Page).",
             "content": {
               "application/json": {
                 "schema": {
@@ -3043,6 +3043,13 @@
                               "string",
                               "null"
                             ]
+                          },
+                          "vanityName": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "description": "LinkedIn only: the Page's URL slug, i.e. the value the search matched on."
                           }
                         }
                       }

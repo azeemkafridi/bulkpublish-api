@@ -3117,7 +3117,7 @@
           "request": {
             "name": "Search users for @mention",
             "description": {
-              "content": "Search for users on a channel's platform to @mention in post content. Currently supported on X (Twitter) and Bluesky. Other platforms return an empty array.",
+              "content": "Search for users on a channel's platform to @mention in post content. Supported on X (Twitter), Bluesky and LinkedIn Pages; other platforms return an empty array. LinkedIn matches a Page on its exact URL slug (a pasted linkedin.com/company/<slug> URL works): each result's `handle` is the ready-to-paste `@[Name](urn:li:organization:ID)` token and `vanityName` is the slug it matched on. A personal LinkedIn channel borrows a connected Page's access for the lookup, and answers `{ users: [], notice }` when no Page is connected.",
               "type": "text/plain"
             },
             "url": {

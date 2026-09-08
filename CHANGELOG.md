@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-08 — Mention lookups say which Page they matched
+
+MCP **1.25.0** · spec
+
+### Added
+
+- **`vanityName` on LinkedIn mention results.** `GET /api/channels/{id}/mentions`
+  now returns the Page's URL slug alongside the token, because the token's
+  display name is not enough to tell two similarly-named Pages apart — and the
+  slug is what the search actually matched on. Additive and optional; other
+  platforms do not send it, and nothing that ignores it changes behaviour.
+  `search_mentions` says so in its description.
+
 ## 2026-09-08 — Reposts
 
 Node **1.21.0** · Python **0.21.0** · MCP **1.24.0** · spec

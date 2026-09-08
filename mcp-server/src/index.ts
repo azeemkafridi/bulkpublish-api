@@ -1807,7 +1807,7 @@ server.tool(
 
 server.tool(
   "search_mentions",
-  "Search for @mention suggestions on a channel (X, Bluesky, LinkedIn). On LinkedIn the query is a Page's URL slug (exact match) and each result's handle is a ready-to-paste @[Name](urn:li:organization:ID) token.",
+  "Search for @mention suggestions on a channel (X, Bluesky, LinkedIn). On LinkedIn the query is a Page's URL slug (exact match), each result's handle is a ready-to-paste @[Name](urn:li:organization:ID) token, and vanityName is the slug it matched — check it against the Page you meant before using the token, since a display name alone is ambiguous.",
   {
     channelId: z.number().describe("The channel ID to search mentions on."),
     query: z.string().describe("Search query for the mention lookup."),
