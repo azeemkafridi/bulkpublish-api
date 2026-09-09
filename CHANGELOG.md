@@ -1,5 +1,467 @@
 # Changelog
 
+## 2026-09-10 — Output schemas on every hosted tool
+
+MCP **1.32.0**
+
+### Added
+
+- **`outputSchema` on all 20 hosted tools.** OpenAI's review flagged the 15
+  plain tools (the 5 widget tools already declared one): without a schema the
+  host sees only an opaque JSON blob in a text block. Each schema is derived
+  from the webapp handler that produces the response, not guessed.
+- **`structuredContent` alongside it.** Declaring an output schema obliges the
+  handler to return structured data — the SDK rejects the whole call when it is
+  missing — so both halves ship together, injected at the same registration
+  seam the annotations use rather than at 15 call sites. Failures set `isError`
+  instead, which is the SDK's documented escape from output validation.
+- The schemas are deliberately lenient (every field optional and nullable,
+  numerics accept string-encoded values, objects pass extras through): a strict
+  schema would turn a cosmetic review warning into failed tool calls.
+
+### Changed
+
+- `check:annotations` now also asserts every hosted tool declares an
+  `outputSchema`, and runs in CI before the image is built and on
+  `prepublishOnly`. Verified by removing a schema: the guard fails.
+
+## 2026-09-10 — MCP tool profiles + complete tool annotations
+
+MCP **1.31.0**
+
+### Changed
+
+- **The hosted MCP server now serves a 20-tool `core` profile by default.**
+  OpenAI rejected the ChatGPT app (v1.0.1, 2026-09-09) because tool
+  annotations "do not appear to match the tool's behavior" and must be
+  "explicitly set to true or false (not null) for every tool". Seventy-two
+  tools is also more than a reviewer can verify or a model can choose from
+  well. `core` is the publishing workflow only: channels, posts, media,
+  analytics and the five interactive panels. Every tool a panel calls back
+  into stays in `core`. The local stdio server (`npx @bulkpublish/mcp-server`)
+  still defaults to `full`; `BULKPUBLISH_TOOL_PROFILE=core|full` overrides
+  either. `view_quota` / `get_quota_usage` are `full`-only, which also ends the
+  `BULKPUBLISH_HIDE_BILLING` split between the two directories.
+- **All four hints are explicit booleans on every tool.** `idempotentHint`
+  was previously unset on most tools, and several values were re-derived from
+  what the endpoint does under the review definitions: `update_*` is
+  destructive (it overwrites the previous value), `publish_post` /
+  `retry_post` / `publish_story` / `approve_post` are destructive (a live post
+  cannot be recalled from here), `create_post` / `update_post` /
+  `create_schedule` / `create_rss_feed` / `update_schedule` /
+  `update_rss_feed` are open-world (they arm content to publish to public
+  platforms), `upload_media` is open-world (it fetches the given URL), and the
+  panel loaders (`compose_post`, `view_*`) are read-only because the call
+  itself only fetches — any action in the panel is a separate call to a tool
+  with its own hints. Each entry now carries a written justification;
+  `npm run check:annotations --table` prints them for the submission forms.
+- Registering a tool without an annotations entry now throws at startup
+  instead of shipping unannotated.
+
+## 2026-09-09 — Template quota enforced per kind
+
+Node **1.26.1** · Python **0.26.1**
+
+### Fixed
+
+- **The 200-template cap was shared across kinds, not per kind as documented.**
+  The spec, Node JSDoc, Python docstring and MCP tool description already said
+  captions and first-comment snippets each get their own 200 — the server
+  counted both kinds together, so an org with 200 caption templates got
+  `LIMIT_REACHED` creating its first snippet. The count query now scopes by
+  `kind`. No SDK method signature changed; the Node JSDoc and Python docstring
+  wording is tightened from "per organization" to "per organization per kind"
+  to match the spec exactly.
+
+## 2026-09-09 — Instagram collaborators on carousels
+
+Node **1.26.0** · Python **0.26.0** · MCP **1.30.0** · spec
+
+### Fixed
+
+- **`platformSpecific.instagram.collaborators` now applies to a carousel.**
+  It was honoured on `feed_photo`, `feed_video` and `reel` and silently
+  dropped on `carousel` — the post published with no co-authors and no
+  error. Instagram takes the field on the carousel itself rather than on its
+  individual items, which is where it is now sent. A `story` cannot carry
+  co-authors at all, and the field is documented as ignored there.
+- **`bulkpublish.__version__` reported `0.21.0`** while the package shipped
+  as `0.25.0`. It now tracks the real version.
+
+### Changed
+
+- The spec, the Node JSDoc, the Python docstring and the MCP tool schema all
+  state which post types `collaborators` applies to, matching how `trialReel`
+  beside it has always been documented.
+- `guides/platforms.md` examples dropped the leading `@` from collaborator
+  usernames. The field is passed through as written and the contract has
+  always said without it, so the examples were teaching a value that does not
+  work.
+
+## 2026-09-09 — Client connect links
+
+Node **1.25.0** · Python **0.25.0** · MCP **1.29.0** · spec
+
+### Added
+
+- **`clientConnectLinks` resource** (`bp.clientConnectLinks` / `bp.client_connect_links` / MCP
+  `list_client_connect_links` / `create_client_connect_link` / `delete_client_connect_link`) —
+  one-time links for a client to connect their own platform account into your
+  organization, with no BulkPublish account of their own. `POST
+  /api/client-connect-links` takes `name` (your own label for the client,
+  never shown to them) and returns `{ clientConnectLink, url }`; the `url`
+  is shown once and cannot be recovered afterward, since the server stores
+  only its hash. The client picks the platform on the page itself, from a
+  fixed set of twelve that use a plain OAuth redirect: instagram, x, tiktok,
+  youtube, threads, pinterest, gmb, linkedin, reddit, discord, tumblr,
+  snapchat. Facebook, Bluesky, Mastodon and Telegram are not offered here —
+  each needs a credential form of its own rather than a redirect, and stays
+  a manual connect by your own team. A link expires in 7 days or the moment
+  an account is connected through it, whichever comes first; creating again
+  always mints a new link rather than reusing one. `GET
+  /api/client-connect-links` lists every link with its status (`pending` |
+  `used` | `revoked` | `expired`) and, once used, which channel and platform
+  it connected. `DELETE /api/client-connect-links/{id}` revokes a still-
+  pending link; idempotent, and the posts or channel a used link already
+  produced are untouched either way.
+
+## 2026-09-09 — Client review links for a whole batch of posts
+
+Node **1.24.0** · Python **0.24.0** · MCP **1.28.0** · spec
+
+### Added
+
+- **`reviewLinks` resource** (`bp.reviewLinks` / `bp.review_links` / MCP
+  `list_review_links` / `create_review_link` / `delete_review_link`) — the
+  multi-post counterpart of `posts.share()` / `posts.unshare()`. One link
+  covers up to 50 posts at once (`POST /api/review-links` with `postIds` and
+  an optional team-only `name`), so an agency can hand a client one URL to
+  review a whole batch — a week's schedule, a campaign — instead of one link
+  per post. Every post id must belong to the caller's organization. Unlike
+  the single-post link, creating again never reuses a token: each call mints
+  a new link, even for the same posts. `GET /api/review-links` lists every
+  link in the organization with its post count; `DELETE
+  /api/review-links/{id}` revokes one without touching the posts it covered.
+
+## 2026-09-09 — Deleting media after publish frees the storage it counted
+
+spec
+
+### Fixed
+
+- **`deleteMediaAfterPublish` freed storage but not the storage figure.** The
+  media-storage usage in `GET /api/quotas/usage` (`usage.mediaStorageMB`) summed
+  every file in the workspace, including files whose original had already been
+  deleted after publishing. Turning the option on freed the stored file while the
+  reported usage never moved, so it appeared to do nothing. Usage now counts only
+  files whose original is still stored. No request or response shape changed, and
+  no SDK method changed — but the value you read back for media storage will drop
+  for any workspace that has used the option, and uploads that were being refused
+  against a full allowance may now be accepted.
+- The media record itself is unchanged: it stays listed by `GET /api/media` with
+  its preview and its original `sizeBytes`, flagged `isOriginalDeleted: true`.
+
+## 2026-09-09 — Saved first-comment snippets
+
+Node **1.23.1** · Python **0.23.1** · MCP **1.27.1** · spec
+
+### Added
+
+- **`kind` on post templates** — `caption` (default, unchanged behaviour) or
+  `first_comment`. `templates.list()` takes an optional `kind` filter and
+  `templates.create()` an optional `kind` field; name uniqueness is scoped per
+  kind, so a caption and a first-comment snippet can share a name. Existing
+  templates are all `caption` and every existing integration is unaffected —
+  omitting `kind` anywhere behaves exactly as it did before this release.
+
+## 2026-09-09 — Every thread part is length-checked
+
+Node **1.23.0** · Python **0.23.0** · MCP **1.27.0** · spec
+
+### Fixed
+
+- **A thread's parts past the first were never measured.** `content` on a
+  thread post is only its head part, so the per-platform character check saw
+  part 1 and nothing else; `platformThreadParts` was never measured at all. An
+  over-long part 3 was accepted, then rejected by the platform mid-thread,
+  which leaves the post `partial` with its earlier segments already public and
+  no way to take them back. Every part is now checked against every platform
+  the post targets — on create, on update, and on a recurring schedule — and an
+  over-long one is refused with 400 `VALIDATION_ERROR` naming the part number,
+  the platform and its limit.
+- **A per-platform override is measured against its own platform's limit.**
+  A platform's `platformThreadParts` list replaces `threadParts` for that
+  platform when it has entries, exactly as it does at publish time, so those
+  are the parts checked for it.
+
+Lengths count the way each platform counts: a URL is 23 characters on X and
+Mastodon and its real length elsewhere, so a link-heavy part is not rejected
+for length it does not have.
+
+## 2026-09-09 — Custom video covers on Instagram and Facebook
+
+Node **1.22.0** · Python **0.22.0** · MCP **1.26.0** · spec
+
+### Added
+
+- **`platformSpecific.instagram.coverUrl`** — the still shown before a video or
+  Reel plays, as a public image URL. Instagram accepts either a cover image or
+  a cover *moment* (`thumbnailTimestamp`) and rejects a request carrying both,
+  so when both are sent only `coverUrl` is forwarded. Both apply to post types
+  `feed_video` and `reel`.
+- **`platformSpecific.facebook.thumbnailUrl`** — the same idea for a Facebook
+  video or Reel. Facebook only accepts a cover once the video exists, so it is
+  applied after the video publishes and lands a moment after the post. A cover
+  that cannot be fetched, or that Facebook rejects, leaves the video published
+  with Facebook's own chosen frame rather than failing the post.
+
+### Fixed
+
+- **`platformSpecific.instagram.thumbnailTimestamp` now applies to a feed video,
+  not only a Reel.** Both post through the identical container, but only the
+  Reel path read the field, so a timestamp set on a `feed_video` post was
+  silently dropped. No request shape changed; a value that was being ignored is
+  now sent.
+
+### Documented
+
+- **`platformSpecific.instagram.trialReel` applies to the `reel` post type
+  only.** It has always been read on the Reel path alone, so a `feed_video`
+  carrying it published as an ordinary reel with no indication that the trial
+  had been dropped. Behaviour is unchanged; the spec, the MCP tool schema, the
+  Python docstring and the platform guide now all say so, and
+  `graduationStrategy` is marked as ignored unless `trialReel` is true.
+
+## 2026-09-08 — Mention lookups say which Page they matched
+
+MCP **1.25.0** · spec
+
+### Added
+
+- **`vanityName` on LinkedIn mention results.** `GET /api/channels/{id}/mentions`
+  now returns the Page's URL slug alongside the token, because the token's
+  display name is not enough to tell two similarly-named Pages apart — and the
+  slug is what the search actually matched on. Additive and optional; other
+  platforms do not send it, and nothing that ignores it changes behaviour.
+  `search_mentions` says so in its description.
+
+## 2026-09-08 — Reposts
+
+Node **1.21.0** · Python **0.21.0** · MCP **1.24.0** · spec
+
+### Added
+
+- **Repost post type** on X, Threads, Bluesky and Mastodon:
+  `postTypeOverrides.<platform> = "repost"` with the target in
+  `platformSpecific.<platform>.repostId` (URL or ID; Threads needs the numeric
+  post ID). The post's own text and media are ignored. Rolling out per
+  account like the rest of the recent additions. MCP `create_post` enums and
+  option schemas updated.
+
+## 2026-09-08 — Post templates, review links, calendar notes
+
+Node **1.20.0** · Python **0.20.0** · MCP **1.23.0** · spec
+
+### Rollout
+
+Everything in this entry, plus hashtag groups, media alt text and the
+queue-move parameters from the previous entry, is switched on per account.
+Until then the routes answer `403 { code: "FEATURE_DISABLED", feature }`.
+Reads of posts expose `hasShareLink` (boolean) rather than the review-link
+token, and only roles that can edit posts may create or revoke links.
+
+### Added
+
+- **Post templates.** `GET/POST /api/templates`, `GET/PUT/DELETE
+  /api/templates/{id}`: named, org-wide post text to start a new post from
+  (up to 200; names unique). Node `bp.templates`, Python `bp.templates`, MCP
+  `list_templates`, `create_template`, `update_template`, `delete_template`.
+- **Review links.** `POST /api/posts/{id}/share` returns a read-only page
+  URL (`/p/<token>`) anyone can open without signing in, showing the post's
+  text, media, destinations and timing; the first call creates the token
+  (201), later calls return it (200), `{ regenerate: true }` replaces it.
+  `DELETE` revokes. Posts now carry `shareToken`. Node `bp.posts.share` /
+  `unshare`, Python `bp.posts.share` / `unshare`, MCP `share_post`,
+  `unshare_post`.
+- **Calendar notes.** `GET /api/calendar-notes?from&to`, `POST`, `PUT/DELETE
+  /api/calendar-notes/{id}`: free text pinned to a calendar day with a
+  colour; never published. Node `bp.calendarNotes`, Python
+  `bp.calendar_notes`, MCP `list_calendar_notes`, `create_calendar_note`,
+  `update_calendar_note`, `delete_calendar_note`.
+
+## 2026-09-07 — Hashtag groups, media alt text, queue position
+
+Node **1.19.0** · Python **0.19.0** · MCP **1.22.0** · spec
+
+### Added
+
+- **Hashtag groups.** `GET/POST /api/hashtag-groups` and
+  `GET/PUT/DELETE /api/hashtag-groups/{id}`: named sets of 1-30 hashtags,
+  org-wide, up to 100 per organization. Hashtags are normalised (leading `#`,
+  deduplicated case-insensitively); spaces or punctuation are rejected with
+  `400 VALIDATION_ERROR`, a duplicate name with `409 CONFLICT`. Node
+  `bp.hashtagGroups`, Python `bp.hashtag_groups`, MCP `list_hashtag_groups`,
+  `create_hashtag_group`, `update_hashtag_group`, `delete_hashtag_group`.
+- **Media alt text.** `PATCH /api/media/{id}` with `{ altText }` sets the
+  file's accessibility description; `GET /api/media` and `GET /api/media/{id}`
+  return it. Sent to Instagram (feed photos and carousel images), LinkedIn and
+  Bluesky. Node `bp.media.update(id, { altText })`, Python
+  `bp.media.update(id, alt_text=...)`, MCP `update_media`.
+- **Queue position.** `GET /api/posts/queue-slot?position=end` returns the slot
+  after the last pending scheduled post (the bottom of the queue); `next`
+  stays the default. Node `bp.posts.queueSlot(tz, 'end')`, Python
+  `bp.posts.queue_slot(position="end")`, MCP `get_queue_slot` `position`.
+  `excludePostId` leaves a post's own slot out of the booked set when the
+  answer is for rescheduling that post.
+- **Mentions and options endpoints documented** as they behave: LinkedIn on
+  `/api/channels/{id}/mentions` (with the `notice` field), `q`/`subreddit`
+  and the Threads `locations` type on `/api/channels/{id}/options`.
+
+## 2026-09-07 — LinkedIn mentions, Threads topic and location tags
+
+Node **1.18.0** · MCP **1.21.0** · spec
+
+### Added
+
+- **LinkedIn mentions.** `content` accepts `@[Display Name](urn:li:organization:ID)`
+  for a Page and `@[Display Name](urn:li:person:ID)` for a person. The token
+  publishes as a real mention on LinkedIn and as plain `@Display Name` on every
+  other channel of the same post, and counts as `@Display Name` toward every
+  character limit. `GET /api/channels/{id}/mentions` (and `search_mentions`)
+  now works on LinkedIn channels: the query is a Page's URL slug, matched
+  exactly, and each result's `handle` is the ready-to-paste token. A
+  personal-profile channel borrows a connected Page's access for the lookup and
+  returns a `notice` when none is connected. Reserved LinkedIn formatting
+  characters elsewhere in the text are escaped at publish time.
+- **Threads `topicTag` and `locationId`** in `platformSpecific.threads`. One
+  topic per post without a leading `#` (periods and ampersands are rejected
+  with `400 VALIDATION_ERROR`); `locationId` is a numeric place ID from
+  `GET /api/channels/{id}/options?q=<place>` on a Threads channel, which
+  answers `{ unavailable: true }` until the account has granted location
+  tagging. Both apply to the root post of a thread only.
+- **`get_channel_options`** (MCP) takes optional `q` and `subreddit`, matching
+  what the endpoint already accepted for Reddit and now uses for Threads.
+
+## 2026-09-07 — Organizations and notifications
+
+Node **1.17.0** · Python **0.18.0** · spec
+
+Two endpoints that have been in the published spec for a while had no SDK
+method, so nothing could be written against them without hand-rolling a
+request.
+
+### Added
+
+- **`organizations`**: `list()` and `create()`. `list()` returns every
+  organization the key's user belongs to, with the role held in each. Where a
+  user owns several, the `plan` reported is the highest among them, because
+  owned organizations share a plan and that is the figure the app enforces.
+- **`notifications`**: `list()`, `markRead()`, `delete()`, `preferences()` and
+  `updatePreferences()`. `list()` returns a page plus `unreadTotal`, which
+  counts unread across the account rather than the page and is unaffected by
+  `unreadOnly`, so the number means the same thing however the list is
+  filtered.
+
+Both are available to an API key and **not** to an OAuth token. Account
+administration is outside the OAuth scope allowlist, so it outlives a
+disconnection and no third-party token reaches it whatever the user approved.
+That is also why neither gained an MCP tool: the MCP server authenticates over
+OAuth, and the tool would 403 on every call.
+
+### Fixed
+
+- **`Notification`** was missing four fields the endpoint returns
+  (`userId`, `organizationId`, `organizationName`, `data`), and in the Python
+  SDK it also had `id` as a string and the read flag as `read` rather than
+  `isRead`. Corrected against the route.
+- **`NotificationPreferences`** was missing `emailOnChannelSlots` and
+  `inAppInbox`.
+- Python's `__init__.__version__` had drifted a minor version behind
+  `pyproject.toml`. Both now read 0.18.0.
+
+### Not added
+
+- **Webhooks.** They are registered, capped by plan and delivered by nothing:
+  the delivery job has no callers, its queue has no worker, and the columns
+  that would record a delivery have never been written. An SDK method would
+  have published a contract for a feature that does not function.
+
+## 2026-09-05 — Thread media, member capabilities
+
+Node **1.16.0** · Python **0.17.0** · MCP server **1.20.0** · spec + Postman
+
+### Added
+
+- **`threadMediaFiles` on the post object**, returned by `GET /api/posts` and
+  `GET /api/posts/{id}`. Media referenced by `threadParts[].mediaFileIds`,
+  resolved to full objects and de-duplicated across parts. It is NOT in
+  `mediaFiles`, which carries only the media on the post itself, so a client
+  that reads `mediaFiles` alone renders a thread without its images. Typed in
+  both SDKs; the MCP `get_post` description now says which field holds what.
+- **`capabilities` in the `GET /api/channels` envelope**: `canCreatePosts`,
+  `canPublishPosts`, `canApprovePosts` for the member whose key made the
+  request. Check it before a write instead of learning the answer from a 403.
+  Typed as `MemberCapabilities` in both SDKs.
+- **`threadParts` documented on the response object.** It was already accepted
+  on create and update and already returned; it had simply never been described
+  as a field you get back.
+
+### Notes
+
+- `channels.list()` in the Python SDK is annotated `List[Channel]` but returns
+  the response envelope, so read `["channels"]`. That predates this release and
+  is shared by `labels.list()` and `schedules.list()`. Left as-is: changing it
+  is a breaking change across the SDK rather than a documentation fix. The
+  docstring now says so and the example was corrected.
+
+## 2026-09-03 — Analytics filters, period comparison, post history and link performance
+
+Node **1.15.0** · Python **0.16.0** · MCP server **1.19.0** · spec + Postman
+
+### Added
+
+- **Shared analytics filters** on `GET /api/analytics/summary`, `/engagement`,
+  `/account` (channels/platforms only) and the new `/links`: `channelIds`,
+  `platforms`, `labelIds` (comma-separated), `postFormat` (`post` | `thread`)
+  and `mediaType` (`text` | `image` | `video`, by the post's first media file).
+  A post must match every filter that is set. The legacy `channelId` still
+  works and is merged into `channelIds`. Channel/platform filters also narrow
+  the per-platform breakdowns to the matching rows of a cross-post.
+- **`compare=1`** on summary and engagement: the equal-length window before
+  `from` comes back as `previous` (totals; engagement also returns its
+  `byDay`) with `previousWindow {from, to, days, available}`. `available` is
+  false — and `previous` null — when that window would reach past the 30-day
+  statistics-retention floor, i.e. comparison works for windows of 15 days
+  or fewer.
+- **`GET /api/analytics/post-history?postId=`** — every stored metrics
+  snapshot for one post, per platform, oldest first. `post_metrics` is
+  append-only, so this is the trend since publish (about one point per
+  6-hour sync; weekly for opted-in X channels).
+- **`GET /api/analytics/links`** — every bulkpubli.sh short link for a post
+  published in the window with its click count, short URL, destination host,
+  platform, account and post. Clicks are measured by BulkPublish's redirector,
+  so they exist on every network.
+- **Engagement response**: `byDay[]` now carries every metric (`reach`,
+  `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`,
+  `engagements`, `posts`) plus a per-platform `platforms` map; `byPlatform`
+  entries carry the same full set; new `byChannel[]`; each post has
+  `engagements`, `reach`, `postFormat`, `mediaType` and `labels[]`; each
+  `platformMetrics[]` entry has `channelId`, `accountName`, `reach`,
+  `engagements`, `fetchedAt`; new `publishedCount`, `from`, `to`, `filters`.
+  All additive — nothing was removed or renamed.
+- **`sort`** accepts `reach`, `saves`, `clicks`, `videoViews`, `engagements`
+  and `engagementRate` too. New **`topBy`** / **`topOrder`** rank `topPosts`
+  by any metric, best or worst. **`heatmap=1`** returns `postTimes` for
+  engagement-weighted best-time-to-post views.
+- Node: `AnalyticsFilterParams`, `analytics.postHistory()`, `analytics.links()`,
+  full response types (`EngagementBucket`, `EngagementDayData.platforms`,
+  `AnalyticsPostHistoryResponse`, `AnalyticsLinksResponse`, …).
+  `analytics.account()` now takes the shared filters and dates.
+- Python: the same keyword arguments (`channel_ids`, `platforms`, `label_ids`,
+  `post_format`, `media_type`, `compare`, `top_by`, `top_order`, `heatmap`),
+  `analytics.post_history()` and `analytics.links()`, sync and async.
+- MCP: `get_analytics` accepts the filters and `compare`.
+
 ## 2026-09-02 — Spec prose: edit keeps existing channel rows; `unconfirmed` also covers processing timeouts (docs only, no package bump)
 
 ### Changed
