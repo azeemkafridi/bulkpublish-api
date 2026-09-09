@@ -8398,6 +8398,254 @@
       ]
     },
     {
+      "name": "Client Connect Links",
+      "description": "One-time links for a client to connect their own platform account, with no BulkPublish account of their own",
+      "item": [
+        {
+          "id": "552c48e0-c976-4b1e-a5c1-2438ea2951d0",
+          "name": "List client connect links",
+          "request": {
+            "name": "List client connect links",
+            "description": {},
+            "url": {
+              "path": [
+                "api",
+                "client-connect-links"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET",
+            "auth": null,
+            "header": []
+          },
+          "response": [
+            {
+              "id": "e3c297ad-46c5-4c3b-988e-2914330c1497",
+              "name": "Client connect links",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "client-connect-links"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "GET"
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "dc2cfc0a-1a5d-488c-be8a-4fe55cdf6ab1",
+          "name": "Create client connect link",
+          "request": {
+            "name": "Create client connect link",
+            "description": {
+              "content": "Expires in 7 days or on first use. The url in the response is shown once and cannot be recovered later.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "client-connect-links"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "3273df59-e92c-4bea-a0f9-19afa4f81475",
+              "name": "Created",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "client-connect-links"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "a5d88933-6678-4f9c-9b62-aaa888644845",
+          "name": "Revoke client connect link",
+          "request": {
+            "name": "Revoke client connect link",
+            "description": {
+              "content": "Idempotent. A channel it already connected is untouched.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "client-connect-links",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) ",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [],
+            "method": "DELETE",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "6cee1996-b6cd-444a-ada2-220f42c0e74c",
+              "name": "Revoked",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "client-connect-links",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      },
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id"
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "DELETE"
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ]
+    },
+    {
       "name": "Calendar Notes",
       "description": "Free-text notes pinned to calendar days",
       "item": [

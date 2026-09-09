@@ -1185,6 +1185,49 @@
           }
         }
       },
+      "ClientConnectLink": {
+        "type": "object",
+        "description": "The raw token is shown once, in the `url` alongside this object on creation (POST /api/client-connect-links), and never again — the stored token_hash cannot be reversed back into a URL, so GET /api/client-connect-links lists status only, with no url or token field.",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "description": "Your own label for the client. Never shown to the client themselves."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "used",
+              "revoked",
+              "expired"
+            ]
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "usedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "connectedChannelId": {
+            "type": "integer",
+            "nullable": true
+          },
+          "connectedPlatform": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "CalendarNote": {
         "type": "object",
         "properties": {
@@ -1253,6 +1296,10 @@
     {
       "name": "Review Links",
       "description": "Client review links covering a batch of posts at once"
+    },
+    {
+      "name": "Client Connect Links",
+      "description": "One-time links for a client to connect their own platform account, with no BulkPublish account of their own"
     },
     {
       "name": "Calendar Notes",
@@ -7146,6 +7193,115 @@
           }
         },
         "operationId": "revokeReviewLink",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/client-connect-links": {
+      "get": {
+        "tags": [
+          "Client Connect Links"
+        ],
+        "summary": "List client connect links",
+        "description": "Every client-connect link in the organization, newest first. Returns { clientConnectLinks: [{ id, name, status, expiresAt, usedAt, connectedChannelId, connectedPlatform, createdAt }] }. `status` is 'pending' | 'used' | 'revoked' | 'expired' — a stale pending row reads as expired on the way out, without a background job. The raw token is never returned again after creation. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
+        "responses": {
+          "200": {
+            "description": "Client connect links"
+          }
+        },
+        "operationId": "listClientConnectLinks",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:read"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Client Connect Links"
+        ],
+        "summary": "Create a client connect link",
+        "description": "Mints a one-time link (https://app.bulkpublish.com/connect/<token>) a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. Expires after 7 days and stops working the moment an account is connected through it — creating again always makes a new link, it does not extend or reuse an existing one. Only these platforms are supported (everything else needs a form of its own instead of a plain OAuth redirect, and is connected by your own team instead): instagram, x, tiktok, youtube, threads, pinterest, gmb, linkedin, reddit, discord, tumblr, snapchat. Returns 201 { clientConnectLink, url }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 150,
+                    "description": "Your own label for this client (e.g. \"Acme Corp\"). Never shown to the client — only applied to the resulting channel's metadata (`clientConnectLabel`) so you can tell whose account it is."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Validation error"
+          }
+        },
+        "operationId": "createClientConnectLink",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/client-connect-links/{id}": {
+      "delete": {
+        "tags": [
+          "Client Connect Links"
+        ],
+        "summary": "Revoke a client connect link",
+        "description": "Idempotent: a link that already used, expired, or was previously revoked just stays that way. A channel the link already connected is untouched. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revoked"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "operationId": "revokeClientConnectLink",
         "security": [
           {
             "apiKey": []

@@ -494,6 +494,7 @@ export function createServer(): McpServer {
     list_hashtag_groups: { title: "List hashtag groups", readOnlyHint: true },
     list_templates: { title: "List post templates", readOnlyHint: true },
     list_review_links: { title: "List client review links", readOnlyHint: true },
+    list_client_connect_links: { title: "List client connect links", readOnlyHint: true },
     list_calendar_notes: { title: "List calendar notes", readOnlyHint: true },
     list_schedules: { title: "List recurring schedules", readOnlyHint: true },
     get_analytics: { title: "Get analytics", readOnlyHint: true },
@@ -520,6 +521,8 @@ export function createServer(): McpServer {
     unshare_post: { title: "Revoke post review link", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     create_review_link: { title: "Create client review link", readOnlyHint: false, destructiveHint: false },
     delete_review_link: { title: "Revoke client review link", readOnlyHint: false, destructiveHint: true },
+    create_client_connect_link: { title: "Create client connect link", readOnlyHint: false, destructiveHint: false },
+    delete_client_connect_link: { title: "Revoke client connect link", readOnlyHint: false, destructiveHint: true },
     update_post: { title: "Update post", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
     list_platforms: { title: "List platforms", readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     // openWorldHint: the "retry" action re-publishes to the external platforms,
@@ -593,6 +596,9 @@ export function createServer(): McpServer {
     list_review_links: "the user wants to see the client review links they have created for batches of posts.",
     create_review_link: "the user wants one link a client can open to review several posts at once, e.g. a week's worth of scheduled content, instead of sharing each post separately.",
     delete_review_link: "the user wants to stop a batch review link from working. The posts it covered are unaffected.",
+    list_client_connect_links: "the user wants to see the client-connect links they have created and whether each has been used yet.",
+    create_client_connect_link: "the user (an agency) wants a client to connect their own platform account without giving the agency their login, and without the client needing a BulkPublish account.",
+    delete_client_connect_link: "the user wants to stop a client-connect link from working before it has been used. Any account it already connected is unaffected.",
     list_schedules: "the user wants their recurring posting schedules.",
     get_analytics: "the user asks how their content performed overall, across channels and over a date range.",
     get_quota_usage: "the user asks about plan limits or current usage.",
@@ -1617,6 +1623,47 @@ server.tool(
   { reviewLinkId: z.number().describe("The review link ID.") },
   async ({ reviewLinkId }) => {
     const res = await api("DELETE", `/api/review-links/${reviewLinkId}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tools: client connect links (account access, not content review)
+// ---------------------------------------------------------------------------
+
+const CLIENT_CONNECT_PLATFORMS = [
+  "instagram", "x", "tiktok", "youtube", "threads", "pinterest",
+  "gmb", "linkedin", "reddit", "discord", "tumblr", "snapchat",
+] as const;
+
+server.tool(
+  "list_client_connect_links",
+  "List the organization's client-connect links, newest first — one-time links a client can open, with no BulkPublish account, to connect their own platform account.",
+  {},
+  async () => {
+    const res = await api("GET", "/api/client-connect-links");
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "create_client_connect_link",
+  `Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (everything else needs a form of its own instead of a plain OAuth redirect, and stays a manual connect by your own team): ${CLIENT_CONNECT_PLATFORMS.join(", ")}. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it.`,
+  {
+    name: z.string().max(150).describe("Your own label for the client (e.g. \"Acme Corp\"). Never shown to the client — only applied to the resulting channel so you can tell whose account it is."),
+  },
+  async ({ name }) => {
+    const res = await api("POST", "/api/client-connect-links", { name });
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "delete_client_connect_link",
+  "Revoke a client-connect link before it has been used. Idempotent; an account it already connected is untouched.",
+  { clientConnectLinkId: z.number().describe("The client-connect link ID.") },
+  async ({ clientConnectLinkId }) => {
+    const res = await api("DELETE", `/api/client-connect-links/${clientConnectLinkId}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );

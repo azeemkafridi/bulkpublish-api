@@ -78,6 +78,7 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 | `bp.hashtagGroups` | `list`, `get`, `create`, `update`, `delete` |
 | `bp.templates` | `list`, `get`, `create`, `update`, `delete` |
 | `bp.reviewLinks` | `list`, `create`, `delete` — a read-only link covering a batch of posts at once, for client review |
+| `bp.clientConnectLinks` | `list`, `create`, `delete` — a one-time link for a client to connect their own platform account, no BulkPublish account needed |
 | `bp.calendarNotes` | `list`, `create`, `update`, `delete` |
 | `bp.schedules` | `list`, `create`, `update`, `delete` |
 | `bp.channelSets` | `list`, `create`, `update`, `delete` — saved channel groups for one-click targeting |

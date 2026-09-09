@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-09-09 — Client connect links
+
+Node **1.25.0** · Python **0.25.0** · MCP **1.29.0** · spec
+
+### Added
+
+- **`clientConnectLinks` resource** (`bp.clientConnectLinks` / `bp.client_connect_links` / MCP
+  `list_client_connect_links` / `create_client_connect_link` / `delete_client_connect_link`) —
+  one-time links for a client to connect their own platform account into your
+  organization, with no BulkPublish account of their own. `POST
+  /api/client-connect-links` takes `name` (your own label for the client,
+  never shown to them) and returns `{ clientConnectLink, url }`; the `url`
+  is shown once and cannot be recovered afterward, since the server stores
+  only its hash. The client picks the platform on the page itself, from a
+  fixed set of twelve that use a plain OAuth redirect: instagram, x, tiktok,
+  youtube, threads, pinterest, gmb, linkedin, reddit, discord, tumblr,
+  snapchat. Facebook, Bluesky, Mastodon and Telegram are not offered here —
+  each needs a credential form of its own rather than a redirect, and stays
+  a manual connect by your own team. A link expires in 7 days or the moment
+  an account is connected through it, whichever comes first; creating again
+  always mints a new link rather than reusing one. `GET
+  /api/client-connect-links` lists every link with its status (`pending` |
+  `used` | `revoked` | `expired`) and, once used, which channel and platform
+  it connected. `DELETE /api/client-connect-links/{id}` revokes a still-
+  pending link; idempotent, and the posts or channel a used link already
+  produced are untouched either way.
+
 ## 2026-09-09 — Client review links for a whole batch of posts
 
 Node **1.24.0** · Python **0.24.0** · MCP **1.28.0** · spec

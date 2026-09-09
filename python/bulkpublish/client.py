@@ -44,6 +44,7 @@ from .labels import AsyncLabelsResource, LabelsResource
 from .hashtag_groups import AsyncHashtagGroupsResource, HashtagGroupsResource
 from .templates import AsyncTemplatesResource, TemplatesResource
 from .review_links import AsyncReviewLinksResource, ReviewLinksResource
+from .client_connect_links import AsyncClientConnectLinksResource, ClientConnectLinksResource
 from .calendar_notes import AsyncCalendarNotesResource, CalendarNotesResource
 from .media import AsyncMediaResource, MediaResource
 from .posts import AsyncPostsResource, PostsResource
@@ -177,6 +178,7 @@ class BulkPublish(_BaseClient):
         hashtag_groups: :class:`~bulkpublish.hashtag_groups.HashtagGroupsResource`
         templates: :class:`~bulkpublish.templates.TemplatesResource`
         review_links: :class:`~bulkpublish.review_links.ReviewLinksResource`
+        client_connect_links: :class:`~bulkpublish.client_connect_links.ClientConnectLinksResource`
         calendar_notes: :class:`~bulkpublish.calendar_notes.CalendarNotesResource`
         schedules: :class:`~bulkpublish.schedules.SchedulesResource`
         channel_sets: :class:`~bulkpublish.channel_sets.ChannelSetsResource`
@@ -237,6 +239,7 @@ class BulkPublish(_BaseClient):
         self.hashtag_groups = HashtagGroupsResource(self)
         self.templates = TemplatesResource(self)
         self.review_links = ReviewLinksResource(self)
+        self.client_connect_links = ClientConnectLinksResource(self)
         self.calendar_notes = CalendarNotesResource(self)
         self.schedules = SchedulesResource(self)
         self.channel_sets = ChannelSetsResource(self)
@@ -558,6 +561,7 @@ class AsyncBulkPublish(_BaseClient):
         self.hashtag_groups = AsyncHashtagGroupsResource(self)
         self.templates = AsyncTemplatesResource(self)
         self.review_links = AsyncReviewLinksResource(self)
+        self.client_connect_links = AsyncClientConnectLinksResource(self)
         self.calendar_notes = AsyncCalendarNotesResource(self)
         self.schedules = AsyncSchedulesResource(self)
         self.channel_sets = AsyncChannelSetsResource(self)

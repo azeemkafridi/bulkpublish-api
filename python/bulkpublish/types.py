@@ -392,6 +392,24 @@ class ReviewLink(TypedDict, total=False):
     url: str
 
 
+class ClientConnectLink(TypedDict, total=False):
+    """A one-time link for a client to connect their own platform account.
+
+    ``status`` is ``pending`` | ``used`` | ``revoked`` | ``expired``. The raw
+    connect URL is returned once, alongside this object, on create — it
+    cannot be recovered afterward, so there is no ``url`` field here.
+    """
+
+    id: int
+    name: str
+    status: str
+    expiresAt: str
+    usedAt: Optional[str]
+    connectedChannelId: Optional[int]
+    connectedPlatform: Optional[str]
+    createdAt: str
+
+
 class CalendarNote(TypedDict, total=False):
     """Free text pinned to a calendar day (``date`` is YYYY-MM-DD, ``color`` a hex colour)."""
 
