@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-24 — Skills for the core profile
+
+MCP **1.40.2**
+
+### Added
+
+- **`skills/core-profile-skills`** — a skill set scoped to the 20 tools the hosted connector serves. `skills/social-media-content-skills` stays as-is for the npm server, which has the full profile. Built on 2026-09-10 on a release branch and brought into main now.
+- **`npm run check:skills`** asserts the core set names no tool the hosted profile lacks and promises nothing it cannot do.
+
 ## 2026-09-24 — Approve and reject the version you reviewed
 
 Node **1.38.1** · Python **0.39.1** · MCP **1.40.1**

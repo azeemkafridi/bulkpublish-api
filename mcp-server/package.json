@@ -1,6 +1,6 @@
 {
   "name": "@bulkpublish/mcp-server",
-  "version": "1.40.1",
+  "version": "1.40.2",
   "description": "Model Context Protocol server for BulkPublish — lets AI assistants manage social media posts, channels, media, and analytics.",
   "homepage": "https://www.bulkpublish.com",
   "mcpName": "io.github.azeemkafridi/bulkpublish",
@@ -23,7 +23,8 @@
     "dev:http": "tsx src/http.ts",
     "preview": "npm run build:ui && tsc && node .harness/build.mjs && node .harness/serve.mjs",
     "check:annotations": "node scripts/check-annotations.mjs",
-    "prepublishOnly": "npm run build && npm run check:annotations"
+    "prepublishOnly": "npm run build && npm run check:annotations && npm run check:skills",
+    "check:skills": "node scripts/check-core-skills.mjs"
   },
   "keywords": [
     "mcp",
