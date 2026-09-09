@@ -1158,6 +1158,33 @@
           }
         }
       },
+      "ReviewLink": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "shareToken": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "postCount": {
+            "type": "integer",
+            "description": "Only present when listing (GET /api/review-links)."
+          },
+          "url": {
+            "type": "string",
+            "description": "The public review URL: https://app.bulkpublish.com/p/schedule/<shareToken>."
+          }
+        }
+      },
       "CalendarNote": {
         "type": "object",
         "properties": {
@@ -1222,6 +1249,10 @@
     {
       "name": "Templates",
       "description": "Saved post text to start a new post from"
+    },
+    {
+      "name": "Review Links",
+      "description": "Client review links covering a batch of posts at once"
     },
     {
       "name": "Calendar Notes",
@@ -6994,6 +7025,127 @@
           }
         },
         "operationId": "revokePostShareLink",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/review-links": {
+      "get": {
+        "tags": [
+          "Review Links"
+        ],
+        "summary": "List client review links",
+        "description": "Every review link in the organization, newest first, each with how many posts it covers. Returns { reviewLinks: [{ id, name, shareToken, createdAt, postCount, url }] }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
+        "responses": {
+          "200": {
+            "description": "Review links"
+          }
+        },
+        "operationId": "listReviewLinks",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:read"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Review Links"
+        ],
+        "summary": "Create a client review link for a batch of posts",
+        "description": "Returns a read-only review link (https://app.bulkpublish.com/p/schedule/<token>) covering every post in `postIds` at once — the multi-post counterpart of POST /api/posts/{id}/share. Every id must belong to the caller's organization (404 otherwise). Unlike a single post's link, this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns 201 { reviewLink, url }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "postIds"
+                ],
+                "properties": {
+                  "postIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "minItems": 1,
+                    "maxItems": 50,
+                    "description": "Post IDs to cover, up to 50 per link. Duplicates are collapsed."
+                  },
+                  "name": {
+                    "type": "string",
+                    "maxLength": 150,
+                    "description": "Optional label shown only to your team (e.g. the client's name) — never shown on the public page."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Validation error, or more than 50 postIds"
+          },
+          "404": {
+            "description": "One or more postIds were not found"
+          }
+        },
+        "operationId": "createReviewLink",
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "posts:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/review-links/{id}": {
+      "delete": {
+        "tags": [
+          "Review Links"
+        ],
+        "summary": "Revoke a client review link",
+        "description": "The posts it covered are untouched — only the link stops working. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revoked"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "operationId": "revokeReviewLink",
         "security": [
           {
             "apiKey": []

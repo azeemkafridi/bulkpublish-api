@@ -377,6 +377,21 @@ class PostTemplate(TypedDict, total=False):
     updatedAt: str
 
 
+class ReviewLink(TypedDict, total=False):
+    """A client review link covering a batch of posts at once.
+
+    ``postCount`` is only present when listing. ``url`` is the public
+    review page: https://app.bulkpublish.com/p/schedule/<shareToken>.
+    """
+
+    id: int
+    name: Optional[str]
+    shareToken: str
+    createdAt: str
+    postCount: int
+    url: str
+
+
 class CalendarNote(TypedDict, total=False):
     """Free text pinned to a calendar day (``date`` is YYYY-MM-DD, ``color`` a hex colour)."""
 

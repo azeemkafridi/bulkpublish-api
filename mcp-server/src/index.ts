@@ -493,6 +493,7 @@ export function createServer(): McpServer {
     list_labels: { title: "List labels", readOnlyHint: true },
     list_hashtag_groups: { title: "List hashtag groups", readOnlyHint: true },
     list_templates: { title: "List post templates", readOnlyHint: true },
+    list_review_links: { title: "List client review links", readOnlyHint: true },
     list_calendar_notes: { title: "List calendar notes", readOnlyHint: true },
     list_schedules: { title: "List recurring schedules", readOnlyHint: true },
     get_analytics: { title: "Get analytics", readOnlyHint: true },
@@ -517,6 +518,8 @@ export function createServer(): McpServer {
     delete_calendar_note: { title: "Delete calendar note", readOnlyHint: false, destructiveHint: true },
     share_post: { title: "Create post review link", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
     unshare_post: { title: "Revoke post review link", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+    create_review_link: { title: "Create client review link", readOnlyHint: false, destructiveHint: false },
+    delete_review_link: { title: "Revoke client review link", readOnlyHint: false, destructiveHint: true },
     update_post: { title: "Update post", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
     list_platforms: { title: "List platforms", readOnlyHint: true, destructiveHint: false, idempotentHint: true },
     // openWorldHint: the "retry" action re-publishes to the external platforms,
@@ -587,6 +590,9 @@ export function createServer(): McpServer {
     delete_calendar_note: "the user wants to remove a calendar note.",
     share_post: "the user wants a link a client or colleague can open to review a post without an account.",
     unshare_post: "the user wants to stop a shared review link from working.",
+    list_review_links: "the user wants to see the client review links they have created for batches of posts.",
+    create_review_link: "the user wants one link a client can open to review several posts at once, e.g. a week's worth of scheduled content, instead of sharing each post separately.",
+    delete_review_link: "the user wants to stop a batch review link from working. The posts it covered are unaffected.",
     list_schedules: "the user wants their recurring posting schedules.",
     get_analytics: "the user asks how their content performed overall, across channels and over a date range.",
     get_quota_usage: "the user asks about plan limits or current usage.",
@@ -1572,6 +1578,45 @@ server.tool(
   { postId: z.number().describe("The post ID.") },
   async ({ postId }) => {
     const res = await api("DELETE", `/api/posts/${postId}/share`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tools: client review links (a batch of posts, not just one)
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "list_review_links",
+  "List the organization's client review links (batch review links), newest first, with how many posts each one covers.",
+  {},
+  async () => {
+    const res = await api("GET", "/api/review-links");
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "create_review_link",
+  "Create a read-only review link covering several posts at once — the multi-post counterpart of share_post. Anyone with the link can open it without signing in. Every postId must belong to the organization. Unlike share_post this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns { reviewLink, url }.",
+  {
+    postIds: z.array(z.number()).min(1).max(50).describe("Post IDs to cover, up to 50 per link."),
+    name: z.string().max(150).optional().describe("Optional label shown only to your team (e.g. the client's name) — never shown on the public page."),
+  },
+  async ({ postIds, name }) => {
+    const body: Record<string, unknown> = { postIds };
+    if (name !== undefined) body.name = name;
+    const res = await api("POST", "/api/review-links", body);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "delete_review_link",
+  "Revoke a client review link. The posts it covered are untouched.",
+  { reviewLinkId: z.number().describe("The review link ID.") },
+  async ({ reviewLinkId }) => {
+    const res = await api("DELETE", `/api/review-links/${reviewLinkId}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );

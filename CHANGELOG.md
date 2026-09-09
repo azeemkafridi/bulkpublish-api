@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-09-09 — Client review links for a whole batch of posts
+
+Node **1.24.0** · Python **0.24.0** · MCP **1.28.0** · spec
+
+### Added
+
+- **`reviewLinks` resource** (`bp.reviewLinks` / `bp.review_links` / MCP
+  `list_review_links` / `create_review_link` / `delete_review_link`) — the
+  multi-post counterpart of `posts.share()` / `posts.unshare()`. One link
+  covers up to 50 posts at once (`POST /api/review-links` with `postIds` and
+  an optional team-only `name`), so an agency can hand a client one URL to
+  review a whole batch — a week's schedule, a campaign — instead of one link
+  per post. Every post id must belong to the caller's organization. Unlike
+  the single-post link, creating again never reuses a token: each call mints
+  a new link, even for the same posts. `GET /api/review-links` lists every
+  link in the organization with its post count; `DELETE
+  /api/review-links/{id}` revokes one without touching the posts it covered.
+
 ## 2026-09-09 — Deleting media after publish frees the storage it counted
 
 spec

@@ -8150,6 +8150,254 @@
       ]
     },
     {
+      "name": "Review Links",
+      "description": "Client review links covering a batch of posts at once",
+      "item": [
+        {
+          "id": "c4d7c436-0abd-4902-ab45-7a159bf51986",
+          "name": "List review links",
+          "request": {
+            "name": "List review links",
+            "description": {},
+            "url": {
+              "path": [
+                "api",
+                "review-links"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET",
+            "auth": null,
+            "header": []
+          },
+          "response": [
+            {
+              "id": "e5c7e7e1-c0b5-4b0b-a733-4108f3026235",
+              "name": "Review links",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "review-links"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "GET"
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "18ff7861-823d-4bca-b2cf-8e8fff6bc293",
+          "name": "Create review link",
+          "request": {
+            "name": "Create review link",
+            "description": {
+              "content": "Covers up to 50 posts, all must belong to your organization. Never regenerated in place — each call mints a new link.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "review-links"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postIds\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"name\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "742fdfbf-f69b-42a5-82a2-6fdedbbbd39e",
+              "name": "Created",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "review-links"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"postIds\": [\n    \"<integer>\",\n    \"<integer>\"\n  ],\n  \"name\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "4a97716c-7b56-47d3-b60e-fd7138292c7e",
+          "name": "Revoke review link",
+          "request": {
+            "name": "Revoke review link",
+            "description": {
+              "content": "The posts it covered are untouched.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "review-links",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) ",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [],
+            "method": "DELETE",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "97e519f0-4134-433b-9ba1-922cc5c7fd10",
+              "name": "Revoked",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "review-links",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      },
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id"
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "DELETE"
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ]
+    },
+    {
       "name": "Calendar Notes",
       "description": "Free-text notes pinned to calendar days",
       "item": [
