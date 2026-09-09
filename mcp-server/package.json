@@ -22,7 +22,8 @@
     "dev": "tsx src/index.ts",
     "dev:http": "tsx src/http.ts",
     "preview": "npm run build:ui && tsc && node .harness/build.mjs && node .harness/serve.mjs",
-    "check:annotations": "node scripts/check-annotations.mjs"
+    "check:annotations": "node scripts/check-annotations.mjs",
+    "prepublishOnly": "npm run build && npm run check:annotations"
   },
   "keywords": [
     "mcp",
