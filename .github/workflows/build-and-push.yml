@@ -25,6 +25,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # OpenAI rejected v1.0.1 (2026-09-09) for annotations that were null
+      # rather than explicit booleans. This is the endpoint the directory
+      # reviewers probe, so the deploy fails rather than shipping a tool whose
+      # hints are incomplete. Guard, not a formality — see
+      # bulk-publish/docs/mcp-directory-submission.md.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify tool annotations (all four hints explicit on every tool)
+        working-directory: mcp-server
+        run: |
+          npm ci
+          npm run build
+          npm run check:annotations
+
       - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
