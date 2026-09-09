@@ -261,6 +261,13 @@ By default, media is **kept** after publishing (`deleteMediaAfterPublish: false`
 }
 ```
 
+The original is removed once every channel on the post has published (a channel
+that failed keeps it, so a retry still has the file), and the space it used stops
+counting toward the `mediaStorageMB` figure from `GET /api/quotas/usage`. The
+library entry survives with its preview and its original `sizeBytes`, flagged
+`isOriginalDeleted: true` — so `GET /api/media` still lists the file, but it can
+no longer be attached to a new post.
+
 The server forces this to `false` for posts attached to a recurring schedule (the schedule re-uses the media on every run) and for bulk-created posts.
 
 ## Media Labels

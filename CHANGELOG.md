@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-09-09 — Deleting media after publish frees the storage it counted
+
+spec
+
+### Fixed
+
+- **`deleteMediaAfterPublish` freed storage but not the storage figure.** The
+  media-storage usage in `GET /api/quotas/usage` (`usage.mediaStorageMB`) summed
+  every file in the workspace, including files whose original had already been
+  deleted after publishing. Turning the option on freed the stored file while the
+  reported usage never moved, so it appeared to do nothing. Usage now counts only
+  files whose original is still stored. No request or response shape changed, and
+  no SDK method changed — but the value you read back for media storage will drop
+  for any workspace that has used the option, and uploads that were being refused
+  against a full allowance may now be accepted.
+- The media record itself is unchanged: it stays listed by `GET /api/media` with
+  its preview and its original `sizeBytes`, flagged `isOriginalDeleted: true`.
+
 ## 2026-09-09 — Saved first-comment snippets
 
 Node **1.23.1** · Python **0.23.1** · MCP **1.27.1** · spec
