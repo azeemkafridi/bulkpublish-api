@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-10 — OpenAI domain verification token
+
+MCP **1.32.1**
+
+### Fixed
+
+- **The baked-in OpenAI Apps challenge token was stale**, so "Verify Domain"
+  failed with "Challenge endpoint did not return the expected token" while the
+  endpoint itself answered 200 — the misleading part. OpenAI re-issues the
+  token per submission attempt; this is the one issued 2026-09-10. Still
+  overridable with `OPENAI_APPS_CHALLENGE_TOKEN`.
+- Noted that `marketing/public/.well-known/openai-apps-challenge` (bulk-publish
+  repo) is a second copy serving www.bulkpublish.com and drifts independently.
+
 ## 2026-09-10 — Output schemas on every hosted tool
 
 MCP **1.32.0**

@@ -260,9 +260,17 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // the OAuth router so it resolves directly. Not a secret: it only proves control
 // of this domain (like a search-console verification file). Override via env if
 // OpenAI re-issues a token.
+//
+// The token is re-issued per submission attempt, and a stale one fails with
+// "Challenge endpoint did not return the expected token" while everything else
+// looks healthy — the endpoint still answers 200. Re-read it from the dashboard
+// (Domain verification → Token) whenever verification fails, and note that
+// marketing/public/.well-known/openai-apps-challenge in the bulk-publish repo is
+// a SECOND copy, serving www.bulkpublish.com; update both or they disagree.
+// Current token issued 2026-09-10 for the v1.32.0 submission.
 const OPENAI_APPS_CHALLENGE =
   process.env.OPENAI_APPS_CHALLENGE_TOKEN ||
-  "gIohLEWyR3YAbMjyCNMyDsZYOYZt_Qoq0QLe83h9o0I";
+  "h7dXFzJq_HTWHnVW8a4R1FP7WsMKqewvPQUugtLp09s";
 app.get(
   "/.well-known/openai-apps-challenge",
   (_req: Request, res: Response) => {
