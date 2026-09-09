@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-09-10 — Skills for the core profile
+
+MCP **1.33.0**
+
+### Added
+
+- **`skills/core-profile-skills`** — a 22-skill set scoped to the 20 tools the
+  hosted connector actually serves. `skills/social-media-content-skills` stays
+  as-is for the npm server, which has the full profile.
+- **`npm run check:skills`** asserts the core set names no absent tool AND makes
+  no prose promise the core profile cannot keep. Both halves are needed:
+  `rss-to-social` named no tool at all — it said "use BulkPublish RSS tools" —
+  so a tool-name scan passed it while its whole purpose was impossible.
+
+### Changed
+
+- Dropped for the core set: `check-quota`, `bulk-publish`, `rss-to-social`
+  (each drives a tool core lacks). `manage-channels` rewritten; `media-library`
+  replaces the batch half of `bulk-publish`. `schedule-post`, `get-analytics`
+  and `platform-reference` keep their substance with absent-tool references
+  removed — `requestApproval`, `labels`, `linkTrackingOverride` and stories via
+  `postTypeOverrides` are core `create_post` params and stay documented.
+
 ## 2026-09-10 — OpenAI domain verification token
 
 MCP **1.32.1**

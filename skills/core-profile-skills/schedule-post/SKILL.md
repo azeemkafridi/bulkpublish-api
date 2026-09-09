@@ -1,0 +1,160 @@
+---
+name: schedule-post
+description: Create, schedule, or publish social media posts via BulkPublish MCP. Use when the user wants to post to social media.
+---
+
+# BulkPublish — Post Creation Reference
+
+## create_post parameters
+
+```
+content        (string, required) — post text
+channels       (array, required)  — [{channelId: number, platform: string}]
+                                    Get these from list_channels first
+status         ("draft"|"scheduled") — default "draft"
+scheduledAt    (ISO 8601 string)  — required when status is "scheduled"
+timezone       (string)           — e.g. "America/New_York", "Asia/Karachi"
+mediaFileIds   (number[])         — IDs from upload_media
+platformContent (object)          — per-platform text: {"x": "Short", "linkedin": "Longer version"}
+postTypeOverrides (object)        — per-platform format: {"instagram": "reel", "facebook": "story"}
+postFormat     ("post"|"video"|"reel"|"story"|"carousel"|"thread") — "thread" requires threadParts
+threadParts    (array)            — [{content: string, mediaFileIds?: number[]}], min 2 parts.
+                                    EVERY part is length-checked against every target platform,
+                                    not just the first — an over-long part 400s the whole request
+platformSpecific (object)         — per-platform options; see the
+                                    platform-reference skill. Auto-reply after
+                                    publishing goes here as the top-level key
+                                    "_firstComment", NOT a firstComment param:
+                                    {"_firstComment": "Link in bio!"}
+                                    Unsupported on discord, pinterest, tiktok,
+                                    gmb, tumblr and snapchat (recorded as failed;
+                                    the main post still publishes)
+requestApproval (boolean)         — default false; hold a scheduled post for team
+                                    approval (approvalStatus becomes "pending")
+linkTrackingOverride (boolean|null) — default null; per-post override for
+                                    bulkpubli.sh link tracking. true shortens the
+                                    post's links and counts clicks, false posts
+                                    them as written, null inherits the org setting
+```
+
+`linkTrackingOverride` is tri-state, so **omit it unless the user actually asked
+for one behaviour or the other** — sending `false` is an explicit "post the links
+as written" and is not the same as leaving it unset. Shortening happens at
+publish time, per channel, and is **skipped** for any channel where the rewrite
+would push the post past that platform's character limit: a short URL is 28
+characters and can be longer than the link it replaces, so on X (280) or Bluesky
+(300) tracking may silently not apply. The post still publishes, with its
+original links.
+
+Every post object returned by the API also carries the read-only approval fields
+`approvalStatus` (`"none"` default | `"pending"` | `"approved"` | `"rejected"`),
+`approvedBy` (string|null), `approvedAt` (date-time|null) and `rejectionReason`
+(string|null). See "Team approval" below.
+
+## Post type overrides
+
+| Platform | Types |
+|---|---|
+| Instagram | `reel`, `story`, `carousel` |
+| Facebook | `story`, `reel` |
+| TikTok | `slideshow` |
+| YouTube | `short` |
+| X/Twitter | `thread` |
+| Threads | `thread` |
+| Bluesky | `thread` |
+| Mastodon | `thread` |
+
+## Team approval
+
+`approvalStatus` is **orthogonal to `status`**: the scheduler skips `pending` and
+`rejected` posts even when they are scheduled and overdue. Default is `"none"`.
+
+- **Requesting approval** — pass `requestApproval: true` on `create_post` or
+  `update_post` (default `false`) to hold a scheduled post for team approval;
+  `approvalStatus` becomes `"pending"`. For API keys belonging to members whose
+  role lacks `post:publish` (contributors), this is **forced server-side
+  regardless of the flag** — their scheduled posts always land in the approval
+  queue. Never tell such a user their post was scheduled: check the returned
+  `approvalStatus` and say it is awaiting approval.
+- **The approval queue** — `list_posts` with `approvalStatus: "pending"` (the
+  filter accepts `none` | `pending` | `approved` | `rejected`), or
+  `GET /api/posts?approvalStatus=pending`.
+- **Approving or rejecting** — done by a teammate with an approver role (owner, admin, approver) in BulkPublish. Approval releases the post: it publishes at its scheduled time, or immediately if that time has passed. A rejected post returns to draft with a reason, and the author can edit and resubmit. You cannot approve or reject from here — say who needs to act.
+- **`APPROVAL_REQUIRED`** — `publish_post` and `retry_post` return **403** with
+  error code `APPROVAL_REQUIRED` for roles without `post:publish`. Do not retry:
+  create/update the post with `requestApproval: true` and tell the user a
+  teammate has to approve it. Publishing a pending/rejected post *as an
+  approver* implicitly approves it.
+
+## Publishing flow
+
+- **Draft then publish**: `create_post` (status: "draft") → `publish_post` (postId)
+- **Schedule for later**: `create_post` (status: "scheduled", scheduledAt: "2026-04-12T09:00:00Z")
+- **Schedule with review**: `create_post` (status: "scheduled", scheduledAt: ..., requestApproval: true) → a teammate approves it in BulkPublish
+- **Optimal timing**: call `get_queue_slot` (optionally pass `timezone`, default UTC) to get the best next slot. It returns `{suggestedTime, timezone}` — it does NOT take a channelId or date (any such args are ignored).
+- **Retry failures**: `retry_post` (postId, optional `republish`) re-queues the
+  post's `failed` platforms. A platform can also end in status `unconfirmed` —
+  terminal: the publish request may have reached the platform but its response
+  was lost, so the post **may already be live**; it is never auto-retried. If
+  the post has unconfirmed platforms and no failed ones, `retry_post` returns
+  **400** with code `UNCONFIRMED_REQUIRES_REPUBLISH` — ask the user to check
+  the account on the platform, and only pass `republish: true` (default false)
+  after they confirm the post is not live; it also retries the unconfirmed
+  platforms and **can duplicate the post**.
+- **Publish as story**: set `postTypeOverrides` to `"story"` for Facebook/Instagram/Snapchat — publishes directly as a story, no separate call needed (Snapchat stories need exactly 1 image or video and send no caption)
+
+## Stories vs postTypeOverrides
+
+To publish as a story, use `postTypeOverrides` at creation time:
+```json
+{ "postTypeOverrides": { "facebook": "story", "instagram": "story" } }
+```
+This publishes the post AS a story. Set it at creation time — an existing regular post cannot be turned into a story from here.
+
+## Character limits
+
+| Platform | Limit |
+|---|---|
+| X/Twitter | 280 (25,000 long posts) |
+| Instagram | 2,200 |
+| Facebook | 63,206 |
+| LinkedIn | 3,000 |
+| TikTok | 2,200 |
+| YouTube | 5,000 (description) |
+| Threads | 500 |
+| Bluesky | 300 |
+| Pinterest | 500 |
+| Google Business | 1,500 |
+| Mastodon | 500 |
+| Snapchat | 160 (Spotlight description / Saved Story title fallback — plain stories send no text) |
+
+## Platform media requirements
+
+| Platform | Requires | Notes |
+|---|---|---|
+| YouTube | Video ONLY | Do NOT include YouTube for image-only posts |
+| TikTok | Video ONLY | Or images for `photo_slideshow` type |
+| Instagram | Depends on type | `feed_photo`=image, `reel`/`feed_video`=video, `carousel`=2-10 mixed |
+| Pinterest | Image or video | Needs board ID in `platformSpecific` or channel default |
+| Facebook/X/LinkedIn/Threads/Bluesky/Mastodon | Any or none | Text-only posts OK |
+| Snapchat | Exactly 1 image or video | jpg/png or mp4/mov, vertical, 5–60s (Spotlight 6–60s video-only), max 1GB |
+
+## Common mistakes
+
+- `channels` takes objects `{channelId, platform}`, NOT just IDs
+- Always call `list_channels` first to get valid channelId + platform pairs
+- `scheduledAt` must be in the future and in ISO 8601 format
+- To publish immediately: create as draft, then call `publish_post`
+- `mediaFileIds` are numbers from `upload_media`, not file paths
+- **Do NOT send image-only posts to YouTube or TikTok** — they will fail
+- **Instagram defaults to `feed_photo`** — set `postTypeOverrides.instagram` to `reel` or `feed_video` for video
+- **Pinterest needs a board ID** — set via `platformSpecific.pinterest.boardId` or it tries to auto-create one
+- **Never assume a scheduled post will go out** — if the response has
+  `approvalStatus: "pending"`, it is held until someone approves it. Report that,
+  not "scheduled".
+- **`requestApproval` defaults to `false`** and `approvalStatus` defaults to
+  `"none"` — only set the flag when the user asks for review, but always read the
+  response back because contributors get it forced on.
+- **Do not call `publish_post` again after a 403 `APPROVAL_REQUIRED`** — the role
+  cannot publish; submit for approval instead.
+- **Content char limits** are enforced per-platform — use `platformContent` for shorter overrides on Pinterest (500), Bluesky (300), etc.
