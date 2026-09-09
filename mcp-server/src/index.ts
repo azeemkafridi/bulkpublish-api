@@ -459,6 +459,108 @@ function formatResponse(res: ApiResponse): string {
 }
 
 // ---------------------------------------------------------------------------
+// Tool output schemas (MCP Connectors Directory recommendation)
+// ---------------------------------------------------------------------------
+// OpenAI's review flags every tool with no outputSchema: without one the host
+// only sees an opaque JSON blob in a text block. The five widget tools declare
+// theirs inline (registerWidget); these are the fifteen plain tools.
+//
+// Deliberately lenient, same rule as the widget schemas: every field optional
+// and nullable, numerics accept string-encoded values, objects pass extras
+// through. The schema documents the shape for the host without ever rejecting
+// real API output — and the SDK REJECTS the whole call when structuredContent
+// fails validation, so a strict schema here would turn a cosmetic warning into
+// an outage. Shapes traced from the webapp handlers, not guessed.
+const sStr = () => z.string().nullish();
+const sNum = () => z.union([z.number(), z.string()]).nullish();
+const sBool = () => z.boolean().nullish();
+const sObj = (shape: Record<string, z.ZodTypeAny> = {}) =>
+  z.object(shape).passthrough().nullish();
+const sArr = (shape: Record<string, z.ZodTypeAny> = {}) =>
+  z.array(z.object(shape).passthrough()).nullish();
+
+// One post, as returned by GET/POST/PATCH /api/posts[/{id}] and the publish route.
+const POST_SHAPE: Record<string, z.ZodTypeAny> = {
+  id: sNum(),
+  content: sStr(),
+  status: sStr().describe("draft, scheduled, processing, published, partial or failed."),
+  scheduledAt: sStr(),
+  timezone: sStr(),
+  publishedAt: sStr(),
+  createdAt: sStr(),
+  approvalStatus: sStr(),
+  mediaFiles: sArr(),
+  postPlatforms: sArr({ platform: sStr(), status: sStr() }),
+  labels: sArr(),
+};
+
+const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> = {
+  list_channels: {
+    channels: sArr({ channelId: sNum(), platform: sStr(), accountName: sStr(), active: sBool() }),
+    capabilities: sObj().describe("Whether the caller may create, publish or approve posts."),
+  },
+  list_posts: {
+    posts: sArr(POST_SHAPE),
+    total: sNum(), page: sNum(), limit: sNum(), totalPages: sNum(),
+  },
+  get_post: POST_SHAPE,
+  create_post: POST_SHAPE,
+  update_post: POST_SHAPE,
+  publish_post: POST_SHAPE,
+  retry_post: {
+    ...POST_SHAPE,
+    retriedCount: sNum().describe("How many destinations were retried."),
+    skippedMaxRetries: sNum().describe("Destinations skipped for hitting the retry ceiling."),
+  },
+  delete_post: { success: sBool() },
+  get_post_metrics: { postId: sNum(), platforms: sArr({ platform: sStr() }), totals: sObj() },
+  get_queue_slot: {
+    scheduledAt: sStr().describe("ISO timestamp of the next free slot."),
+    dayLabel: sStr().describe('Human label, e.g. "Today" or "Wed, Feb 14".'),
+  },
+  list_media: {
+    files: sArr({ id: sNum(), url: sStr(), filename: sStr(), mimeType: sStr(), sizeBytes: sNum() }),
+    page: sNum(), limit: sNum(), total: sNum(),
+  },
+  upload_media: { file: sObj(), id: sNum(), url: sStr(), filename: sStr(), mimeType: sStr(), sizeBytes: sNum() },
+  create_media_upload: { uploadUrl: sStr(), r2Key: sStr(), expiresIn: sNum() },
+  finalize_media_upload: { file: sObj({ id: sNum(), url: sStr(), filename: sStr() }) },
+  get_analytics: {
+    totalPosts: sNum(), published: sNum(), failed: sNum(), scheduled: sNum(), partial: sNum(),
+    from: sStr(), to: sStr(),
+    byPlatform: sObj(), byDay: sArr(), publishedTimes: z.array(z.any()).nullish(),
+    previous: sObj(), previousWindow: sObj(),
+  },
+};
+
+// Turns a plain tool's text-only result into one carrying structuredContent,
+// which the SDK requires whenever a tool declares an outputSchema. formatResponse
+// prefixes every failure with "Error: " (both the API's !ok path and the local
+// guards, e.g. an unreadable file), and the SDK skips validation when isError is
+// set — so failures are flagged rather than forced to fit the success schema.
+function attachStructured(result: unknown, toolName: string): unknown {
+  if (!result || typeof result !== "object") return result;
+  const r = result as Record<string, unknown>;
+  if (!("content" in r) || r.structuredContent !== undefined) return result;
+  const first = Array.isArray(r.content) ? (r.content[0] as { text?: string }) : undefined;
+  const text = typeof first?.text === "string" ? first.text : "";
+  if (r.isError === true || text.startsWith("Error: ")) return { ...r, isError: true };
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    // Not JSON: no structured view to offer. Flagging it as an error is honest —
+    // the alternative is the SDK throwing "no structured content was provided".
+    return { ...r, isError: true };
+  }
+  const data =
+    Array.isArray(parsed) ? { items: parsed }
+    : parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>)
+    : { value: parsed };
+  return { ...r, structuredContent: data };
+}
+
+// ---------------------------------------------------------------------------
 // MCP Server
 // ---------------------------------------------------------------------------
 
@@ -751,6 +853,20 @@ export function createServer(opts: { profile?: ToolProfile } = {}): McpServer {
         return { enabled: false, disable() {}, enable() {}, update() {}, remove() {} };
       }
       if (!args[1]) args[1] = ann.title; // tool title (regular tools have none)
+      // Output schema + structuredContent for the plain tools. The widgets set
+      // both themselves, so only fill an empty slot. Both halves must land
+      // together: the SDK fails any call where a declared outputSchema has no
+      // structuredContent to validate.
+      const outShape = TOOL_OUTPUT_SCHEMAS[name];
+      if (outShape && !args[4]) {
+        args[4] = outShape; // outputSchema slot
+        const handler = args[8]; // _createRegisteredTool(..., execution, _meta, handler)
+        if (typeof handler === "function") {
+          const inner = handler as (...a: unknown[]) => unknown;
+          args[8] = async (...cbArgs: unknown[]) =>
+            attachStructured(await inner(...cbArgs), name);
+        }
+      }
       const { why: _why, title: _title, ...hints } = ann;
       // All four hints, explicit booleans, on every tool. Anything a call
       // site passes explicitly still wins.

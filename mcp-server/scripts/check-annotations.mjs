@@ -44,6 +44,12 @@ for (const profile of ["core", "full"]) {
   }
   const names = new Set(tools.map((t) => t.name));
   if (profile === "core") {
+    // Every hosted tool declares an outputSchema: OpenAI's review flags the ones
+    // that don't. Declaring one obliges the handler to return structuredContent
+    // (the SDK rejects the call otherwise), so the two ship together.
+    for (const t of tools) {
+      if (!t.outputSchema) fail(`core: ${t.name}: no outputSchema`);
+    }
     for (const n of CORE_TOOLS) if (!names.has(n)) fail(`core: ${n} listed in CORE_TOOLS but not registered`);
     for (const n of names) if (!CORE_TOOLS.has(n)) fail(`core: ${n} registered but not in CORE_TOOLS`);
     for (const n of WIDGET_CALLBACKS) if (!names.has(n)) fail(`core: panel callback ${n} missing — a widget button would break`);

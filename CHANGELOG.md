@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-09-10 — Output schemas on every hosted tool
+
+MCP **1.32.0**
+
+### Added
+
+- **`outputSchema` on all 20 hosted tools.** OpenAI's review flagged the 15
+  plain tools (the 5 widget tools already declared one): without a schema the
+  host sees only an opaque JSON blob in a text block. Each schema is derived
+  from the webapp handler that produces the response, not guessed.
+- **`structuredContent` alongside it.** Declaring an output schema obliges the
+  handler to return structured data — the SDK rejects the whole call when it is
+  missing — so both halves ship together, injected at the same registration
+  seam the annotations use rather than at 15 call sites. Failures set `isError`
+  instead, which is the SDK's documented escape from output validation.
+- The schemas are deliberately lenient (every field optional and nullable,
+  numerics accept string-encoded values, objects pass extras through): a strict
+  schema would turn a cosmetic review warning into failed tool calls.
+
+### Changed
+
+- `check:annotations` now also asserts every hosted tool declares an
+  `outputSchema`, and runs in CI before the image is built and on
+  `prepublishOnly`. Verified by removing a schema: the guard fails.
+
 ## 2026-09-10 — MCP tool profiles + complete tool annotations
 
 MCP **1.31.0**
