@@ -159,7 +159,7 @@ The `platformSpecific` object is keyed by platform name. Include only the platfo
   ],
   "platformSpecific": {
     "instagram": {
-      "collaborators": "@partner1, @partner2"
+      "collaborators": "partner1, partner2"
     },
     "youtube": {
       "title": "New Product Launch - Full Demo",
@@ -269,7 +269,7 @@ inside a platform key, so it applies to every channel on the post.
 ```json
 {
   "instagram": {
-    "collaborators": "@username1, @username2",
+    "collaborators": "username1, username2",
     "shareToStory": true,
     "trialReel": true,
     "graduationStrategy": "auto",
@@ -281,7 +281,7 @@ inside a platform key, so it applies to every channel on the post.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `collaborators` | string | Comma-separated usernames to invite as collaborators |
+| `collaborators` | string | Comma-separated usernames, **without a leading `@`** (the value is passed through as written). Tagged as co-authors. Post types `feed_photo`, `feed_video`, `reel` and `carousel` -- on a carousel the co-authors are set on the carousel itself, not on its individual items. Ignored on `story`, which has no co-author concept |
 | `shareToStory` | boolean | Also share the post to your story |
 | `trialReel` | boolean | Post as a trial reel, shown to non-followers first. **Post type `reel` only** -- ignored on `feed_video`, which publishes as an ordinary reel |
 | `graduationStrategy` | string | `"manual"` or `"auto"` -- how a trial reel graduates to the full audience. Ignored unless `trialReel` is true |

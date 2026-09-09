@@ -180,7 +180,12 @@ class PostsResource:
                   attached image, then the video's auto-extracted poster frame)
                 - **instagram**: Optional: ``collaborators``, ``shareToStory``, ``trialReel``,
                   ``graduationStrategy`` (``"manual"``/``"auto"``), ``thumbnailTimestamp``,
-                  ``coverUrl``. ``trialReel`` applies only to the ``reel`` post type and is
+                  ``coverUrl``. ``collaborators`` is a comma-separated list of usernames (no
+                  leading @) tagged as co-authors; it applies to post types ``feed_photo``,
+                  ``feed_video``, ``reel`` and ``carousel`` -- on a carousel the co-authors go
+                  on the carousel itself, not on its individual items -- and is ignored on
+                  ``story``, which has no co-author concept.
+                  ``trialReel`` applies only to the ``reel`` post type and is
                   ignored on ``feed_video``, even though both publish through the same reel
                   container; ``graduationStrategy`` is ignored unless ``trialReel`` is true.
                   ``thumbnailTimestamp`` and ``coverUrl`` both set the still shown before a

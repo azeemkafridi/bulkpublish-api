@@ -572,7 +572,11 @@ export interface CreatePostParams {
    * - **youtube**: `{ title }` (required, 1-100 chars). Optional: `privacyStatus`, `categoryId`, `tags`, `playlistId`, `thumbnailUrl`, `madeForKids`
    * - **pinterest**: `{ title }` (required, 1-100 chars). Optional: `boardId` (or falls back to channel default), `description`, `link`, `dominantColor` (hex e.g. #FF5733), `coverImageUrl` (video pins; when omitted the server falls back to an attached image, then the video's auto-extracted poster frame)
    * - **instagram**: Optional: `collaborators`, `shareToStory`, `trialReel`, `graduationStrategy`
-   *   (`'manual'|'auto'`), `thumbnailTimestamp`, `coverUrl`. The last two both set the still shown
+   *   (`'manual'|'auto'`), `thumbnailTimestamp`, `coverUrl`. `collaborators` is a comma-separated
+   *   list of usernames (no leading @) tagged as co-authors; it applies to post types
+   *   `feed_photo`, `feed_video`, `reel` and `carousel` — on a carousel the co-authors go on the
+   *   carousel itself, not on its individual items — and is ignored on `story`, which has no
+   *   co-author concept. `thumbnailTimestamp` and `coverUrl` both set the still shown
    *   before a video or Reel plays (post types `feed_video` and `reel`); `coverUrl` wins when both
    *   are sent, because Instagram rejects a request carrying both.
    * - **facebook**: Optional: `shareToStory`, `thumbnailUrl`. `thumbnailUrl` is the cover for a video

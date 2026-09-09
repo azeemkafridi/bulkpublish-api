@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-09-09 — Instagram collaborators on carousels
+
+Node **1.26.0** · Python **0.26.0** · MCP **1.30.0** · spec
+
+### Fixed
+
+- **`platformSpecific.instagram.collaborators` now applies to a carousel.**
+  It was honoured on `feed_photo`, `feed_video` and `reel` and silently
+  dropped on `carousel` — the post published with no co-authors and no
+  error. Instagram takes the field on the carousel itself rather than on its
+  individual items, which is where it is now sent. A `story` cannot carry
+  co-authors at all, and the field is documented as ignored there.
+- **`bulkpublish.__version__` reported `0.21.0`** while the package shipped
+  as `0.25.0`. It now tracks the real version.
+
+### Changed
+
+- The spec, the Node JSDoc, the Python docstring and the MCP tool schema all
+  state which post types `collaborators` applies to, matching how `trialReel`
+  beside it has always been documented.
+- `guides/platforms.md` examples dropped the leading `@` from collaborator
+  usernames. The field is passed through as written and the contract has
+  always said without it, so the examples were teaching a value that does not
+  work.
+
 ## 2026-09-09 — Client connect links
 
 Node **1.25.0** · Python **0.25.0** · MCP **1.29.0** · spec

@@ -308,7 +308,12 @@ const PLATFORM_SPECIFIC_SCHEMA = z
       .optional(),
     instagram: z
       .object({
-        collaborators: z.string().optional(),
+        collaborators: z
+          .string()
+          .optional()
+          .describe(
+            "Comma-separated Instagram usernames (no leading @) tagged as co-authors. Applies with postTypeOverrides.instagram of 'feed_photo', 'feed_video', 'reel' or 'carousel' \u2014 on a carousel the co-authors are set on the carousel itself, not on its individual items. Ignored on 'story', which has no co-author concept."
+          ),
         shareToStory: z.boolean().optional(),
         trialReel: z
           .boolean()
@@ -1458,7 +1463,7 @@ server.tool(
 
 server.tool(
   "create_template",
-  "Save post text as a named template for reuse (text only; media and channels belong to the post). Up to 200 per organization; names are unique per kind, so a caption and a first-comment snippet can share a name.",
+  "Save post text as a named template for reuse (text only; media and channels belong to the post). Up to 200 per organization per kind (captions and first-comment snippets each have their own 200); names are unique per kind, so a caption and a first-comment snippet can share a name.",
   {
     name: z.string().max(100).describe("Template name."),
     content: z.string().max(10000).describe("Template text."),
