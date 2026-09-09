@@ -208,7 +208,7 @@ export { AnalyticsResource } from './analytics.js';
 export { LabelsResource } from './labels.js';
 export { HashtagGroupsResource } from './hashtag-groups.js';
 export { TemplatesResource } from './templates.js';
-export type { PostTemplate } from './templates.js';
+export type { PostTemplate, TemplateKind } from './templates.js';
 export { CalendarNotesResource } from './calendar-notes.js';
 export type { CalendarNote } from './calendar-notes.js';
 export type { HashtagGroup, CreateHashtagGroupParams, UpdateHashtagGroupParams } from './hashtag-groups.js';

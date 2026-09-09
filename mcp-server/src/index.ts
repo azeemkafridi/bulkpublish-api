@@ -1431,23 +1431,31 @@ server.tool(
 
 server.tool(
   "list_templates",
-  "List the organization's saved post templates — reusable text to start a new post from.",
-  {},
-  async () => {
-    const res = await api("GET", "/api/templates");
+  "List the organization's saved post templates — reusable text to start a new post from. Filter by kind to get saved first-comment snippets instead of captions.",
+  {
+    kind: z.enum(["caption", "first_comment"]).optional().describe("Which kind of saved text to list. Defaults to caption."),
+  },
+  async ({ kind }) => {
+    const params = new URLSearchParams();
+    if (kind) params.set("kind", kind);
+    const qs = params.toString();
+    const res = await api("GET", `/api/templates${qs ? `?${qs}` : ""}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );
 
 server.tool(
   "create_template",
-  "Save post text as a named template for reuse (text only; media and channels belong to the post). Up to 200 per organization; names are unique.",
+  "Save post text as a named template for reuse (text only; media and channels belong to the post). Up to 200 per organization; names are unique per kind, so a caption and a first-comment snippet can share a name.",
   {
     name: z.string().max(100).describe("Template name."),
     content: z.string().max(10000).describe("Template text."),
+    kind: z.enum(["caption", "first_comment"]).optional().describe("What the text is for: a post caption, or a first-comment reply. Defaults to caption."),
   },
-  async ({ name, content }) => {
-    const res = await api("POST", "/api/templates", { name, content });
+  async ({ name, content, kind }) => {
+    const body: Record<string, unknown> = { name, content };
+    if (kind !== undefined) body.kind = kind;
+    const res = await api("POST", "/api/templates", body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );

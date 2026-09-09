@@ -16,16 +16,23 @@ class TemplatesResource:
     def __init__(self, client: _BaseClient) -> None:
         self._client = client
 
-    def list(self) -> List[PostTemplate]:
-        """Every template in the organization, sorted by name."""
-        return self._client._request("GET", "/api/templates")["templates"]
+    def list(self, *, kind: Optional[str] = None) -> List[PostTemplate]:
+        """Templates in the organization, sorted by name.
+
+        ``kind`` is ``caption`` (default) or ``first_comment``.
+        """
+        params = {"kind": kind} if kind is not None else None
+        return self._client._request("GET", "/api/templates", params=params)["templates"]
 
     def get(self, template_id: int) -> PostTemplate:
         return self._client._request("GET", f"/api/templates/{template_id}")["template"]
 
-    def create(self, *, name: str, content: str) -> PostTemplate:
-        """Create a template. Up to 200 per organization; names are unique."""
-        return self._client._request("POST", "/api/templates", json={"name": name, "content": content})["template"]
+    def create(self, *, name: str, content: str, kind: Optional[str] = None) -> PostTemplate:
+        """Create a template. Up to 200 per organization; names are unique per kind (default kind: ``caption``)."""
+        body: Dict[str, Any] = {"name": name, "content": content}
+        if kind is not None:
+            body["kind"] = kind
+        return self._client._request("POST", "/api/templates", json=body)["template"]
 
     def update(self, template_id: int, *, name: Optional[str] = None, content: Optional[str] = None) -> PostTemplate:
         body: Dict[str, Any] = {}
@@ -45,14 +52,18 @@ class AsyncTemplatesResource:
     def __init__(self, client: _BaseClient) -> None:
         self._client = client
 
-    async def list(self) -> List[PostTemplate]:
-        return (await self._client._request("GET", "/api/templates"))["templates"]
+    async def list(self, *, kind: Optional[str] = None) -> List[PostTemplate]:
+        params = {"kind": kind} if kind is not None else None
+        return (await self._client._request("GET", "/api/templates", params=params))["templates"]
 
     async def get(self, template_id: int) -> PostTemplate:
         return (await self._client._request("GET", f"/api/templates/{template_id}"))["template"]
 
-    async def create(self, *, name: str, content: str) -> PostTemplate:
-        return (await self._client._request("POST", "/api/templates", json={"name": name, "content": content}))["template"]
+    async def create(self, *, name: str, content: str, kind: Optional[str] = None) -> PostTemplate:
+        body: Dict[str, Any] = {"name": name, "content": content}
+        if kind is not None:
+            body["kind"] = kind
+        return (await self._client._request("POST", "/api/templates", json=body))["template"]
 
     async def update(self, template_id: int, *, name: Optional[str] = None, content: Optional[str] = None) -> PostTemplate:
         body: Dict[str, Any] = {}

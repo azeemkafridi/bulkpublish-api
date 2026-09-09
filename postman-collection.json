@@ -7798,7 +7798,17 @@
               "host": [
                 "{{baseUrl}}"
               ],
-              "query": [],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — Which kind of saved text to list (This can only be one of caption,first_comment). Defaults to caption",
+                    "type": "text/plain"
+                  },
+                  "key": "kind",
+                  "value": "caption"
+                }
+              ],
               "variable": []
             },
             "method": "GET",
@@ -7874,7 +7884,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"<string>\",\n  \"content\": \"<string>\"\n}",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"content\": \"<string>\",\n  \"kind\": \"caption\"\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -7917,7 +7927,7 @@
                 "method": "POST",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"<string>\",\n  \"content\": \"<string>\"\n}",
+                  "raw": "{\n  \"name\": \"<string>\",\n  \"content\": \"<string>\",\n  \"kind\": \"caption\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",

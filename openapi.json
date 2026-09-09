@@ -1140,6 +1140,14 @@
           "content": {
             "type": "string"
           },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "caption",
+              "first_comment"
+            ],
+            "description": "What the saved text is for: a post caption, or a first-comment reply."
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -7005,6 +7013,22 @@
         ],
         "summary": "List post templates",
         "description": "Every saved template in the organization, sorted by name. Returns { templates: PostTemplate[] }. Templates are text only; media, channels and per-platform options belong to the post. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "caption",
+                "first_comment"
+              ],
+              "default": "caption"
+            },
+            "description": "Which kind of saved text to list: a post caption, or a first-comment reply. Defaults to caption."
+          }
+        ],
         "responses": {
           "200": {
             "description": "Templates"
@@ -7048,6 +7072,15 @@
                     "type": "string",
                     "maxLength": 10000,
                     "description": "Template text. CRLF is normalised to LF and surrounding whitespace trimmed."
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "caption",
+                      "first_comment"
+                    ],
+                    "default": "caption",
+                    "description": "What the saved text is for: a post caption, or a first-comment reply. Name uniqueness is scoped per kind, so a caption and a first comment can share a name."
                   }
                 }
               }

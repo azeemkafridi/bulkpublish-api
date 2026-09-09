@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-09 — Saved first-comment snippets
+
+Node **1.23.1** · Python **0.23.1** · MCP **1.27.1** · spec
+
+### Added
+
+- **`kind` on post templates** — `caption` (default, unchanged behaviour) or
+  `first_comment`. `templates.list()` takes an optional `kind` filter and
+  `templates.create()` an optional `kind` field; name uniqueness is scoped per
+  kind, so a caption and a first-comment snippet can share a name. Existing
+  templates are all `caption` and every existing integration is unaffected —
+  omitting `kind` anywhere behaves exactly as it did before this release.
+
 ## 2026-09-09 — Every thread part is length-checked
 
 Node **1.23.0** · Python **0.23.0** · MCP **1.27.0** · spec

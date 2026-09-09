@@ -66,7 +66,10 @@ class Post(TypedDict, total=False):
     ``status`` is one of ``draft``, ``scheduled``, ``publishing``,
     ``published``, ``processing``, ``failed``, or ``partial``.
     ``deleteMediaAfterPublish`` defaults to ``False`` — media is kept and
-    reclaimed by the server's 3-month retention sweep.
+    reclaimed by the server's 3-month retention sweep. Set ``True`` and the
+    original is removed once every channel has published, freeing the storage
+    it counted against; the media record remains with ``isOriginalDeleted``
+    set and its original ``sizeBytes`` still reported.
 
     ``approvalStatus`` is the team approval state, orthogonal to ``status``:
     one of ``none`` (default), ``pending``, ``approved``, ``rejected``.
@@ -361,11 +364,15 @@ class AccountMetrics(TypedDict, total=False):
 
 
 class PostTemplate(TypedDict, total=False):
-    """Saved post text to start a new post from."""
+    """Saved post text to start a new post from.
+
+    ``kind`` is ``caption`` or ``first_comment``; names are unique per kind.
+    """
 
     id: int
     name: str
     content: str
+    kind: str
     createdAt: str
     updatedAt: str
 
