@@ -3,7 +3,8 @@
 /**
  * BulkPublish MCP Server — hosted Streamable HTTP transport + OAuth 2.1.
  *
- * Serves the same tool suite as the stdio server (src/index.ts) over HTTP so web
+ * Serves the stdio server's tools (src/index.ts) over HTTP — the `core` profile
+ * by default, see CORE_TOOLS — so web
  * hosts that can't spawn a local process (claude.ai, Smithery, ChatGPT Apps) can
  * connect and render the MCP Apps widgets.
  *
@@ -33,7 +34,12 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { mcpAuthRouter } from "@modelcontextprotocol/sdk/server/auth/router.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { createServer, requestContext } from "./index.js";
+import { createServer, requestContext, resolveToolProfile, type ToolProfile } from "./index.js";
+
+// The hosted server is the one the directories review, so it defaults to the
+// trimmed `core` profile (see CORE_TOOLS in index.ts). BULKPUBLISH_TOOL_PROFILE=full
+// restores every tool.
+const TOOL_PROFILE: ToolProfile = resolveToolProfile("core");
 import { oauthProvider, handleConsent } from "./oauth.js";
 
 const PORT = Number(process.env.PORT) || 8080;
@@ -124,7 +130,7 @@ let serverCardJson = JSON.stringify({
 });
 
 async function buildServerCard(): Promise<string> {
-  const server = createServer();
+  const server = createServer({ profile: TOOL_PROFILE });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: "card-builder", version: "1.0.0" });
   await Promise.all([client.connect(clientTransport), server.connect(serverTransport)]);
@@ -183,7 +189,7 @@ async function handleMcp(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const server = createServer();
+  const server = createServer({ profile: TOOL_PROFILE });
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
     enableJsonResponse: true,

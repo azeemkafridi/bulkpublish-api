@@ -462,10 +462,176 @@ function formatResponse(res: ApiResponse): string {
 // MCP Server
 // ---------------------------------------------------------------------------
 
+
+// ---------------------------------------------------------------------------
+// Tool profiles
+// ---------------------------------------------------------------------------
+// The hosted server (mcp.bulkpublish.com) is what the Anthropic and OpenAI
+// directories review, and 71 tools is more surface than a reviewer can verify
+// or a chat model can pick from well. `core` is the publishing workflow only:
+// channels, posts, media, analytics, and the panels — 20 tools. Everything a
+// panel calls back through the host bridge (create_post, publish_post,
+// retry_post, update_post, delete_post, list_channels, list_media,
+// create_media_upload, finalize_media_upload, get_post) MUST stay in core or
+// the panel's buttons break. `full` is every tool; the npm/stdio server
+// defaults to it so existing local setups lose nothing.
+//
+// BULKPUBLISH_TOOL_PROFILE=core|full overrides either default.
+export type ToolProfile = "core" | "full";
+export const CORE_TOOLS: ReadonlySet<string> = new Set([
+  "list_channels",
+  "list_posts",
+  "get_post",
+  "create_post",
+  "update_post",
+  "delete_post",
+  "publish_post",
+  "retry_post",
+  "get_queue_slot",
+  "upload_media",
+  "list_media",
+  "create_media_upload",
+  "finalize_media_upload",
+  "get_analytics",
+  "get_post_metrics",
+  "compose_post",
+  "view_posts",
+  "view_channels",
+  "view_media",
+  "view_analytics",
+]);
+export function resolveToolProfile(fallback: ToolProfile): ToolProfile {
+  const v = process.env.BULKPUBLISH_TOOL_PROFILE;
+  if (v === "core" || v === "full") return v;
+  if (v) console.error(`Warning: BULKPUBLISH_TOOL_PROFILE=${v} is not core|full — using ${fallback}.`);
+  return fallback;
+}
+function toolInProfile(name: string, profile: ToolProfile): boolean {
+  return profile === "full" || CORE_TOOLS.has(name);
+}
+
+// ---------------------------------------------------------------------------
+// Tool annotations
+// ---------------------------------------------------------------------------
+// Every hint is REQUIRED and explicit. OpenAI's plugin review (2026-09-09
+// rejection of v1.0.1) asks that each annotation be "explicitly set to true
+// or false (not null) for every tool" and that the values match what the
+// tool actually does, with a written justification. The `why` line IS that
+// justification — `npm run check:annotations` prints the table pasted into
+// the submission form, so the form and the server cannot drift.
+//
+// Definitions used (OpenAI app-review + MCP spec):
+//   readOnlyHint    true only if the call changes nothing.
+//   destructiveHint true if the call can delete, overwrite, revoke access, or
+//                   trigger something that cannot be undone — even in one
+//                   mode or via an indirect effect. Publishing to a public
+//                   platform cannot be undone from here, so it counts.
+//   openWorldHint   true if the call reaches the public internet or an
+//                   external entity: publishes to a platform, fetches a
+//                   remote URL, or schedules content that will publish.
+//   idempotentHint  true if repeating the call with the same arguments
+//                   leaves the same state as calling it once.
+type ToolAnn = {
+  title: string;
+  readOnlyHint: boolean;
+  destructiveHint: boolean;
+  idempotentHint: boolean;
+  openWorldHint: boolean;
+  why: string;
+};
+const READ = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } as const;
+export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
+  // ---- Read-only: GET against the caller's own BulkPublish account -------
+  list_channels: { title: "List channels", ...READ, why: "GET /api/channels. Lists the caller's connected accounts; changes nothing, calls no platform." },
+  list_platforms: { title: "List platforms", ...READ, why: "GET /api/platforms. Returns which platforms are enabled; changes nothing." },
+  list_posts: { title: "List posts", ...READ, why: "GET /api/posts with filters; a paginated read of the caller's own posts." },
+  get_post: { title: "Get post", ...READ, why: "GET /api/posts/{id}; reads one post." },
+  get_post_metrics: { title: "Get post metrics", ...READ, why: "GET stored metrics for one post; nothing is fetched from a platform during the call." },
+  list_media: { title: "List media", ...READ, why: "GET /api/media; lists the caller's media library." },
+  get_media: { title: "Get media file", ...READ, why: "GET /api/media/{id}; reads one file's record." },
+  list_labels: { title: "List labels", ...READ, why: "GET /api/labels." },
+  list_hashtag_groups: { title: "List hashtag groups", ...READ, why: "GET /api/hashtag-groups." },
+  list_templates: { title: "List post templates", ...READ, why: "GET /api/templates." },
+  list_review_links: { title: "List client review links", ...READ, why: "GET /api/review-links; lists links already created, does not create or revoke any." },
+  list_client_connect_links: { title: "List client connect links", ...READ, why: "GET /api/client-connect-links; read of existing links." },
+  list_calendar_notes: { title: "List calendar notes", ...READ, why: "GET /api/calendar-notes for a date range." },
+  list_schedules: { title: "List recurring schedules", ...READ, why: "GET /api/schedules." },
+  get_analytics: { title: "Get analytics", ...READ, why: "GET /api/analytics/summary; aggregates already-stored metrics." },
+  get_quota_usage: { title: "Get quota usage", ...READ, why: "GET /api/quotas/usage; reads plan limits and current counters." },
+  get_queue_slot: { title: "Get next queue slot", ...READ, why: "GET /api/posts/queue-slot; computes the next free slot and reserves nothing." },
+  get_channel_health: { title: "Get channel health", ...READ, why: "GET /api/channels/{id}/health; reports stored token state, does not refresh or reconnect." },
+  get_channel_options: { title: "Get channel post-type options", ...READ, why: "GET /api/channels/{id}/options; static capability data." },
+  list_channel_sets: { title: "List channel sets", ...READ, why: "GET /api/channel-sets." },
+  list_rss_feeds: { title: "List RSS feeds", ...READ, why: "GET /api/rss-feeds; lists configured feeds, fetches none of them." },
+  search_mentions: { title: "Search mentions", ...READ, openWorldHint: true, why: "Read-only, but the lookup is proxied to the connected platform's own search (LinkedIn/X), so it reaches an external service." },
+  // ---- Widgets: the tool call itself only loads data for the panel -------
+  // Any action taken inside the panel is a separate tools/call to the tool
+  // named below (create_post, publish_post, delete_post, …), which carries
+  // its own annotations, so the loader is honestly read-only.
+  compose_post: { title: "Compose a post", ...READ, why: "Loads active channels and recent media (two GETs) to open the composer panel. Submitting the panel calls create_post / publish_post as separate tool calls with their own annotations; this call writes nothing and publishes nothing." },
+  view_posts: { title: "View posts", ...READ, why: "GET /api/posts to render the posts panel. Buttons in the panel call publish_post, retry_post, update_post or delete_post separately." },
+  view_channels: { title: "View channels", ...READ, why: "GET /api/channels to render the channels panel." },
+  view_media: { title: "View media", ...READ, why: "GET /api/media to render the media panel." },
+  view_analytics: { title: "View analytics", ...READ, why: "GET /api/analytics/summary to render the analytics panel." },
+  view_quota: { title: "View quota", ...READ, why: "GET /api/quotas/usage to render the usage panel." },
+  // ---- Creates: add a record, overwrite nothing --------------------------
+  create_post: { title: "Create post", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true, why: "POST /api/posts. Adds a draft or scheduled post; overwrites nothing and can be deleted, so not destructive. Not idempotent: each call creates another post. Open-world: with status 'scheduled' the post will publish to the named public platforms at scheduledAt, so the call's effect reaches outside BulkPublish." },
+  create_label: { title: "Create label", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/labels; adds an internal label. Repeating creates a duplicate." },
+  create_hashtag_group: { title: "Create hashtag group", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/hashtag-groups; adds an internal record." },
+  create_template: { title: "Create post template", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/templates; adds an internal record." },
+  create_calendar_note: { title: "Create calendar note", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/calendar-notes; adds an internal note, publishes nothing." },
+  create_channel_set: { title: "Create channel set", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/channel-sets; adds an internal grouping." },
+  create_schedule: { title: "Create recurring schedule", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true, why: "POST /api/schedules. Adds a rule that will create and publish posts to public platforms on a cadence, so its effect is open-world; the rule itself can be deleted, so not destructive." },
+  create_rss_feed: { title: "Add RSS feed", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true, why: "POST /api/rss-feeds. BulkPublish will fetch the given public feed URL and publish new items to the chosen channels, so the effect is open-world. The feed record can be paused or deleted." },
+  create_review_link: { title: "Create client review link", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/review-links; mints a link that a client can open. Nothing is sent to anyone; the caller decides where to share it." },
+  create_client_connect_link: { title: "Create client connect link", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/client-connect-links; mints a one-time link. Nothing is sent to anyone." },
+  share_post: { title: "Create post review link", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false, why: "POST /api/posts/{id}/share returns the post's review link, creating it on first call; repeating returns the same link unless regenerate=true. Nothing is sent to anyone." },
+  // ---- Media uploads -----------------------------------------------------
+  upload_media: { title: "Upload media", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true, why: "Downloads the file from the given public URL (or reads a local path) and stores it in the caller's library — fetching an arbitrary URL is an open-world read. Adds a file, overwrites nothing; each call stores another copy." },
+  create_media_upload: { title: "Start media upload", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/media/presign; reserves an upload slot and returns a signed URL. Stores no file yet, overwrites nothing." },
+  finalize_media_upload: { title: "Finalize media upload", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/media/finalize; records the uploaded object as a library file. Overwrites nothing." },
+  create_multipart_upload: { title: "Start chunked media upload", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "Reserves a chunked upload; stores nothing final." },
+  complete_multipart_upload: { title: "Complete chunked media upload", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "Assembles the uploaded parts into one library file. Overwrites nothing." },
+  abort_multipart_upload: { title: "Abort chunked media upload", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "Discards the parts uploaded so far; they cannot be recovered. Aborting twice is a no-op." },
+  // ---- Updates: overwrite fields of an existing record -------------------
+  // Overwriting is 'destructive' under the review definition even though
+  // the record survives, because the previous value is not recoverable.
+  update_post: { title: "Update post", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "PATCH /api/posts/{id}. Overwrites the post's content, media, labels or schedule; the previous values are not kept, so destructive. Open-world: status='scheduled' arms the post to publish to public platforms. Same payload twice leaves the same state." },
+  update_media: { title: "Set media alt text", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH /api/media/{id}; overwrites the alt text (previous value not kept). Same value twice is a no-op." },
+  update_label: { title: "Update label", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH; overwrites name/colour." },
+  update_hashtag_group: { title: "Update hashtag group", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH; overwrites the group's name or hashtags." },
+  update_template: { title: "Update post template", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH; overwrites the template's text." },
+  update_calendar_note: { title: "Update calendar note", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH; overwrites the note." },
+  update_channel_set: { title: "Update channel set", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH; overwrites the set's name or members." },
+  update_schedule: { title: "Update recurring schedule", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "PATCH; overwrites the rule that generates future public posts." },
+  update_rss_feed: { title: "Update RSS feed", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "PATCH; overwrites the feed URL or target channels for future auto-publishing." },
+  // ---- Publishing: reaches public platforms, cannot be undone here --------
+  publish_post: { title: "Publish post now", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/publish. Sends the post to the connected public platforms immediately; a live post cannot be recalled from BulkPublish, so destructive. Not idempotent: the server refuses to re-publish a live post, but a retry after a lost response can duplicate it." },
+  retry_post: { title: "Retry failed post", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/retry. Re-sends to the platforms that failed; with republish=true it can also re-send 'unconfirmed' platforms and create a duplicate. Same reasoning as publish_post." },
+  approve_post: { title: "Approve pending post", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "POST /api/posts/{id}/approve. Releases a post held for team approval so it publishes at its scheduled time (or now) to public platforms. Approving twice is a no-op." },
+  reject_post: { title: "Reject pending post", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false, why: "POST /api/posts/{id}/reject. Returns the post to draft with a reason; nothing is published, nothing is deleted, and it can be resubmitted. Rejecting twice is a no-op." },
+  publish_story: { title: "Publish story", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/story. Publishes an Instagram/Facebook story immediately; cannot be recalled from here, and each call posts another story." },
+  bulk_posts: { title: "Bulk post actions", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/bulk with action delete | retry | reschedule over many posts. 'delete' removes posts permanently and 'retry' re-publishes to public platforms, so the tool's widest reach is destructive and open-world. Not idempotent because 'retry' can duplicate." },
+  // ---- Deletes / revokes ---------------------------------------------------
+  delete_post: { title: "Delete post", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/posts/{id}. Permanently removes a draft or failed post (published posts are refused, so nothing is removed from a platform). Deleting twice leaves the same state." },
+  delete_media: { title: "Delete media", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/media/{id}; the file is gone." },
+  delete_label: { title: "Delete label", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/labels/{id}." },
+  delete_hashtag_group: { title: "Delete hashtag group", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/hashtag-groups/{id}." },
+  delete_template: { title: "Delete post template", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/templates/{id}." },
+  delete_calendar_note: { title: "Delete calendar note", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/calendar-notes/{id}." },
+  delete_channel_set: { title: "Delete channel set", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/channel-sets/{id}; the channels themselves stay connected." },
+  delete_schedule: { title: "Delete recurring schedule", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/schedules/{id}; stops future generation, posts already created stay." },
+  delete_rss_feed: { title: "Delete RSS feed", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/rss-feeds/{id}; stops auto-publishing from that feed." },
+  unshare_post: { title: "Revoke post review link", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/posts/{id}/share; revokes access for anyone holding the link." },
+  delete_review_link: { title: "Revoke client review link", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/review-links/{id}; revokes access. The posts it covered are unaffected." },
+  delete_client_connect_link: { title: "Revoke client connect link", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/client-connect-links/{id}; revokes an unused link. An account it already connected stays connected." },
+};
+
 // Build a fully-registered MCP server instance. Called once for stdio (below)
 // and once per request by the hosted HTTP server, so each HTTP caller gets an
 // isolated server whose tool calls use their own API key via requestContext.
-export function createServer(): McpServer {
+export function createServer(opts: { profile?: ToolProfile } = {}): McpServer {
+  const profile: ToolProfile = opts.profile ?? "full";
   const server = new McpServer({
     name: "bulkpublish",
     version: "1.0.0",
@@ -480,96 +646,6 @@ export function createServer(): McpServer {
   // annotations, …), so we inject annotations there by tool name from this one
   // map instead of threading an argument through ~37 call sites. Guarded so it
   // degrades to "no annotations" (rather than crashing) if the SDK changes.
-  type ToolAnn = {
-    title: string;
-    readOnlyHint?: boolean;
-    destructiveHint?: boolean;
-    idempotentHint?: boolean;
-    openWorldHint?: boolean;
-  };
-  const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
-    // Read-only
-    list_channels: { title: "List channels", readOnlyHint: true },
-    list_posts: { title: "List posts", readOnlyHint: true },
-    get_post: { title: "Get post", readOnlyHint: true },
-    get_post_metrics: { title: "Get post metrics", readOnlyHint: true },
-    list_media: { title: "List media", readOnlyHint: true },
-    get_media: { title: "Get media file", readOnlyHint: true },
-    list_labels: { title: "List labels", readOnlyHint: true },
-    list_hashtag_groups: { title: "List hashtag groups", readOnlyHint: true },
-    list_templates: { title: "List post templates", readOnlyHint: true },
-    list_review_links: { title: "List client review links", readOnlyHint: true },
-    list_client_connect_links: { title: "List client connect links", readOnlyHint: true },
-    list_calendar_notes: { title: "List calendar notes", readOnlyHint: true },
-    list_schedules: { title: "List recurring schedules", readOnlyHint: true },
-    get_analytics: { title: "Get analytics", readOnlyHint: true },
-    get_quota_usage: { title: "Get quota usage", readOnlyHint: true },
-    get_queue_slot: { title: "Get next queue slot", readOnlyHint: true },
-    get_channel_health: { title: "Get channel health", readOnlyHint: true },
-    get_channel_options: { title: "Get channel post-type options", readOnlyHint: true },
-    search_mentions: { title: "Search mentions", readOnlyHint: true, openWorldHint: true },
-    list_channel_sets: { title: "List channel sets", readOnlyHint: true },
-    list_rss_feeds: { title: "List RSS feeds", readOnlyHint: true },
-    // Create / update (non-destructive writes)
-    create_post: { title: "Create post", readOnlyHint: false, destructiveHint: false },
-    create_hashtag_group: { title: "Create hashtag group", readOnlyHint: false, destructiveHint: false },
-    update_hashtag_group: { title: "Update hashtag group", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
-    delete_hashtag_group: { title: "Delete hashtag group", readOnlyHint: false, destructiveHint: true },
-    update_media: { title: "Set media alt text", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
-    create_template: { title: "Create post template", readOnlyHint: false, destructiveHint: false },
-    update_template: { title: "Update post template", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
-    delete_template: { title: "Delete post template", readOnlyHint: false, destructiveHint: true },
-    create_calendar_note: { title: "Create calendar note", readOnlyHint: false, destructiveHint: false },
-    update_calendar_note: { title: "Update calendar note", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
-    delete_calendar_note: { title: "Delete calendar note", readOnlyHint: false, destructiveHint: true },
-    share_post: { title: "Create post review link", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
-    unshare_post: { title: "Revoke post review link", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
-    create_review_link: { title: "Create client review link", readOnlyHint: false, destructiveHint: false },
-    delete_review_link: { title: "Revoke client review link", readOnlyHint: false, destructiveHint: true },
-    create_client_connect_link: { title: "Create client connect link", readOnlyHint: false, destructiveHint: false },
-    delete_client_connect_link: { title: "Revoke client connect link", readOnlyHint: false, destructiveHint: true },
-    update_post: { title: "Update post", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
-    list_platforms: { title: "List platforms", readOnlyHint: true, destructiveHint: false, idempotentHint: true },
-    // openWorldHint: the "retry" action re-publishes to the external platforms,
-    // exactly like retry_post (which is already marked true). "delete" and
-    // "reschedule" stay internal, but the hint describes the tool's widest
-    // reach, so it must be true here too.
-    bulk_posts: { title: "Bulk post actions", readOnlyHint: false, destructiveHint: true, openWorldHint: true },
-    upload_media: { title: "Upload media", readOnlyHint: false, destructiveHint: false },
-    create_media_upload: { title: "Start media upload", readOnlyHint: false, destructiveHint: false },
-    finalize_media_upload: { title: "Finalize media upload", readOnlyHint: false, destructiveHint: false },
-    create_multipart_upload: { title: "Start chunked media upload", readOnlyHint: false, destructiveHint: false },
-    complete_multipart_upload: { title: "Complete chunked media upload", readOnlyHint: false, destructiveHint: false },
-    abort_multipart_upload: { title: "Abort chunked media upload", readOnlyHint: false, destructiveHint: true },
-    create_channel_set: { title: "Create channel set", readOnlyHint: false, destructiveHint: false },
-    update_channel_set: { title: "Update channel set", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
-    create_rss_feed: { title: "Add RSS feed", readOnlyHint: false, destructiveHint: false },
-    update_rss_feed: { title: "Update RSS feed", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
-    create_label: { title: "Create label", readOnlyHint: false, destructiveHint: false },
-    update_label: { title: "Update label", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
-    create_schedule: { title: "Create recurring schedule", readOnlyHint: false, destructiveHint: false },
-    update_schedule: { title: "Update recurring schedule", readOnlyHint: false, destructiveHint: false, idempotentHint: true },
-    // Publishing (writes out to external platforms)
-    publish_post: { title: "Publish post now", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
-    retry_post: { title: "Retry failed post", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
-    approve_post: { title: "Approve pending post", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
-    reject_post: { title: "Reject pending post", readOnlyHint: false, destructiveHint: false },
-    publish_story: { title: "Publish story", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
-    // Destructive
-    delete_post: { title: "Delete post", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
-    delete_media: { title: "Delete media", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
-    delete_label: { title: "Delete label", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
-    delete_schedule: { title: "Delete recurring schedule", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
-    delete_channel_set: { title: "Delete channel set", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
-    delete_rss_feed: { title: "Delete RSS feed", readOnlyHint: false, destructiveHint: true, idempotentHint: true },
-    // Interactive widgets (App tools)
-    compose_post: { title: "Compose a post", readOnlyHint: false, destructiveHint: false, openWorldHint: true },
-    view_posts: { title: "View posts", readOnlyHint: true },
-    view_channels: { title: "View channels", readOnlyHint: true },
-    view_media: { title: "View media", readOnlyHint: true },
-    view_analytics: { title: "View analytics", readOnlyHint: true },
-    view_quota: { title: "View quota", readOnlyHint: true },
-  };
   // "Use this when…" hints appended to each tool's description — OpenAI's Apps
   // SDK + Claude both use these to pick the right tool and disambiguate similar
   // tools. Describe what the tool does and when it is useful only; never
@@ -654,30 +730,37 @@ export function createServer(): McpServer {
       _createRegisteredTool?: (...a: unknown[]) => unknown;
     };
     const original = srv._createRegisteredTool;
-    if (typeof original === "function") {
-      const bound = original.bind(server);
-      srv._createRegisteredTool = (...args: unknown[]) => {
-        const ann = TOOL_ANNOTATIONS[args[0] as string];
-        if (ann) {
-          if (!args[1]) args[1] = ann.title; // tool title (regular tools have none)
-          // OpenAI Apps SDK requires every tool to set ALL THREE hints
-          // explicitly. Default them to false; the map's accurate values (and
-          // any explicitly-passed annotations) override.
-          args[5] = {
-            readOnlyHint: false,
-            destructiveHint: false,
-            openWorldHint: false,
-            ...ann,
-            ...((args[5] as object) ?? {}),
-          }; // annotations slot
-        }
-        const use = TOOL_USE_HINTS[args[0] as string];
-        if (use && typeof args[2] === "string" && !(args[2] as string).includes("Use this when")) {
-          args[2] = (args[2] as string).replace(/\s+$/, "") + " Use this when " + use; // description slot
-        }
-        return bound(...args);
-      };
+    if (typeof original !== "function") {
+      // The SDK's private registration seam moved. Fail loudly: shipping a
+      // server with no annotations is exactly what gets a directory
+      // submission rejected.
+      throw new Error("McpServer._createRegisteredTool is missing — update the annotation hook for this SDK version.");
     }
+    const bound = original.bind(server);
+    srv._createRegisteredTool = (...args: unknown[]) => {
+      const name = args[0] as string;
+      const ann = TOOL_ANNOTATIONS[name];
+      if (!ann) {
+        // Every tool needs an entry — that is where its title, hints and the
+        // review justification live. Unannotated tools do not ship.
+        throw new Error(`Tool "${name}" has no TOOL_ANNOTATIONS entry.`);
+      }
+      if (!toolInProfile(name, profile)) {
+        // Outside the active profile: skip registration entirely. Callers
+        // ignore the returned handle, so a disabled stub is enough.
+        return { enabled: false, disable() {}, enable() {}, update() {}, remove() {} };
+      }
+      if (!args[1]) args[1] = ann.title; // tool title (regular tools have none)
+      const { why: _why, title: _title, ...hints } = ann;
+      // All four hints, explicit booleans, on every tool. Anything a call
+      // site passes explicitly still wins.
+      args[5] = { ...hints, ...((args[5] as object) ?? {}) }; // annotations slot
+      const use = TOOL_USE_HINTS[name];
+      if (use && typeof args[2] === "string" && !(args[2] as string).includes("Use this when")) {
+        args[2] = (args[2] as string).replace(/\s+$/, "") + " Use this when " + use; // description slot
+      }
+      return bound(...args);
+    };
   }
 
 // ---------------------------------------------------------------------------
@@ -2536,6 +2619,7 @@ function registerWidget(config: {
     args: Record<string, any>
   ) => Promise<{ text: string; data: Record<string, unknown> }>;
 }): void {
+  if (!toolInProfile(config.tool, profile)) return; // resource + tool both stay out
   const uri = `ui://bulkpublish/${config.widget}`;
   // Widgets render in a sandboxed iframe with no same-origin server, and the
   // host blocks any origin we don't declare. The composer + view_media show
@@ -3046,7 +3130,7 @@ if (!HIDE_BILLING_TOOLS) {
 // ---------------------------------------------------------------------------
 
 export function createSandboxServer(): McpServer {
-  return createServer();
+  return createServer({ profile: resolveToolProfile("full") });
 }
 
 // ---------------------------------------------------------------------------
@@ -3070,7 +3154,7 @@ if (isDirectRun) {
     );
   }
 
-  const server = createServer();
+  const server = createServer({ profile: resolveToolProfile("full") });
   const transport = new StdioServerTransport();
   server.connect(transport).catch((err) => {
     console.error("Failed to start MCP server:", err);

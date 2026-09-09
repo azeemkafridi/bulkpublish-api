@@ -114,27 +114,42 @@ docker build -t bulkpublish-mcp . && docker run -p 8080:8080 bulkpublish-mcp
 
 Once deployed, add it to **claude.ai → Settings → Connectors → Add custom connector** as `https://<host>/mcp?key=bp_…`, or publish the `https://<host>/mcp` URL to Smithery.
 
+### Tool profiles
+
+The server ships two tool profiles, chosen with `BULKPUBLISH_TOOL_PROFILE`:
+
+| Profile | Tools | Default for |
+|---|---|---|
+| `core` | 20 — channels, posts, media, analytics, and the interactive panels | The hosted HTTP server (`dist/http.js`), which is what the Claude and ChatGPT directories list |
+| `full` | Every tool (labels, hashtag groups, templates, calendar notes, review links, client-connect links, recurring schedules, channel sets, RSS feeds, chunked uploads, quota) | The local stdio server (`npx @bulkpublish/mcp-server`) |
+
+Set `BULKPUBLISH_TOOL_PROFILE=full` on a hosted deployment to expose everything, or `core` locally to keep a small tool list. The panels' buttons call back into `create_post`, `publish_post`, `retry_post`, `update_post`, `delete_post`, `list_channels`, `list_media`, `get_post`, `create_media_upload` and `finalize_media_upload`, so all of those are in `core`.
+
+Every tool carries a `title` and explicit `readOnlyHint`, `destructiveHint`, `idempotentHint` and `openWorldHint` booleans; `npm run check:annotations` verifies that for both profiles (add `--table` to print the per-tool justification table used in directory submissions).
+
 ## Available Tools
+
+Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles)); the rest need `full`.
 
 | Tool | Description |
 |------|-------------|
 | **Posts** | |
-| `create_post` | Create and optionally schedule a post (supports reels, stories, carousels, threads via `postTypeOverrides`) |
-| `compose_post` | Open an interactive composer UI (MCP Apps) to draft/schedule a post; submits via `create_post` |
-| `update_post` | Update a draft or scheduled post |
-| `get_post` | Get a single post with full details |
-| `list_posts` | List posts with filters (status, search, date range) |
-| `delete_post` | Delete a post |
-| `publish_post` | Publish a draft post immediately |
-| `retry_post` | Retry a failed post |
+| `create_post` ★ | Create and optionally schedule a post (supports reels, stories, carousels, threads via `postTypeOverrides`) |
+| `compose_post` ★ | Open an interactive composer UI (MCP Apps) to draft/schedule a post; submits via `create_post` |
+| `update_post` ★ | Update a draft or scheduled post |
+| `get_post` ★ | Get a single post with full details |
+| `list_posts` ★ | List posts with filters (status, search, date range) |
+| `delete_post` ★ | Delete a post |
+| `publish_post` ★ | Publish a draft post immediately |
+| `retry_post` ★ | Retry a failed post |
 | `approve_post` | Approve a post awaiting team approval (roles with post:approve) |
 | `reject_post` | Reject a pending post back to draft, with an optional reason |
-| `get_post_metrics` | Get engagement metrics (impressions, likes, comments, shares). Each platform entry carries `supportedMetrics` — a key not in that list is a stored `0`, not a measurement |
+| `get_post_metrics` ★ | Get engagement metrics (impressions, likes, comments, shares). Each platform entry carries `supportedMetrics` — a key not in that list is a stored `0`, not a measurement |
 | `publish_story` | Publish as a story to Facebook or Instagram |
 | `bulk_posts` | Bulk delete or retry multiple posts |
-| `get_queue_slot` | Get the next optimal time slot for a channel |
+| `get_queue_slot` ★ | Get the next optimal time slot for a channel |
 | **Channels** | |
-| `list_channels` | List all connected social media channels |
+| `list_channels` ★ | List all connected social media channels |
 | `get_channel_health` | Check channel token health |
 | `get_channel_options` | Get platform-specific options (boards, playlists) |
 | `search_mentions` | Search users for @mention (X, Bluesky, LinkedIn Pages — LinkedIn results carry the `vanityName` slug they matched on) |
@@ -149,12 +164,12 @@ Once deployed, add it to **claude.ai → Settings → Connectors → Add custom 
 | `update_rss_feed` | Change, pause, or re-point a feed (changing `feedUrl` re-baselines it — the backlog is not flooded) |
 | `delete_rss_feed` | Stop and remove a feed |
 | **Media** | |
-| `upload_media` | Upload a media file from a URL (or local path on the stdio server) |
+| `upload_media` ★ | Upload a media file from a URL (or local path on the stdio server) |
 | `get_media` | Get a media file by ID |
-| `list_media` | List uploaded media files |
+| `list_media` ★ | List uploaded media files |
 | `delete_media` | Delete a media file |
-| `create_media_upload` | Reserve a presigned R2 URL for a direct browser upload (used by the composer) |
-| `finalize_media_upload` | Record an uploaded object as a media file after the browser PUT (used by the composer) |
+| `create_media_upload` ★ | Reserve a presigned R2 URL for a direct browser upload (used by the composer) |
+| `finalize_media_upload` ★ | Record an uploaded object as a media file after the browser PUT (used by the composer) |
 | `create_multipart_upload` | Start a chunked upload for large media (videos up to 1GB) — presigned URLs for fixed 10MB parts |
 | `complete_multipart_upload` | Assemble the uploaded parts (partNumber + ETag each) and record the media file |
 | `abort_multipart_upload` | Cancel an in-progress chunked upload and free its stored parts |
@@ -164,7 +179,7 @@ Once deployed, add it to **claude.ai → Settings → Connectors → Add custom 
 | `update_label` | Update a label name or color |
 | `delete_label` | Delete a label |
 | **Analytics** | |
-| `get_analytics` | Get analytics summary for a date range |
+| `get_analytics` ★ | Get analytics summary for a date range |
 | **Schedules** | |
 | `list_schedules` | List recurring schedules |
 | `create_schedule` | Create a recurring schedule |
@@ -173,11 +188,11 @@ Once deployed, add it to **claude.ai → Settings → Connectors → Add custom 
 | **Account** | |
 | `get_quota_usage` | Check current account usage (hidden when `BULKPUBLISH_HIDE_BILLING=1`) |
 | **Interactive UI (MCP Apps)** | |
-| `compose_post` | Open the interactive post composer (also listed above) |
-| `view_analytics` | Open an interactive analytics dashboard |
-| `view_posts` | Open an interactive posts list |
-| `view_channels` | Open an interactive channels view |
-| `view_media` | Open an interactive media gallery |
+| `compose_post` ★ | Open the interactive post composer (also listed above) |
+| `view_analytics` ★ | Open an interactive analytics dashboard |
+| `view_posts` ★ | Open an interactive posts list |
+| `view_channels` ★ | Open an interactive channels view |
+| `view_media` ★ | Open an interactive media gallery |
 | `view_quota` | Open an interactive account-usage view (hidden when `BULKPUBLISH_HIDE_BILLING=1`) |
 
 ## Interactive UI (MCP Apps)
@@ -244,6 +259,8 @@ Draft post created (ID: 43) with the product launch image attached. You can revi
 |----------|----------|---------|-------------|
 | `BULKPUBLISH_API_KEY` | Yes | — | Your API key (starts with `bp_`) |
 | `BULKPUBLISH_BASE_URL` | No | `https://app.bulkpublish.com` | API base URL (for self-hosted instances) |
+| `BULKPUBLISH_TOOL_PROFILE` | No | `full` (stdio) / `core` (hosted HTTP) | `core` or `full` — see [Tool profiles](#tool-profiles) |
+| `BULKPUBLISH_HIDE_BILLING` | No | — | `1` drops `get_quota_usage` and `view_quota` (only relevant with `full`; `core` never includes them) |
 
 ## License
 

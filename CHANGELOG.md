@@ -1,5 +1,38 @@
 # Changelog
 
+## 2026-09-10 — MCP tool profiles + complete tool annotations
+
+MCP **1.31.0**
+
+### Changed
+
+- **The hosted MCP server now serves a 20-tool `core` profile by default.**
+  OpenAI rejected the ChatGPT app (v1.0.1, 2026-09-09) because tool
+  annotations "do not appear to match the tool's behavior" and must be
+  "explicitly set to true or false (not null) for every tool". Seventy-two
+  tools is also more than a reviewer can verify or a model can choose from
+  well. `core` is the publishing workflow only: channels, posts, media,
+  analytics and the five interactive panels. Every tool a panel calls back
+  into stays in `core`. The local stdio server (`npx @bulkpublish/mcp-server`)
+  still defaults to `full`; `BULKPUBLISH_TOOL_PROFILE=core|full` overrides
+  either. `view_quota` / `get_quota_usage` are `full`-only, which also ends the
+  `BULKPUBLISH_HIDE_BILLING` split between the two directories.
+- **All four hints are explicit booleans on every tool.** `idempotentHint`
+  was previously unset on most tools, and several values were re-derived from
+  what the endpoint does under the review definitions: `update_*` is
+  destructive (it overwrites the previous value), `publish_post` /
+  `retry_post` / `publish_story` / `approve_post` are destructive (a live post
+  cannot be recalled from here), `create_post` / `update_post` /
+  `create_schedule` / `create_rss_feed` / `update_schedule` /
+  `update_rss_feed` are open-world (they arm content to publish to public
+  platforms), `upload_media` is open-world (it fetches the given URL), and the
+  panel loaders (`compose_post`, `view_*`) are read-only because the call
+  itself only fetches — any action in the panel is a separate call to a tool
+  with its own hints. Each entry now carries a written justification;
+  `npm run check:annotations --table` prints them for the submission forms.
+- Registering a tool without an annotations entry now throws at startup
+  instead of shipping unannotated.
+
 ## 2026-09-09 — Template quota enforced per kind
 
 Node **1.26.1** · Python **0.26.1**
