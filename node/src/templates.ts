@@ -35,7 +35,7 @@ export class TemplatesResource {
     return this.http.get(`/api/templates/${id}`);
   }
 
-  /** Create a template. Up to 200 per organization; names are unique per kind (default kind: 'caption'). */
+  /** Create a template. Up to 200 per organization per kind; names are unique per kind (default kind: 'caption'). */
   async create(params: { name: string; content: string; kind?: TemplateKind }): Promise<{ template: PostTemplate }> {
     return this.http.post('/api/templates', params);
   }

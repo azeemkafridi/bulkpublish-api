@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-09 — Template quota enforced per kind
+
+Node **1.26.1** · Python **0.26.1**
+
+### Fixed
+
+- **The 200-template cap was shared across kinds, not per kind as documented.**
+  The spec, Node JSDoc, Python docstring and MCP tool description already said
+  captions and first-comment snippets each get their own 200 — the server
+  counted both kinds together, so an org with 200 caption templates got
+  `LIMIT_REACHED` creating its first snippet. The count query now scopes by
+  `kind`. No SDK method signature changed; the Node JSDoc and Python docstring
+  wording is tightened from "per organization" to "per organization per kind"
+  to match the spec exactly.
+
 ## 2026-09-09 — Instagram collaborators on carousels
 
 Node **1.26.0** · Python **0.26.0** · MCP **1.30.0** · spec

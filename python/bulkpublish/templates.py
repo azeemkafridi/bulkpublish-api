@@ -28,7 +28,7 @@ class TemplatesResource:
         return self._client._request("GET", f"/api/templates/{template_id}")["template"]
 
     def create(self, *, name: str, content: str, kind: Optional[str] = None) -> PostTemplate:
-        """Create a template. Up to 200 per organization; names are unique per kind (default kind: ``caption``)."""
+        """Create a template. Up to 200 per organization per kind; names are unique per kind (default kind: ``caption``)."""
         body: Dict[str, Any] = {"name": name, "content": content}
         if kind is not None:
             body["kind"] = kind
