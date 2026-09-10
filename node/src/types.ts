@@ -600,7 +600,7 @@ export interface CreatePostParams {
    *   server, which is not the BulkPublish channel id. Publishing uses a global bot token, so failures are
    *   permission problems rather than a reconnect issue.
    * - **telegram**: no options — the destination chat is fixed when the channel is connected.
-   * - **tumblr**: Optional: `blogName` (defaults to the blog the channel was connected as), `title`, `tags`
+   * - **tumblr**: Optional: `blogName` (defaults to the blog the channel was connected as), `title`, `tags` (array of strings, or one comma-separated string; leading '#' and blank entries are dropped)
    *   (string[], no leading `#`), `link`, `sourceUrl`
    * - **snapchat**: Optional: `title` (Saved Story title, max 45 chars — defaults to the caption's first
    *   line, truncated), `locale` (Spotlight locale, default `'en_US'`), `saveToProfile` (Spotlight only,
@@ -694,8 +694,10 @@ export interface UpdatePostParams {
    * Move the post between draft and scheduled. Setting 'scheduled' requires a
    * future scheduledAt (in this request or already stored) and at least one
    * channel; setting 'draft' unschedules it. Any other value is rejected. Omit
-   * to leave the status unchanged (failed/partial posts still auto-reset to
-   * draft on edit). To publish immediately, use posts.publish() instead.
+   * to leave the status unchanged (a failed post still auto-resets to draft
+   * on edit; a partial post stays partial). Setting 'scheduled' on a partial
+   * post re-queues its failed channels only; published channels are not
+   * re-sent. To publish immediately, use posts.publish() instead.
    */
   status?: 'draft' | 'scheduled';
   scheduledAt?: string | null;

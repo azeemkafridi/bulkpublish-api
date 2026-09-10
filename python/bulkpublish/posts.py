@@ -360,9 +360,11 @@ class PostsResource:
                 between those states — ``"scheduled"`` requires a future
                 ``scheduled_at`` (in this call or already stored) and at least
                 one channel; ``"draft"`` unschedules it.  Any other status
-                value is rejected.  Omit ``status`` to leave it unchanged
-                (failed/partial posts still auto-reset to draft on edit).  To
-                publish immediately, use :meth:`publish` instead.
+                value is rejected.  Omit ``status`` to leave it unchanged (a
+                failed post still auto-resets to draft on edit; a partial post
+                stays partial).  Scheduling a partial post re-queues only its
+                failed channels.  To publish immediately, use :meth:`publish`
+                instead.
 
         Note:
             Fields passed as ``None`` are dropped, not sent as JSON ``null``.

@@ -380,7 +380,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
     tumblr: channelKeyedOrFlat(TUMBLR_OPTIONS)
       .optional()
       .describe(
-        'Tumblr options, nested under the BulkPublish channel id: { "12": { "blogName": "myblog", "tags": ["art"] } }. A flat object applies to every Tumblr channel on the post. Up to 30 images OR exactly one video per post.'
+        'Tumblr options, nested under the BulkPublish channel id: { "12": { "blogName": "myblog", "tags": ["art"] } } (tags: array of strings or one comma-separated string). A flat object applies to every Tumblr channel on the post. Up to 30 images OR exactly one video per post.'
       ),
     snapchat: channelKeyedOrFlat(SNAPCHAT_OPTIONS)
       .optional()
@@ -1915,8 +1915,8 @@ if (!HIDE_BILLING_TOOLS) {
 server.tool(
   "update_post",
   "Update an existing post. Can change content, schedule, media, labels, status, and platform-specific settings. " +
-    "Only draft, scheduled, failed, or partial posts can be edited; editing a failed/partial post resets it to draft. " +
-    "Set status to 'draft' or 'scheduled' to move the post between those states — use publish_post to publish immediately.",
+    "Only draft, scheduled, failed, or partial posts can be edited; editing a failed post resets it to draft, a partial post stays partial. " +
+    "Set status to 'draft' or 'scheduled' to move the post between those states — scheduling a partial post re-queues only its failed channels; use publish_post to publish immediately.",
   {
     postId: z.number().describe("The post ID to update."),
     content: z.string().optional().describe("New post text content."),

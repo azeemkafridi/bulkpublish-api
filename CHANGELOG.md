@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-10 — Rescheduling a partial post re-sends its failed channels
+
+Node **1.26.2** · Python **0.26.2** · MCP **1.32.1**
+
+### Fixed
+
+- **`PUT /api/posts/{id}` with `status: 'scheduled'` on a partial post** now
+  re-queues exactly the channels that failed. Previously the post showed as
+  scheduled, nothing was sent at the time, and it dropped straight back to
+  partial. Published channels are never re-sent. The `status` prose in every
+  SDK said "failed/partial posts still auto-reset to draft", which had been
+  stale since partial posts started keeping their status; corrected.
+- **Tumblr `tags`** accepts the comma-separated string Tumblr's own API uses as
+  well as an array. A string used to be accepted at create time and fail at
+  publish. Any other shape is now rejected with 400 VALIDATION_ERROR instead
+  of failing later.
+- **Tumblr notes** (comments, reblogs, likes) for a post published to a side
+  blog are read from that blog; they were requested from the primary blog and
+  came back empty.
+
 ## 2026-09-10 — Output schemas on every hosted tool
 
 MCP **1.32.0**
