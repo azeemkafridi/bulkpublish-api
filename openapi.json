@@ -321,7 +321,11 @@
             "type": "string"
           },
           "accountType": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Platform-specific account variant (e.g. `organization` for a LinkedIn company page); `null` where the platform has only one kind of account."
           },
           "profileImage": {
             "type": [
@@ -331,6 +335,14 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "needsReconnect": {
+            "type": "boolean",
+            "description": "`true` once a live request has proved the stored access token dead. Publishing fails until the account is reconnected; clears on reconnect."
+          },
+          "autoRenews": {
+            "type": "boolean",
+            "description": "Whether the access token renews on its own before it expires. `false` means the token has a fixed lifetime and the account must be reconnected when `tokenStatus` reaches `expired`."
           },
           "tokenStatus": {
             "type": "string",
@@ -351,6 +363,10 @@
             "type": "object"
           },
           "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
             "type": "string",
             "format": "date-time"
           },
@@ -2940,6 +2956,7 @@
           "Channels"
         ],
         "summary": "Disconnect channel",
+        "description": "Wipes the stored tokens so the account can no longer publish; published posts and their metrics are kept. Requires a role that can manage channels (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "parameters": [
           {
             "name": "id",
@@ -2956,6 +2973,73 @@
           }
         },
         "operationId": "deleteChannel",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Channels"
+        ],
+        "summary": "Update channel settings",
+        "description": "Per-channel opt-ins. Both switches apply to X channels only, where each read is billed: `metricsSyncEnabled` turns on analytics sync for the channel (off by default; synced at most once every 7 days), and `inboxSyncEnabled` turns on inbox reads (comments and DMs). Fields not sent are left as they are; a body with neither field is rejected with 400. Requires a role that can manage channels (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "metricsSyncEnabled": {
+                    "type": "boolean"
+                  },
+                  "inboxSyncEnabled": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No supported field in the body"
+          },
+          "403": {
+            "description": "Role cannot manage channels"
+          },
+          "404": {
+            "description": "Channel not found"
+          }
+        },
+        "operationId": "updateChannel",
         "security": [
           {
             "apiKey": []
@@ -3003,7 +3087,7 @@
           "Channels"
         ],
         "summary": "Get platform-specific options for a channel",
-        "description": "Returns boards (Pinterest), playlists (YouTube), or organizations (LinkedIn) depending on the channel's platform. Returns empty items for platforms without sub-resources. Threads: `?q=<place>` returns `{ type: 'locations', items: [{ id, name, address? }] }`; until the connected account has granted location tagging the response is `{ type: 'locations', items: [], unavailable: true }`.",
+        "description": "Returns the channel's platform sub-resources, keyed by `type`: `boards` (Pinterest), `playlists` (YouTube), `subreddits` (Reddit; `?q=<subreddit>` returns `flairs` for that subreddit instead), `blogs` (Tumblr), `channels` (Discord text channels), `locations` (Threads, see below) and `creator_info` (TikTok, where the payload is an `info` object with the creator's `privacyLevelOptions` and limits rather than an `items` list). Returns `{ type: null, items: [] }` for platforms without sub-resources. Threads: `?q=<place>` returns `{ type: 'locations', items: [{ id, name, address? }] }`; until the connected account has granted location tagging the response is `{ type: 'locations', items: [], unavailable: true }`.",
         "parameters": [
           {
             "name": "id",
@@ -3049,12 +3133,18 @@
                       "enum": [
                         "boards",
                         "playlists",
-                        "organizations",
+                        "subreddits",
+                        "flairs",
+                        "blogs",
+                        "channels",
+                        "locations",
+                        "creator_info",
                         null
                       ]
                     },
                     "items": {
                       "type": "array",
+                      "description": "Absent when `type` is `creator_info`.",
                       "items": {
                         "type": "object",
                         "properties": {
@@ -3066,6 +3156,14 @@
                           }
                         }
                       }
+                    },
+                    "info": {
+                      "type": "object",
+                      "description": "TikTok only (`type: creator_info`): the creator's display name, avatar and the `privacyLevelOptions` a post may use, plus comment/duet/stitch availability and `maxVideoPostDurationSec`."
+                    },
+                    "unavailable": {
+                      "type": "boolean",
+                      "description": "Threads only: `true` when the account has not granted location tagging yet."
                     }
                   }
                 }

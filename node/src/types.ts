@@ -273,6 +273,17 @@ export interface Channel {
   accountType: string | null;
   profileImage: string | null;
   isActive: boolean | null;
+  /**
+   * `true` once a live request has proved the stored access token dead.
+   * Publishing fails until the account is reconnected; clears on reconnect.
+   */
+  needsReconnect: boolean;
+  /**
+   * Whether the access token renews on its own. `false` means it has a fixed
+   * lifetime and the account must be reconnected when `tokenStatus` reaches
+   * `expired`.
+   */
+  autoRenews: boolean;
   tokenStatus: TokenStatus;
   tokenExpiresAt: string | null;
   metadata: Record<string, unknown> | null;
@@ -332,6 +343,18 @@ export interface ChannelHealthResponse {
 }
 
 /** Response from deleting a channel. */
+/** Body for `channels.update()` — per-channel opt-ins, X only today. */
+export interface UpdateChannelParams {
+  /** Turn on analytics sync for this channel (X bills per read; synced at most once every 7 days). */
+  metricsSyncEnabled?: boolean;
+  /** Turn on inbox reads (comments and DMs) for this channel. */
+  inboxSyncEnabled?: boolean;
+}
+
+export interface UpdateChannelResponse {
+  success: boolean;
+}
+
 export interface DeleteChannelResponse {
   success: boolean;
   deletedId: number;

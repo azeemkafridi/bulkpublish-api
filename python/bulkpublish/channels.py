@@ -131,6 +131,30 @@ class ChannelsResource:
         """
         return self._client._request("DELETE", f"/api/channels/{channel_id}")
 
+    def update(
+        self,
+        channel_id: str,
+        *,
+        metrics_sync_enabled: Optional[bool] = None,
+        inbox_sync_enabled: Optional[bool] = None,
+    ) -> Dict[str, Any]:
+        """Update a channel's per-channel opt-ins (X only today).
+
+        X bills per read, so analytics sync and inbox reads are off by default
+        and switched on per channel. Fields left as ``None`` are not sent.
+        Requires a role that can manage channels; viewers get 403.
+
+        Example::
+
+            bp.channels.update("12", metrics_sync_enabled=True)
+        """
+        body: Dict[str, Any] = {}
+        if metrics_sync_enabled is not None:
+            body["metricsSyncEnabled"] = metrics_sync_enabled
+        if inbox_sync_enabled is not None:
+            body["inboxSyncEnabled"] = inbox_sync_enabled
+        return self._client._request("PATCH", f"/api/channels/{channel_id}", json=body)
+
     def health(self, channel_id: str) -> ChannelHealth:
         """Check the health of a connected channel.
 
@@ -190,6 +214,21 @@ class AsyncChannelsResource:
     async def disconnect(self, channel_id: str) -> Dict[str, Any]:
         """Disconnect a channel — see :meth:`ChannelsResource.disconnect`."""
         return await self._client._request("DELETE", f"/api/channels/{channel_id}")
+
+    async def update(
+        self,
+        channel_id: str,
+        *,
+        metrics_sync_enabled: Optional[bool] = None,
+        inbox_sync_enabled: Optional[bool] = None,
+    ) -> Dict[str, Any]:
+        """Update channel opt-ins — see :meth:`ChannelsResource.update`."""
+        body: Dict[str, Any] = {}
+        if metrics_sync_enabled is not None:
+            body["metricsSyncEnabled"] = metrics_sync_enabled
+        if inbox_sync_enabled is not None:
+            body["inboxSyncEnabled"] = inbox_sync_enabled
+        return await self._client._request("PATCH", f"/api/channels/{channel_id}", json=body)
 
     async def health(self, channel_id: str) -> ChannelHealth:
         """Check channel health — see :meth:`ChannelsResource.health`."""

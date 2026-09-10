@@ -6,6 +6,8 @@ import type {
   GetChannelResponse,
   ChannelHealthResponse,
   DeleteChannelResponse,
+  UpdateChannelParams,
+  UpdateChannelResponse,
 } from './types.js';
 
 /**
@@ -82,6 +84,21 @@ export class ChannelsResource {
    */
   delete(id: number): Promise<DeleteChannelResponse> {
     return this.http.delete<DeleteChannelResponse>(`/api/channels/${id}`);
+  }
+
+  /**
+   * Update a channel's per-channel opt-ins. Both switches apply to X channels
+   * only, where each read is billed: analytics sync and inbox reads are off by
+   * default. Fields not sent are left as they are. Requires a role that can
+   * manage channels; viewers get 403.
+   *
+   * @example
+   * ```typescript
+   * await bp.channels.update(1, { metricsSyncEnabled: true });
+   * ```
+   */
+  update(id: number, params: UpdateChannelParams): Promise<UpdateChannelResponse> {
+    return this.http.patch<UpdateChannelResponse>(`/api/channels/${id}`, params);
   }
 
   /**

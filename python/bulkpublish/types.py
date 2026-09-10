@@ -184,11 +184,17 @@ class Channel(TypedDict, total=False):
 
     id: int
     platform: str
-    accountType: str  # e.g. "personal" / "organization" (LinkedIn), "page" (Facebook)
+    accountType: Optional[str]  # e.g. "personal" / "organization" (LinkedIn); None where a platform has one kind
     accountName: str
     accountId: str
     profileImage: Optional[str]
     isActive: bool
+    #: ``True`` once a live request proved the stored token dead; publishing
+    #: fails until the account is reconnected.
+    needsReconnect: bool
+    #: Whether the token renews on its own; ``False`` means reconnect when
+    #: ``tokenStatus`` reaches ``expired``.
+    autoRenews: bool
     tokenStatus: str
     tokenExpiresAt: Optional[str]
     createdAt: str

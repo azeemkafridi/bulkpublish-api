@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-09-10 — Channel settings endpoint documented; viewer role enforced on channels
+
+Node **1.27.0** · Python **0.27.0**
+
+### Added
+
+- **`PATCH /api/channels/{id}`** is now in the spec, with `channels.update()`
+  (Node) and `channels.update()` (Python): the per-channel `metricsSyncEnabled`
+  and `inboxSyncEnabled` opt-ins for X channels.
+- `Channel` gains `needsReconnect`, `autoRenews` and `updatedAt`, which the API
+  has returned all along; `accountType` is documented nullable.
+- `GET /api/channels/{id}/options` documents every `type` the API returns
+  (`subreddits`, `flairs`, `blogs`, `channels`, `locations`, `creator_info`),
+  not only boards and playlists.
+
+### Changed
+
+- Disconnecting or reconfiguring a channel, connecting a new one, and creating,
+  renaming or deleting a channel set now require a role that can manage
+  channels (owner, admin, approver, contributor). Viewers, documented as
+  read-only, could do all of these; they now get 403 FORBIDDEN.
+- `GET /api/organizations/{id}` and `POST /api/organizations` return only the
+  documented `Organization` fields. The raw row, including billing state and
+  credit balances, was being returned to every member.
+- Non-integer ids on channel and organization routes answer 400 instead of 500.
+
 ## 2026-09-10 — Rescheduling a partial post re-sends its failed channels
 
 Node **1.26.2** · Python **0.26.2** · MCP **1.32.1**
