@@ -234,6 +234,57 @@
             },
             "description": "Media referenced by threadParts[].mediaFileIds, resolved to full objects and de-duplicated across parts. Distinct from mediaFiles, which is the media on the post itself: a thread post can carry both, and a client that reads only mediaFiles will render a thread without its images."
           },
+          "author": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "The member who wrote the post. Null when that account no longer exists.",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "approver": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "The member who approved the post. Null unless approvalStatus is 'approved' and that account still exists.",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "userId": {
+            "type": "string",
+            "description": "User ID of the member who wrote the post. Returned on every post and always has been; `author` carries the same person with a display name."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the post was last changed."
+          },
           "hasShareLink": {
             "type": "boolean",
             "description": "Whether a read-only review link exists for the post. The token itself is never returned on reads; POST /api/posts/{id}/share returns the URL to the roles allowed to manage links."

@@ -505,6 +505,17 @@ export interface Post {
   labels: Label[];
   recurringSchedule?: PostRecurringSchedule | null;
   metrics?: PostMetricsSummary | null;
+  /** The member who wrote the post; null when that account no longer exists. */
+  author: TeamActor | null;
+  /** The member who approved it; null unless approvalStatus is 'approved'. */
+  approver: TeamActor | null;
+}
+
+/** A teammate, as posts and other records identify one. */
+export interface TeamActor {
+  id: string;
+  name: string;
+  image: string | null;
 }
 
 /** Parameters for listing posts. */

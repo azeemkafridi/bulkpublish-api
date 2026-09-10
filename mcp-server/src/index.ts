@@ -489,6 +489,8 @@ const POST_SHAPE: Record<string, z.ZodTypeAny> = {
   publishedAt: sStr(),
   createdAt: sStr(),
   approvalStatus: sStr(),
+  author: sObj().describe("Who wrote the post: { id, name, image }. Null when that account is gone."),
+  approver: sObj().describe("Who approved it: { id, name, image }. Null unless approvalStatus is approved."),
   mediaFiles: sArr(),
   postPlatforms: sArr({ platform: sStr(), status: sStr() }),
   labels: sArr(),

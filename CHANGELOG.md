@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-09-10 — Posts say who wrote them
+
+Node **1.29.0** · Python **0.29.0** · MCP **1.34.0**
+
+### Added
+
+- **`author` and `approver` on every post**, from both the list and the single
+  read and from the writes that return a post, so a client never has to guess
+  whether a field is present. Each is `{ id, name, image }`, or null: `author`
+  when that account no longer exists, `approver` unless the post is approved.
+  `name` falls back to "Teammate" for an account without one.
+- `userId` and `updatedAt` are documented on `Post`. Both have been returned all
+  along; `author` carries the same person as `userId` with a display name.
+- `TeamActor` in the Node and Python type packages.
+
+Additive: nothing changes shape and no field is removed.
+
 ## 2026-09-10 — Roles enforced across the API; automations cannot bypass approval
 
 Node **1.28.0** · Python **0.28.0** · MCP **1.33.0**

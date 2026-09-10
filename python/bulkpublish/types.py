@@ -110,6 +110,7 @@ class Post(TypedDict, total=False):
     autoRepostFired: bool
     linkTrackingOverride: Optional[bool]
     approvalStatus: str
+    userId: str
     approvedBy: Optional[str]
     approvedAt: Optional[str]
     rejectionReason: Optional[str]
@@ -119,6 +120,19 @@ class Post(TypedDict, total=False):
     labels: List["Label"]
     createdAt: str
     updatedAt: str
+    author: Optional["TeamActor"]
+    approver: Optional["TeamActor"]
+
+
+class TeamActor(TypedDict, total=False):
+    """A teammate, as posts and other records identify one.
+
+    ``name`` falls back to ``"Teammate"`` for an account with none.
+    """
+
+    id: str
+    name: str
+    image: Optional[str]
 
 
 class PostList(TypedDict, total=False):
