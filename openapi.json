@@ -5873,11 +5873,40 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Only entries recorded for this member.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Earliest entry to return, ISO 8601. A bare date starts at its first instant.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Latest entry to return, ISO 8601. A bare date includes the whole day it names.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Activities"
+            "description": "Activities. Each entry carries `actor` \u2014 `{ id, name, image }` for the member who performed it, or null when that account no longer exists."
           }
         },
         "operationId": "listActivity",

@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-10 — Activity entries say who, and can be filtered by person and date
+
+Node **1.31.0** · Python **0.31.0** · MCP **1.36.0** (no client change)
+
+### Added
+
+- **`actor` on every `GET /api/activity` entry** — `{ id, name, image }` for the
+  member who performed it, or null when that account no longer exists.
+- **`userId`, `from` and `to`** query parameters on the same endpoint. A bare
+  date in `to` includes the whole day it names.
+
+Documentation only for the SDKs: neither the Node nor the Python package has an
+activity resource, and that stays true.
+
 ## 2026-09-10 — Assign a post to a teammate
 
 Node **1.31.0** · Python **0.31.0** · MCP **1.36.0**
