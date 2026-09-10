@@ -366,6 +366,12 @@ class PostsResource:
                 failed channels.  To publish immediately, use :meth:`publish`
                 instead.
 
+                Pass ``if_unmodified_since`` (the post's ``updatedAt`` exactly
+                as your last read returned it) to have the update refused with
+                409 CONFLICT when a teammate changed the post in the meantime,
+                instead of overwriting their version.  Omit it for the previous
+                last-write-wins behaviour.
+
         Note:
             Fields passed as ``None`` are dropped, not sent as JSON ``null``.
             So a nullable field cannot be *cleared* through this method —

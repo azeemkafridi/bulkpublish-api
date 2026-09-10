@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-09-10 — Optional "don't overwrite a teammate" check on post edits
+
+Node **1.30.0** · Python **0.30.0** · MCP **1.35.0**
+
+### Added
+
+- **`ifUnmodifiedSince` on `PUT` and `PATCH /api/posts/{id}`.** Send the post's
+  `updatedAt` exactly as your last read returned it and the edit is refused with
+  **409 CONFLICT** if somebody changed the post in between, instead of
+  overwriting their version. The error body carries the post's current
+  `updatedAt`, so a client can show what it is now or reload.
+- Exposed as `ifUnmodifiedSince` (Node, MCP `update_post`) and
+  `if_unmodified_since` (Python).
+
+Omitting the field is byte-for-byte the previous behaviour, last write wins.
+
+It is a body field rather than the `If-Unmodified-Since` header on purpose:
+HTTP-date has one-second granularity while `updatedAt` is sub-second, so two
+edits inside the same second would compare equal — exactly the case worth
+catching — and several integrations are form-shaped with no header control.
+
 ## 2026-09-10 — Posts say who wrote them
 
 Node **1.29.0** · Python **0.29.0** · MCP **1.34.0**

@@ -1956,6 +1956,12 @@ server.tool(
       .describe(
         "Optional per-post override for link tracking (bulkpubli.sh). true forces links in this post to be shortened and their clicks counted, false forces them to publish as written, and null clears the override so the post inherits the organization's Link Tracking setting again. Omit to leave it unchanged."
       ),
+    ifUnmodifiedSince: z
+      .string()
+      .optional()
+      .describe(
+        "Optional precondition: the post's updatedAt exactly as the last read returned it. The update is refused with 409 CONFLICT if a teammate has changed the post since, rather than overwriting their version. Pass it whenever you read a post before editing it; omit it to keep the previous last-write-wins behaviour."
+      ),
   },
   async ({
     postId,
@@ -1969,6 +1975,7 @@ server.tool(
     platformSpecific,
     requestApproval,
     linkTrackingOverride,
+    ifUnmodifiedSince,
   }) => {
     const body: Record<string, unknown> = {};
     if (content !== undefined) body.content = content;
@@ -1982,6 +1989,7 @@ server.tool(
     if (requestApproval !== undefined) body.requestApproval = requestApproval;
     if (linkTrackingOverride !== undefined)
       body.linkTrackingOverride = linkTrackingOverride;
+    if (ifUnmodifiedSince !== undefined) body.ifUnmodifiedSince = ifUnmodifiedSince;
 
     const res = await api("PUT", `/api/posts/${postId}`, body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };

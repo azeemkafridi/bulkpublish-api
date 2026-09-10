@@ -722,6 +722,17 @@ export interface CreatePostParams {
 
 /** Parameters for updating an existing post. All fields are optional. */
 export interface UpdatePostParams {
+  /**
+   * Optional precondition: the post's `updatedAt` exactly as you last read it.
+   * The update is refused with 409 CONFLICT if a teammate changed the post
+   * since, instead of overwriting their version. Omit for the previous
+   * last-write-wins behaviour.
+   *
+   * Send the value the API gave you rather than a time you computed: it is
+   * compared to the millisecond, which is the point — two edits inside the same
+   * second are distinct.
+   */
+  ifUnmodifiedSince?: string;
   content?: string;
   mediaFiles?: number[];
   /**
