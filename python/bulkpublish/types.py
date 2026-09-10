@@ -122,6 +122,10 @@ class Post(TypedDict, total=False):
     updatedAt: str
     author: Optional["TeamActor"]
     approver: Optional["TeamActor"]
+    assignee: Optional["TeamActor"]
+    assignedUserId: Optional[str]
+    assignedAt: Optional[str]
+    rejectedBy: Optional[str]
 
 
 class TeamActor(TypedDict, total=False):

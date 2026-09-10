@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-09-10 — Assign a post to a teammate
+
+Node **1.31.0** · Python **0.31.0** · MCP **1.36.0**
+
+### Added
+
+- **`assignedUserId` on `PATCH /api/posts/{id}`** — the member expected to act
+  on the post next, or `null` to unassign. It must be a member of the
+  organization; anyone else answers **422**.
+- **`assignedTo` on `GET /api/posts`** — a user id, `me`, or `unassigned`.
+  Assignment is orthogonal to status, so a post can be scheduled AND assigned;
+  it is a separate parameter rather than another `status` value for exactly
+  that reason. Exposed on MCP `list_posts` too.
+- `assignee` (`{ id, name, image }`), `assignedUserId`, `assignedAt` and
+  `rejectedBy` on `Post`.
+- `inAppAssignments`, `inAppApprovals`, `inAppMentions` and
+  `emailOnApprovalRequest` on `NotificationPreferences`.
+
+Assignment is deliberately **not** on `PUT`. That is the full-document save, and
+sending it there would clear an assignment a teammate made while the post was
+open in somebody's editor.
+
 ## 2026-09-10 — Optional "don't overwrite a teammate" check on post edits
 
 Node **1.30.0** · Python **0.30.0** · MCP **1.35.0**

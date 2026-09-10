@@ -234,6 +234,49 @@
             },
             "description": "Media referenced by threadParts[].mediaFileIds, resolved to full objects and de-duplicated across parts. Distinct from mediaFiles, which is the media on the post itself: a thread post can carry both, and a client that reads only mediaFiles will render a thread without its images."
           },
+          "assignee": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "The member expected to act on the post next, or null when nobody is. Set with assignedUserId on PATCH /api/posts/{id}.",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "assignedUserId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "User ID of the assignee; `assignee` carries the same person with a display name."
+          },
+          "assignedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the post was assigned. Null once it is unassigned."
+          },
+          "rejectedBy": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "User ID of the reviewer who rejected the post, alongside rejectionReason."
+          },
           "author": {
             "type": [
               "object",
@@ -663,6 +706,22 @@
           },
           "inAppInbox": {
             "type": "boolean"
+          },
+          "inAppAssignments": {
+            "type": "boolean",
+            "description": "In-app notification when a teammate assigns you a post. Default true."
+          },
+          "inAppApprovals": {
+            "type": "boolean",
+            "description": "In-app notification when a post needs your approval, and when one of yours is approved or rejected. Default true."
+          },
+          "inAppMentions": {
+            "type": "boolean",
+            "description": "In-app notification when a teammate mentions you in a note. Default true."
+          },
+          "emailOnApprovalRequest": {
+            "type": "boolean",
+            "description": "Email as well as an in-app notification when a teammate asks you to review a post. Default false, like every other email category."
           }
         }
       },
@@ -1558,6 +1617,15 @@
               ]
             },
             "description": "Filter by team approval state (e.g. 'pending' for the approval queue)."
+          },
+          {
+            "name": "assignedTo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by who the post is assigned to: a user id, `me` for the caller, or `unassigned` for posts nobody has taken. Assignment is orthogonal to status \u2014 a post can be scheduled AND assigned."
           }
         ],
         "responses": {
@@ -2180,6 +2248,13 @@
                     "type": "string",
                     "format": "date-time",
                     "description": "Optional precondition: the post's `updatedAt` as you last read it, ISO 8601 with milliseconds. The edit is refused with 409 CONFLICT if somebody else has changed the post since then, instead of overwriting their version. Omit it for the previous behaviour, last write wins. Milliseconds matter \u2014 two edits in the same second are distinct, which is why this is a body field and not the If-Unmodified-Since header."
+                  },
+                  "assignedUserId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "The member expected to act on this post next, or null to unassign. Must be a member of the organization (422 otherwise). Deliberately not on PUT: that is the full-document save, and it would clear an assignment a teammate made while the post was open in an editor."
                   }
                 },
                 "additionalProperties": false
@@ -2210,6 +2285,16 @@
           },
           "409": {
             "description": "Somebody else changed the post after the ifUnmodifiedSince you sent. The error body carries the post's current updatedAt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "assignedUserId is not a member of this organization",
             "content": {
               "application/json": {
                 "schema": {

@@ -509,6 +509,12 @@ export interface Post {
   author: TeamActor | null;
   /** The member who approved it; null unless approvalStatus is 'approved'. */
   approver: TeamActor | null;
+  /** The member expected to act on it next, or null when nobody is. */
+  assignee: TeamActor | null;
+  assignedUserId: string | null;
+  assignedAt: string | null;
+  /** The reviewer who rejected it, alongside rejectionReason. */
+  rejectedBy: string | null;
 }
 
 /** A teammate, as posts and other records identify one. */
@@ -522,6 +528,11 @@ export interface TeamActor {
 export interface ListPostsParams extends PaginationParams {
   /** Filter by post status. */
   status?: PostStatus;
+  /**
+   * Filter by assignee: a user id, `'me'` for the caller, or `'unassigned'`.
+   * Orthogonal to `status` — a post can be scheduled AND assigned.
+   */
+  assignedTo?: string;
   /** Filter by channel ID. */
   channelId?: string;
   /** Filter by a single label ID. */

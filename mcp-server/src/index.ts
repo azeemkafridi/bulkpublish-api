@@ -491,6 +491,7 @@ const POST_SHAPE: Record<string, z.ZodTypeAny> = {
   approvalStatus: sStr(),
   author: sObj().describe("Who wrote the post: { id, name, image }. Null when that account is gone."),
   approver: sObj().describe("Who approved it: { id, name, image }. Null unless approvalStatus is approved."),
+  assignee: sObj().describe("Who is expected to act on it next: { id, name, image }. Null when nobody is."),
   mediaFiles: sArr(),
   postPlatforms: sArr({ platform: sStr(), status: sStr() }),
   labels: sArr(),
@@ -1227,6 +1228,12 @@ server.tool(
       .enum(["none", "pending", "approved", "rejected"])
       .optional()
       .describe("Filter by team approval state (e.g. 'pending' for the approval queue)."),
+    assignedTo: z
+      .string()
+      .optional()
+      .describe(
+        "Filter by who the post is assigned to: a user id, 'me' for the caller, or 'unassigned'. Orthogonal to status \u2014 a post can be scheduled AND assigned."
+      ),
   },
   async ({
     status,
@@ -1240,6 +1247,7 @@ server.tool(
     scheduledFrom,
     scheduledTo,
     approvalStatus,
+    assignedTo,
   }) => {
     const params = new URLSearchParams();
     if (status) params.set("status", status);
@@ -1253,6 +1261,7 @@ server.tool(
     if (scheduledFrom) params.set("scheduledFrom", scheduledFrom);
     if (scheduledTo) params.set("scheduledTo", scheduledTo);
     if (approvalStatus) params.set("approvalStatus", approvalStatus);
+    if (assignedTo) params.set("assignedTo", assignedTo);
 
     const qs = params.toString();
     const res = await api("GET", `/api/posts${qs ? `?${qs}` : ""}`);
