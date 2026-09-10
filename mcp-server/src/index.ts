@@ -2291,7 +2291,7 @@ server.tool(
       .boolean()
       .optional()
       .describe(
-        "Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via approve_post. Defaults to false."
+        "Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via approve_post. Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
       ),
   },
   async ({ name, channelIds, frequency, timeOfDay, dayOfWeek, dayOfMonth, contentTemplate, mediaFileIds, timezone, isActive, requireApproval }) => {
@@ -2354,7 +2354,7 @@ server.tool(
       .boolean()
       .optional()
       .describe(
-        "Hold every future occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via approve_post. Defaults to false."
+        "Hold every future occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via approve_post. Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
       ),
   },
   async ({ scheduleId, name, contentTemplate, frequency, timeOfDay, dayOfWeek, dayOfMonth, mediaFileIds, timezone, isActive, requireApproval }) => {
@@ -2549,7 +2549,7 @@ server.tool(
       .boolean()
       .optional()
       .describe(
-        "Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for approve_post. Only meaningful when mode is 'publish' (draft items never publish on their own, and a feed force-demoted to draft by the plan gate stays ungated). Defaults to false."
+        "Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for approve_post. Only meaningful when mode is 'publish' (draft items never publish on their own, and a feed force-demoted to draft by the plan gate stays ungated). Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
       ),
   },
   async ({ name, feedUrl, channelIds, mode, fieldMapping, requireApproval }) => {
@@ -2596,7 +2596,7 @@ server.tool(
       .boolean()
       .optional()
       .describe(
-        "Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for approve_post. Only meaningful when mode is 'publish' (draft items never publish on their own, and a feed force-demoted to draft by the plan gate stays ungated). Defaults to false."
+        "Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for approve_post. Only meaningful when mode is 'publish' (draft items never publish on their own, and a feed force-demoted to draft by the plan gate stays ungated). Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
       ),
   },
   async ({ feedId, name, feedUrl, channelIds, mode, fieldMapping, enabled, requireApproval }) => {

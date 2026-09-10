@@ -57,7 +57,8 @@ class SchedulesResource:
                 occurrence this schedule generates lands with
                 ``approvalStatus: "pending"`` and the scheduler skips it until
                 an approver releases it via
-                ``bp.posts.approve(post_id)``).
+                ``bp.posts.approve(post_id)``; forced to True for API keys
+                whose role cannot publish, on create and on every update).
 
         Returns:
             The newly created schedule object.

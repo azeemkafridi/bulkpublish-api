@@ -45,6 +45,11 @@ export class RssFeedsResource {
    * own, and a feed force-demoted to draft by the plan gate stays ungated.
    * Default: false.
    *
+   * Forced to true for roles without publish rights (contributors): the flag
+   * is set server-side on create and on every update, including an update
+   * that does not send it, so a member who cannot publish a single post
+   * cannot own an automation that publishes without review.
+   *
    * @throws 400 if the input is invalid or the organization already has 20 feeds.
    */
   async create(params: CreateRssFeedParams): Promise<RssFeed> {
@@ -60,6 +65,11 @@ export class RssFeedsResource {
    *
    * Toggling `requireApproval` affects future items only — posts already
    * created from the feed keep the approval status they were created with.
+   *
+   * Forced to true for roles without publish rights (contributors): the flag
+   * is set server-side on create and on every update, including an update
+   * that does not send it, so a member who cannot publish a single post
+   * cannot own an automation that publishes without review.
    */
   async update(id: number, params: UpdateRssFeedParams): Promise<RssFeed> {
     return this.http.put(`/api/rss-feeds/${id}`, params);

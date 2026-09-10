@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-09-10 — Roles enforced across the API; automations cannot bypass approval
+
+Node **1.28.0** · Python **0.28.0** · MCP **1.33.0**
+
+### Changed
+
+- **Viewers are read-only everywhere.** Media (upload, presign, finalize,
+  multipart, update, delete, labels), labels, templates, hashtag groups,
+  calendar notes, channel sets, schedules, RSS feeds and
+  `POST /api/analytics/refresh` all now answer `403 FORBIDDEN` for a viewer's
+  key. Only posts and channels enforced this before; the rest were documented
+  as read-only for viewers and were not.
+- **Billing is owner-only.** `POST /api/billing/portal` and the three credit and
+  channel-slot checkout endpoints answer `403 FORBIDDEN` for every other role.
+  Any member could previously open the portal or buy add-ons on the owner's
+  card.
+- **Contributors no longer manage channels.** `DELETE` and `PATCH
+  /api/channels/{id}` and channel connection now require owner, admin or
+  approver. The spec named contributor as allowed; that has been corrected in
+  every surface. Channel sets move the other way and now need only a role that
+  can edit posts, so contributors keep choosing which connected accounts a post
+  goes to.
+- **`requireApproval` on schedules and RSS feeds is forced to `true` for roles
+  without `post:publish`** — on create and on every update, including an update
+  that does not send the field. A contributor could previously create a
+  recurring schedule or an auto-publishing feed with the flag off and publish
+  continuously without review, which defeated the role entirely. Recurring
+  schedules have no draft mode, so every contributor-created schedule was a
+  bypass. This matches the rule `requestApproval` on a single post has always
+  followed.
+
+If you issue API keys to teammates, check the role behind each key before
+upgrading: a key held by a viewer will start getting 403 on writes, and a key
+held by a contributor will start getting moderated automations.
+
 ## 2026-09-10 — Channel settings endpoint documented; viewer role enforced on channels
 
 Node **1.27.0** · Python **0.27.0**

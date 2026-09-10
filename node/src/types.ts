@@ -1294,6 +1294,10 @@ export interface CreateScheduleParams {
    * generated post lands with `approvalStatus: 'pending'` and the scheduler
    * skips it until an approver releases it via `posts.approve(id)`.
    * Default: false.
+   *
+   * Forced to true server-side for roles without publish rights
+   * (contributors), regardless of this flag — on create and on every
+   * update, including one that does not send it.
    */
   requireApproval?: boolean;
 }
@@ -1317,6 +1321,10 @@ export interface UpdateScheduleParams {
    * generated post lands with `approvalStatus: 'pending'` and the scheduler
    * skips it until an approver releases it via `posts.approve(id)`.
    * Default: false.
+   *
+   * Forced to true server-side for roles without publish rights
+   * (contributors), regardless of this flag — on create and on every
+   * update, including one that does not send it.
    */
   requireApproval?: boolean;
 }
@@ -1720,6 +1728,10 @@ export interface CreateRssFeedParams {
    * `posts.approve(id)`. Only meaningful when `mode` is 'publish' (draft items
    * never publish on their own, and a feed force-demoted to draft by the plan
    * gate stays ungated). Default: false.
+   *
+   * Forced to true server-side for roles without publish rights
+   * (contributors), regardless of this flag — on create and on every
+   * update, including one that does not send it.
    */
   requireApproval?: boolean;
 }
@@ -1743,6 +1755,10 @@ export interface UpdateRssFeedParams {
    * `posts.approve(id)`. Only meaningful when `mode` is 'publish' (draft items
    * never publish on their own, and a feed force-demoted to draft by the plan
    * gate stays ungated). Default: false.
+   *
+   * Forced to true server-side for roles without publish rights
+   * (contributors), regardless of this flag — on create and on every
+   * update, including one that does not send it.
    */
   requireApproval?: boolean;
 }

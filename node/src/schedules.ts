@@ -37,6 +37,11 @@ export class SchedulesResource {
    * generates for team approval — each generated post lands with
    * `approvalStatus: 'pending'` and the scheduler skips it until an approver
    * releases it via `posts.approve(id)`. Default: false.
+   *
+   * Forced to true for roles without publish rights (contributors): the flag
+   * is set server-side on create and on every update, including an update
+   * that does not send it, so a member who cannot publish a single post
+   * cannot own an automation that publishes without review.
    */
   async create(params: CreateScheduleParams): Promise<RecurringSchedule> {
     return this.http.post('/api/schedules', params);
@@ -47,6 +52,11 @@ export class SchedulesResource {
    *
    * Toggling `requireApproval` changes the gate for future occurrences only —
    * posts already generated keep the approval status they were created with.
+   *
+   * Forced to true for roles without publish rights (contributors): the flag
+   * is set server-side on create and on every update, including an update
+   * that does not send it, so a member who cannot publish a single post
+   * cannot own an automation that publishes without review.
    */
   async update(id: number, params: UpdateScheduleParams): Promise<RecurringSchedule> {
     return this.http.put(`/api/schedules/${id}`, params);

@@ -471,7 +471,8 @@ class Schedule(TypedDict, total=False):
     ``nextRunAt`` is always computed by the server. When ``requireApproval``
     is True every occurrence this schedule generates lands with
     ``approvalStatus: "pending"`` and the scheduler skips it until an approver
-    releases it via ``POST /api/posts/{id}/approve``.
+    releases it via ``POST /api/posts/{id}/approve``. It is forced True for
+    roles that cannot publish, on create and on every update.
     """
 
     id: int
@@ -776,7 +777,8 @@ class RssFeed(TypedDict, total=False):
     rendering; ``None`` means the built-in default mapping. When
     ``requireApproval`` is True, items auto-published from this feed land with
     ``approvalStatus: "pending"`` and wait for approval — only meaningful when
-    ``mode`` is ``"publish"``.
+    ``mode`` is ``"publish"``. It is forced True for roles that cannot publish,
+    on create and on every update.
     """
 
     id: int

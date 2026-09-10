@@ -67,6 +67,9 @@ class RssFeedsResource:
                 is ``"publish"``: draft items never publish on their own, and
                 a feed force-demoted to draft by the plan gate stays ungated.
                 Defaults to False.
+                Forced to True for API keys whose role cannot publish
+                (contributors), whatever is sent here, on create and on every
+                update.
 
         Returns:
             The newly created feed.
@@ -133,6 +136,9 @@ class RssFeedsResource:
                 is ``"publish"``: draft items never publish on their own, and
                 a feed force-demoted to draft by the plan gate stays ungated.
                 Defaults to False.
+                Forced to True for API keys whose role cannot publish
+                (contributors), whatever is sent here, on create and on every
+                update.
                 Toggling it affects future items only.
 
         Raises:

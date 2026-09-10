@@ -145,7 +145,9 @@ Daily quotas only apply to API key requests. Requests made through the dashboard
 
 ## Team Roles and API Keys
 
-An API key inherits the role of the member who created it. Roles with `post:publish` (owner, admin, approver) can publish directly; keys belonging to members whose role lacks `post:publish` (contributors) always have `requestApproval` forced on when scheduling — their posts get `approvalStatus` `"pending"` — and `POST /api/posts/:id/publish` returns `403` with code `APPROVAL_REQUIRED`. Roles with `post:approve` (owner, admin, approver) can call `POST /api/posts/:id/approve` and `/reject`. See the scheduling guide's "Team Approval Flow" section.
+An API key inherits the role of the member who created it. Roles with `post:publish` (owner, admin, approver) can publish directly; keys belonging to members whose role lacks `post:publish` (contributors) always have `requestApproval` forced on when scheduling — their posts get `approvalStatus` `"pending"` — and `POST /api/posts/:id/publish` returns `403` with code `APPROVAL_REQUIRED`. Roles with `post:approve` (owner, admin, approver) can call `POST /api/posts/:id/approve` and `/reject`. Contributor keys also have `requireApproval` forced on for recurring schedules and RSS feeds, on create and on every update. See the scheduling guide's "Team Approval Flow" section.
+
+The rest of the API follows the same roles. A **viewer** key can read but cannot write anything: posts, media, labels, templates, hashtag groups, calendar notes, channel sets, schedules and feeds all answer `403 FORBIDDEN`. A **contributor** key writes content but cannot connect, disconnect or reconfigure a channel. Billing — the customer portal and the credit and channel-slot checkouts — is the **workspace owner** only. Each endpoint's own description names the roles it accepts.
 
 ## Security Best Practices
 
