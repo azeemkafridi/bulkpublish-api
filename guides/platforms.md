@@ -345,7 +345,6 @@ inside a platform key, so it applies to every channel on the post.
 | `MUTUAL_FOLLOW_FRIENDS` | Visible to mutual followers |
 | `FOLLOWER_OF_CREATOR` | Visible to your followers |
 | `SELF_ONLY` | Visible only to you |
-| `SEND_TO_USER_INBOX` | Upload to inbox for review before publishing |
 
 ### Notes
 
