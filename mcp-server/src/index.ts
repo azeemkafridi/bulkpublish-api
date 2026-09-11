@@ -399,9 +399,14 @@ async function api<T = unknown>(
 
 function formatResponse(res: ApiResponse): string {
   if (!res.ok) {
-    const err = res.data as { error?: { message?: string }; message?: string };
+    // The API answers with either { error: { message, code } } or a bare
+    // { error: "text" }. The bare form used to fall through to "HTTP 400
+    // error" — the generic error the directory review rejects.
+    const err = res.data as { error?: string | { message?: string }; message?: string };
     const msg =
-      err?.error?.message || err?.message || `HTTP ${res.status} error`;
+      (typeof err?.error === "string" ? err.error : err?.error?.message) ||
+      err?.message ||
+      `HTTP ${res.status} error`;
     return `Error: ${msg}`;
   }
   return JSON.stringify(res.data, null, 2);

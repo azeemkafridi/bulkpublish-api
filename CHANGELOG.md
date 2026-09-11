@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-11 — API error text reaches the caller
+
+MCP **1.33.2**
+
+### Fixed
+
+- **Bare-string API errors were reported as "HTTP 400 error".** Routes that answer `{ "error": "text" }` (channel options, mention search, several validation paths) lost their message on the way through; the tool now returns that text. Nothing changed for routes that answer `{ "error": { "message" } }`.
+
 ## 2026-09-11 — create_post / update_post with media no longer report an error for a saved post
 
 MCP **1.33.1**
