@@ -105,8 +105,10 @@ class NotificationsResource:
 
         Keyword Args:
             emailOnFailure, emailOnTokenExpiry, emailOnChannelSlots,
-            inAppPublished, inAppFailed, inAppScheduleReminder,
-            inAppTokenExpiry, inAppInbox: booleans.
+            emailOnApprovalRequest, inAppPublished, inAppFailed,
+            inAppScheduleReminder, inAppTokenExpiry, inAppInbox,
+            inAppAssignments, inAppApprovals, inAppMentions, inAppNotes:
+            booleans.
 
         Example::
 

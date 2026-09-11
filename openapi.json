@@ -719,6 +719,10 @@
             "type": "boolean",
             "description": "In-app notification when a teammate mentions you in a note. Default true."
           },
+          "inAppNotes": {
+            "type": "boolean",
+            "description": "In-app notification when a teammate leaves a note on a post you wrote or are assigned to. Default true."
+          },
           "emailOnApprovalRequest": {
             "type": "boolean",
             "description": "Email as well as an in-app notification when a teammate asks you to review a post. Default false, like every other email category."

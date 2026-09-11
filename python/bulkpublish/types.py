@@ -667,6 +667,12 @@ class NotificationPreferences(TypedDict, total=False):
     inAppScheduleReminder: bool
     inAppTokenExpiry: bool
     inAppInbox: bool
+    inAppAssignments: bool
+    inAppApprovals: bool
+    inAppMentions: bool
+    #: A teammate left a note on a post you wrote or are assigned to. Default True.
+    inAppNotes: bool
+    emailOnApprovalRequest: bool
 
 
 # ---------------------------------------------------------------------------

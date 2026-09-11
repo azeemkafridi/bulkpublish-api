@@ -1442,6 +1442,20 @@ export interface NotificationPreferences {
   inAppFailed: boolean | null;
   inAppScheduleReminder: boolean | null;
   inAppTokenExpiry: boolean | null;
+  /** Billing notices for the channel-slot add-on. Opt-out: default `true`. */
+  emailOnChannelSlots: boolean | null;
+  /** A new direct message or review on a connected channel. */
+  inAppInbox: boolean | null;
+  /** A teammate assigned you a post. */
+  inAppAssignments: boolean | null;
+  /** A post needs your approval, or one of yours was approved or rejected. */
+  inAppApprovals: boolean | null;
+  /** A teammate mentioned you in a note. */
+  inAppMentions: boolean | null;
+  /** A teammate left a note on a post you wrote or are assigned to. */
+  inAppNotes: boolean | null;
+  /** Email as well as an in-app notification when a post needs your approval. Opt-in. */
+  emailOnApprovalRequest: boolean | null;
 }
 
 /** The subset of {@link NotificationPreferences} a caller may change. */

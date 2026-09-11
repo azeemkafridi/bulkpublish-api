@@ -44,6 +44,12 @@ export interface NotificationPreferences {
   inAppScheduleReminder: boolean;
   inAppTokenExpiry: boolean;
   inAppInbox: boolean;
+  inAppAssignments: boolean;
+  inAppApprovals: boolean;
+  inAppMentions: boolean;
+  /** A teammate left a note on a post you wrote or are assigned to. Default true. */
+  inAppNotes: boolean;
+  emailOnApprovalRequest: boolean;
 }
 
 /**

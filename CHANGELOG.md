@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-12 — Notes on your posts get their own notification toggle
+
+Node **1.32.0** · Python **0.32.0** · MCP (no client change)
+
+### Added
+
+- **`inAppNotes` on `NotificationPreferences`** — an in-app notification when a teammate leaves a note on a post you wrote or are assigned to. On by default, like every other in-app category. Only the post's author and assignee are told, and someone already told through an @mention is not told twice.
+- The Node and Python preference types now list every field the API returns: `emailOnChannelSlots`, `inAppInbox`, `inAppAssignments`, `inAppApprovals`, `inAppMentions`, `inAppNotes` and `emailOnApprovalRequest` were missing from the typed shape even though the API already accepted and returned them.
+
 ## 2026-09-11 — API error text reaches the caller
 
 MCP **1.36.2**
