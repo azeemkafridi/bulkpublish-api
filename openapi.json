@@ -709,7 +709,7 @@
           },
           "inAppAssignments": {
             "type": "boolean",
-            "description": "In-app notification when a teammate assigns you a post. Default true."
+            "description": "In-app notification when a teammate assigns you a post or an inbox conversation. Default true."
           },
           "inAppApprovals": {
             "type": "boolean",
