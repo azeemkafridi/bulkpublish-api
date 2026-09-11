@@ -9,7 +9,8 @@
 //   npm run build && node scripts/check-annotations.mjs [--table]
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { createServer, CORE_TOOLS, TOOL_ANNOTATIONS } from "../dist/index.js";
+import { createServer, CORE_TOOLS, TOOL_ANNOTATIONS, TOOL_OUTPUT_SCHEMAS } from "../dist/index.js";
+import { z } from "zod";
 
 const HINTS = ["readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"];
 // Tools the MCP Apps panels call through the host bridge (src/ui/**).
@@ -30,6 +31,29 @@ async function listTools(profile) {
 
 let failed = 0;
 const fail = (m) => { failed++; console.error("FAIL " + m); };
+
+// Output schemas must accept what the API actually returns. The SDK rejects the
+// WHOLE call when structuredContent fails validation, so a schema that is one
+// field too strict turns a saved post into a reported error (create_post with
+// media, 2026-09-11 — the post existed, the host saw a failure, a retry would
+// have duplicated it). These rows are traced from the webapp handlers: POST and
+// PATCH /api/posts echo the stored row (media as IDs); GET resolves objects.
+const OUTPUT_FIXTURES = {
+  create_post: { id: 2276, content: "x", status: "scheduled", scheduledAt: "2026-09-18T18:00:00.000Z", mediaFiles: [3056], postPlatforms: [{ platform: "x", status: "pending" }], labels: [] },
+  update_post: { id: 2276, status: "scheduled", mediaFiles: [3056, 3057], postPlatforms: [], labels: [] },
+  get_post: { id: 2276, status: "published", mediaFiles: [{ id: 3056, url: "https://images.example/x.jpg" }], postPlatforms: [{ platform: "x", status: "published", platformUrl: "https://x.com/1" }], labels: [{ id: 1, name: "Product" }] },
+  publish_post: { id: 1, status: "publishing", mediaFiles: [], postPlatforms: [{ platform: "facebook", status: "pending" }] },
+  list_posts: { posts: [{ id: 1, mediaFiles: [] }, { id: 2, mediaFiles: [{ id: 5 }] }], total: 2, page: 1, limit: 20, totalPages: 1 },
+  get_queue_slot: { scheduledAt: "2026-09-11T14:11:02.530Z", dayLabel: "Today" },
+  upload_media: { file: { id: 3056, fileName: "a.jpg", mimeType: "image/jpeg", sizeBytes: 127085, width: 1200, height: 630 } },
+  list_channels: { channels: [{ id: 143, platform: "instagram", accountName: "Acme Studio", isActive: true, needsReconnect: false }] },
+};
+for (const [tool, fixture] of Object.entries(OUTPUT_FIXTURES)) {
+  const shape = TOOL_OUTPUT_SCHEMAS[tool];
+  if (!shape) { fail(`${tool}: no output schema`); continue; }
+  const res = z.object(shape).passthrough().safeParse(fixture);
+  if (!res.success) fail(`${tool}: output schema rejects a real API response — ${JSON.stringify(res.error.issues[0])}`);
+}
 
 for (const profile of ["core", "full"]) {
   const tools = await listTools(profile);

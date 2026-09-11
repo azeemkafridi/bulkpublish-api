@@ -492,12 +492,17 @@ const POST_SHAPE: Record<string, z.ZodTypeAny> = {
   author: sObj().describe("Who wrote the post: { id, name, image }. Null when that account is gone."),
   approver: sObj().describe("Who approved it: { id, name, image }. Null unless approvalStatus is approved."),
   assignee: sObj().describe("Who is expected to act on it next: { id, name, image }. Null when nobody is."),
-  mediaFiles: sArr(),
+  // POST and PATCH /api/posts echo the stored row, where this is the list of
+  // media file IDs; GET resolves them to file objects. Declaring objects only
+  // made every create_post/update_post WITH media fail output validation after
+  // the post had already been saved (2026-09-11) — the host then reported an
+  // error for a post that existed, which is how a retry duplicates it.
+  mediaFiles: z.array(z.union([z.number(), z.string(), z.object({}).passthrough()])).nullish(),
   postPlatforms: sArr({ platform: sStr(), status: sStr() }),
   labels: sArr(),
 };
 
-const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> = {
+export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> = {
   list_channels: {
     channels: sArr({ channelId: sNum(), platform: sStr(), accountName: sStr(), active: sBool() }),
     capabilities: sObj().describe("Whether the caller may create, publish or approve posts."),

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-11 — create_post / update_post with media no longer report an error for a saved post
+
+MCP **1.36.1**
+
+### Fixed
+
+- **`create_post` and `update_post` failed output validation whenever `mediaFileIds` was set.** The post was saved, then the tool answered with a schema error, so a host saw a failure for a post that existed — and a retry would have created a second one. The post shape now accepts media as the file IDs those two routes return as well as the resolved file objects `get_post` returns. `npm run check:annotations` now also validates every hosted tool's output schema against real API responses, so this class of mismatch fails the build.
+
 ## 2026-09-10 — Activity entries say who, and can be filtered by person and date
 
 Node **1.31.0** · Python **0.31.0** · MCP **1.36.0** (no client change)
