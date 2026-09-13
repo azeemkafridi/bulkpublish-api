@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-14 — Engagement thresholds state their range
+
+Node **1.33.1** · Python (no client change) · MCP (no client change)
+
+### Changed
+
+- **`autoPlugThreshold` and `autoRepostThreshold` now document their accepted range** — a whole number from 0 to 2147483647. A value above that was accepted by the client and then rejected by the server as an unexplained failure rather than a validation error; `POST /api/posts` and the update endpoint now answer `400 VALIDATION_ERROR` naming the field. The defaults (50 and 100) are unchanged, and any value that worked before still works.
+
 ## 2026-09-13 — A feed item with no picture can borrow one from its article
 
 Node **1.33.0** · Python **0.33.0** · MCP **1.37.0**

@@ -704,11 +704,11 @@ export interface CreatePostParams {
   autoPlugEnabled?: boolean;
   /** Text for auto-plug reply. */
   autoPlugText?: string;
-  /** Engagement threshold (likes) to trigger auto-plug. Default: 50. */
+  /** Engagement threshold (likes) to trigger auto-plug. Default: 50. Whole number, 0 to 2147483647. */
   autoPlugThreshold?: number;
   /** Enable auto-repost. */
   autoRepostEnabled?: boolean;
-  /** Engagement threshold (likes) to trigger auto-repost. Default: 100. */
+  /** Engagement threshold (likes) to trigger auto-repost. Default: 100. Whole number, 0 to 2147483647. */
   autoRepostThreshold?: number;
   /**
    * Optional. Set true to hold a scheduled post for team approval

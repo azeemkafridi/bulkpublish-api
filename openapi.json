@@ -1865,7 +1865,9 @@
                   "autoPlugThreshold": {
                     "type": "integer",
                     "default": 50,
-                    "description": "Optional. Number of likes to trigger auto-plug (default: 50)"
+                    "description": "Optional. Number of likes to trigger auto-plug (default: 50). Whole number from 0 to 2147483647; outside that range the request is rejected.",
+                    "minimum": 0,
+                    "maximum": 2147483647
                   },
                   "autoRepostEnabled": {
                     "type": "boolean",
@@ -1875,7 +1877,9 @@
                   "autoRepostThreshold": {
                     "type": "integer",
                     "default": 100,
-                    "description": "Optional. Number of likes to trigger auto-repost (default: 100)"
+                    "description": "Optional. Number of likes to trigger auto-repost (default: 100). Whole number from 0 to 2147483647; outside that range the request is rejected.",
+                    "minimum": 0,
+                    "maximum": 2147483647
                   },
                   "requestApproval": {
                     "type": "boolean",
