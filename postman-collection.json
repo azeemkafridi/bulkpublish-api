@@ -3984,7 +3984,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"<string>\",\n  \"feedUrl\": \"<string>\",\n  \"channelIds\": [\n    \"<integer>\"\n  ],\n  \"mode\": \"draft\",\n  \"fieldMapping\": {\n    \"template\": \"{title}\\n\\n{link}\",\n    \"mediaField\": \"none\",\n    \"stripHtml\": true,\n    \"truncate\": \"smart\",\n    \"hashtags\": \"\",\n    \"channelOverrides\": {\n      \"<channelId>\": {\n        \"template\": \"<string>\",\n        \"hashtags\": \"<string>\"\n      }\n    }\n  },\n  \"requireApproval\": false\n}",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"feedUrl\": \"<string>\",\n  \"channelIds\": [\n    \"<integer>\"\n  ],\n  \"mode\": \"draft\",\n  \"fieldMapping\": {\n    \"template\": \"{title}\\n\\n{link}\",\n    \"mediaField\": \"none\",\n    \"articleImage\": \"when_needed\",\n    \"stripHtml\": true,\n    \"truncate\": \"smart\",\n    \"hashtags\": \"\",\n    \"channelOverrides\": {\n      \"<channelId>\": {\n        \"template\": \"<string>\",\n        \"hashtags\": \"<string>\"\n      }\n    }\n  },\n  \"requireApproval\": false\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -4133,7 +4133,7 @@
             "method": "PUT",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"<string>\",\n  \"feedUrl\": \"<string>\",\n  \"channelIds\": [\n    \"<integer>\"\n  ],\n  \"mode\": \"draft\",\n  \"fieldMapping\": {\n    \"template\": \"{title}\\n\\n{link}\",\n    \"mediaField\": \"none\",\n    \"stripHtml\": true,\n    \"truncate\": \"smart\",\n    \"hashtags\": \"\",\n    \"channelOverrides\": {\n      \"<channelId>\": {\n        \"template\": \"<string>\",\n        \"hashtags\": \"<string>\"\n      }\n    }\n  },\n  \"enabled\": \"<boolean>\",\n  \"requireApproval\": false\n}",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"feedUrl\": \"<string>\",\n  \"channelIds\": [\n    \"<integer>\"\n  ],\n  \"mode\": \"draft\",\n  \"fieldMapping\": {\n    \"template\": \"{title}\\n\\n{link}\",\n    \"mediaField\": \"none\",\n    \"articleImage\": \"when_needed\",\n    \"stripHtml\": true,\n    \"truncate\": \"smart\",\n    \"hashtags\": \"\",\n    \"channelOverrides\": {\n      \"<channelId>\": {\n        \"template\": \"<string>\",\n        \"hashtags\": \"<string>\"\n      }\n    }\n  },\n  \"enabled\": \"<boolean>\",\n  \"requireApproval\": false\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",

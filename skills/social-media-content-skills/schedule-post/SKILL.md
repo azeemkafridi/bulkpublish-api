@@ -166,11 +166,12 @@ Auto-create posts from an RSS/Atom feed — BulkPublish polls each feed every 15
 - Max **20 feeds per org** → 400 beyond that
 - **Changing `feedUrl` re-baselines the feed** (resets `lastCheckedAt`): only items newer than the change are posted — the old backlog is never flooded
 - Feed object includes `enabled`, `lastCheckedAt`, `lastError` for troubleshooting
-- **`fieldMapping`** (optional; `null` = default `{title}` + blank line + `{link}`, no media) controls how an item becomes a post:
+- **`fieldMapping`** (optional; `null` = default `{title}` + blank line + `{link}`, no enclosure attached, article image taken when a channel needs one) controls how an item becomes a post:
   - `template` — tokens `{title} {link} {description} {content} {author} {categories} {feedName}` plus any extra leaf field on the feed item as `{fieldName}`; a line whose tokens all render empty is dropped (max 2000 chars)
-  - `mediaField` — `"none"` (default) / `"image"` / `"video"` / `"auto"` (video, else image); the enclosure is re-hosted to the org media library. Platforms whose default post type **requires media** (Instagram, TikTok, YouTube, Pinterest) are skipped for items without a usable enclosure — the reason lands in the activity log
+  - `mediaField` — `"none"` (default) / `"image"` / `"video"` / `"auto"` (video, else image); the enclosure is re-hosted to the org media library
+  - `articleImage` — `"when_needed"` (default) / `"always"` / `"never"`; where a picture comes from when the item has no usable enclosure. `when_needed` takes one from the article the item links to, but only when a channel on the feed is on a platform that cannot publish without an image. Candidates: the article's share image, then a picture embedded in the item, then the largest pictures on the page; first one that imports cleanly and is at least 200x200 wins, max four tried. Post-level like `mediaField`, so it reaches every channel of the feed. Image-required platforms (Instagram, Pinterest, Snapchat) are skipped only when this finds nothing too; the video-only ones (TikTok, YouTube) are always skipped for items with no video — the reason lands in the activity log
   - `stripHtml` (default `true`); `truncate` — `"smart"` (default, word-boundary trim keeping a trailing link line) / `"hard"` / `"skip"` (drop that channel); `hashtags` (max 500 chars, appended)
-  - `channelOverrides` — per-channel **text** overrides keyed by channel id *string* (`template`, `hashtags`, `stripHtml`, `truncate`); `mediaField` cannot be overridden per channel, and same-platform channels share one rendered text (written to the post's `platformContent`)
+  - `channelOverrides` — per-channel **text** overrides keyed by channel id *string* (`template`, `hashtags`, `stripHtml`, `truncate`); neither `mediaField` nor `articleImage` can be overridden per channel, and same-platform channels share one rendered text (written to the post's `platformContent`)
   - On `PUT`, send `"fieldMapping": null` to clear back to the default
 
 ## Common mistakes

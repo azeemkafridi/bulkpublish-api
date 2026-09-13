@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-13 — A feed item with no picture can borrow one from its article
+
+Node **1.33.0** · Python **0.33.0** · MCP **1.37.0**
+
+### Added
+
+- **`articleImage` on `fieldMapping`** (`"when_needed"` default / `"always"` / `"never"`) — where a picture comes from when a feed item carries no usable enclosure. Most news and blog feeds are text-only, which meant every channel on a platform that refuses text-only posts was skipped and the item was never published there at all. `when_needed` takes a picture from the article the item links to, but only when one of the feed's channels actually needs it.
+- Candidates are tried in order: the article's share image, then a picture embedded in the item itself, then the largest pictures on the page. The first that imports cleanly and measures at least 200x200 wins, and at most four are tried per item.
+- Like `mediaField`, this is post-level rather than per-channel: the picture attaches to the post, so every channel of the feed receives it. That is why the default is `when_needed` rather than `always`.
+
+### Changed
+
+- `mediaField`'s description no longer says image-required channels are skipped whenever an item lacks an enclosure. They are now skipped only when the article fallback also comes up empty, or when `articleImage` is `"never"`. The video-only platforms (TikTok, YouTube) are unaffected: a picture cannot satisfy them, and they are still skipped for items with no video.
+
 ## 2026-09-12 — Notes on your posts get their own notification toggle
 
 Node **1.32.0** · Python **0.32.0** · MCP (no client change)

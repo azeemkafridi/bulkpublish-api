@@ -20,6 +20,7 @@ import type { RssFeed, CreateRssFeedParams, UpdateRssFeedParams } from './types.
  *   fieldMapping: {
  *     template: '{title}\n\n{link}',
  *     mediaField: 'auto',          // attach the item's video, else image
+ *     articleImage: 'when_needed', // default: borrow one from the article when a channel needs it
  *     hashtags: '#blog',
  *     channelOverrides: { '2': { template: '{title} — {description}\n{link}' } },
  *   },

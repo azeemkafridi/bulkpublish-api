@@ -2527,7 +2527,13 @@ const rssFieldMappingSchema = z
       .enum(["none", "image", "video", "auto"])
       .optional()
       .describe(
-        "Which item enclosure to import and attach: none (default), image, video, or auto (video if present, else image). The file is re-hosted to the media library; channels whose platform requires media (Instagram, TikTok, YouTube, Pinterest) are skipped for items lacking a usable enclosure."
+        "Which item enclosure to import and attach: none (default), image, video, or auto (video if present, else image). The file is re-hosted to the media library."
+      ),
+    articleImage: z
+      .enum(["when_needed", "always", "never"])
+      .optional()
+      .describe(
+        "Where to get a picture when the item has no usable enclosure. when_needed (default) takes one from the article the item links to, but only when a channel on the feed is on a platform that cannot publish without an image; always takes one whenever the item has none; never leaves those items without media. Candidates in order: the article's share image, a picture embedded in the item, then the largest pictures on the page; the first that imports cleanly and measures at least 200x200 wins, at most four are tried. Post-level like mediaField, so the picture reaches every channel of the feed. Image-required channels (Instagram, Pinterest, Snapchat) are skipped only when this finds nothing too; the video-only platforms (TikTok, YouTube) are always skipped for items with no video."
       ),
     stripHtml: z
       .boolean()

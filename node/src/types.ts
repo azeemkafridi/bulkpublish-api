@@ -1698,8 +1698,9 @@ export interface RssMappingChannelOverride {
 
 /**
  * How an RSS/Atom item becomes post content. `null` on a feed means the
- * built-in default: template `"{title}\n\n{link}"`, no media, stripHtml true,
- * smart truncation, no hashtags.
+ * built-in default: template `"{title}\n\n{link}"`, no enclosure attached,
+ * an article image taken when a channel needs one, stripHtml true, smart
+ * truncation, no hashtags.
  */
 export interface RssFieldMapping {
   /**
@@ -1713,10 +1714,26 @@ export interface RssFieldMapping {
    * Which item enclosure to import and attach to the post: 'none' (default),
    * 'image', 'video', or 'auto' (video if present, else image). The file is
    * re-hosted to your media library; if the import fails the post is created
-   * without media. Channels whose platform requires media (e.g. Instagram,
-   * TikTok, YouTube) are skipped for items lacking a usable enclosure.
+   * without media. An item with no usable enclosure falls back to an image
+   * from its article unless `articleImage` is 'never'; channels whose platform
+   * requires media are skipped only when that finds nothing too (and always
+   * for the video-only platforms, TikTok and YouTube).
    */
   mediaField?: 'none' | 'image' | 'video' | 'auto';
+  /**
+   * Where to get a picture when the item has no usable enclosure of its own.
+   * 'when_needed' (default) takes one from the article the item links to, but
+   * only when a channel on the feed is on a platform that cannot publish
+   * without an image; 'always' takes one whenever the item has none; 'never'
+   * leaves those items without media, so image-required channels are skipped.
+   *
+   * Candidates in order: the article's share image, a picture embedded in the
+   * item itself, then the largest pictures on the page. The first that imports
+   * cleanly and measures at least 200x200 wins, at most four are tried.
+   * Post-level like mediaField: the picture attaches to the post, so every
+   * channel of the feed receives it.
+   */
+  articleImage?: 'when_needed' | 'always' | 'never';
   /** Strip HTML tags/entities from {title}/{description}/{content}. Default true. */
   stripHtml?: boolean;
   /**

@@ -6169,6 +6169,16 @@
                         "default": "none",
                         "description": "Which item enclosure to import and attach: none, the item image, the item video, or auto (video if present, else image). The file is re-hosted to your media library; if the import fails the post is created without media."
                       },
+                      "articleImage": {
+                        "type": "string",
+                        "enum": [
+                          "when_needed",
+                          "always",
+                          "never"
+                        ],
+                        "default": "when_needed",
+                        "description": "Where to get a picture when the feed item has none of its own. `when_needed` (the default, and what applies when fieldMapping is null) takes one from the article the item links to, but only when at least one of the feed's channels is on a platform that cannot publish without an image. `always` takes one whenever the item has none, on any feed. `never` leaves such items without media, so image-required channels are skipped as before. Candidates are tried in order: the article's share image, then a picture embedded in the item itself, then the largest pictures on the page. The first that imports cleanly and measures at least 200x200 wins, and at most four are tried per item. Like mediaField this is post-level rather than per-channel: the picture attaches to the post, so every channel of the feed receives it."
+                      },
                       "stripHtml": {
                         "type": "boolean",
                         "default": true,
@@ -6320,6 +6330,16 @@
                         ],
                         "default": "none",
                         "description": "Which item enclosure to import and attach: none, the item image, the item video, or auto (video if present, else image). The file is re-hosted to your media library; if the import fails the post is created without media."
+                      },
+                      "articleImage": {
+                        "type": "string",
+                        "enum": [
+                          "when_needed",
+                          "always",
+                          "never"
+                        ],
+                        "default": "when_needed",
+                        "description": "Where to get a picture when the feed item has none of its own. `when_needed` (the default, and what applies when fieldMapping is null) takes one from the article the item links to, but only when at least one of the feed's channels is on a platform that cannot publish without an image. `always` takes one whenever the item has none, on any feed. `never` leaves such items without media, so image-required channels are skipped as before. Candidates are tried in order: the article's share image, then a picture embedded in the item itself, then the largest pictures on the page. The first that imports cleanly and measures at least 200x200 wins, and at most four are tried per item. Like mediaField this is post-level rather than per-channel: the picture attaches to the post, so every channel of the feed receives it."
                       },
                       "stripHtml": {
                         "type": "boolean",

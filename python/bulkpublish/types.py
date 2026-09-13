@@ -775,9 +775,18 @@ class RssFieldMapping(TypedDict, total=False):
     (lowercased localName); a line whose tokens all render empty is dropped.
     ``mediaField`` selects the item enclosure to import and attach: ``"none"``
     (default), ``"image"``, ``"video"``, or ``"auto"`` (video, else image) —
-    the file is re-hosted to your media library, and channels whose platform
-    requires media (Instagram, TikTok, YouTube, Pinterest) are skipped for
-    items lacking a usable enclosure. ``stripHtml`` (default True) strips
+    the file is re-hosted to your media library. ``articleImage`` decides what
+    happens when the item has no usable enclosure: ``"when_needed"`` (default)
+    takes a picture from the article the item links to, but only when a channel
+    on the feed is on a platform that cannot publish without an image;
+    ``"always"`` takes one whenever the item has none; ``"never"`` leaves those
+    items without media. Candidates are the article's share image, then a
+    picture embedded in the item, then the largest pictures on the page; the
+    first that imports cleanly and measures at least 200x200 wins, at most four
+    are tried. It is post-level like ``mediaField``, so the picture reaches
+    every channel of the feed. Channels whose platform requires media are
+    skipped only when this finds nothing too, and always for the video-only
+    platforms (TikTok, YouTube). ``stripHtml`` (default True) strips
     HTML from item text. ``truncate`` handles text over the platform char
     limit: ``"smart"`` (default, word-boundary trim keeping a trailing link),
     ``"hard"`` (cut at the limit), or ``"skip"`` (drop that channel).
@@ -787,6 +796,7 @@ class RssFieldMapping(TypedDict, total=False):
 
     template: str
     mediaField: str
+    articleImage: str
     stripHtml: bool
     truncate: str
     hashtags: str
