@@ -1424,7 +1424,7 @@ export interface ApiKeyPerKeyUsage {
 export interface ApiKeyUsage {
   today: number;
   limit: number;
-  plan: 'free' | 'pro' | 'business';
+  plan: 'free' | 'ltd' | 'pro' | 'business';
   perKey: ApiKeyPerKeyUsage[];
 }
 
@@ -1482,7 +1482,7 @@ export interface Organization {
   id: number;
   name: string;
   slug: string;
-  plan: 'free' | 'pro' | 'business';
+  plan: 'free' | 'ltd' | 'pro' | 'business';
   ownerId: string;
   role: 'owner' | 'admin' | 'member' | 'approver' | 'contributor' | 'viewer';
   createdAt: string;
@@ -1539,7 +1539,7 @@ export interface QuotasPlanLimits {
  */
 export interface QuotasUsageResponse {
   organizationId: number;
-  plan: 'free' | 'pro' | 'business';
+  plan: 'free' | 'ltd' | 'pro' | 'business';
   limits: QuotasPlanLimits;
   subscription: {
     status: string | null;

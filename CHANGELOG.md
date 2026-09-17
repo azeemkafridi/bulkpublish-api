@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-17 — A fourth plan value: `ltd`
+
+Node **1.35.0** · Python **0.35.0** · MCP **1.38.0** (unchanged)
+
+### Added
+
+- **`plan` can now be `ltd`** on `Organization`, `QuotasUsageResponse` and `ApiKeyUsage` — the Lifetime plan, granted by an AppSumo license rather than a subscription. Its limits sit between Free and Pro: one channel per platform (15 in all), 20 posts a day (600 a month), 2 API keys at 1,000 requests a day, 3 RSS feeds with auto-publish, no included X budget (X posts use prepaid credits, as on Free). Code that switches on the plan value should treat an unknown value as Free-like rather than failing; a Lifetime workspace can still upgrade to Pro or Business and shows that plan while the subscription runs.
+- The plan-figure prose on API Keys, RSS feeds and API usage now lists the Lifetime column, and the API-usage description's Free figure is corrected to 30 requests a day (it said 100).
+
 ## 2026-09-17 — Read what is coming next, not what is furthest away
 
 Node **1.34.0** · Python **0.34.0** · MCP **1.38.0**

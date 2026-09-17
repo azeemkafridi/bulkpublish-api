@@ -745,9 +745,11 @@
             "type": "string",
             "enum": [
               "free",
+              "ltd",
               "pro",
               "business"
-            ]
+            ],
+            "description": "The organization's plan. `ltd` is the Lifetime plan, granted by an AppSumo license rather than a subscription: one channel per platform (15 in all), 20 posts per day (600 per month), no included X budget (X posts use prepaid credits, as on Free)."
           },
           "ownerId": {
             "type": "string"
@@ -1448,7 +1450,7 @@
     },
     {
       "name": "API Keys",
-      "description": "Manage API authentication keys. Available on all plans (Free: 1 key, Pro: 5, Business: 10)."
+      "description": "Manage API authentication keys. Available on all plans (Free: 1 key, Lifetime: 2, Pro: 5, Business: 10)."
     },
     {
       "name": "OAuth",
@@ -5619,7 +5621,7 @@
           "Utilities"
         ],
         "summary": "X (Twitter) API spend",
-        "description": "Per-org X API call costs. Writes AND metered reads (metrics, engagement, user search, health checks) draw from ONE monthly budget \u2014 plan allowance first, purchased credits as overage; there is no separate read quota, and metered reads are unavailable on the Free plan (credits unlock Free-plan publishing only). `absorbedDcents` is retained for compatibility and covers only historical pre-2026-08 read usage. Returns today's breakdown, monthly budget status, and 30-day history.",
+        "description": "Per-org X API call costs. Writes AND metered reads (metrics, engagement, user search, health checks) draw from ONE monthly budget \u2014 plan allowance first, purchased credits as overage; there is no separate read quota, and metered reads are unavailable on the Free and Lifetime plans, which have no included budget (credits unlock publishing only). `absorbedDcents` is retained for compatibility and covers only historical pre-2026-08 read usage. Returns today's breakdown, monthly budget status, and 30-day history.",
         "parameters": [
           {
             "name": "days",
@@ -6259,7 +6261,7 @@
             "description": "Invalid input"
           }
         },
-        "description": "Create an RSS/Atom feed. Plan-gated: max feeds per org (Free 1, Pro 10, Business 50) and auto-publish mode (`mode: \"publish\"`) is paid-only \u2014 Free is draft-only and a `publish` request returns 403. Over the feed limit returns 403. Feed poll cadence is also per-plan (Free 60 min, Pro 30 min, Business 15 min). Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "Create an RSS/Atom feed. Plan-gated: max feeds per org (Free 1, Lifetime 3, Pro 10, Business 50) and auto-publish mode (`mode: \"publish\"`) is paid-only \u2014 Free is draft-only and a `publish` request returns 403; Lifetime and above may auto-publish. Over the feed limit returns 403. Feed poll cadence is also per-plan (Free 60 min, Lifetime 60 min, Pro 30 min, Business 15 min). Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "operationId": "createRssFeed",
         "security": [
           {
@@ -6903,7 +6905,7 @@
           "API Keys"
         ],
         "summary": "API usage stats",
-        "description": "Returns today's API call count, daily limit based on plan, and per-key breakdown. Daily limits: Free 100, Pro 5,000, Business 50,000.",
+        "description": "Returns today's API call count, daily limit based on plan, and per-key breakdown. Daily limits: Free 30, Lifetime 1,000, Pro 5,000, Business 50,000.",
         "responses": {
           "200": {
             "description": "Usage data with today's count, limit, plan, and per-key breakdown"

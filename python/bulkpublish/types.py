@@ -580,7 +580,7 @@ class QuotaUsage(TypedDict, total=False):
     """
 
     organizationId: int
-    #: ``"free"`` | ``"pro"`` | ``"business"``
+    #: ``"free"`` | ``"ltd"`` | ``"pro"`` | ``"business"`` (``"ltd"`` is the Lifetime plan, granted by an AppSumo license)
     plan: str
     #: The plan's configured limits (``-1`` = unlimited, ``0`` = disabled):
     #: ``channels``, ``channelsPerPlatform``, ``postsPerDay``, ``postsPerMonth``,
