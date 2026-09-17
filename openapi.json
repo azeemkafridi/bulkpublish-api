@@ -1635,7 +1635,7 @@
             "in": "query",
             "required": false,
             "schema": { "type": "string", "enum": ["asc", "desc"], "default": "desc" },
-            "description": "Direction of the timeline sort. Posts are ordered by the timestamp that matters for each one \u2014 when it published, else when it is due, else when it was created. `desc` (the default) returns the most recent first. `asc` returns the earliest first, which is what you want when reading the next few scheduled posts rather than the furthest-out ones."
+            "description": "Direction of the timeline sort. Posts are ordered by the timestamp that matters for each one \u2014 when it published, else when it is due, else when it was created. `desc` (the default) returns the most recent first. `asc` returns the earliest first, which is what you want when reading the next few scheduled posts rather than the furthest-out ones. Any other value answers 400 rather than quietly falling back to `desc`."
           }
         ],
         "responses": {
