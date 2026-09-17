@@ -555,6 +555,15 @@ export interface ListPostsParams extends PaginationParams {
   recurring?: string;
   /** Filter by team approval state (e.g. 'pending' for the approval queue). */
   approvalStatus?: PostApprovalStatus;
+  /**
+   * Direction of the timeline sort — posts are ordered by the timestamp that
+   * matters for each one (published, else due, else created).
+   *
+   * `'desc'` (the default) is most-recent-first. Use `'asc'` when you want what
+   * is coming next: with a limit, `'desc'` returns the posts scheduled
+   * FURTHEST out, not the soonest.
+   */
+  order?: 'asc' | 'desc';
 }
 
 /** Response from listing posts. */

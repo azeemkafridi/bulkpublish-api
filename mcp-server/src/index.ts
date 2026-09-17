@@ -1244,6 +1244,12 @@ server.tool(
       .describe(
         "Filter by who the post is assigned to: a user id, 'me' for the caller, or 'unassigned'. Orthogonal to status \u2014 a post can be scheduled AND assigned."
       ),
+    order: z
+      .enum(["asc", "desc"])
+      .optional()
+      .describe(
+        "Direction of the timeline sort (published, else due, else created). 'desc' is the default and returns the most recent first. Use 'asc' to read what is coming NEXT \u2014 with a limit, 'desc' returns the posts scheduled furthest out, not the soonest."
+      ),
   },
   async ({
     status,
@@ -1258,6 +1264,7 @@ server.tool(
     scheduledTo,
     approvalStatus,
     assignedTo,
+    order,
   }) => {
     const params = new URLSearchParams();
     if (status) params.set("status", status);
@@ -1272,6 +1279,7 @@ server.tool(
     if (scheduledTo) params.set("scheduledTo", scheduledTo);
     if (approvalStatus) params.set("approvalStatus", approvalStatus);
     if (assignedTo) params.set("assignedTo", assignedTo);
+    if (order) params.set("order", order);
 
     const qs = params.toString();
     const res = await api("GET", `/api/posts${qs ? `?${qs}` : ""}`);

@@ -1493,7 +1493,7 @@
             "name": "status",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter by post status",
+            "description": "**optional** \u2014 Filter by post status. A value outside this list answers 400; it is not a post status that happens to match nothing. Note that `published` also covers `partial` (the post went live, just not on every channel), and that team approval is a separate axis \u2014 use `approvalStatus`, not a status value, to find posts awaiting review.",
             "schema": {
               "type": "string",
               "enum": [
@@ -1619,7 +1619,7 @@
                 "rejected"
               ]
             },
-            "description": "Filter by team approval state (e.g. 'pending' for the approval queue)."
+            "description": "Filter by team approval state (e.g. 'pending' for the approval queue). Orthogonal to `status`: a post can be `scheduled` and `pending` at once. A value outside this list answers 400."
           },
           {
             "name": "assignedTo",
@@ -1629,6 +1629,13 @@
               "type": "string"
             },
             "description": "Filter by who the post is assigned to: a user id, `me` for the caller, or `unassigned` for posts nobody has taken. Assignment is orthogonal to status \u2014 a post can be scheduled AND assigned."
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["asc", "desc"], "default": "desc" },
+            "description": "Direction of the timeline sort. Posts are ordered by the timestamp that matters for each one \u2014 when it published, else when it is due, else when it was created. `desc` (the default) returns the most recent first. `asc` returns the earliest first, which is what you want when reading the next few scheduled posts rather than the furthest-out ones."
           }
         ],
         "responses": {

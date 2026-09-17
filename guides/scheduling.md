@@ -79,6 +79,24 @@ curl -X PUT https://app.bulkpublish.com/api/posts/POST_ID \
 
 `status` accepts only `"draft"` or `"scheduled"` (any other value is rejected). Setting `"scheduled"` requires a future `scheduledAt` (in the request or already stored) and at least one channel. Omit `status` to leave it unchanged. To publish immediately, use `POST /api/posts/:id/publish` instead.
 
+### Reading the Queue
+
+`GET /api/posts` sorts newest-first by default, which is the wrong end of the
+list for a queue: with a `limit`, it hands back the posts scheduled FURTHEST
+out. Pass `order=asc` for what goes out next.
+
+```bash
+# The next five posts due
+curl "https://app.bulkpublish.com/api/posts?status=scheduled&order=asc&limit=5" \
+  -H "Authorization: Bearer bp_your_key_here"
+```
+
+`status` must be one of the post statuses (`draft`, `scheduled`, `publishing`,
+`published`, `processing`, `partial`, `failed`); anything else answers `400`.
+Team approval is a **separate axis** — a post can be `scheduled` and awaiting
+review at the same time — so find the review queue with `approvalStatus=pending`,
+never with a status value.
+
 ## Team Approval Flow
 
 Posts carry an `approvalStatus` (`none` (default) | `pending` | `approved` | `rejected`), orthogonal to `status`. The scheduler skips `pending` and `rejected` posts even when they are scheduled and overdue.

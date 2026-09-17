@@ -147,6 +147,24 @@
                   },
                   "key": "approvalStatus",
                   "value": "pending"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** \u2014 Filter by who the post is assigned to: a user id, 'me' for the caller, or 'unassigned'. Orthogonal to status \u2014 a post can be scheduled AND assigned.",
+                    "type": "text/plain"
+                  },
+                  "key": "assignedTo",
+                  "value": "me"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** \u2014 Timeline sort direction: 'desc' (default, newest first) or 'asc' (earliest first \u2014 what is coming next). With a limit, the default returns the posts scheduled furthest out. (This can only be one of asc,desc)",
+                    "type": "text/plain"
+                  },
+                  "key": "order",
+                  "value": "asc"
                 }
               ],
               "variable": []

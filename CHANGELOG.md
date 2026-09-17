@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-09-17 — Read what is coming next, not what is furthest away
+
+Node **1.34.0** · Python **0.34.0** · MCP **1.38.0**
+
+### Added
+
+- **`order` on `GET /api/posts`** — `desc` (the default, unchanged) is newest-first; `asc` is earliest-first. Posts sort by the timestamp that applies to each one: when it published, else when it is due, else when it was created. This matters with `limit`: asking for five scheduled posts newest-first returns the five scheduled FURTHEST out, not the five going out next. Available as `order` (Node, MCP `list_posts`) and `order=` (Python).
+
+### Fixed
+
+- **Python: `sort_order` never reached the server.** It was sent as `sortOrder`, a parameter the API does not read, so `posts.list(sort_order="asc")` silently returned newest-first anyway. It is now forwarded as `order` and does what it says. `sort_by` is deprecated and dropped: there has never been a server parameter behind it, and the sort field is not selectable.
+- **Python (async): `label_ids` filtered nothing.** `AsyncBulkPublish(...).posts.list(label_ids=[...])` sent `labels`, which is the request-BODY spelling of that field — the query filter is `labelIds`, so the server ignored it and returned unfiltered results. The synchronous client was always correct.
+
+### Changed
+
+- **`status` and `approvalStatus` on `GET /api/posts` now answer `400` for a value outside their enum**, instead of failing as a server error. Approval is a separate axis from status: filter the review queue with `approvalStatus=pending`, never with a status value.
+
 ## 2026-09-14 — Engagement thresholds state their range
 
 Node **1.33.1** · Python (no client change) · MCP (no client change)

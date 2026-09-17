@@ -47,13 +47,18 @@ class PostsResource:
         sort_by: Optional[str] = None,
         sort_order: Optional[str] = None,
         approval_status: Optional[str] = None,
+        order: Optional[str] = None,
     ) -> PostList:
         """List posts with optional filtering and pagination.
 
-        Ordered newest-first by the timestamp that applies to each post:
-        ``published_at`` if it is live, else ``scheduled_at`` if it is due, else
-        ``created_at``. A post drafted weeks before it publishes sorts by when it
-        went live, not when it was written.
+        Ordered by the timestamp that applies to each post: ``published_at`` if
+        it is live, else ``scheduled_at`` if it is due, else ``created_at``. A
+        post drafted weeks before it publishes sorts by when it went live, not
+        when it was written.
+
+        Newest-first by default. Pass ``order="asc"`` for earliest-first, which
+        is what you want to read what is coming NEXT — combined with ``limit``,
+        the default returns the posts scheduled FURTHEST out, not the soonest.
 
         Args:
             status: Filter by status (``"draft"``, ``"scheduled"``,
@@ -67,11 +72,17 @@ class PostsResource:
             label_mode: How to combine label_ids — ``"any"`` or ``"all"``.
             from_date: ISO-8601 start date filter.
             to_date: ISO-8601 end date filter.
-            sort_by: Field to sort by (e.g. ``"scheduledAt"``, ``"createdAt"``).
-            sort_order: ``"asc"`` or ``"desc"``.
+            sort_by: Deprecated and ignored. The sort field is not selectable;
+                posts always order by the timestamp described above. Sending it
+                changed nothing, and the server never read it.
+            sort_order: Deprecated alias for ``order``. Previously sent as
+                ``sortOrder``, which the server does not read, so it silently
+                did nothing; it is now forwarded as ``order``.
             approval_status: Filter by team approval state — one of ``"none"``,
                 ``"pending"``, ``"approved"``, ``"rejected"`` (e.g.
                 ``"pending"`` for the approval queue).
+            order: ``"desc"`` (default, newest first) or ``"asc"`` (earliest
+                first).
 
         Returns:
             A dict with ``posts``, ``total``, ``page``, ``limit``, and
@@ -79,8 +90,8 @@ class PostsResource:
 
         Example::
 
-            # Fetch the 10 most recent scheduled posts
-            result = bp.posts.list(status="scheduled", limit=10, sort_by="scheduledAt", sort_order="desc")
+            # Fetch the 10 scheduled posts that go out NEXT
+            result = bp.posts.list(status="scheduled", limit=10, order="asc")
             for post in result["posts"]:
                 print(post["content"][:80], post["scheduledAt"])
 
@@ -108,10 +119,14 @@ class PostsResource:
             params["from"] = from_date
         if to_date is not None:
             params["to"] = to_date
-        if sort_by is not None:
-            params["sortBy"] = sort_by
-        if sort_order is not None:
-            params["sortOrder"] = sort_order
+        # `sort_by` is dropped, not forwarded: there has never been a server
+        # parameter behind it. `sort_order` becomes `order`, the parameter that
+        # does exist — as `sortOrder` it was silently discarded, so anyone who
+        # asked for ascending order got newest-first anyway.
+        if order is None and sort_order is not None:
+            order = sort_order
+        if order is not None:
+            params["order"] = order
         if approval_status is not None:
             params["approvalStatus"] = approval_status
         return self._client._request("GET", "/api/posts", params=params)
@@ -771,8 +786,7 @@ _SNAKE_TO_CAMEL = {
     "label_mode": "labelMode",
     "from_date": "from",
     "to_date": "to",
-    "sort_by": "sortBy",
-    "sort_order": "sortOrder",
+    "sort_order": "order",
     "post_ids": "postIds",
     "request_approval": "requestApproval",
     "approval_status": "approvalStatus",
@@ -785,13 +799,24 @@ def _snake_to_camel_dict(d: Dict[str, Any]) -> Dict[str, Any]:
     return {_SNAKE_TO_CAMEL.get(k, k): v for k, v in d.items() if v is not None}
 
 
+# Query-string spellings that differ from the request-BODY spelling of the same
+# concept. `_SNAKE_TO_CAMEL` is shared with the create/update body builders,
+# where `label_ids` really is `labels` — but the filter on GET /api/posts is
+# `labelIds`, and sending `labels` there filtered nothing at all, silently. The
+# sync `list()` always spelled it correctly; only the async client went through
+# this helper, so async callers lost their label filter with no error.
+_LIST_PARAM_OVERRIDES: Dict[str, str] = {
+    "label_ids": "labelIds",
+}
+
+
 def _build_list_params(kwargs: Dict[str, Any]) -> Dict[str, Any]:
     """Build query params dict from list() kwargs."""
     params: Dict[str, Any] = {}
     for k, v in kwargs.items():
         if v is None:
             continue
-        camel = _SNAKE_TO_CAMEL.get(k, k)
+        camel = _LIST_PARAM_OVERRIDES.get(k) or _SNAKE_TO_CAMEL.get(k, k)
         if k == "label_ids" and isinstance(v, list):
             params[camel] = ",".join(v)
         else:
