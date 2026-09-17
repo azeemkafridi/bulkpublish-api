@@ -809,12 +809,18 @@ _LIST_PARAM_OVERRIDES: Dict[str, str] = {
     "label_ids": "labelIds",
 }
 
+# Accepted for backwards compatibility and then dropped: there is no server
+# parameter behind `sort_by`, and never was. The synchronous `list()` drops it
+# too — without this the async client would put a junk `sort_by=` on the wire
+# and the two clients would disagree about what they send.
+_LIST_PARAMS_DROPPED = frozenset({"sort_by"})
+
 
 def _build_list_params(kwargs: Dict[str, Any]) -> Dict[str, Any]:
     """Build query params dict from list() kwargs."""
     params: Dict[str, Any] = {}
     for k, v in kwargs.items():
-        if v is None:
+        if v is None or k in _LIST_PARAMS_DROPPED:
             continue
         camel = _LIST_PARAM_OVERRIDES.get(k) or _SNAKE_TO_CAMEL.get(k, k)
         if k == "label_ids" and isinstance(v, list):
