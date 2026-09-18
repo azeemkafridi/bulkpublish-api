@@ -16,6 +16,10 @@ class ReviewLinksResource:
     The multi-post counterpart of ``posts.share()`` / ``posts.unshare()``:
     one link, several posts — hand a client one URL to review everything
     queued for them, instead of one link per post.
+
+    Pro and Business only: the single-seat plans (Free, Lifetime) have no
+    client collaboration, and every method here raises the 403
+    ``FEATURE_DISABLED`` error (with ``plan`` and ``upgrade: true``) for them.
     """
 
     def __init__(self, client: _BaseClient) -> None:

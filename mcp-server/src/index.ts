@@ -1800,7 +1800,7 @@ server.tool(
 
 server.tool(
   "share_post",
-  "Create (or fetch) a post's read-only review link that anyone can open without signing in — for client approval outside the app. Returns { shareToken, url, created }. regenerate=true mints a new link and kills the old one.",
+  "Create (or fetch) a post's read-only review link that anyone can open without signing in — for client approval outside the app. Returns { shareToken, url, created }. regenerate=true mints a new link and kills the old one. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
   {
     postId: z.number().describe("The post ID."),
     regenerate: z.boolean().optional().describe("Mint a new token, invalidating the previous link."),
@@ -1813,7 +1813,7 @@ server.tool(
 
 server.tool(
   "unshare_post",
-  "Revoke a post's review link so the URL stops working. Idempotent.",
+  "Revoke a post's review link so the URL stops working. Idempotent. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
   { postId: z.number().describe("The post ID.") },
   async ({ postId }) => {
     const res = await api("DELETE", `/api/posts/${postId}/share`);
@@ -1827,7 +1827,7 @@ server.tool(
 
 server.tool(
   "list_review_links",
-  "List the organization's client review links (batch review links), newest first, with how many posts each one covers.",
+  "List the organization's client review links (batch review links), newest first, with how many posts each one covers. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
   {},
   async () => {
     const res = await api("GET", "/api/review-links");
@@ -1837,7 +1837,7 @@ server.tool(
 
 server.tool(
   "create_review_link",
-  "Create a read-only review link covering several posts at once — the multi-post counterpart of share_post. Anyone with the link can open it without signing in. Every postId must belong to the organization. Unlike share_post this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns { reviewLink, url }.",
+  "Create a read-only review link covering several posts at once — the multi-post counterpart of share_post. Anyone with the link can open it without signing in. Every postId must belong to the organization. Unlike share_post this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns { reviewLink, url }. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
   {
     postIds: z.array(z.number()).min(1).max(50).describe("Post IDs to cover, up to 50 per link."),
     name: z.string().max(150).optional().describe("Optional label shown only to your team (e.g. the client's name) — never shown on the public page."),
@@ -1852,7 +1852,7 @@ server.tool(
 
 server.tool(
   "delete_review_link",
-  "Revoke a client review link. The posts it covered are untouched.",
+  "Revoke a client review link. The posts it covered are untouched. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
   { reviewLinkId: z.number().describe("The review link ID.") },
   async ({ reviewLinkId }) => {
     const res = await api("DELETE", `/api/review-links/${reviewLinkId}`);
@@ -1871,7 +1871,7 @@ const CLIENT_CONNECT_PLATFORMS = [
 
 server.tool(
   "list_client_connect_links",
-  "List the organization's client-connect links, newest first — one-time links a client can open, with no BulkPublish account, to connect their own platform account.",
+  "List the organization's client-connect links, newest first — one-time links a client can open, with no BulkPublish account, to connect their own platform account. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
   {},
   async () => {
     const res = await api("GET", "/api/client-connect-links");
@@ -1881,7 +1881,7 @@ server.tool(
 
 server.tool(
   "create_client_connect_link",
-  `Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (everything else needs a form of its own instead of a plain OAuth redirect, and stays a manual connect by your own team): ${CLIENT_CONNECT_PLATFORMS.join(", ")}. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it.`,
+  `Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (everything else needs a form of its own instead of a plain OAuth redirect, and stays a manual connect by your own team): ${CLIENT_CONNECT_PLATFORMS.join(", ")}. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.`,
   {
     name: z.string().max(150).describe("Your own label for the client (e.g. \"Acme Corp\"). Never shown to the client — only applied to the resulting channel so you can tell whose account it is."),
   },
@@ -1893,7 +1893,7 @@ server.tool(
 
 server.tool(
   "delete_client_connect_link",
-  "Revoke a client-connect link before it has been used. Idempotent; an account it already connected is untouched.",
+  "Revoke a client-connect link before it has been used. Idempotent; an account it already connected is untouched. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
   { clientConnectLinkId: z.number().describe("The client-connect link ID.") },
   async ({ clientConnectLinkId }) => {
     const res = await api("DELETE", `/api/client-connect-links/${clientConnectLinkId}`);

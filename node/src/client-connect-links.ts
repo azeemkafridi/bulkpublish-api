@@ -29,6 +29,10 @@ export const CLIENT_CONNECT_PLATFORMS = [
  * The raw connect URL is returned once, on create — it cannot be recovered
  * afterward (the server stores only its hash), so save it when you get it.
  *
+ * Pro and Business only: the single-seat plans (Free, Lifetime) have no
+ * client collaboration, and every method here answers 403 FEATURE_DISABLED
+ * with `plan` and `upgrade: true` for them.
+ *
  * @example
  * ```ts
  * const { clientConnectLink, url } = await bp.clientConnectLinks.create({ name: 'Acme Corp' });

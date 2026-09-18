@@ -17,6 +17,10 @@ export interface ReviewLink {
  * posts: hand a client one URL to review everything queued for them,
  * instead of one link per post.
  *
+ * Pro and Business only: the single-seat plans (Free, Lifetime) have no
+ * client collaboration, and every method here answers 403 FEATURE_DISABLED
+ * with `plan` and `upgrade: true` for them.
+ *
  * @example
  * ```ts
  * const { reviewLink, url } = await bp.reviewLinks.create({

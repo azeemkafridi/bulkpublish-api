@@ -7331,7 +7331,7 @@
           "Posts"
         ],
         "summary": "Create or get the post's review link",
-        "description": "Returns a read-only review link (https://app.bulkpublish.com/p/<token>) that anyone holding it can open without signing in. It shows the post's text, media, destinations and timing, always the current version. The first call creates the token (201); later calls return the same one (200). Body `{ \"regenerate\": true }` mints a new token and kills the old link. Posts expose the token as `shareToken` (null when no link exists). Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "Returns a read-only review link (https://app.bulkpublish.com/p/<token>) that anyone holding it can open without signing in. It shows the post's text, media, destinations and timing, always the current version. The first call creates the token (201); later calls return the same one (200). Body `{ \"regenerate\": true }` mints a new token and kills the old link. Posts expose the token as `shareToken` (null when no link exists). Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "parameters": [
           {
             "name": "id",
@@ -7386,7 +7386,7 @@
           "Posts"
         ],
         "summary": "Revoke the post's review link",
-        "description": "Idempotent. Returns { success: true, revoked } where revoked says whether a link existed. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "Idempotent. Returns { success: true, revoked } where revoked says whether a link existed. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "parameters": [
           {
             "name": "id",
@@ -7424,7 +7424,7 @@
           "Review Links"
         ],
         "summary": "List client review links",
-        "description": "Every review link in the organization, newest first, each with how many posts it covers. Returns { reviewLinks: [{ id, name, shareToken, createdAt, postCount, url }] }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
+        "description": "Every review link in the organization, newest first, each with how many posts it covers. Returns { reviewLinks: [{ id, name, shareToken, createdAt, postCount, url }] }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "responses": {
           "200": {
             "description": "Review links"
@@ -7447,7 +7447,7 @@
           "Review Links"
         ],
         "summary": "Create a client review link for a batch of posts",
-        "description": "Returns a read-only review link (https://app.bulkpublish.com/p/schedule/<token>) covering every post in `postIds` at once — the multi-post counterpart of POST /api/posts/{id}/share. Every id must belong to the caller's organization (404 otherwise). Unlike a single post's link, this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns 201 { reviewLink, url }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "Returns a read-only review link (https://app.bulkpublish.com/p/schedule/<token>) covering every post in `postIds` at once — the multi-post counterpart of POST /api/posts/{id}/share. Every id must belong to the caller's organization (404 otherwise). Unlike a single post's link, this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns 201 { reviewLink, url }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -7507,7 +7507,7 @@
           "Review Links"
         ],
         "summary": "Revoke a client review link",
-        "description": "The posts it covered are untouched — only the link stops working. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "The posts it covered are untouched — only the link stops working. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "parameters": [
           {
             "name": "id",
@@ -7545,7 +7545,7 @@
           "Client Connect Links"
         ],
         "summary": "List client connect links",
-        "description": "Every client-connect link in the organization, newest first. Returns { clientConnectLinks: [{ id, name, status, expiresAt, usedAt, connectedChannelId, connectedPlatform, createdAt }] }. `status` is 'pending' | 'used' | 'revoked' | 'expired' — a stale pending row reads as expired on the way out, without a background job. The raw token is never returned again after creation. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
+        "description": "Every client-connect link in the organization, newest first. Returns { clientConnectLinks: [{ id, name, status, expiresAt, usedAt, connectedChannelId, connectedPlatform, createdAt }] }. `status` is 'pending' | 'used' | 'revoked' | 'expired' — a stale pending row reads as expired on the way out, without a background job. The raw token is never returned again after creation. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "responses": {
           "200": {
             "description": "Client connect links"
@@ -7568,7 +7568,7 @@
           "Client Connect Links"
         ],
         "summary": "Create a client connect link",
-        "description": "Mints a one-time link (https://app.bulkpublish.com/connect/<token>) a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. Expires after 7 days and stops working the moment an account is connected through it — creating again always makes a new link, it does not extend or reuse an existing one. Only these platforms are supported (everything else needs a form of its own instead of a plain OAuth redirect, and is connected by your own team instead): instagram, x, tiktok, youtube, threads, pinterest, gmb, linkedin, reddit, discord, tumblr, snapchat. Returns 201 { clientConnectLink, url }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "Mints a one-time link (https://app.bulkpublish.com/connect/<token>) a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. Expires after 7 days and stops working the moment an account is connected through it — creating again always makes a new link, it does not extend or reuse an existing one. Only these platforms are supported (everything else needs a form of its own instead of a plain OAuth redirect, and is connected by your own team instead): instagram, x, tiktok, youtube, threads, pinterest, gmb, linkedin, reddit, discord, tumblr, snapchat. Returns 201 { clientConnectLink, url }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -7616,7 +7616,7 @@
           "Client Connect Links"
         ],
         "summary": "Revoke a client connect link",
-        "description": "Idempotent: a link that already used, expired, or was previously revoked just stays that way. A channel the link already connected is untouched. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "Idempotent: a link that already used, expired, or was previously revoked just stays that way. A channel the link already connected is untouched. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "parameters": [
           {
             "name": "id",

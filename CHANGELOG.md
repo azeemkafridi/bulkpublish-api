@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-18 — Client collaboration is a Pro/Business feature
+
+Node **1.36.0** · Python **0.36.0** · MCP **1.39.0**
+
+### Changed
+
+- **Client review links, per-post share links and client connect links now answer `403 FEATURE_DISABLED` on the Free and Lifetime plans.** Those plans have one seat and no client collaboration. The body carries `plan` and `upgrade: true` so a client can tell this apart from a feature that is still rolling out (which sends neither). Affected: `POST`/`DELETE /api/posts/{id}/share`, every `/api/review-links` operation, every `/api/client-connect-links` operation, and the MCP tools `share_post`, `unshare_post`, `list_review_links`, `create_review_link`, `delete_review_link`, `list_client_connect_links`, `create_client_connect_link`, `delete_client_connect_link`. Pro and Business are unchanged.
+
 ## 2026-09-17 — A fourth plan value: `ltd`
 
 Node **1.35.0** · Python **0.35.0** · MCP **1.38.0** (unchanged)

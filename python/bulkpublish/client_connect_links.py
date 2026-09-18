@@ -18,6 +18,10 @@ CLIENT_CONNECT_PLATFORMS = (
 class ClientConnectLinksResource:
     """Operations on client-connect links (``client.client_connect_links``).
 
+    Pro and Business only: the single-seat plans (Free, Lifetime) have no
+    client collaboration, and every method here raises the 403
+    ``FEATURE_DISABLED`` error (with ``plan`` and ``upgrade: true``) for them.
+
     One-time links a client opens, with no BulkPublish account of their own,
     to connect one of their platform accounts into your organization. The
     raw connect URL is returned once, on create, and cannot be recovered
