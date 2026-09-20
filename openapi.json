@@ -5764,7 +5764,7 @@
           "Utilities"
         ],
         "summary": "Generate an AI caption",
-        "description": "Generate, rephrase, improve, shorten, expand, or restyle a caption \u2014 or caption an image via vision (Cloudflare Workers AI). Consumes one AI run-unit (image = 2) from the plan's monthly allowance, then from purchased credits. Returns up to several variants plus a usage snapshot. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "Generate, rephrase, improve, shorten, expand or restyle a caption, apply your own instruction to a selected passage (action=custom), or caption an image. Consumes one AI run-unit (image = 2) from the plan's monthly allowance, then from purchased credits. Returns up to several variants plus a usage snapshot. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "requestBody": {
           "required": true,
           "content": {
@@ -5787,6 +5787,7 @@
                       "emojis",
                       "fix",
                       "tone",
+                      "custom",
                       "image"
                     ],
                     "description": "What to do."
@@ -5797,11 +5798,11 @@
                   },
                   "selection": {
                     "type": "string",
-                    "description": "Selected substring to act on (Wordtune-style)."
+                    "description": "Selected substring to act on (Wordtune-style). When present, every edit action \u2014 including custom \u2014 rewrites this rather than the whole of text, and text is passed along as the surrounding context."
                   },
                   "prompt": {
                     "type": "string",
-                    "description": "Topic/instruction. Required for action=generate."
+                    "description": "Topic or instruction. Required for action=generate (what the caption should be about) and for action=custom (what to do to the passage). Optional extra context for action=image. The fixed edit actions carry their own instruction and ignore it."
                   },
                   "platform": {
                     "type": "string",

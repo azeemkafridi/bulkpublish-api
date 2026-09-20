@@ -11413,7 +11413,7 @@
           "request": {
             "name": "Generate an AI caption",
             "description": {
-              "content": "Generate, rephrase, improve, shorten, expand, or restyle a caption \u2014 or caption an image via vision (Cloudflare Workers AI). Consumes one AI run-unit (image = 2) from the plan's monthly allowance, then from purchased credits. Returns up to several variants plus a usage snapshot. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+              "content": "Generate, rephrase, improve, shorten, expand or restyle a caption, apply your own instruction to a selected passage (action=custom), or caption an image. Consumes one AI run-unit (image = 2) from the plan's monthly allowance, then from purchased credits. Returns up to several variants plus a usage snapshot. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
               "type": "text/plain"
             },
             "url": {

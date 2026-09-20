@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-20 — Tell the AI what to do to a passage, not just what to write about
+
+Node **1.36.0** · Python **0.36.0** · MCP **1.39.0** (all unchanged — the caption endpoint has no SDK method)
+
+### Added
+
+- **`action: "custom"` on `POST /api/ai/caption`** — applies your own `prompt` as an instruction to the text, rather than as a topic to write about. With `selection` set it rewrites just that passage and passes `text` along as surrounding context; without one it acts on the whole of `text`. It returns a single result, where the open-ended actions return several.
+
+  This closes a gap that made one thing unexpressible: `generate` is the only other action that reads `prompt`, and it ignores `selection` entirely, so "rewrite this sentence to mention the discount" was read as a request for captions *about* that sentence. `prompt` is required (a few words minimum) and `custom` is refused with nothing to act on, like every other edit action.
+
+### Changed
+
+- The `prompt` and `selection` descriptions on that endpoint now say which actions read them. `prompt` had claimed to be "optional steering" everywhere; in fact the fixed edit actions have always carried their own instruction and ignored it.
+
 ## 2026-09-18 — Client collaboration is a Pro/Business feature
 
 Node **1.36.0** · Python **0.36.0** · MCP **1.39.0**
