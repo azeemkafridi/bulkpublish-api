@@ -4321,7 +4321,7 @@
           "Analytics"
         ],
         "summary": "Trigger metrics sync",
-        "description": "Queue a background job to fetch latest metrics from all platforms and invalidate analytics cache. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "Start a refresh of the latest metrics from all platforms; the updated figures appear shortly after. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "responses": {
           "200": {
             "description": "Queued"
@@ -5234,7 +5234,7 @@
           "Organizations"
         ],
         "summary": "Delete organization",
-        "description": "Owner only. Requires confirmation by sending the organization name in the request body. Permanently deletes the organization and all associated data (posts, media, channels, schedules, metrics). Cannot delete the user's last organization. Does NOT cancel Polar subscription.",
+        "description": "Owner only. Requires confirmation by sending the organization name in the request body. Permanently deletes the organization and all associated data (posts, media, channels, schedules, metrics). Cannot delete the user's last organization. Does NOT cancel the subscription.",
         "parameters": [
           {
             "name": "id",
@@ -5587,7 +5587,7 @@
         "description": "Current usage vs limits for all resource types on your plan.",
         "responses": {
           "200": {
-            "description": "Current usage vs limits for all resource types on your plan.\n\n`usage.scheduledToday` counts posts scheduled FOR the current day (excluding `draft` and `failed`) and pairs with `limits.scheduledPerDay` \u2014 distinct from `usage.pendingScheduled`, which is every pending scheduled post regardless of date and pairs with `limits.maxPendingScheduled`. `usage.postsToday` counts posts *created* today and pairs with `limits.postsPerDay`. `usage.mediaStorageMB` counts only files whose original is still stored: a file deleted after publishing keeps its library entry and its reported size, but no longer counts here.\n\nThe response also carries `channelSlots` \u2014 the org's purchased extra-channel add-on state: `{ active, slots: [{id, expiresAt, autoRenews}], baseChannelLimit, effectiveChannelLimit }`. Slots are granted by a seat-based Polar subscription at $2.99 per slot per month (seats = slot count, one subscription per organization). Each active slot raises the effective total channel limit by one and allows one channel above the per-platform cap (shared across platforms). A slot's `autoRenews` says whether it rolls forward with the subscription (`expiresAt` moves each cycle) or lapses at `expiresAt`; slots no connected channel is using are auto-canceled shortly before renewal, so the org is never billed for unused headroom. `effectiveChannelLimit` (base plan limit + active slots; `-1` stays `-1`) is what channel-connect quota checks actually enforce."
+            "description": "Current usage vs limits for all resource types on your plan.\n\n`usage.scheduledToday` counts posts scheduled FOR the current day (excluding `draft` and `failed`) and pairs with `limits.scheduledPerDay` \u2014 distinct from `usage.pendingScheduled`, which is every pending scheduled post regardless of date and pairs with `limits.maxPendingScheduled`. `usage.postsToday` counts posts *created* today and pairs with `limits.postsPerDay`. `usage.mediaStorageMB` counts only files whose original is still stored: a file deleted after publishing keeps its library entry and its reported size, but no longer counts here.\n\nThe response also carries `channelSlots` \u2014 the org's purchased extra-channel add-on state: `{ active, slots: [{id, expiresAt, autoRenews}], baseChannelLimit, effectiveChannelLimit }`. Slots are granted by a seat-based subscription at $2.99 per slot per month (seats = slot count, one subscription per organization). Each active slot raises the effective total channel limit by one and allows one channel above the per-platform cap (shared across platforms). A slot's `autoRenews` says whether it rolls forward with the subscription (`expiresAt` moves each cycle) or lapses at `expiresAt`; slots no connected channel is using are auto-canceled shortly before renewal, so the org is never billed for unused headroom. `effectiveChannelLimit` (base plan limit + active slots; `-1` stays `-1`) is what channel-connect quota checks actually enforce."
           }
         },
         "parameters": [
@@ -5657,7 +5657,7 @@
           "Utilities"
         ],
         "summary": "Create X credits checkout",
-        "description": "Create a Polar checkout session to top up X (Twitter) API credits. The user pays the chosen amount; the `onOrderPaid` webhook increments their credit balance 1:1. Requires the workspace owner; other roles get 403 FORBIDDEN.",
+        "description": "Create a checkout session to top up X (Twitter) API credits. The user pays the chosen amount; their credit balance increases 1:1 once the payment completes. Requires the workspace owner; other roles get 403 FORBIDDEN.",
         "requestBody": {
           "required": true,
           "content": {
@@ -5696,7 +5696,7 @@
           "Utilities"
         ],
         "summary": "Create AI credits checkout",
-        "description": "Create a Polar checkout session to top up AI caption credits. The user pays the chosen amount; the `onOrderPaid` webhook increments their credit balance 1:1 (1 cent = 1 AI run). Requires the workspace owner; other roles get 403 FORBIDDEN.",
+        "description": "Create a checkout session to top up AI caption credits. The user pays the chosen amount; their credit balance increases 1:1 once the payment completes (1 cent = 1 AI run). Requires the workspace owner; other roles get 403 FORBIDDEN.",
         "requestBody": {
           "required": true,
           "content": {
@@ -5735,7 +5735,7 @@
           "Utilities"
         ],
         "summary": "Add extra channel slots",
-        "description": "Purchase extra channel slots \u2014 a seat-based Polar subscription at $2.99 per slot per month (seats = slot count, one subscription per organization). Each active slot raises the organization's effective total channel limit by one and allows one channel above the per-platform cap (slots are generic and shared across platforms). Body: `{ count?: number }` \u2014 slots to add, default 1, clamped to 1..100. With no existing slot subscription this returns `{ url, checkoutId }` \u2014 redirect the user to `url` to subscribe. With an existing slot subscription the seats are increased server-side (prorated) and the response is `{ updated: true, seats }` with no redirect. Purchase is available on every plan, including Free; already-granted slots keep working on any tier until they lapse. Slots renew automatically with the subscription; shortly before each renewal, slots no connected channel is using are automatically canceled or reduced so the organization is never billed for unused headroom (an email explains how to keep them). When slots lapse (cancellation, refund, or payment failure) and the organization is left over its limit, the most recently connected excess channels are suspended (paused, tokens kept) after 7-day and 1-day warning emails. Channel-limit `403 QUOTA_EXCEEDED` errors on every plan include `addon: \"channel_slot\"` to signal this purchase as a remedy. Requires the workspace owner; other roles get 403 FORBIDDEN.",
+        "description": "Purchase extra channel slots \u2014 a seat-based subscription at $2.99 per slot per month (seats = slot count, one subscription per organization). Each active slot raises the organization's effective total channel limit by one and allows one channel above the per-platform cap (slots are generic and shared across platforms). Body: `{ count?: number }` \u2014 slots to add, default 1, clamped to 1..100. With no existing slot subscription this returns `{ url, checkoutId }` \u2014 redirect the user to `url` to subscribe. With an existing slot subscription the seats are increased server-side (prorated) and the response is `{ updated: true, seats }` with no redirect. Purchase is available on every plan, including Free; already-granted slots keep working on any tier until they lapse. Slots renew automatically with the subscription; shortly before each renewal, slots no connected channel is using are automatically canceled or reduced so the organization is never billed for unused headroom (an email explains how to keep them). When slots lapse (cancellation, refund, or payment failure) and the organization is left over its limit, the most recently connected excess channels are suspended (paused, tokens kept) after 7-day and 1-day warning emails. Channel-limit `403 QUOTA_EXCEEDED` errors on every plan include `addon: \"channel_slot\"` to signal this purchase as a remedy. Requires the workspace owner; other roles get 403 FORBIDDEN.",
         "responses": {
           "200": {
             "description": "New subscription: `{ url, checkoutId }` \u2014 redirect the user to `url` to pay. Existing subscription: `{ updated: true, seats }` \u2014 slots added by prorated seat increase, no redirect."
@@ -6926,7 +6926,7 @@
           "API Keys"
         ],
         "summary": "API usage history",
-        "description": "Returns daily API call counts for the last N days (default 30, max 90). Includes today's live count from Redis + historical data from DB.",
+        "description": "Returns daily API call counts for the last N days (default 30, max 90). Includes today's count so far alongside the previous days.",
         "parameters": [
           {
             "name": "days",
@@ -7546,7 +7546,7 @@
           "Client Connect Links"
         ],
         "summary": "List client connect links",
-        "description": "Every client-connect link in the organization, newest first. Returns { clientConnectLinks: [{ id, name, status, expiresAt, usedAt, connectedChannelId, connectedPlatform, createdAt }] }. `status` is 'pending' | 'used' | 'revoked' | 'expired' — a stale pending row reads as expired on the way out, without a background job. The raw token is never returned again after creation. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
+        "description": "Every client-connect link in the organization, newest first. Returns { clientConnectLinks: [{ id, name, status, expiresAt, usedAt, connectedChannelId, connectedPlatform, createdAt }] }. `status` is 'pending' | 'used' | 'revoked' | 'expired' — a stale pending row reads as expired on the way out. The raw token is never returned again after creation. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "responses": {
           "200": {
             "description": "Client connect links"

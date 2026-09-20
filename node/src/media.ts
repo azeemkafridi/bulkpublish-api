@@ -18,8 +18,8 @@ import type {
  *
  * Supports uploading images (JPEG, PNG, WebP, GIF) and videos (MP4, QuickTime, WebM)
  * up to 100 MB per single-request upload; larger videos (up to 1GB) can be sent in
- * chunks via {@link MediaResource.createMultipart}. Uploaded files are stored on
- * Cloudflare R2 and automatically generate thumbnails and preview variants.
+ * chunks via {@link MediaResource.createMultipart}. Uploaded files are stored in
+ * your media library and automatically generate thumbnails and preview variants.
  *
  * @example
  * ```typescript
@@ -125,8 +125,8 @@ export class MediaResource {
   }
 
   /**
-   * Delete a media file. The database record is removed immediately and the
-   * underlying R2 storage objects are cleaned up in the background.
+   * Delete a media file. The library entry is removed immediately and the
+   * stored file is cleaned up in the background.
    *
    * @param id - The media file ID.
    * @returns Confirmation with the deleted file ID.

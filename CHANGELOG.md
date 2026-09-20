@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-20 — Descriptions say what happens, not who provides it
+
+Node **1.36.1** · Python **0.36.0** (unchanged) · MCP **1.39.1**
+
+### Changed
+
+- **The payment processor is no longer named in the API reference.** `DELETE /api/organizations/{id}`, `GET /api/quotas/usage` and the three top-up/purchase endpoints described checkout in terms of the provider behind it; they now describe what the caller sees. Every figure, status code, field name and response shape is unchanged: a checkout still returns `{ url, checkoutId }`, extra channel slots are still a seat-based subscription at $2.99 per slot per month, and deleting an organization still does NOT cancel the subscription. The credit top-ups now say the balance rises 1:1 once the payment completes, instead of naming the webhook that does it.
+- **The same pass removed the remaining infrastructure detail from descriptions.** `GET /api/usage/history` no longer says where today's count comes from, the metrics refresh and client-connect endpoints no longer describe background work, and the Node media docs and two MCP upload tool descriptions no longer name the storage provider. Behaviour is untouched throughout — `create_media_upload` and `finalize_media_upload` take and return exactly what they did.
+
 ## 2026-09-20 — Tell the AI what to do to a passage, not just what to write about
 
 Node **1.36.0** · Python **0.36.0** · MCP **1.39.0** (all unchanged — the caption endpoint has no SDK method)
@@ -983,7 +992,7 @@ regeneration pending.
 - **`POST /api/quotas/channel-slots/checkout` is now a seat-based SUBSCRIPTION
   purchase** ($2.99 per slot per month), replacing the one-time 30-day slot.
   Body gains optional `{ count }` (default 1, clamped 1..20). With no existing
-  slot subscription the response is unchanged (`{ url, checkoutId }` → Polar
+  slot subscription the response is unchanged (`{ url, checkoutId }` → hosted
   checkout); with an existing one the server increases its seats (prorated) and
   returns `{ updated: true, seats }` with **no redirect** — clients must handle
   both shapes. New `400 SLOT_MAX_REACHED` at the 20-slot cap. Slots renew with
@@ -1023,7 +1032,7 @@ regeneration pending.
 
 ### Added
 
-- **`POST /api/quotas/channel-slots/checkout`** — creates a Polar checkout for
+- **`POST /api/quotas/channel-slots/checkout`** — creates a checkout for
   the Extra Channel Slot add-on (fixed price $2.99; no request body, unlike the
   PWYW credit checkouts). One purchase grants one slot valid 30 days: it raises
   the org's effective total channel limit by one and allows one channel above
@@ -1487,7 +1496,7 @@ The v2 SDKs (`@modelcontextprotocol/core`/`server`/`client`, all 2.0.0) implemen
 
 - MCP server is now hostable over **Streamable HTTP** — a multi-tenant remote endpoint (`https://mcp.bulkpublish.com/mcp`) alongside the stdio bin, so web hosts (claude.ai custom connectors, Smithery's gateway, ChatGPT Apps) can connect. Serves `/.well-known/mcp/server-card.json` (skip-scan metadata) and `/health`. Per-request API key via `?key=` / `Authorization` / config; unauthenticated `initialize`/`tools/list` so scans succeed.
 - **MCP Apps composer** (`compose_post`) and five read-only `view_*` widgets (`view_analytics`, `view_posts`, `view_channels`, `view_media`, `view_quota`) that render inline in MCP Apps hosts.
-- In-composer **media upload** for images and video (presigned direct-to-R2) via new tools `create_media_upload` + `finalize_media_upload`. The MCP server now exposes **37 tools**.
+- In-composer **media upload** for images and video (presigned direct upload) via new tools `create_media_upload` + `finalize_media_upload`. The MCP server now exposes **37 tools**.
 
 ## 1.1.0 (2026-05-21)
 

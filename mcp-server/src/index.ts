@@ -3238,7 +3238,7 @@ if (!HIDE_BILLING_TOOLS) {
 
   server.tool(
     "create_media_upload",
-    "Reserve a presigned R2 upload URL for a direct browser upload (used by the composer UI). For scripted uploads use upload_media instead.",
+    "Reserve a presigned upload URL for a direct browser upload (used by the composer UI). For scripted uploads use upload_media instead.",
     {
       contentType: z
         .string()
@@ -3256,7 +3256,7 @@ if (!HIDE_BILLING_TOOLS) {
 
   server.tool(
     "finalize_media_upload",
-    "Record an uploaded R2 object as a media file after the browser PUT (pairs with create_media_upload; used by the composer UI).",
+    "Record an uploaded file as a media file after the browser PUT (pairs with create_media_upload; used by the composer UI).",
     {
       r2Key: z.string().describe("The r2Key returned by create_media_upload."),
       fileName: z.string().describe("Original file name."),
