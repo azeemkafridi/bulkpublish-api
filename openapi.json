@@ -2951,6 +2951,26 @@
         "responses": {
           "200": {
             "description": "Bulk action completed"
+          },
+          "400": {
+            "description": "Invalid request (e.g. unparseable `scheduledAt`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role cannot edit posts (`FORBIDDEN`), or `reschedule` would exceed a scheduling limit (`QUOTA_EXCEEDED`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "operationId": "bulkCreatePosts",
@@ -2964,7 +2984,7 @@
             ]
           }
         ],
-        "description": "`retry` re-sends only platforms in status 'failed' that still have retry budget (retryCount < maxRetries), skips posts already mid-publish, and never touches 'unconfirmed' platforms (use the single retry endpoint with republish: true). `delete` skips posts that are 'publishing' or 'processing' and reports them in `skippedInProgress`. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN."
+        "description": "`retry` re-sends only platforms in status 'failed' that still have retry budget (retryCount < maxRetries), skips posts already mid-publish, and never touches 'unconfirmed' platforms (use the single retry endpoint with republish: true). `delete` skips posts that are 'publishing' or 'processing' and reports them in `skippedInProgress`. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. `reschedule` applies the same scheduling limits as creating a scheduled post: drafts it moves into the queue count against the pending-scheduled limit, and posts it moves onto a day count against that day's limit (counted in the posts' own timezone; posts already on that day are not counted twice). Over a limit, nothing is changed and it returns 403 QUOTA_EXCEEDED. An unparseable `scheduledAt` returns 400."
       }
     },
     "/api/posts/queue-slot": {
