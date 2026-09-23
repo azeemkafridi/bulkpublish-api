@@ -4376,7 +4376,7 @@
             "name": "from",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Start date (YYYY-MM-DD, default 30 days ago). Clamped to at most 30 days before the end date.",
+            "description": "**optional** \u2014 Start date (YYYY-MM-DD, default 30 days ago). Dates earlier than 30 days before today are raised to that date, whatever `to` is.",
             "schema": {
               "type": "string",
               "format": "date"
