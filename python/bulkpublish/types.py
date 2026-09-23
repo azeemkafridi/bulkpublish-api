@@ -74,8 +74,10 @@ class Post(TypedDict, total=False):
     ``approvalStatus`` is the team approval state, orthogonal to ``status``:
     one of ``none`` (default), ``pending``, ``approved``, ``rejected``.
     ``pending`` and ``rejected`` posts are skipped by the scheduler even when
-    scheduled and overdue; approving releases them (an overdue post publishes
-    immediately on approval). ``approvedBy``/``approvedAt`` are set when
+    scheduled and overdue; approving releases them. An overdue post publishes
+    immediately on approval only if its time passed less than 15 minutes ago;
+    later than that it is approved but returned to ``draft`` for a new time.
+    ``approvedBy``/``approvedAt`` are set when
     approved; ``rejectionReason`` when rejected.
 
     ``linkTrackingOverride`` is the per-post override for link tracking

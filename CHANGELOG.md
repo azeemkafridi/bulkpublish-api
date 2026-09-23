@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-23 — A late approval no longer publishes a stale post
+
+Node **1.36.2** · Python **0.36.1** · MCP **1.39.3**
+
+### Changed
+
+- **`POST /api/posts/{id}/approve` publishes an overdue post only if its scheduled time passed less than 15 minutes ago.** It used to publish immediately however late the approval came, so a post meant for 9am and approved at 4pm went out at 4pm. Past the 15-minute window the post is still approved, but it is not published: it comes back with `status` `"draft"` (`approvalStatus` `"approved"`, `scheduledAt` unchanged) and the author is notified in-app to choose a new time. Check the returned `status` after approving: `"draft"` means it needs rescheduling. Posts whose time has not yet come are unchanged and publish at their scheduled time.
+- **Approve and reject return `409 CONFLICT`** when the post stopped awaiting approval while the request was in flight (a teammate approved or rejected it first, or the author withdrew it). Nothing is changed and no one is notified; reload the post and review again. The Python SDK raises `ConflictError`.
+- **`POST /api/organizations/leave` now describes everything it hands over.** Leaving a workspace reassigns everything you created there to the owner (posts, connected channels, repeat posts, RSS feeds, media, labels, channel sets, templates and similar), unassigns posts and conversations assigned to you, and revokes pending client connect links you created. The reference said only posts moved. openapi.json only; no SDK method or MCP tool covers this endpoint.
+- Updated: openapi.json + Postman collection (new 409 examples on both requests), Node `posts.approve()` / `posts.reject()` JSDoc and the `PostApprovalStatus` doc, Python `posts.approve()` / `posts.reject()` docstrings and the `Post` doc, MCP `approve_post` / `reject_post` descriptions, the scheduling guide and the `schedule-post` skill.
+
 ## 2026-09-23 — MCP server refuses plain-http redirect addresses
 
 Node **1.36.1** · Python **0.36.0** (unchanged) · MCP **1.39.2**

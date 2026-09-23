@@ -494,19 +494,27 @@ class PostsResource:
 
         Requires a role with post:approve (owner, admin, approver). Releases a
         post with ``approvalStatus`` ``"pending"``: it publishes at its
-        scheduled time, or immediately if that time has already passed. The
-        author is notified in-app.
+        scheduled time, or immediately if that time passed less than 15
+        minutes ago. If the scheduled time passed more than 15 minutes ago,
+        the post is approved but not published: it comes back with
+        ``status`` ``"draft"`` (``approvalStatus`` ``"approved"``,
+        ``scheduledAt`` unchanged) and the author is notified to choose a new
+        time. The author is notified in-app either way.
 
         Args:
             post_id: The post's unique identifier.
 
         Returns:
-            The approved post object.
+            The approved post object. A ``status`` of ``"draft"`` means it was
+            approved too late to publish and needs a new time.
 
         Raises:
             ValidationError: If the post is not awaiting approval (400).
             PermissionError: If the role lacks post:approve (403).
             NotFoundError: If the post does not exist (404).
+            ConflictError: If the post stopped awaiting approval while the
+                request was in flight (approved, rejected or withdrawn by
+                someone else) (409). Reload it and review again.
 
         Example::
 
@@ -535,6 +543,8 @@ class PostsResource:
             ValidationError: If the post is not awaiting approval (400).
             PermissionError: If the role lacks post:approve (403).
             NotFoundError: If the post does not exist (404).
+            ConflictError: If the post stopped awaiting approval while the
+                request was in flight (409). Reload it and review again.
 
         Example::
 

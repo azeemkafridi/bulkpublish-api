@@ -222,14 +222,20 @@ export class PostsResource {
   /**
    * Approve a pending post. Requires a role with post:approve (owner, admin,
    * approver). Releases a post with approvalStatus 'pending': it publishes at
-   * its scheduled time, or immediately if that time has already passed. The
-   * author is notified in-app.
+   * its scheduled time, or immediately if that time passed less than 15
+   * minutes ago. If the scheduled time passed more than 15 minutes ago, the
+   * post is approved but not published: it comes back with status 'draft'
+   * (approvalStatus 'approved', scheduledAt unchanged) and the author is
+   * notified to choose a new time. The author is notified in-app either way.
    *
    * Errors: 400 if the post is not awaiting approval, 403 if the role lacks
-   * post:approve, 404 if not found.
+   * post:approve, 404 if not found, 409 CONFLICT if the post stopped awaiting
+   * approval while the request was in flight (approved, rejected or withdrawn
+   * by someone else) — reload it and review again.
    *
    * @param id - The post ID.
-   * @returns The approved post.
+   * @returns The approved post. Check `status`: 'draft' means it was approved
+   *   too late to publish and needs a new time.
    *
    * @example
    * ```typescript
@@ -248,7 +254,8 @@ export class PostsResource {
    * is notified and can edit + reschedule to resubmit for approval.
    *
    * Errors: 400 if the post is not awaiting approval, 403 if the role lacks
-   * post:approve, 404 if not found.
+   * post:approve, 404 if not found, 409 CONFLICT if the post stopped awaiting
+   * approval while the request was in flight — reload it and review again.
    *
    * @param id - The post ID.
    * @param params - Optional `{ reason }` (max 2000 chars), shown to the author.

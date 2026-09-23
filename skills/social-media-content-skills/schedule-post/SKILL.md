@@ -82,13 +82,21 @@ Every post object returned by the API also carries the read-only approval fields
 - **Approving** — `approve_post` (postId), i.e. `POST /api/posts/{id}/approve`,
   no body. Requires a role with `post:approve` (owner, admin, approver).
   Releases the post: it publishes at its scheduled time, or immediately if that
-  time has already passed. The author is notified in-app.
+  time passed less than 15 minutes ago. If it passed more than 15 minutes ago,
+  the post is approved but NOT published: it comes back with `status` `"draft"`
+  (`approvalStatus` `"approved"`, `scheduledAt` unchanged) and the author is
+  notified to choose a new time. Check the returned `status` and tell the user
+  it needs rescheduling rather than saying it went out. The author is notified
+  in-app either way.
 - **Rejecting** — `reject_post` (postId, optional `reason` max 2000 chars), i.e.
   `POST /api/posts/{id}/reject`. The post returns to draft with `approvalStatus`
   `"rejected"` and the reason; the author is notified and can edit + reschedule
   to resubmit for approval.
 - Both return the post on 200; **400** if the post is not awaiting approval,
-  **403** if the role lacks `post:approve`, **404** if not found.
+  **403** if the role lacks `post:approve`, **404** if not found, **409** if the
+  post stopped awaiting approval while the request was in flight (approved,
+  rejected or withdrawn by someone else) — reload it with `get_post` and review
+  again.
 - **`APPROVAL_REQUIRED`** — `publish_post` and `retry_post` return **403** with
   error code `APPROVAL_REQUIRED` for roles without `post:publish`. Do not retry:
   create/update the post with `requestApproval: true` and tell the user a

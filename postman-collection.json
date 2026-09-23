@@ -1207,7 +1207,7 @@
           "request": {
             "name": "Approve pending post",
             "description": {
-              "content": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time has already passed. The author is notified in-app.",
+              "content": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. If the scheduled time passed more than 15 minutes ago, the post is approved but not published: it comes back with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time. The author is notified in-app either way.",
               "type": "text/plain"
             },
             "url": {
@@ -1329,6 +1329,53 @@
               },
               "status": "Bad Request",
               "code": 400,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "ef16b201-0b6a-405f-9c3e-e745c65311b6",
+              "name": "The post stopped awaiting approval while the request was in flight (approved, rejected or withdrawn by someone else). Reload it and review again.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "posts",
+                    ":id",
+                    "approve"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {}
+              },
+              "status": "Conflict",
+              "code": 409,
               "header": [],
               "cookie": [],
               "_postman_previewlanguage": "text"
@@ -1580,6 +1627,56 @@
               },
               "status": "Bad Request",
               "code": 400,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            },
+            {
+              "id": "326b9bc5-7ac7-4d5b-aa39-89984ebda79f",
+              "name": "The post stopped awaiting approval while the request was in flight (approved, rejected or withdrawn by someone else). Reload it and review again.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "posts",
+                    ":id",
+                    "reject"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"<string>\"\n}"
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
               "header": [],
               "cookie": [],
               "_postman_previewlanguage": "text"

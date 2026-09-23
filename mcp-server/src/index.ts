@@ -723,8 +723,8 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   // ---- Publishing: reaches public platforms, cannot be undone here --------
   publish_post: { title: "Publish post now", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/publish. Sends the post to the connected public platforms immediately; a live post cannot be recalled from BulkPublish, so destructive. Not idempotent: the server refuses to re-publish a live post, but a retry after a lost response can duplicate it." },
   retry_post: { title: "Retry failed post", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/retry. Re-sends to the platforms that failed; with republish=true it can also re-send 'unconfirmed' platforms and create a duplicate. Same reasoning as publish_post." },
-  approve_post: { title: "Approve pending post", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "POST /api/posts/{id}/approve. Releases a post held for team approval so it publishes at its scheduled time (or now) to public platforms. Approving twice is a no-op." },
-  reject_post: { title: "Reject pending post", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false, why: "POST /api/posts/{id}/reject. Returns the post to draft with a reason; nothing is published, nothing is deleted, and it can be resubmitted. Rejecting twice is a no-op." },
+  approve_post: { title: "Approve pending post", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "POST /api/posts/{id}/approve. Releases a post held for team approval so it publishes at its scheduled time (or now, if that time passed less than 15 minutes ago) to public platforms. Approving twice changes nothing: the second call is refused." },
+  reject_post: { title: "Reject pending post", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false, why: "POST /api/posts/{id}/reject. Returns the post to draft with a reason; nothing is published, nothing is deleted, and it can be resubmitted. Rejecting twice changes nothing: the second call is refused." },
   publish_story: { title: "Publish story", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/story. Publishes an Instagram/Facebook story immediately; cannot be recalled from here, and each call posts another story." },
   bulk_posts: { title: "Bulk post actions", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/bulk with action delete | retry | reschedule over many posts. 'delete' removes posts permanently and 'retry' re-publishes to public platforms, so the tool's widest reach is destructive and open-world. Not idempotent because 'retry' can duplicate." },
   // ---- Deletes / revokes ---------------------------------------------------
@@ -1352,8 +1352,9 @@ server.tool(
 server.tool(
   "approve_post",
   "Approve a post awaiting team approval. Requires a role with post:approve (owner, admin, approver). " +
-    "Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time has already passed. The author is notified in-app. " +
-    "Errors: 400 if the post is not awaiting approval, 403 if the role lacks post:approve, 404 if not found.",
+    "Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. " +
+    "If the scheduled time passed more than 15 minutes ago, the post is approved but not published: it comes back with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time — tell the user it needs rescheduling. The author is notified in-app either way. " +
+    "Errors: 400 if the post is not awaiting approval, 403 if the role lacks post:approve, 404 if not found, 409 if the post stopped awaiting approval while the request was in flight (approved, rejected or withdrawn by someone else) — reload it with get_post and review again.",
   {
     postId: z.number().describe("The post ID to approve."),
   },
@@ -1371,7 +1372,7 @@ server.tool(
   "reject_post",
   "Reject a post awaiting team approval. Requires a role with post:approve. " +
     "The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval. " +
-    "Errors: 400 if the post is not awaiting approval, 403 if the role lacks post:approve, 404 if not found.",
+    "Errors: 400 if the post is not awaiting approval, 403 if the role lacks post:approve, 404 if not found, 409 if the post stopped awaiting approval while the request was in flight (approved, rejected or withdrawn by someone else) — reload it with get_post and review again.",
   {
     postId: z.number().describe("The post ID to reject."),
     reason: z

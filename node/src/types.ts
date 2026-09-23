@@ -118,8 +118,9 @@ export type PostStatus =
 /**
  * Team approval state of a post, orthogonal to {@link PostStatus}.
  * 'pending' and 'rejected' posts are skipped by the scheduler even when
- * scheduled and overdue; approving releases them (an overdue post publishes
- * immediately on approval).
+ * scheduled and overdue; approving releases them. An overdue post publishes
+ * immediately on approval only if its time passed less than 15 minutes ago;
+ * later than that it is approved but returned to 'draft' for a new time.
  */
 export type PostApprovalStatus = 'none' | 'pending' | 'approved' | 'rejected';
 

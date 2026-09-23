@@ -103,10 +103,10 @@ Posts carry an `approvalStatus` (`none` (default) | `pending` | `approved` | `re
 
 - **Requesting approval** — pass `"requestApproval": true` on `POST /api/posts` or `PUT /api/posts/:id` to hold a scheduled post for team approval (`approvalStatus` becomes `"pending"`). For API keys belonging to members whose role lacks `post:publish` (contributors), this is **forced server-side** regardless of the flag — their scheduled posts always land in the approval queue. Those keys also get `403 APPROVAL_REQUIRED` from `POST /api/posts/:id/publish`.
 - **The approval queue** — `GET /api/posts?approvalStatus=pending`.
-- **Approving** — `POST /api/posts/:id/approve` (requires a role with `post:approve`: owner, admin, approver). Releases the post: it publishes at its scheduled time, or immediately if that time has already passed. Publishing a pending/rejected post as an approver implicitly approves it.
+- **Approving** — `POST /api/posts/:id/approve` (requires a role with `post:approve`: owner, admin, approver). Releases the post: it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. If the scheduled time passed more than 15 minutes ago, the post is approved but not published: it comes back with `status` `"draft"` (`approvalStatus` `"approved"`, `scheduledAt` unchanged) and the author is notified to choose a new time. Publishing a pending/rejected post as an approver implicitly approves it.
 - **Rejecting** — `POST /api/posts/:id/reject` with an optional JSON body `{ "reason": "..." }` (max 2000 chars). The post returns to draft with `approvalStatus` `"rejected"` and the reason; the author is notified and can edit + reschedule to resubmit.
 
-Both endpoints return the post on 200, `400` if the post is not awaiting approval, `403` if the role lacks `post:approve`, and `404` if not found.
+Both endpoints return the post on 200, `400` if the post is not awaiting approval, `403` if the role lacks `post:approve`, `404` if not found, and `409` if the post stopped awaiting approval while the request was in flight (approved, rejected or withdrawn by someone else) — reload it and review again.
 
 ### Gating automated sources
 

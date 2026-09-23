@@ -183,7 +183,7 @@
               "rejected"
             ],
             "default": "none",
-            "description": "Team approval state, orthogonal to status. 'pending' and 'rejected' posts are skipped by the scheduler even when scheduled and overdue; approving via POST /api/posts/{id}/approve releases them (an overdue post publishes immediately on approval). Members whose role lacks post:publish (contributors) always get 'pending' when scheduling; others can opt in with requestApproval."
+            "description": "Team approval state, orthogonal to status. 'pending' and 'rejected' posts are skipped by the scheduler even when scheduled and overdue; approving via POST /api/posts/{id}/approve releases them (an overdue post publishes immediately on approval only if its time passed less than 15 minutes ago; later than that it is approved but returned to draft for the author to reschedule). Members whose role lacks post:publish (contributors) always get 'pending' when scheduling; others can opt in with requestApproval."
           },
           "approvedBy": {
             "type": [
@@ -5362,7 +5362,7 @@
           "Organizations"
         ],
         "summary": "Leave an organization",
-        "description": "Remove yourself from an organization you're a member of. The owner cannot leave (delete the organization instead). Your posts are reassigned to the owner.",
+        "description": "Remove yourself from an organization you're a member of. The owner cannot leave (delete the organization instead). Everything you created in the workspace (posts, connected channels, repeat posts, RSS feeds, media, labels, channel sets, templates and similar) is reassigned to the owner, posts and conversations assigned to you become unassigned, and pending client connect links you created are revoked.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -6708,7 +6708,7 @@
           }
         ],
         "summary": "Approve a pending post",
-        "description": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time has already passed. The author is notified in-app.",
+        "description": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. If the scheduled time passed more than 15 minutes ago, the post is approved but not published: it comes back with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time. The author is notified in-app either way.",
         "operationId": "approvePost",
         "responses": {
           "200": {
@@ -6723,6 +6723,9 @@
           },
           "400": {
             "description": "Post is not awaiting approval"
+          },
+          "409": {
+            "description": "The post stopped awaiting approval while the request was in flight (approved, rejected or withdrawn by someone else). Reload it and review again."
           },
           "403": {
             "description": "Role lacks post:approve"
@@ -6791,6 +6794,9 @@
           },
           "400": {
             "description": "Post is not awaiting approval"
+          },
+          "409": {
+            "description": "The post stopped awaiting approval while the request was in flight (approved, rejected or withdrawn by someone else). Reload it and review again."
           },
           "403": {
             "description": "Role lacks post:approve"
