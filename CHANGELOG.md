@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-23 — MCP server refuses plain-http redirect addresses
+
+Node **1.36.1** · Python **0.36.0** (unchanged) · MCP **1.39.2**
+
+### Security
+
+- **App registration on the hosted MCP server now refuses a plain `http://` redirect address** unless it is a loopback one (`localhost`, `127.0.0.1`, `[::1]`). `https://` addresses and app schemes such as `cursor://` or `vscode://` are accepted as before. A refused registration returns 400 `invalid_client_metadata`. An app registered earlier with a non-loopback `http://` address can no longer complete sign-in and needs to register again with an `https://` address.
+
 ## 2026-09-23 — Bulk reschedule states its limits
 
 Node **1.36.1** · Python **0.36.0** · MCP **1.39.1** (all unchanged — response codes only)

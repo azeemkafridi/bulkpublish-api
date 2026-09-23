@@ -20,6 +20,7 @@ import {
   scryptSync,
 } from "node:crypto";
 import type { Request, Response } from "express";
+import { InvalidClientMetadataError } from "@modelcontextprotocol/sdk/server/auth/errors.js";
 import type {
   OAuthServerProvider,
   AuthorizationParams,
@@ -120,6 +121,30 @@ async function isValidApiKey(apiKey: string): Promise<boolean> {
   }
 }
 
+/**
+ * OAuth 2.1 redirect rule: https, a loopback http address (desktop and CLI
+ * clients listen on 127.0.0.1), or a private-use app scheme (cursor://,
+ * vscode://). A plain http:// address on any other host sends the code over
+ * the network in the clear, so it is refused. The SDK's own schema only
+ * rejects javascript:/data:/vbscript:.
+ */
+export function isAllowedRedirectUri(raw: string): boolean {
+  let u: URL;
+  try {
+    u = new URL(raw);
+  } catch {
+    return false;
+  }
+  if (u.protocol === "https:") return true;
+  if (u.protocol === "http:") {
+    const host = u.hostname.replace(/^\[|\]$/g, "");
+    return host === "localhost" || host === "127.0.0.1" || host === "::1";
+  }
+  // Private-use app schemes are handed to a local app, not sent anywhere.
+  // Anything that is a transport or can run content is not one.
+  return !["ftp:", "ws:", "wss:", "file:", "blob:", "javascript:", "data:", "vbscript:"].includes(u.protocol);
+}
+
 // --- stateless clients store (client_id IS a sealed blob) -------------------
 const clientsStore: OAuthRegisteredClientsStore = {
   async getClient(clientId) {
@@ -147,6 +172,12 @@ const clientsStore: OAuthRegisteredClientsStore = {
     } as OAuthClientInformationFull;
   },
   async registerClient(client) {
+    const bad = (client.redirect_uris ?? []).find((u) => !isAllowedRedirectUri(String(u)));
+    if (bad !== undefined) {
+      throw new InvalidClientMetadataError(
+        `redirect_uri ${bad} is not allowed: use https, a loopback http address, or an app scheme`
+      );
+    }
     // Ignore any handler-generated id; encode the client into a sealed id so we
     // need no storage and it survives restarts.
     const client_id = seal(
@@ -420,7 +451,9 @@ export async function handleConsent(req: Request, res: Response): Promise<void> 
 
   const client = await clientsStore.getClient(clientId);
   // Prevent open redirects: redirect_uri must belong to the registered client.
-  if (!client || !client.redirect_uris.includes(redirectUri)) {
+  // Also re-checks the scheme: client ids are sealed blobs that outlive a
+  // deploy, so one registered before the https rule would otherwise still work.
+  if (!client || !client.redirect_uris.includes(redirectUri) || !isAllowedRedirectUri(redirectUri)) {
     res.status(400).send("Invalid client or redirect_uri.");
     return;
   }
