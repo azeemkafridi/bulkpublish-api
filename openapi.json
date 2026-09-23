@@ -2007,7 +2007,7 @@
             "description": "Post created"
           },
           "400": {
-            "description": "Validation error (character limit, missing fields)",
+            "description": "Validation error (character limit, missing fields), or `CHANNEL_INACTIVE` when a scheduled or publish-now post names a disconnected channel (`error.channelIds` lists them; drafts may still name one)",
             "content": {
               "application/json": {
                 "schema": {
