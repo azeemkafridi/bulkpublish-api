@@ -14,6 +14,7 @@ Node **1.36.1** · Python **0.36.0** · MCP **1.39.1** (all unchanged — respon
 
 ### Changed
 
+- **`GET /api/posts/queue-slot` documents its errors.** An unknown `timezone` now returns **400 `VALIDATION_ERROR`** (it used to come back as 422 `QUEUE_FULL`); **422 `QUEUE_FULL`** means only that no slot is free, and is now listed.
 - **`POST /api/posts` refuses a disconnected channel on a scheduled or publish-now post** with **400 `CHANNEL_INACTIVE`**; `error.channelIds` lists the ones to reconnect or remove. Such a post used to be accepted and then fail at its scheduled time. Drafts may still name a disconnected channel.
 - **`GET /api/analytics/account` `from` was described wrongly.** It is raised to 30 days before *today*, not 30 days before `to`; the reference and Postman collection now say so. Behaviour is unchanged.
 - **`POST /api/posts/bulk` with `action: "reschedule"` now applies the scheduling limits** that creating a scheduled post already did. Drafts it moves into the queue count against the pending-scheduled limit, and posts it moves onto a day count against that day's limit (in the posts' own timezone; posts already on that day are not counted twice). Over a limit nothing changes and the call returns **403 `QUOTA_EXCEEDED`**; an unparseable `scheduledAt` returns **400**. Both responses are now in the reference. `delete` and `retry` are unchanged.

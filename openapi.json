@@ -3031,6 +3031,26 @@
         "responses": {
           "200": {
             "description": "Next available queue slot"
+          },
+          "400": {
+            "description": "`timezone` is not an IANA timezone name, or `position`/`excludePostId` is invalid (`VALIDATION_ERROR`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "No open slot in the queue window (`QUEUE_FULL`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "operationId": "getQueueSlot",
