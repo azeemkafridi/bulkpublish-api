@@ -209,7 +209,7 @@
           "publishWhenApproved": {
             "type": "boolean",
             "default": false,
-            "description": "True when the author asked for the post to go out as soon as it is approved, even if that is after its scheduled time. Only ever true while approvalStatus is 'pending' (it is kept as it was once the post is approved). Decides what POST /api/posts/{id}/approve does when it arrives more than 15 minutes late and no whenLate is sent."
+            "description": "True when the author asked for the post to go out as soon as it is approved, even if that is after its scheduled time. Only ever true while approvalStatus is 'pending': approving or rejecting the post sets it to false, and so does any change that takes the post out of 'pending'. When a post enters review again it starts from false unless the request sets it. Decides what POST /api/posts/{id}/approve does when it arrives more than 15 minutes late and no whenLate is sent."
           },
           "threadParts": {
             "type": [
@@ -2201,7 +2201,7 @@
                   },
                   "publishWhenApproved": {
                     "type": "boolean",
-                    "description": "Optional. See POST /api/posts. An explicit value is stored while the post waits for approval. When omitted, it is kept, except that giving the post a different scheduledAt clears it to false (a picked time is not \"as soon as possible\"), and it is always false once the post no longer has approvalStatus 'pending'. Must be a boolean (400 VALIDATION_ERROR otherwise)."
+                    "description": "Optional. See POST /api/posts. An explicit value is stored while the post waits for approval. When omitted, it is kept, except that giving the post a different scheduledAt clears it to false (a picked time is not \"as soon as possible\"), and it is always false once the post no longer has approvalStatus 'pending' (approving or rejecting it clears it too). When an approved post goes back for review, it starts from false unless this request sets it. Must be a boolean (400 VALIDATION_ERROR otherwise)."
                   },
                   "linkTrackingOverride": {
                     "type": [
@@ -6748,7 +6748,7 @@
           }
         ],
         "summary": "Approve a pending post",
-        "description": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. If the scheduled time passed more than 15 minutes ago, the optional body field whenLate decides: 'publish' publishes it immediately (the response has status 'publishing'); 'hold' approves it but does not publish it: it comes back with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time. When whenLate is omitted it follows the post's publishWhenApproved: true means 'publish', false means 'hold'. whenLate has no effect on a post whose time is still ahead or passed less than 15 minutes ago. The author is notified in-app either way. The body is optional; an empty body behaves like {}.",
+        "description": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. If the scheduled time passed more than 15 minutes ago, the optional body field whenLate decides: 'publish' publishes it immediately (the response has status 'publishing'); 'hold' approves it but does not publish it: it comes back with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time. When whenLate is omitted it follows the post's publishWhenApproved: true means 'publish', false means 'hold'. whenLate has no effect on a post whose time is still ahead or passed less than 15 minutes ago. The author is notified in-app either way. The body is optional; an empty body behaves like {}. Approving sets publishWhenApproved to false. Send ifUnmodifiedSince to make sure you approve the version you reviewed.",
           "requestBody": {
             "required": false,
             "content": {
@@ -6763,6 +6763,11 @@
                         "hold"
                       ],
                       "description": "What to do if the post's scheduled time passed more than 15 minutes ago: 'publish' = publish now, 'hold' = approve and return it to draft for the author to pick a new time. Defaults to 'publish' when the post's publishWhenApproved is true, otherwise 'hold'. Any other value is rejected with 400 VALIDATION_ERROR."
+                    },
+                    "ifUnmodifiedSince": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Optional. The post's updatedAt as you last loaded it. When sent, the post is approved only if it has not changed since; otherwise nothing is written and you get 409 CONFLICT with the current updatedAt in error.updatedAt, so you never approve (and publish) an edit you have not seen. Must be an ISO 8601 timestamp (400 VALIDATION_ERROR otherwise). Omit it to approve whatever version is current."
                     }
                   }
                 }
@@ -6782,10 +6787,10 @@
             }
           },
           "400": {
-            "description": "Post is not awaiting approval, or whenLate is not 'publish' or 'hold'"
+            "description": "Post is not awaiting approval, whenLate is not 'publish' or 'hold', or ifUnmodifiedSince is not an ISO 8601 timestamp"
           },
           "409": {
-            "description": "The post changed while you were reviewing it: someone else approved, rejected or withdrew it, or its scheduled time moved. Reload it and review again."
+            "description": "The post changed since you loaded it (only checked when ifUnmodifiedSince is sent; error.updatedAt then carries the current value), or it is no longer awaiting approval because someone else approved, rejected or withdrew it first. Nothing was written. Reload it and review again."
           },
           "403": {
             "description": "Role lacks post:approve"
@@ -6822,7 +6827,7 @@
           }
         ],
         "summary": "Reject a pending post",
-        "description": "Requires a role with post:approve. The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval.",
+        "description": "Requires a role with post:approve. The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval. Rejecting sets publishWhenApproved to false. Send ifUnmodifiedSince to make sure you reject the version you reviewed.",
         "operationId": "rejectPost",
         "requestBody": {
           "required": false,
@@ -6835,6 +6840,11 @@
                     "type": "string",
                     "maxLength": 2000,
                     "description": "Optional. Shown to the author (in-app notification + on the post)."
+                  },
+                  "ifUnmodifiedSince": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Optional. The post's updatedAt as you last loaded it. When sent, the post is rejected only if it has not changed since; otherwise nothing is written and you get 409 CONFLICT with the current updatedAt in error.updatedAt. Must be an ISO 8601 timestamp (400 VALIDATION_ERROR otherwise). Omit it to reject whatever version is current."
                   }
                 }
               }
@@ -6853,10 +6863,10 @@
             }
           },
           "400": {
-            "description": "Post is not awaiting approval"
+            "description": "Post is not awaiting approval, or ifUnmodifiedSince is not an ISO 8601 timestamp"
           },
           "409": {
-            "description": "The post changed while you were reviewing it: someone else approved, rejected or withdrew it, or its scheduled time moved. Reload it and review again."
+            "description": "The post changed since you loaded it (only checked when ifUnmodifiedSince is sent; error.updatedAt then carries the current value), or it is no longer awaiting approval because someone else approved, rejected or withdrew it first. Nothing was written. Reload it and review again."
           },
           "403": {
             "description": "Role lacks post:approve"

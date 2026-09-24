@@ -1363,7 +1363,8 @@ server.tool(
     "Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. " +
     "If the scheduled time passed more than 15 minutes ago, whenLate decides: 'publish' publishes it immediately (status 'publishing'); 'hold' approves it but returns it with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time — tell the user it needs rescheduling. " +
     "When whenLate is omitted it follows the post's publishWhenApproved: true means 'publish', false means 'hold'. If a late post's publishWhenApproved is false, ask the user whether to publish now or send it back before approving. The author is notified in-app either way. " +
-    "Errors: 400 if the post is not awaiting approval or whenLate is not 'publish'/'hold', 403 if the role lacks post:approve, 404 if not found, 409 if the post changed while you were reviewing it (someone else approved, rejected or withdrew it, or its scheduled time moved) — reload it with get_post and review again.",
+    "Approving sets publishWhenApproved to false. Pass the updatedAt of the version you showed the user as ifUnmodifiedSince, so an edit made since then is not approved unseen. " +
+    "Errors: 400 if the post is not awaiting approval, whenLate is not 'publish'/'hold' or ifUnmodifiedSince is not a timestamp, 403 if the role lacks post:approve, 404 if not found, 409 if the post changed since you loaded it (checked when ifUnmodifiedSince is sent) or is no longer awaiting approval — reload it with get_post and review again.",
   {
     postId: z.number().describe("The post ID to approve."),
     whenLate: z
@@ -1372,12 +1373,21 @@ server.tool(
       .describe(
         "Optional. Only matters when the post's scheduled time passed more than 15 minutes ago: 'publish' = publish now, 'hold' = approve and return it to draft for the author to pick a new time. Defaults to 'publish' when the post's publishWhenApproved is true, otherwise 'hold'."
       ),
+    ifUnmodifiedSince: z
+      .string()
+      .optional()
+      .describe(
+        "Optional. The post's updatedAt (ISO 8601) as you last loaded it with get_post. The approval only lands on that version; if the post changed since, nothing is written and the call returns 409."
+      ),
   },
-  async ({ postId, whenLate }) => {
+  async ({ postId, whenLate, ifUnmodifiedSince }) => {
+    const body: Record<string, unknown> = {};
+    if (whenLate !== undefined) body.whenLate = whenLate;
+    if (ifUnmodifiedSince !== undefined) body.ifUnmodifiedSince = ifUnmodifiedSince;
     const res = await api(
       "POST",
       `/api/posts/${postId}/approve`,
-      whenLate !== undefined ? { whenLate } : undefined
+      Object.keys(body).length > 0 ? body : undefined
     );
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
@@ -1391,7 +1401,8 @@ server.tool(
   "reject_post",
   "Reject a post awaiting team approval. Requires a role with post:approve. " +
     "The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval. " +
-    "Errors: 400 if the post is not awaiting approval, 403 if the role lacks post:approve, 404 if not found, 409 if the post changed while you were reviewing it (someone else approved, rejected or withdrew it) — reload it with get_post and review again.",
+    "Rejecting sets publishWhenApproved to false. Pass the updatedAt you reviewed as ifUnmodifiedSince to refuse the rejection if the post changed since. " +
+    "Errors: 400 if the post is not awaiting approval or ifUnmodifiedSince is not a timestamp, 403 if the role lacks post:approve, 404 if not found, 409 if the post changed since you loaded it (checked when ifUnmodifiedSince is sent) or is no longer awaiting approval — reload it with get_post and review again.",
   {
     postId: z.number().describe("The post ID to reject."),
     reason: z
@@ -1399,10 +1410,17 @@ server.tool(
       .max(2000)
       .optional()
       .describe("Optional reason (max 2000 chars). Shown to the author (in-app notification + on the post)."),
+    ifUnmodifiedSince: z
+      .string()
+      .optional()
+      .describe(
+        "Optional. The post's updatedAt (ISO 8601) as you last loaded it with get_post. If the post changed since, nothing is written and the call returns 409."
+      ),
   },
-  async ({ postId, reason }) => {
+  async ({ postId, reason, ifUnmodifiedSince }) => {
     const body: Record<string, unknown> = {};
     if (reason !== undefined) body.reason = reason;
+    if (ifUnmodifiedSince !== undefined) body.ifUnmodifiedSince = ifUnmodifiedSince;
     const res = await api("POST", `/api/posts/${postId}/reject`, body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }

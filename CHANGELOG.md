@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-09-24 — Approve and reject the version you reviewed
+
+Node **1.38.1** · Python **0.39.1** · MCP **1.40.1**
+
+### Added
+
+- **`ifUnmodifiedSince` on `POST /api/posts/{id}/approve` and `/reject`** (optional body field). Send the post's `updatedAt` as you reviewed it: the call only succeeds on that exact version, and otherwise writes nothing and returns `409 CONFLICT` with the current value in `error.updatedAt`. This stops an approval from publishing an edit made after the approver loaded the post. A non-timestamp returns `400 VALIDATION_ERROR`. Omitted, behaviour is unchanged.
+- Node: `ifUnmodifiedSince` on `ApprovePostParams` and `RejectPostParams`. Python: `if_unmodified_since=` on `posts.approve()` / `posts.reject()` (sync and async). MCP: `approve_post` and `reject_post` take an optional `ifUnmodifiedSince`.
+
+### Changed
+
+- **`409` on approve/reject is described accurately:** the post changed since you loaded it (checked when `ifUnmodifiedSince` is sent) or it is no longer awaiting approval. It never meant "the scheduled time moved".
+- **`publishWhenApproved` is only ever `true` while a post is pending.** Approving or rejecting sets it to `false`, and a post that goes back for review (for example an approved post whose content is edited) starts from `false` unless the request sets it.
+- **Rescheduling a post that was approved late keeps its approval only if nothing else changes.** Any other field that differs from the stored post, including auto-plug and auto-repost settings, media deletion, link tracking or a repeat schedule, sends it back for review.
+- Updated: openapi.json, Postman collection, scheduling guide, `schedule-post` skill.
+
 ## 2026-09-24 — Approving a late post: publish it now or send it back
 
 Node **1.38.0** · Python **0.39.0** · MCP **1.40.0**

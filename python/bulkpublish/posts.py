@@ -505,7 +505,13 @@ class PostsResource:
 
     # -- Approval -------------------------------------------------------------
 
-    def approve(self, post_id: str, when_late: Optional[str] = None) -> Post:
+    def approve(
+        self,
+        post_id: str,
+        when_late: Optional[str] = None,
+        *,
+        if_unmodified_since: Optional[str] = None,
+    ) -> Post:
         """Approve a pending post.
 
         Requires a role with post:approve (owner, admin, approver). Releases a
@@ -525,19 +531,25 @@ class PostsResource:
             when_late: Optional ``"publish"`` or ``"hold"``; only matters when
                 the scheduled time passed more than 15 minutes ago. Sent as
                 ``whenLate``. Any other value is rejected by the server (400).
+            if_unmodified_since: Optional. The post's ``updatedAt`` as you
+                reviewed it, sent as ``ifUnmodifiedSince``. The approval only
+                lands on that version; if the post changed since, nothing is
+                written and you get 409. Approving sets
+                ``publishWhenApproved`` to false.
 
         Returns:
             The approved post object. A ``status`` of ``"draft"`` means it was
             approved too late to publish and needs a new time.
 
         Raises:
-            ValidationError: If the post is not awaiting approval, or
-                ``when_late`` is not ``"publish"``/``"hold"`` (400).
+            ValidationError: If the post is not awaiting approval,
+                ``when_late`` is not ``"publish"``/``"hold"``, or
+                ``if_unmodified_since`` is not a timestamp (400).
             PermissionError: If the role lacks post:approve (403).
             NotFoundError: If the post does not exist (404).
-            ConflictError: If the post changed while you were reviewing it:
-                someone else approved, rejected or withdrew it, or its
-                scheduled time moved (409). Reload it and review again.
+            ConflictError: If the post changed since you loaded it (checked
+                when ``if_unmodified_since`` is sent) or is no longer awaiting
+                approval (409). Reload it and review again.
 
         Example::
 
@@ -548,10 +560,20 @@ class PostsResource:
             # Approve a late post and publish it now instead of sending it back
             bp.posts.approve(post_id, when_late="publish")
         """
-        body = {"whenLate": when_late} if when_late is not None else None
-        return self._client._request("POST", f"/api/posts/{post_id}/approve", json=body)
+        body: Dict[str, Any] = {}
+        if when_late is not None:
+            body["whenLate"] = when_late
+        if if_unmodified_since is not None:
+            body["ifUnmodifiedSince"] = if_unmodified_since
+        return self._client._request("POST", f"/api/posts/{post_id}/approve", json=body or None)
 
-    def reject(self, post_id: str, *, reason: Optional[str] = None) -> Post:
+    def reject(
+        self,
+        post_id: str,
+        *,
+        reason: Optional[str] = None,
+        if_unmodified_since: Optional[str] = None,
+    ) -> Post:
         """Reject a pending post.
 
         Requires a role with post:approve. The post returns to draft with
@@ -562,17 +584,22 @@ class PostsResource:
             post_id: The post's unique identifier.
             reason: Optional reason, max 2000 chars. Shown to the author
                 (in-app notification + on the post).
+            if_unmodified_since: Optional. The post's ``updatedAt`` as you
+                reviewed it, sent as ``ifUnmodifiedSince``; 409 if the post
+                changed since. Rejecting sets ``publishWhenApproved`` to
+                false.
 
         Returns:
             The rejected post object.
 
         Raises:
-            ValidationError: If the post is not awaiting approval (400).
+            ValidationError: If the post is not awaiting approval, or
+                ``if_unmodified_since`` is not a timestamp (400).
             PermissionError: If the role lacks post:approve (403).
             NotFoundError: If the post does not exist (404).
-            ConflictError: If the post changed while you were reviewing it:
-                someone else decided it or withdrew it (409). Reload it and
-                review again.
+            ConflictError: If the post changed since you loaded it (checked
+                when ``if_unmodified_since`` is sent) or is no longer awaiting
+                approval (409). Reload it and review again.
 
         Example::
 
@@ -581,6 +608,8 @@ class PostsResource:
         body: Dict[str, Any] = {}
         if reason is not None:
             body["reason"] = reason
+        if if_unmodified_since is not None:
+            body["ifUnmodifiedSince"] = if_unmodified_since
         return self._client._request("POST", f"/api/posts/{post_id}/reject", json=body)
 
     # -- Metrics --------------------------------------------------------------
@@ -766,16 +795,34 @@ class AsyncPostsResource:
         body = {"republish": True} if republish else None
         return await self._client._request("POST", f"/api/posts/{post_id}/retry", json=body)
 
-    async def approve(self, post_id: str, when_late: Optional[str] = None) -> Post:
+    async def approve(
+        self,
+        post_id: str,
+        when_late: Optional[str] = None,
+        *,
+        if_unmodified_since: Optional[str] = None,
+    ) -> Post:
         """Approve a pending post — see :meth:`PostsResource.approve`."""
-        body = {"whenLate": when_late} if when_late is not None else None
-        return await self._client._request("POST", f"/api/posts/{post_id}/approve", json=body)
+        body: Dict[str, Any] = {}
+        if when_late is not None:
+            body["whenLate"] = when_late
+        if if_unmodified_since is not None:
+            body["ifUnmodifiedSince"] = if_unmodified_since
+        return await self._client._request("POST", f"/api/posts/{post_id}/approve", json=body or None)
 
-    async def reject(self, post_id: str, *, reason: Optional[str] = None) -> Post:
+    async def reject(
+        self,
+        post_id: str,
+        *,
+        reason: Optional[str] = None,
+        if_unmodified_since: Optional[str] = None,
+    ) -> Post:
         """Reject a pending post — see :meth:`PostsResource.reject`."""
         body: Dict[str, Any] = {}
         if reason is not None:
             body["reason"] = reason
+        if if_unmodified_since is not None:
+            body["ifUnmodifiedSince"] = if_unmodified_since
         return await self._client._request("POST", f"/api/posts/{post_id}/reject", json=body)
 
     async def metrics(self, post_id: str) -> PostMetrics:

@@ -103,11 +103,13 @@ not publish, even when they are scheduled and overdue. Default is `"none"`.
   `POST /api/posts/{id}/reject`. The post returns to draft with `approvalStatus`
   `"rejected"` and the reason; the author is notified and can edit + reschedule
   to resubmit for approval.
+- Both take an optional `ifUnmodifiedSince`: pass the `updatedAt` of the
+  version you showed the user, so an edit made since then is not approved
+  unseen.
 - Both return the post on 200; **400** if the post is not awaiting approval,
   **403** if the role lacks `post:approve`, **404** if not found, **409** if the
-  post changed while you were reviewing it (someone else approved, rejected or
-  withdrew it, or, on approve, its scheduled time moved) — reload it with
-  `get_post` and review again.
+  post changed since you loaded it (checked when `ifUnmodifiedSince` is sent) or
+  is no longer awaiting approval — reload it with `get_post` and review again.
 - **`APPROVAL_REQUIRED`** — `publish_post` and `retry_post` return **403** with
   error code `APPROVAL_REQUIRED` for roles without `post:publish`. Do not retry:
   create/update the post with `requestApproval: true` and tell the user a

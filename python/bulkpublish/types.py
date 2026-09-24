@@ -83,7 +83,8 @@ class Post(TypedDict, total=False):
     approved; ``rejectionReason`` when rejected. ``publishWhenApproved`` is
     true when the author asked for the post to go out as soon as it is
     approved, even after its scheduled time; only ever true while
-    ``approvalStatus`` is ``pending``.
+    ``approvalStatus`` is ``pending`` (approving or rejecting clears it, and
+    a post entering review again starts from false).
 
     ``linkTrackingOverride`` is the per-post override for link tracking
     (bulkpubli.sh): ``True`` forces links in this post to be shortened and

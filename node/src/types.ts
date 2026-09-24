@@ -505,7 +505,8 @@ export interface Post {
   /**
    * True when the author asked for the post to go out as soon as it is
    * approved, even if that is after its scheduled time. Only ever true while
-   * approvalStatus is 'pending' (kept as it was once approved). Decides what
+   * approvalStatus is 'pending': approving or rejecting clears it, and a post
+   * entering review again starts from false. Decides what
    * `posts.approve()` does when it arrives more than 15 minutes late and no
    * `whenLate` is sent.
    */
@@ -816,7 +817,8 @@ export interface UpdatePostParams {
    * Optional. See {@link CreatePostParams.publishWhenApproved}. An explicit
    * value is stored while the post waits for approval. When omitted it is
    * kept, except that a different `scheduledAt` clears it to false, and it is
-   * always false once the post no longer has approvalStatus 'pending'.
+   * always false once the post no longer has approvalStatus 'pending'. An
+   * approved post sent back for review starts from false unless you set it.
    */
   publishWhenApproved?: boolean;
   /**
@@ -832,6 +834,13 @@ export interface UpdatePostParams {
 export interface RejectPostParams {
   /** Optional reason, max 2000 chars. Shown to the author (in-app notification + on the post). */
   reason?: string;
+  /**
+   * The post's `updatedAt` as you last loaded it. When sent, the call only
+   * succeeds if the post has not changed since; otherwise nothing is written
+   * and you get 409 CONFLICT (`error.updatedAt` carries the current value).
+   * Must be an ISO 8601 timestamp (400 otherwise).
+   */
+  ifUnmodifiedSince?: string;
 }
 
 /** Parameters for approving a pending post. */
@@ -845,6 +854,13 @@ export interface ApprovePostParams {
    * ago. Any other value is rejected with 400 VALIDATION_ERROR.
    */
   whenLate?: 'publish' | 'hold';
+  /**
+   * The post's `updatedAt` as you last loaded it. When sent, the approval
+   * only lands if the post has not changed since; otherwise nothing is written
+   * and you get 409 CONFLICT (`error.updatedAt` carries the current value).
+   * Must be an ISO 8601 timestamp (400 otherwise).
+   */
+  ifUnmodifiedSince?: string;
 }
 
 /** Response from publishing a post. */

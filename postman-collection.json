@@ -1207,7 +1207,7 @@
           "request": {
             "name": "Approve pending post",
             "description": {
-              "content": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. If the scheduled time passed more than 15 minutes ago, the optional body field whenLate decides: 'publish' publishes it immediately (the response has status 'publishing'); 'hold' approves it but does not publish it: it comes back with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time. When whenLate is omitted it follows the post's publishWhenApproved: true means 'publish', false means 'hold'. whenLate has no effect on a post whose time is still ahead or passed less than 15 minutes ago. The author is notified in-app either way. The body is optional; an empty body behaves like {}.",
+              "content": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. If the scheduled time passed more than 15 minutes ago, the optional body field whenLate decides: 'publish' publishes it immediately (the response has status 'publishing'); 'hold' approves it but does not publish it: it comes back with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time. When whenLate is omitted it follows the post's publishWhenApproved: true means 'publish', false means 'hold'. whenLate has no effect on a post whose time is still ahead or passed less than 15 minutes ago. The author is notified in-app either way. The body is optional; an empty body behaves like {}. Approving sets publishWhenApproved to false. Send ifUnmodifiedSince to make sure you approve the version you reviewed.",
               "type": "text/plain"
             },
             "url": {
@@ -1237,7 +1237,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"whenLate\": \"publish\"\n}",
+              "raw": "{\n  \"whenLate\": \"publish\",\n  \"ifUnmodifiedSince\": \"<dateTime>\"\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -1344,7 +1344,7 @@
             },
             {
               "id": "ef16b201-0b6a-405f-9c3e-e745c65311b6",
-              "name": "The post changed while you were reviewing it: someone else approved, rejected or withdrew it, or its scheduled time moved. Reload it and review again.",
+              "name": "The post changed since you loaded it (only checked when ifUnmodifiedSince is sent; error.updatedAt then carries the current value), or it is no longer awaiting approval because someone else approved, rejected or withdrew it first. Nothing was written. Reload it and review again.",
               "originalRequest": {
                 "url": {
                   "path": [
@@ -1495,7 +1495,7 @@
           "request": {
             "name": "Reject pending post",
             "description": {
-              "content": "Requires a role with post:approve. The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval.",
+              "content": "Requires a role with post:approve. The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval. Rejecting sets publishWhenApproved to false. Send ifUnmodifiedSince to make sure you reject the version you reviewed.",
               "type": "text/plain"
             },
             "url": {
@@ -1525,7 +1525,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"reason\": \"<string>\"\n}"
+              "raw": "{\n  \"reason\": \"<string>\",\n  \"ifUnmodifiedSince\": \"<dateTime>\"\n}"
             },
             "auth": null,
             "header": [
@@ -1581,7 +1581,7 @@
                 "method": "POST",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"reason\": \"<string>\"\n}"
+                  "raw": "{\n  \"reason\": \"<string>\",\n  \"ifUnmodifiedSince\": \"<dateTime>\"\n}"
                 }
               },
               "status": "OK",
@@ -1631,7 +1631,7 @@
                 "method": "POST",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"reason\": \"<string>\"\n}"
+                  "raw": "{\n  \"reason\": \"<string>\",\n  \"ifUnmodifiedSince\": \"<dateTime>\"\n}"
                 }
               },
               "status": "Bad Request",
@@ -1642,7 +1642,7 @@
             },
             {
               "id": "326b9bc5-7ac7-4d5b-aa39-89984ebda79f",
-              "name": "The post changed while you were reviewing it: someone else approved, rejected or withdrew it, or its scheduled time moved. Reload it and review again.",
+              "name": "The post changed since you loaded it (only checked when ifUnmodifiedSince is sent; error.updatedAt then carries the current value), or it is no longer awaiting approval because someone else approved, rejected or withdrew it first. Nothing was written. Reload it and review again.",
               "originalRequest": {
                 "url": {
                   "path": [
@@ -1681,7 +1681,7 @@
                 "method": "POST",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"reason\": \"<string>\"\n}"
+                  "raw": "{\n  \"reason\": \"<string>\",\n  \"ifUnmodifiedSince\": \"<dateTime>\"\n}"
                 }
               },
               "status": "Conflict",
@@ -1731,7 +1731,7 @@
                 "method": "POST",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"reason\": \"<string>\"\n}"
+                  "raw": "{\n  \"reason\": \"<string>\",\n  \"ifUnmodifiedSince\": \"<dateTime>\"\n}"
                 }
               },
               "status": "Forbidden",
@@ -1781,7 +1781,7 @@
                 "method": "POST",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"reason\": \"<string>\"\n}"
+                  "raw": "{\n  \"reason\": \"<string>\",\n  \"ifUnmodifiedSince\": \"<dateTime>\"\n}"
                 }
               },
               "status": "Not Found",

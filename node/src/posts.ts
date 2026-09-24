@@ -232,14 +232,18 @@ export class PostsResource {
    * `publishWhenApproved`: true means 'publish', false means 'hold'. The
    * author is notified in-app either way.
    *
-   * Errors: 400 if the post is not awaiting approval or `whenLate` is not
-   * 'publish'/'hold', 403 if the role lacks
-   * post:approve, 404 if not found, 409 CONFLICT if the post changed while you
-   * were reviewing it (someone else approved, rejected or withdrew it, or its
-   * scheduled time moved) — reload it and review again.
+   * Approving sets `publishWhenApproved` to false. Pass the `updatedAt` you
+   * reviewed as `ifUnmodifiedSince` so an edit made since then is not
+   * approved unseen.
+   *
+   * Errors: 400 if the post is not awaiting approval, `whenLate` is not
+   * 'publish'/'hold' or `ifUnmodifiedSince` is not a timestamp, 403 if the role
+   * lacks post:approve, 404 if not found, 409 CONFLICT if the post changed
+   * since you loaded it (checked when `ifUnmodifiedSince` is sent) or is no
+   * longer awaiting approval — reload it and review again.
    *
    * @param id - The post ID.
-   * @param params - Optional `{ whenLate }` for an approval that arrives late.
+   * @param params - Optional `{ whenLate, ifUnmodifiedSince }`.
    * @returns The approved post. Check `status`: 'draft' means it was approved
    *   too late to publish and needs a new time.
    *
@@ -251,6 +255,10 @@ export class PostsResource {
    *
    * // Approve a late post and publish it now rather than sending it back
    * await bp.posts.approve(42, { whenLate: 'publish' });
+   *
+   * // Approve only the version you reviewed
+   * const post = await bp.posts.get(42);
+   * await bp.posts.approve(42, { ifUnmodifiedSince: post.updatedAt });
    * ```
    */
   approve(id: number, params?: ApprovePostParams): Promise<Post> {
@@ -262,13 +270,17 @@ export class PostsResource {
    * to draft with approvalStatus 'rejected' and the optional reason; the author
    * is notified and can edit + reschedule to resubmit for approval.
    *
-   * Errors: 400 if the post is not awaiting approval, 403 if the role lacks
-   * post:approve, 404 if not found, 409 CONFLICT if the post changed while you
-   * were reviewing it (someone else decided it or withdrew it) — reload it and
-   * review again.
+   * Rejecting sets `publishWhenApproved` to false.
+   *
+   * Errors: 400 if the post is not awaiting approval or `ifUnmodifiedSince` is
+   * not a timestamp, 403 if the role lacks post:approve, 404 if not found, 409
+   * CONFLICT if the post changed since you loaded it (checked when
+   * `ifUnmodifiedSince` is sent) or is no longer awaiting approval — reload it
+   * and review again.
    *
    * @param id - The post ID.
-   * @param params - Optional `{ reason }` (max 2000 chars), shown to the author.
+   * @param params - Optional `{ reason, ifUnmodifiedSince }` (reason max 2000
+   *   chars, shown to the author).
    * @returns The rejected post.
    *
    * @example
