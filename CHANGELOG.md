@@ -25,6 +25,7 @@ Node **1.36.1** · Python **0.36.0** · MCP **1.39.1** (all unchanged — respon
 
 ### Changed
 
+- **Posts per day / per month count creations.** Deleting a post no longer gives its slot back, so `usage.postsToday` and `usage.postsThisMonth` in `GET /api/quotas/usage`, and the `QUOTA_EXCEEDED` checks on create, stay at what was created (UTC days and months). Existing usage this month is carried over.
 - **`GET /api/posts/queue-slot` documents its errors.** An unknown `timezone` now returns **400 `VALIDATION_ERROR`** (it used to come back as 422 `QUEUE_FULL`); **422 `QUEUE_FULL`** means only that no slot is free, and is now listed.
 - **`POST /api/posts` refuses a disconnected channel on a scheduled or publish-now post** with **400 `CHANNEL_INACTIVE`**; `error.channelIds` lists the ones to reconnect or remove. Such a post used to be accepted and then fail at its scheduled time. Drafts may still name a disconnected channel.
 - **`GET /api/analytics/account` `from` was described wrongly.** It is raised to 30 days before *today*, not 30 days before `to`; the reference and Postman collection now say so. Behaviour is unchanged.
