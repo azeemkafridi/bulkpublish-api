@@ -4160,6 +4160,16 @@
             }
           },
           {
+            "name": "tz",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — IANA timezone (e.g. `Asia/Karachi`) that sets where each day of `from`..`to` starts and ends, and how `byDay` is bucketed. Defaults to `UTC`. Pass the same zone as to `/api/analytics/summary` so the two agree. A name that is not a timezone returns 400.",
+            "schema": {
+              "type": "string",
+              "default": "UTC"
+            }
+          },
+          {
             "name": "channelId",
             "in": "query",
             "required": false,
@@ -4340,6 +4350,9 @@
         "responses": {
           "200": {
             "description": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts, allPosts, and unmeasuredPlatforms.\n\n`unmeasuredPlatforms` lists platforms present in the window that cannot report per-post metrics at all \u2014 either the platform has no readable metrics API (Google Business, Telegram, Tumblr) or, for LinkedIn, the channel is a personal/profile account (share statistics are exposed only for organization pages). Their rows still appear in every total with zeroes, so a zero for one of these platforms means \"not reported\", not \"measured zero\". Each entry in a post's `platformMetrics` carries the same signal as `metricsSupported`.\n\nAll figures come from the stored `post_metrics` snapshot, synced every 6 hours (or on demand via `POST /api/analytics/refresh`) \u2014 not a live read of the platform.\n\n`metricSupport` maps each platform present in the window to the list of metric keys its API can actually report (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `engagementRate`). Anything not listed is stored as 0 by the metrics sync because the platform has no such field \u2014 it is NOT a measurement. For example X reports impressions/likes/comments/shares/saves (bookmarks), so `reach`, `clicks` and `videoViews` are always 0 for X rows; Bluesky and Mastodon report no impressions, so `engagementRate` is always 0 for them; Pinterest reports no reach; YouTube reports no shares or reach; Reddit reports likes (score), comments and shares (crossposts) only; Discord reports likes (reaction counts) and comments (thread replies) only.\n\n`supportedTotals` is the union of `metricSupport` across the window \u2014 the org-wide `total*` fields are only measurements for keys listed here. A key absent from `supportedTotals` should be rendered as \u201cnot available\u201d (a dash), never as 0. `partialTotals` maps a supported metric key to the platforms in the window that do NOT report it, so a consumer can note that the total covers only a subset of posts.\n\nEach entry of a post's `platformMetrics` also carries `supportedMetrics` (same per-platform list) alongside `metricsSupported`.\n\nFacebook's `impressions`, `reach`, `clicks` and `engagementRate` come from the Page Insights edge and require the `read_insights` permission; without it they stay 0 even though the metric is listed as supported.\n\n`metricsDisabledChannels` lists channels published to in the window whose metrics sync is switched off, so their posts contribute zeroes to every total. X is the only platform this applies to today: its reads are billed, so per-post metrics sync is opt-in per channel (`metadata.metricsSyncEnabled`, toggled on the Channels page) and runs at most once every 7 days. `POST /api/analytics/refresh` will not produce X figures for a channel that has not opted in.\n\n`conditionalMetrics` maps a platform in the window to metrics that are supported but permission-gated \u2014 a 0 there means \"may not be readable\", not \"no such metric\". Today only Facebook appears, for `impressions`, `reach`, `clicks` and `engagementRate`.\n\nEach post in `topPosts`/`allPosts` carries both a post-level `engagementRate` and, inside `platformMetrics[]`, a per-channel `engagementRate`. They are NOT the same number: the post-level value is the mean of the post's channels that reported a non-zero rate, while `platformMetrics[].engagementRate` is that one channel's own rate (engagements \u00f7 impressions). Render the per-channel value next to per-channel counters \u2014 using the post-level average there shows one network's percentage beside another network's zeros. Both are basis points (325 = 3.25%).\n\n`totalLinkClicks` (and `linkClicks` on each entry of `byPlatform`, `byDay`, `topPosts`, `allPosts` and `platformMetrics`) counts clicks on bulkpubli.sh short links, measured by BulkPublish rather than reported by the platform. It is deliberately NOT folded into `totalClicks`/`clicks`, which are the platform's own click figures: one visit can register in both, so adding them would double-count. Because we measure it ourselves it is available on every platform, including those listed in `unmeasuredPlatforms`, and it appears in `supportedTotals`/`metricSupport` for all of them. Bot and link-preview traffic is excluded. Zero for organizations that have not enabled Link Tracking.\n\n**Added 2026-09-03.** `byDay[]` entries now carry every metric (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `linkClicks`, `engagements`, `posts`) plus `platforms`: the same bucket per platform for that day. `byPlatform` entries carry the same full set. `byChannel[]` lists `{channelId, platform, accountName, \u2026same metrics\u2026}` per channel. Each post in `topPosts`/`allPosts` also has `reach`, `engagements`, `postFormat` (`post`|`thread`), `mediaType` (`text`|`image`|`video`) and `labels[] {id, name, color}`; each `platformMetrics[]` entry has `channelId`, `accountName`, `reach`, `engagements` and `fetchedAt`. `publishedCount` is the number of published post_platform rows in the window. `filters` echoes the parsed filter set. With `compare=1`, `previous` holds the `total*`/`avgEngagementRate`/`publishedCount` fields and `byDay` for the preceding window (or `null` if unavailable) and `previousWindow` says which window that is."
+          },
+          "400": {
+            "description": "Invalid `from`/`to` date, or `tz` is not an IANA timezone name"
           }
         },
         "operationId": "getAnalyticsEngagement",
@@ -4586,6 +4599,16 @@
             }
           },
           {
+            "name": "tz",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — IANA timezone (e.g. `Asia/Karachi`) that sets where each day of `from`..`to` starts and ends. Defaults to `UTC`. A name that is not a timezone returns 400.",
+            "schema": {
+              "type": "string",
+              "default": "UTC"
+            }
+          },
+          {
             "name": "channelIds",
             "in": "query",
             "required": false,
@@ -4646,6 +4669,9 @@
         "responses": {
           "200": {
             "description": "Link performance"
+          },
+          "400": {
+            "description": "Invalid `from`/`to` date, or `tz` is not an IANA timezone name"
           }
         },
         "operationId": "getAnalyticsLinks",

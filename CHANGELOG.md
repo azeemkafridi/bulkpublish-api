@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-24 — Analytics days in your timezone
+
+Node **1.37.0** · Python **0.37.0** · MCP **1.39.2** (unchanged — its analytics tool reads the summary, which already had `tz`)
+
+### Added
+
+- **`tz` on `GET /api/analytics/engagement` and `GET /api/analytics/links`** — an IANA timezone (e.g. `Asia/Karachi`) that sets where each day of `from`..`to` starts and ends, and how engagement's `byDay` is bucketed. It defaults to `UTC`, so existing calls return exactly what they did. These two used UTC days while `/api/analytics/summary` used the viewer's zone, so for anyone east of UTC an early-morning post on the first day was in the summary but missing from engagement and links. An unknown zone returns 400.
+- **Both SDKs expose `tz`** on `analytics.summary()` (which the server has accepted for a while, but the SDKs never passed), `analytics.engagement()` and `analytics.links()` — Node `{ tz: 'Asia/Karachi' }`, Python `tz="Asia/Karachi"`.
+
+### Fixed
+
+- The Node SDK described `analytics.account()`'s `from` as clamped to 30 days before `to`; it is 30 days before today.
+
 ## 2026-09-23 — A late approval no longer publishes a stale post
 
 Node **1.36.2** · Python **0.36.1** · MCP **1.39.3**

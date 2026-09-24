@@ -28,6 +28,11 @@ export interface AnalyticsFilterParams {
 export interface AnalyticsSummaryParams extends AnalyticsFilterParams {
   from?: string;
   to?: string;
+  /**
+   * IANA timezone (e.g. `'Asia/Karachi'`) for day boundaries and per-day
+   * bucketing. Default `'UTC'`; an unrecognised name falls back to UTC.
+   */
+  tz?: string;
   /** Legacy single-channel filter; equivalent to `channelIds`. */
   channelId?: number;
 }
@@ -39,6 +44,13 @@ export type AnalyticsRankField =
 export interface EngagementParams extends AnalyticsFilterParams {
   from?: string;
   to?: string;
+  /**
+   * IANA timezone (e.g. `'Asia/Karachi'`) that sets where each day of
+   * `from`..`to` starts and ends, and how `byDay` is bucketed. Default `'UTC'`.
+   * Pass the same zone to {@link summary} so the two agree. An unknown zone is
+   * a 400.
+   */
+  tz?: string;
   /** Legacy single-channel filter; equivalent to `channelIds`. */
   channelId?: number;
   /**
@@ -80,7 +92,7 @@ export interface AccountMetricsParams {
   channelIds?: string;
   /** Comma-separated platform keys. */
   platforms?: string;
-  /** Start date (YYYY-MM-DD), default 30 days ago; clamped to 30 days before `to`. */
+  /** Start date (YYYY-MM-DD), default 30 days ago; dates earlier than 30 days before today are raised to that date. */
   from?: string;
   /** End date (YYYY-MM-DD), default today. */
   to?: string;
@@ -94,6 +106,11 @@ export interface PostHistoryParams {
 export interface LinksParams extends Omit<AnalyticsFilterParams, 'compare'> {
   from: string;
   to: string;
+  /**
+   * IANA timezone (e.g. `'Asia/Karachi'`) that sets where each day of
+   * `from`..`to` starts and ends. Default `'UTC'`. An unknown zone is a 400.
+   */
+  tz?: string;
 }
 
 /**

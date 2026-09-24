@@ -44,8 +44,11 @@ def _links_params(
     label_ids: Optional[str],
     post_format: Optional[str],
     media_type: Optional[str],
+    tz: Optional[str] = None,
 ) -> Dict[str, Any]:
     params: Dict[str, Any] = {"from": from_date, "to": to_date}
+    if tz is not None:
+        params["tz"] = tz
     if channel_ids is not None:
         params["channelIds"] = channel_ids
     if platforms is not None:
@@ -79,6 +82,7 @@ class AnalyticsResource:
         *,
         from_date: Optional[str] = None,
         to_date: Optional[str] = None,
+        tz: Optional[str] = None,
         channel_id: Optional[str] = None,
         channel_ids: Optional[str] = None,
         platforms: Optional[str] = None,
@@ -92,6 +96,9 @@ class AnalyticsResource:
         Args:
             from_date: ISO-8601 start date (e.g. ``"2026-04-01"``).
             to_date: ISO-8601 end date (e.g. ``"2026-04-08"``).
+            tz: IANA timezone (e.g. ``"Asia/Karachi"``) for day boundaries and
+                per-day bucketing. Default ``"UTC"``; an unrecognised name falls
+                back to UTC.
             channel_id: Legacy single-channel filter; same as ``channel_ids``.
             channel_ids: Comma-separated channel ids (``"12,15"``). Only
                 post_platform rows on these channels count.
@@ -126,6 +133,8 @@ class AnalyticsResource:
             params["from"] = from_date
         if to_date is not None:
             params["to"] = to_date
+        if tz is not None:
+            params["tz"] = tz
         if channel_id is not None:
             params["channelId"] = channel_id
         if channel_ids is not None:
@@ -147,6 +156,7 @@ class AnalyticsResource:
         *,
         from_date: Optional[str] = None,
         to_date: Optional[str] = None,
+        tz: Optional[str] = None,
         channel_id: Optional[str] = None,
         group_by: Optional[str] = None,
         top: Optional[bool] = None,
@@ -167,6 +177,9 @@ class AnalyticsResource:
         Args:
             from_date: ISO-8601 start date.
             to_date: ISO-8601 end date.
+            tz: IANA timezone (e.g. ``"Asia/Karachi"``) for day boundaries and
+                per-day bucketing. Default ``"UTC"``; an unknown zone is a
+                400. Pass the same zone to ``summary()`` so the two agree.
             channel_id: Legacy single-channel filter; same as ``channel_ids``.
             channel_ids: Comma-separated channel ids (``"12,15"``). Only
                 post_platform rows on these channels count.
@@ -260,6 +273,8 @@ class AnalyticsResource:
             params["from"] = from_date
         if to_date is not None:
             params["to"] = to_date
+        if tz is not None:
+            params["tz"] = tz
         if channel_id is not None:
             params["channelId"] = channel_id
         if group_by is not None:
@@ -370,6 +385,7 @@ class AnalyticsResource:
         *,
         from_date: str,
         to_date: str,
+        tz: Optional[str] = None,
         channel_ids: Optional[str] = None,
         platforms: Optional[str] = None,
         label_ids: Optional[str] = None,
@@ -394,7 +410,7 @@ class AnalyticsResource:
             data = bp.analytics.links(from_date="2026-08-01", to_date="2026-08-31")
             print(data["totalClicks"])
         """
-        params = _links_params(from_date, to_date, channel_ids, platforms, label_ids, post_format, media_type)
+        params = _links_params(from_date, to_date, channel_ids, platforms, label_ids, post_format, media_type, tz)
         return self._client._request("GET", "/api/analytics/links", params=params)
 
 
@@ -418,6 +434,7 @@ class AsyncAnalyticsResource:
         *,
         from_date: Optional[str] = None,
         to_date: Optional[str] = None,
+        tz: Optional[str] = None,
         channel_id: Optional[str] = None,
         channel_ids: Optional[str] = None,
         platforms: Optional[str] = None,
@@ -432,6 +449,8 @@ class AsyncAnalyticsResource:
             params["from"] = from_date
         if to_date is not None:
             params["to"] = to_date
+        if tz is not None:
+            params["tz"] = tz
         if channel_id is not None:
             params["channelId"] = channel_id
         if channel_ids is not None:
@@ -453,6 +472,7 @@ class AsyncAnalyticsResource:
         *,
         from_date: Optional[str] = None,
         to_date: Optional[str] = None,
+        tz: Optional[str] = None,
         channel_id: Optional[str] = None,
         group_by: Optional[str] = None,
         top: Optional[bool] = None,
@@ -474,6 +494,8 @@ class AsyncAnalyticsResource:
             params["from"] = from_date
         if to_date is not None:
             params["to"] = to_date
+        if tz is not None:
+            params["tz"] = tz
         if channel_id is not None:
             params["channelId"] = channel_id
         if group_by is not None:
@@ -530,6 +552,7 @@ class AsyncAnalyticsResource:
         *,
         from_date: str,
         to_date: str,
+        tz: Optional[str] = None,
         channel_ids: Optional[str] = None,
         platforms: Optional[str] = None,
         label_ids: Optional[str] = None,
@@ -537,5 +560,5 @@ class AsyncAnalyticsResource:
         media_type: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Tracked-link performance — see :meth:`AnalyticsResource.links`."""
-        params = _links_params(from_date, to_date, channel_ids, platforms, label_ids, post_format, media_type)
+        params = _links_params(from_date, to_date, channel_ids, platforms, label_ids, post_format, media_type, tz)
         return await self._client._request("GET", "/api/analytics/links", params=params)
