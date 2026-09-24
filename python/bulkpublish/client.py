@@ -127,11 +127,22 @@ def _raise_for_status(response: httpx.Response) -> None:
 
     status = response.status_code
     try:
-        body = response.json()
+        parsed = response.json()
     except Exception:
-        body = {"error": response.text}
+        parsed = response.text
+    # Normalise to a dict so response_body is always a mapping and .get is safe
+    # even when a gateway returns a bare JSON string or array on an error.
+    body: Dict[str, Any] = parsed if isinstance(parsed, dict) else {"error": parsed}
 
-    message = body.get("error") or body.get("message") or response.reason_phrase or "Unknown error"
+    # The API answers with either { "error": { "message", "code" } } (AppError)
+    # or a bare { "error": "text" }. Pull the human string out of both shapes;
+    # without this, a structured error made `message` the {message, code} dict.
+    err = body.get("error")
+    if isinstance(err, dict):
+        message = err.get("message") or err.get("code")
+    else:
+        message = err if isinstance(err, str) else None
+    message = message or body.get("message") or response.reason_phrase or "Unknown error"
 
     if status == 401:
         raise AuthenticationError(message, status, body)

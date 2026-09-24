@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-24 — Python: stories publish, and error messages read correctly
+
+Python **0.38.0**
+
+### Fixed
+
+- **`posts.publish_as_story()` now sends the required `platform`.** The method took only `post_id` and posted an empty body, but `POST /api/posts/{id}/story` requires `{ "platform": "facebook" | "instagram" }` — so every call returned `400` "platform must be 'facebook' or 'instagram'". It now takes a required keyword-only `platform` (`Literal["facebook", "instagram"]`) and sends it, matching the Node SDK's `posts.story(id, { platform })` and the MCP `publish_story` tool. Callers must pass `platform=`.
+- **Structured API errors carry the human message.** For the server's `{ "error": { "message", "code" } }` shape, the raised exception's `message` was the whole `{message, code}` dict instead of the string; it now extracts `message` (falling back to `code`), matching the bare `{ "error": "text" }` shape the SDK already handled.
+- **A non-dict error body no longer crashes.** If a gateway returned a bare JSON string or array on an error status, `_raise_for_status` raised `AttributeError` (`'list'/'str' object has no attribute 'get'`) instead of a `BulkPublishError`. The body is now normalised to a dict first.
+
 ## 2026-09-24 — Approval docs say what happens; the 409 names every cause
 
 Node **1.37.1** · Python **0.37.1** · MCP **1.39.4**

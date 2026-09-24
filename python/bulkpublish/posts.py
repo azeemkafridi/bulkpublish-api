@@ -7,7 +7,7 @@ social-media posts through the BulkPublish API.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Sequence
 
 if TYPE_CHECKING:
     from .client import _BaseClient
@@ -576,20 +576,27 @@ class PostsResource:
 
     # -- Story ----------------------------------------------------------------
 
-    def publish_as_story(self, post_id: str) -> Post:
+    def publish_as_story(
+        self, post_id: str, *, platform: Literal["facebook", "instagram"]
+    ) -> Post:
         """Publish a post as a story (Instagram/Facebook stories).
 
         Args:
             post_id: The post's unique identifier.
+            platform: Which platform to publish the story on — ``"facebook"``
+                or ``"instagram"``. Required by the API; the post must have
+                media and a published platform entry for this platform.
 
         Returns:
             The updated post object.
 
         Example::
 
-            bp.posts.publish_as_story("post_abc123")
+            bp.posts.publish_as_story("post_abc123", platform="instagram")
         """
-        return self._client._request("POST", f"/api/posts/{post_id}/story")
+        return self._client._request(
+            "POST", f"/api/posts/{post_id}/story", json={"platform": platform}
+        )
 
     # -- Bulk operations ------------------------------------------------------
 
@@ -747,9 +754,13 @@ class AsyncPostsResource:
         """Get post metrics — see :meth:`PostsResource.metrics`."""
         return await self._client._request("GET", f"/api/posts/{post_id}/metrics")
 
-    async def publish_as_story(self, post_id: str) -> Post:
+    async def publish_as_story(
+        self, post_id: str, *, platform: Literal["facebook", "instagram"]
+    ) -> Post:
         """Publish as story — see :meth:`PostsResource.publish_as_story`."""
-        return await self._client._request("POST", f"/api/posts/{post_id}/story")
+        return await self._client._request(
+            "POST", f"/api/posts/{post_id}/story", json={"platform": platform}
+        )
 
     async def bulk(self, *, action: str, post_ids: List[str], scheduled_at: Optional[str] = None) -> BulkOperationResult:
         """Bulk operation — see :meth:`PostsResource.bulk`."""
