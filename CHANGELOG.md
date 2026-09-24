@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-24 — MCP sign-in codes are bound to their client
+
+MCP **1.39.5**
+
+### Security
+
+- **An authorization code can only be redeemed by the app it was issued to, with the redirect address it was issued for.** The hosted MCP server ignored both at the token step, so any registered app could exchange another app's code (it still needed that code's PKCE verifier). A mismatch now returns `invalid_grant` as a 400 rather than a server error. Codes issued before this change (valid for 10 minutes) are not checked for the app, only for the redirect address.
+
 ## 2026-09-24 — Python: stories publish, and error messages read correctly
 
 Python **0.38.0**

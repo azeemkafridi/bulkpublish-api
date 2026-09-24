@@ -20,7 +20,7 @@ import {
   scryptSync,
 } from "node:crypto";
 import type { Request, Response } from "express";
-import { InvalidClientMetadataError } from "@modelcontextprotocol/sdk/server/auth/errors.js";
+import { InvalidClientMetadataError, InvalidGrantError } from "@modelcontextprotocol/sdk/server/auth/errors.js";
 import type {
   OAuthServerProvider,
   AuthorizationParams,
@@ -395,11 +395,19 @@ export const oauthProvider: OAuthServerProvider = {
   },
 
   async exchangeAuthorizationCode(
-    _client: OAuthClientInformationFull,
-    authorizationCode: string
+    client: OAuthClientInformationFull,
+    authorizationCode: string,
+    _codeVerifier?: string,
+    redirectUri?: string
   ): Promise<OAuthTokens> {
-    const code = open<Sealed & { k: string }>(authorizationCode);
-    if (!code || code.t !== "code") throw new Error("invalid_grant");
+    const code = open<Sealed & { k: string; ru?: string; ci?: string }>(authorizationCode);
+    if (!code || code.t !== "code") throw new InvalidGrantError("invalid_grant");
+    // A code is redeemable only by the client it was issued to, with the
+    // redirect_uri it was issued for (OAuth 2.1 §4.1.3). Both were ignored, so
+    // any registered client could redeem another's code (PKCE still applied).
+    // `ci` is absent only on codes minted before this check existed (10-minute TTL).
+    if (code.ci !== undefined && code.ci !== client.client_id) throw new InvalidGrantError("invalid_grant");
+    if (code.ru !== undefined && redirectUri !== code.ru) throw new InvalidGrantError("invalid_grant");
     return issueTokens(code.k as string);
   },
 
@@ -408,7 +416,7 @@ export const oauthProvider: OAuthServerProvider = {
     refreshToken: string
   ): Promise<OAuthTokens> {
     const rt = open<Sealed & { k: string }>(refreshToken);
-    if (!rt || rt.t !== "rt") throw new Error("invalid_grant");
+    if (!rt || rt.t !== "rt") throw new InvalidGrantError("invalid_grant");
     return issueTokens(rt.k as string);
   },
 
@@ -480,7 +488,7 @@ export async function handleConsent(req: Request, res: Response): Promise<void> 
     return reRender("That API key was rejected. Double-check it and try again.");
   }
 
-  const code = seal({ t: "code", k: apiKey, cc: codeChallenge, ru: redirectUri }, CODE_TTL);
+  const code = seal({ t: "code", k: apiKey, cc: codeChallenge, ru: redirectUri, ci: clientId }, CODE_TTL);
   const url = new URL(redirectUri);
   url.searchParams.set("code", code);
   if (state) url.searchParams.set("state", state);
