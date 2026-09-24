@@ -171,6 +171,7 @@ class PostsResource:
         thread_parts: Optional[List[Dict[str, Any]]] = None,
         post_type_overrides: Optional[Dict[str, str]] = None,
         request_approval: Optional[bool] = None,
+        publish_when_approved: Optional[bool] = None,
         link_tracking_override: Optional[bool] = None,
     ) -> Post:
         """Create a new post.
@@ -279,6 +280,19 @@ class PostsResource:
                 ``False``). Forced on server-side for roles without
                 post:publish (contributors), regardless of this flag.
 
+            publish_when_approved: Set ``True`` on a post that waits for
+                approval when it should go out as soon as it is approved,
+                even if that is after its scheduled time (the "publish now"
+                of someone who needs approval: schedule it for now with
+                ``request_approval`` or a contributor role, and send this).
+                An approval arriving more than 15 minutes late then publishes
+                immediately; with ``False`` (the default) it is approved but
+                returned to draft for a new time. An approver can override
+                either way with ``when_late`` on :meth:`approve`. Stored only
+                when the post ends up ``"pending"``; otherwise saved as
+                ``False``. On :meth:`update`, an explicit value wins; omitted,
+                it is kept unless a different ``scheduled_at`` clears it.
+
             link_tracking_override: Per-post override for link tracking
                 (bulkpubli.sh). ``True`` forces links in this post to be
                 shortened and their clicks counted, ``False`` forces them to
@@ -354,6 +368,8 @@ class PostsResource:
             body["postTypeOverrides"] = post_type_overrides
         if request_approval is not None:
             body["requestApproval"] = request_approval
+        if publish_when_approved is not None:
+            body["publishWhenApproved"] = publish_when_approved
         if link_tracking_override is not None:
             body["linkTrackingOverride"] = link_tracking_override
         return self._client._request("POST", "/api/posts", json=body)
@@ -489,27 +505,34 @@ class PostsResource:
 
     # -- Approval -------------------------------------------------------------
 
-    def approve(self, post_id: str) -> Post:
+    def approve(self, post_id: str, when_late: Optional[str] = None) -> Post:
         """Approve a pending post.
 
         Requires a role with post:approve (owner, admin, approver). Releases a
         post with ``approvalStatus`` ``"pending"``: it publishes at its
         scheduled time, or immediately if that time passed less than 15
         minutes ago. If the scheduled time passed more than 15 minutes ago,
-        the post is approved but not published: it comes back with
-        ``status`` ``"draft"`` (``approvalStatus`` ``"approved"``,
+        ``when_late`` decides: ``"publish"`` publishes it immediately
+        (``status`` ``"publishing"``); ``"hold"`` approves it but returns it
+        with ``status`` ``"draft"`` (``approvalStatus`` ``"approved"``,
         ``scheduledAt`` unchanged) and the author is notified to choose a new
-        time. The author is notified in-app either way.
+        time. Omitted, it follows the post's ``publishWhenApproved``: true
+        means ``"publish"``, false means ``"hold"``. The author is notified
+        in-app either way.
 
         Args:
             post_id: The post's unique identifier.
+            when_late: Optional ``"publish"`` or ``"hold"``; only matters when
+                the scheduled time passed more than 15 minutes ago. Sent as
+                ``whenLate``. Any other value is rejected by the server (400).
 
         Returns:
             The approved post object. A ``status`` of ``"draft"`` means it was
             approved too late to publish and needs a new time.
 
         Raises:
-            ValidationError: If the post is not awaiting approval (400).
+            ValidationError: If the post is not awaiting approval, or
+                ``when_late`` is not ``"publish"``/``"hold"`` (400).
             PermissionError: If the role lacks post:approve (403).
             NotFoundError: If the post does not exist (404).
             ConflictError: If the post changed while you were reviewing it:
@@ -521,8 +544,12 @@ class PostsResource:
             queue = bp.posts.list(approval_status="pending")
             for post in queue["posts"]:
                 bp.posts.approve(post["id"])
+
+            # Approve a late post and publish it now instead of sending it back
+            bp.posts.approve(post_id, when_late="publish")
         """
-        return self._client._request("POST", f"/api/posts/{post_id}/approve")
+        body = {"whenLate": when_late} if when_late is not None else None
+        return self._client._request("POST", f"/api/posts/{post_id}/approve", json=body)
 
     def reject(self, post_id: str, *, reason: Optional[str] = None) -> Post:
         """Reject a pending post.
@@ -739,9 +766,10 @@ class AsyncPostsResource:
         body = {"republish": True} if republish else None
         return await self._client._request("POST", f"/api/posts/{post_id}/retry", json=body)
 
-    async def approve(self, post_id: str) -> Post:
+    async def approve(self, post_id: str, when_late: Optional[str] = None) -> Post:
         """Approve a pending post — see :meth:`PostsResource.approve`."""
-        return await self._client._request("POST", f"/api/posts/{post_id}/approve")
+        body = {"whenLate": when_late} if when_late is not None else None
+        return await self._client._request("POST", f"/api/posts/{post_id}/approve", json=body)
 
     async def reject(self, post_id: str, *, reason: Optional[str] = None) -> Post:
         """Reject a pending post — see :meth:`PostsResource.reject`."""
@@ -811,6 +839,7 @@ _SNAKE_TO_CAMEL = {
     "sort_order": "order",
     "post_ids": "postIds",
     "request_approval": "requestApproval",
+    "publish_when_approved": "publishWhenApproved",
     "approval_status": "approvalStatus",
     "link_tracking_override": "linkTrackingOverride",
 }

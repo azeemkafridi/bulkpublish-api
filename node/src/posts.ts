@@ -6,6 +6,7 @@ import type {
   CreatePostParams,
   UpdatePostParams,
   RejectPostParams,
+  ApprovePostParams,
   PublishPostResponse,
   RetryPostParams,
   RetryPostResponse,
@@ -223,17 +224,22 @@ export class PostsResource {
    * Approve a pending post. Requires a role with post:approve (owner, admin,
    * approver). Releases a post with approvalStatus 'pending': it publishes at
    * its scheduled time, or immediately if that time passed less than 15
-   * minutes ago. If the scheduled time passed more than 15 minutes ago, the
-   * post is approved but not published: it comes back with status 'draft'
+   * minutes ago. If the scheduled time passed more than 15 minutes ago,
+   * `whenLate` decides: 'publish' publishes it immediately (status
+   * 'publishing'); 'hold' approves it but returns it with status 'draft'
    * (approvalStatus 'approved', scheduledAt unchanged) and the author is
-   * notified to choose a new time. The author is notified in-app either way.
+   * notified to choose a new time. Omitted, it follows the post's
+   * `publishWhenApproved`: true means 'publish', false means 'hold'. The
+   * author is notified in-app either way.
    *
-   * Errors: 400 if the post is not awaiting approval, 403 if the role lacks
+   * Errors: 400 if the post is not awaiting approval or `whenLate` is not
+   * 'publish'/'hold', 403 if the role lacks
    * post:approve, 404 if not found, 409 CONFLICT if the post changed while you
    * were reviewing it (someone else approved, rejected or withdrew it, or its
    * scheduled time moved) — reload it and review again.
    *
    * @param id - The post ID.
+   * @param params - Optional `{ whenLate }` for an approval that arrives late.
    * @returns The approved post. Check `status`: 'draft' means it was approved
    *   too late to publish and needs a new time.
    *
@@ -242,10 +248,13 @@ export class PostsResource {
    * // Approve everything in the approval queue
    * const { posts } = await bp.posts.list({ approvalStatus: 'pending' });
    * for (const post of posts) await bp.posts.approve(post.id);
+   *
+   * // Approve a late post and publish it now rather than sending it back
+   * await bp.posts.approve(42, { whenLate: 'publish' });
    * ```
    */
-  approve(id: number): Promise<Post> {
-    return this.http.post<Post>(`/api/posts/${id}/approve`);
+  approve(id: number, params?: ApprovePostParams): Promise<Post> {
+    return this.http.post<Post>(`/api/posts/${id}/approve`, params);
   }
 
   /**

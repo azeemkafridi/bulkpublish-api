@@ -1,6 +1,6 @@
 {
   "name": "@bulkpublish/mcp-server",
-  "version": "1.39.5",
+  "version": "1.40.0",
   "description": "Model Context Protocol server for BulkPublish — lets AI assistants manage social media posts, channels, media, and analytics.",
   "homepage": "https://www.bulkpublish.com",
   "mcpName": "io.github.azeemkafridi/bulkpublish",

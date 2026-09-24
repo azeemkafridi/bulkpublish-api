@@ -75,10 +75,15 @@ class Post(TypedDict, total=False):
     one of ``none`` (default), ``pending``, ``approved``, ``rejected``.
     ``pending`` and ``rejected`` posts do not publish, even when scheduled
     and overdue; approving releases them. An overdue post publishes
-    immediately on approval only if its time passed less than 15 minutes ago;
-    later than that it is approved but returned to ``draft`` for a new time.
+    immediately on approval if its time passed less than 15 minutes ago;
+    later than that it publishes immediately only when ``publishWhenApproved``
+    is true or the approver sends ``whenLate`` ``"publish"``, and is otherwise
+    approved but returned to ``draft`` for a new time.
     ``approvedBy``/``approvedAt`` are set when
-    approved; ``rejectionReason`` when rejected.
+    approved; ``rejectionReason`` when rejected. ``publishWhenApproved`` is
+    true when the author asked for the post to go out as soon as it is
+    approved, even after its scheduled time; only ever true while
+    ``approvalStatus`` is ``pending``.
 
     ``linkTrackingOverride`` is the per-post override for link tracking
     (bulkpubli.sh): ``True`` forces links in this post to be shortened and
@@ -116,6 +121,7 @@ class Post(TypedDict, total=False):
     approvedBy: Optional[str]
     approvedAt: Optional[str]
     rejectionReason: Optional[str]
+    publishWhenApproved: bool
     recurringScheduleId: Optional[int]
     mediaFiles: List["MediaFile"]
     postPlatforms: List[PostPlatform]

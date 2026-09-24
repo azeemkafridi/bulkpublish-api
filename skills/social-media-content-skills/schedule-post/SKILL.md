@@ -77,18 +77,28 @@ not publish, even when they are scheduled and overdue. Default is `"none"`.
   queue. Never tell such a user their post was scheduled: check the returned
   `approvalStatus` and say it is awaiting approval. Approval applies only to
   scheduled posts: a `draft` ignores `requestApproval` (it stays `"none"`).
+- **"Publish now" with approval** — when a user who needs approval asks to
+  publish now, `create_post` with `status: "scheduled"`, `scheduledAt` = now,
+  `requestApproval: true` and `publishWhenApproved: true`. It goes out as soon
+  as it is approved, however late. `publishWhenApproved` (default `false`) is
+  only stored while the post is `pending`; sending a different `scheduledAt` on
+  `update_post` clears it unless you send it again.
 - **The approval queue** — `list_posts` with `approvalStatus: "pending"` (the
   filter accepts `none` | `pending` | `approved` | `rejected`), or
   `GET /api/posts?approvalStatus=pending`.
-- **Approving** — `approve_post` (postId), i.e. `POST /api/posts/{id}/approve`,
-  no body. Requires a role with `post:approve` (owner, admin, approver).
-  Releases the post: it publishes at its scheduled time, or immediately if that
-  time passed less than 15 minutes ago. If it passed more than 15 minutes ago,
-  the post is approved but NOT published: it comes back with `status` `"draft"`
-  (`approvalStatus` `"approved"`, `scheduledAt` unchanged) and the author is
-  notified to choose a new time. Check the returned `status` and tell the user
-  it needs rescheduling rather than saying it went out. The author is notified
-  in-app either way.
+- **Approving** — `approve_post` (postId, optional `whenLate`), i.e.
+  `POST /api/posts/{id}/approve`. Requires a role with `post:approve` (owner,
+  admin, approver). Releases the post: it publishes at its scheduled time, or
+  immediately if that time passed less than 15 minutes ago. If it passed more
+  than 15 minutes ago, `whenLate` decides: `"publish"` publishes it now
+  (`status` `"publishing"`); `"hold"` approves it but does NOT publish it: it
+  comes back with `status` `"draft"` (`approvalStatus` `"approved"`,
+  `scheduledAt` unchanged) and the author is notified to choose a new time.
+  Omitted, it follows the post's `publishWhenApproved` (`true` = publish,
+  `false` = hold). For a late post with `publishWhenApproved: false`, ask the
+  user which they want before approving. Check the returned `status` and tell
+  the user it needs rescheduling when it is `"draft"`, rather than saying it
+  went out. The author is notified in-app either way.
 - **Rejecting** — `reject_post` (postId, optional `reason` max 2000 chars), i.e.
   `POST /api/posts/{id}/reject`. The post returns to draft with `approvalStatus`
   `"rejected"` and the reason; the author is notified and can edit + reschedule

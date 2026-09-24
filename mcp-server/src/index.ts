@@ -723,7 +723,7 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   // ---- Publishing: reaches public platforms, cannot be undone here --------
   publish_post: { title: "Publish post now", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/publish. Sends the post to the connected public platforms immediately; a live post cannot be recalled from BulkPublish, so destructive. Not idempotent: the server refuses to re-publish a live post, but a retry after a lost response can duplicate it." },
   retry_post: { title: "Retry failed post", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/retry. Re-sends to the platforms that failed; with republish=true it can also re-send 'unconfirmed' platforms and create a duplicate. Same reasoning as publish_post." },
-  approve_post: { title: "Approve pending post", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "POST /api/posts/{id}/approve. Releases a post held for team approval so it publishes at its scheduled time (or now, if that time passed less than 15 minutes ago) to public platforms. Approving twice changes nothing: the second call is refused." },
+  approve_post: { title: "Approve pending post", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "POST /api/posts/{id}/approve. Releases a post held for team approval so it publishes at its scheduled time (or now, if that time passed less than 15 minutes ago, or later with whenLate 'publish' / publishWhenApproved) to public platforms. Approving twice changes nothing: the second call is refused." },
   reject_post: { title: "Reject pending post", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false, why: "POST /api/posts/{id}/reject. Returns the post to draft with a reason; nothing is published, nothing is deleted, and it can be resubmitted. Rejecting twice changes nothing: the second call is refused." },
   publish_story: { title: "Publish story", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/story. Publishes an Instagram/Facebook story immediately; cannot be recalled from here, and each call posts another story." },
   bulk_posts: { title: "Bulk post actions", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/bulk with action delete | retry | reschedule over many posts. 'delete' removes posts permanently and 'retry' re-publishes to public platforms, so the tool's widest reach is destructive and open-world. Not idempotent because 'retry' can duplicate." },
@@ -1116,6 +1116,12 @@ server.tool(
       .describe(
         "Optional (default false). Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for API keys of roles without post:publish (contributors), regardless of this flag."
       ),
+    publishWhenApproved: z
+      .boolean()
+      .optional()
+      .describe(
+        "Optional (default false). Set true on a post that waits for approval when it should go out as soon as it is approved, even if that is after its scheduled time. This is how someone who needs approval says 'publish now': status 'scheduled', scheduledAt = now, requestApproval true (or a contributor key), publishWhenApproved true. An approval arriving more than 15 minutes late then publishes immediately; with false it is approved but returned to draft for a new time. Stored only when the post ends up approvalStatus 'pending'; otherwise saved as false."
+      ),
     linkTrackingOverride: z
       .boolean()
       .nullable()
@@ -1138,6 +1144,7 @@ server.tool(
     threadParts,
     postTypeOverrides,
     requestApproval,
+    publishWhenApproved,
     linkTrackingOverride,
   }) => {
     // Validate platform requirements before creating
@@ -1199,6 +1206,7 @@ server.tool(
     if (threadParts) body.threadParts = threadParts;
     if (postTypeOverrides) body.postTypeOverrides = postTypeOverrides;
     if (requestApproval !== undefined) body.requestApproval = requestApproval;
+    if (publishWhenApproved !== undefined) body.publishWhenApproved = publishWhenApproved;
     if (linkTrackingOverride !== undefined)
       body.linkTrackingOverride = linkTrackingOverride;
 
@@ -1310,7 +1318,7 @@ server.tool(
 server.tool(
   "publish_post",
   "Publish a draft or scheduled post immediately. The post will be queued for publishing to all its target channels. " +
-    "Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). " +
+    "Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). To 'publish now' with approval, create_post with status 'scheduled', scheduledAt = now, requestApproval true and publishWhenApproved true, so it goes out the moment it is approved. " +
     "Publishing a pending/rejected post as an approver implicitly approves it.",
   {
     postId: z.number().describe("The post ID to publish."),
@@ -1353,13 +1361,24 @@ server.tool(
   "approve_post",
   "Approve a post awaiting team approval. Requires a role with post:approve (owner, admin, approver). " +
     "Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. " +
-    "If the scheduled time passed more than 15 minutes ago, the post is approved but not published: it comes back with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time — tell the user it needs rescheduling. The author is notified in-app either way. " +
-    "Errors: 400 if the post is not awaiting approval, 403 if the role lacks post:approve, 404 if not found, 409 if the post changed while you were reviewing it (someone else approved, rejected or withdrew it, or its scheduled time moved) — reload it with get_post and review again.",
+    "If the scheduled time passed more than 15 minutes ago, whenLate decides: 'publish' publishes it immediately (status 'publishing'); 'hold' approves it but returns it with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time — tell the user it needs rescheduling. " +
+    "When whenLate is omitted it follows the post's publishWhenApproved: true means 'publish', false means 'hold'. If a late post's publishWhenApproved is false, ask the user whether to publish now or send it back before approving. The author is notified in-app either way. " +
+    "Errors: 400 if the post is not awaiting approval or whenLate is not 'publish'/'hold', 403 if the role lacks post:approve, 404 if not found, 409 if the post changed while you were reviewing it (someone else approved, rejected or withdrew it, or its scheduled time moved) — reload it with get_post and review again.",
   {
     postId: z.number().describe("The post ID to approve."),
+    whenLate: z
+      .enum(["publish", "hold"])
+      .optional()
+      .describe(
+        "Optional. Only matters when the post's scheduled time passed more than 15 minutes ago: 'publish' = publish now, 'hold' = approve and return it to draft for the author to pick a new time. Defaults to 'publish' when the post's publishWhenApproved is true, otherwise 'hold'."
+      ),
   },
-  async ({ postId }) => {
-    const res = await api("POST", `/api/posts/${postId}/approve`);
+  async ({ postId, whenLate }) => {
+    const res = await api(
+      "POST",
+      `/api/posts/${postId}/approve`,
+      whenLate !== undefined ? { whenLate } : undefined
+    );
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );
@@ -1977,6 +1996,12 @@ server.tool(
       .describe(
         "Optional (default false). Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for API keys of roles without post:publish (contributors), regardless of this flag."
       ),
+    publishWhenApproved: z
+      .boolean()
+      .optional()
+      .describe(
+        "Optional. Set true to have the post go out as soon as it is approved, even after its scheduled time (see create_post). An explicit value is stored while the post waits for approval. Omitted, it is kept, except that sending a different scheduledAt clears it to false, and it is always false once the post is no longer approvalStatus 'pending'."
+      ),
     linkTrackingOverride: z
       .boolean()
       .nullable()
@@ -2002,6 +2027,7 @@ server.tool(
     postTypeOverrides,
     platformSpecific,
     requestApproval,
+    publishWhenApproved,
     linkTrackingOverride,
     ifUnmodifiedSince,
   }) => {
@@ -2015,6 +2041,7 @@ server.tool(
     if (postTypeOverrides !== undefined) body.postTypeOverrides = postTypeOverrides;
     if (platformSpecific !== undefined) body.platformSpecific = platformSpecific;
     if (requestApproval !== undefined) body.requestApproval = requestApproval;
+    if (publishWhenApproved !== undefined) body.publishWhenApproved = publishWhenApproved;
     if (linkTrackingOverride !== undefined)
       body.linkTrackingOverride = linkTrackingOverride;
     if (ifUnmodifiedSince !== undefined) body.ifUnmodifiedSince = ifUnmodifiedSince;

@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-24 — Approving a late post: publish it now or send it back
+
+Node **1.38.0** · Python **0.39.0** · MCP **1.40.0**
+
+### Added
+
+- **`publishWhenApproved` (boolean, default `false`)** on `POST /api/posts` and `PUT /api/posts/{id}`, and on every post response. Set it on a post that waits for approval when it should go out as soon as it is approved, even if that is after its scheduled time. This is the "publish now" of someone who needs approval: schedule the post for now, with `requestApproval` (or a contributor key), and send `publishWhenApproved: true`. It is stored only when the post ends up with `approvalStatus` `"pending"`; otherwise it is saved as `false`. On update, an explicit value wins; when omitted it is kept, except that a different `scheduledAt` clears it, and it is always `false` once the post is no longer pending. A non-boolean returns `400 VALIDATION_ERROR`.
+- **`whenLate` (`"publish"` | `"hold"`) on `POST /api/posts/{id}/approve`** (optional body). It only matters when the post's scheduled time passed more than 15 minutes ago: `"publish"` publishes it now (the response has `status` `"publishing"`); `"hold"` approves it but returns it to `"draft"` and asks the author for a new time. Without it, the post's `publishWhenApproved` decides (`true` = publish, `false` = hold), so existing calls behave exactly as before for posts that never set the flag. Any other value returns `400 VALIDATION_ERROR`. Posts whose time is ahead or passed less than 15 minutes ago are unchanged.
+- Node: `publishWhenApproved` on `Post`, `CreatePostParams` and `UpdatePostParams`; `posts.approve(id, { whenLate })` with the new `ApprovePostParams` type.
+- Python: `publish_when_approved=` on `posts.create()` / `posts.update()`, `publishWhenApproved` on `Post`, and `posts.approve(post_id, when_late=None)` (sync and async) sending `whenLate`.
+- MCP: `approve_post` takes an optional `whenLate`; `create_post` and `update_post` take and forward `publishWhenApproved`. The `publish_post` description tells agents how to "publish now" for a user who needs approval.
+- Updated: openapi.json + Postman collection (approve request body, create/update field), the scheduling guide and the `schedule-post` skill.
+
 ## 2026-09-24 — MCP sign-in codes are bound to their client
 
 MCP **1.39.5**

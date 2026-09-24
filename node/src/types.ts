@@ -119,8 +119,10 @@ export type PostStatus =
  * Team approval state of a post, orthogonal to {@link PostStatus}.
  * 'pending' and 'rejected' posts do not publish, even when scheduled and
  * overdue; approving releases them. An overdue post publishes
- * immediately on approval only if its time passed less than 15 minutes ago;
- * later than that it is approved but returned to 'draft' for a new time.
+ * immediately on approval if its time passed less than 15 minutes ago;
+ * later than that it publishes immediately only when the post has
+ * `publishWhenApproved: true` or the approver sends `whenLate: 'publish'`,
+ * and is otherwise approved but returned to 'draft' for a new time.
  */
 export type PostApprovalStatus = 'none' | 'pending' | 'approved' | 'rejected';
 
@@ -500,6 +502,14 @@ export interface Post {
   approvedAt: string | null;
   /** Reviewer's reason when approvalStatus is 'rejected'. */
   rejectionReason: string | null;
+  /**
+   * True when the author asked for the post to go out as soon as it is
+   * approved, even if that is after its scheduled time. Only ever true while
+   * approvalStatus is 'pending' (kept as it was once approved). Decides what
+   * `posts.approve()` does when it arrives more than 15 minutes late and no
+   * `whenLate` is sent.
+   */
+  publishWhenApproved: boolean;
   createdAt: string;
   updatedAt: string;
   postPlatforms: PostPlatform[];
@@ -728,6 +738,18 @@ export interface CreatePostParams {
    */
   requestApproval?: boolean;
   /**
+   * Optional. Set true on a post that waits for approval when it should go
+   * out as soon as it is approved, even if that is after its scheduled time
+   * (the "publish now" of someone who needs approval: schedule it for now,
+   * with `requestApproval` or a contributor role, and send this). An approval
+   * that arrives more than 15 minutes late then publishes immediately; with
+   * false (the default) it is approved but returned to draft for a new time.
+   * An approver can override either way with `whenLate` on `posts.approve()`.
+   * Stored only when the post ends up with approvalStatus 'pending';
+   * otherwise saved as false. Must be a boolean (400 VALIDATION_ERROR).
+   */
+  publishWhenApproved?: boolean;
+  /**
    * Per-post override for link tracking (bulkpubli.sh). `true` forces links in
    * this post to be shortened and their clicks counted, `false` forces them to
    * publish as written, and `null`/omitted (the default) inherits the
@@ -791,6 +813,13 @@ export interface UpdatePostParams {
    */
   requestApproval?: boolean;
   /**
+   * Optional. See {@link CreatePostParams.publishWhenApproved}. An explicit
+   * value is stored while the post waits for approval. When omitted it is
+   * kept, except that a different `scheduledAt` clears it to false, and it is
+   * always false once the post no longer has approvalStatus 'pending'.
+   */
+  publishWhenApproved?: boolean;
+  /**
    * Per-post override for link tracking (bulkpubli.sh). `true` forces links in
    * this post to be shortened and their clicks counted, `false` forces them to
    * publish as written, and `null` clears the override so the post inherits the
@@ -803,6 +832,19 @@ export interface UpdatePostParams {
 export interface RejectPostParams {
   /** Optional reason, max 2000 chars. Shown to the author (in-app notification + on the post). */
   reason?: string;
+}
+
+/** Parameters for approving a pending post. */
+export interface ApprovePostParams {
+  /**
+   * What to do if the post's scheduled time passed more than 15 minutes ago:
+   * 'publish' publishes it now (status 'publishing'); 'hold' approves it but
+   * returns it to draft for the author to pick a new time. Defaults to
+   * 'publish' when the post's `publishWhenApproved` is true, otherwise
+   * 'hold'. No effect when the time is ahead or passed less than 15 minutes
+   * ago. Any other value is rejected with 400 VALIDATION_ERROR.
+   */
+  whenLate?: 'publish' | 'hold';
 }
 
 /** Response from publishing a post. */

@@ -183,7 +183,7 @@
               "rejected"
             ],
             "default": "none",
-            "description": "Team approval state, orthogonal to status. 'pending' and 'rejected' posts do not publish, even when scheduled and overdue; approving via POST /api/posts/{id}/approve releases them (an overdue post publishes immediately on approval only if its time passed less than 15 minutes ago; later than that it is approved but returned to draft for the author to reschedule). Members whose role lacks post:publish (contributors) always get 'pending' when scheduling; others can opt in with requestApproval."
+            "description": "Team approval state, orthogonal to status. 'pending' and 'rejected' posts do not publish, even when scheduled and overdue; approving via POST /api/posts/{id}/approve releases them (an overdue post publishes immediately on approval if its time passed less than 15 minutes ago; later than that it publishes immediately only when publishWhenApproved is true or the approver sends whenLate 'publish', and is otherwise approved but returned to draft for the author to reschedule). Members whose role lacks post:publish (contributors) always get 'pending' when scheduling; others can opt in with requestApproval."
           },
           "approvedBy": {
             "type": [
@@ -205,6 +205,11 @@
               "null"
             ],
             "description": "Reviewer's reason when approvalStatus is 'rejected'."
+          },
+          "publishWhenApproved": {
+            "type": "boolean",
+            "default": false,
+            "description": "True when the author asked for the post to go out as soon as it is approved, even if that is after its scheduled time. Only ever true while approvalStatus is 'pending' (it is kept as it was once the post is approved). Decides what POST /api/posts/{id}/approve does when it arrives more than 15 minutes late and no whenLate is sent."
           },
           "threadParts": {
             "type": [
@@ -1895,6 +1900,11 @@
                     "default": false,
                     "description": "Optional. Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for roles without post:publish (contributors), regardless of this flag."
                   },
+                  "publishWhenApproved": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Optional. Set true on a post that waits for approval when it should go out as soon as it is approved, even if that is after its scheduled time (the \"publish now\" of someone who needs approval: schedule it for now, with requestApproval or a contributor role, and send this). It decides what an approval that arrives more than 15 minutes after the scheduled time does: true publishes it immediately; false (the default) approves it but returns it to draft for a new time. An approver can override either way with whenLate on POST /api/posts/{id}/approve. Stored only when the post ends up with approvalStatus 'pending'; otherwise it is saved as false. Must be a boolean (400 VALIDATION_ERROR otherwise)."
+                  },
                   "linkTrackingOverride": {
                     "type": [
                       "boolean",
@@ -2188,6 +2198,10 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Optional. Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for roles without post:publish (contributors), regardless of this flag."
+                  },
+                  "publishWhenApproved": {
+                    "type": "boolean",
+                    "description": "Optional. See POST /api/posts. An explicit value is stored while the post waits for approval. When omitted, it is kept, except that giving the post a different scheduledAt clears it to false (a picked time is not \"as soon as possible\"), and it is always false once the post no longer has approvalStatus 'pending'. Must be a boolean (400 VALIDATION_ERROR otherwise)."
                   },
                   "linkTrackingOverride": {
                     "type": [
@@ -6734,7 +6748,27 @@
           }
         ],
         "summary": "Approve a pending post",
-        "description": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. If the scheduled time passed more than 15 minutes ago, the post is approved but not published: it comes back with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time. The author is notified in-app either way.",
+        "description": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. If the scheduled time passed more than 15 minutes ago, the optional body field whenLate decides: 'publish' publishes it immediately (the response has status 'publishing'); 'hold' approves it but does not publish it: it comes back with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time. When whenLate is omitted it follows the post's publishWhenApproved: true means 'publish', false means 'hold'. whenLate has no effect on a post whose time is still ahead or passed less than 15 minutes ago. The author is notified in-app either way. The body is optional; an empty body behaves like {}.",
+          "requestBody": {
+            "required": false,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "whenLate": {
+                      "type": "string",
+                      "enum": [
+                        "publish",
+                        "hold"
+                      ],
+                      "description": "What to do if the post's scheduled time passed more than 15 minutes ago: 'publish' = publish now, 'hold' = approve and return it to draft for the author to pick a new time. Defaults to 'publish' when the post's publishWhenApproved is true, otherwise 'hold'. Any other value is rejected with 400 VALIDATION_ERROR."
+                    }
+                  }
+                }
+              }
+            }
+          },
         "operationId": "approvePost",
         "responses": {
           "200": {
@@ -6748,7 +6782,7 @@
             }
           },
           "400": {
-            "description": "Post is not awaiting approval"
+            "description": "Post is not awaiting approval, or whenLate is not 'publish' or 'hold'"
           },
           "409": {
             "description": "The post changed while you were reviewing it: someone else approved, rejected or withdrew it, or its scheduled time moved. Reload it and review again."
