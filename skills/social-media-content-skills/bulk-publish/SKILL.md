@@ -63,8 +63,8 @@ For videos over 100MB (up to **1GB**), use the chunked multipart flow. No MCP to
 A bulk `retry` on posts whose role lacks `post:publish` fails with **403
 `APPROVAL_REQUIRED`** — those posts must be submitted for team approval instead
 (create/update with `requestApproval: true`, then a teammate calls
-`approve_post`). Posts with `approvalStatus` `"pending"` or `"rejected"` are
-skipped by the scheduler even after a `reschedule`, until they are approved. See
+`approve_post`). Posts with `approvalStatus` `"pending"` or `"rejected"` do
+not publish, even after a `reschedule`, until they are approved. See
 the `schedule-post` skill for the full approval flow.
 
 ## Bulk pattern

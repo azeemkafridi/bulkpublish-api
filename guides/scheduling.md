@@ -48,7 +48,7 @@ const post = await client.posts.create({
 - `scheduledAt` must be a valid ISO 8601 datetime string (e.g., `2026-04-10T14:00:00Z`)
 - `timezone` is optional and defaults to `"UTC"`. Use IANA timezone names like `"America/New_York"`, `"Europe/London"`, `"Asia/Tokyo"`
 - If `scheduledAt` is in the past or is the current time, the post is queued for immediate publishing
-- Scheduled posts enter the `"scheduled"` status and transition to `"publishing"` when the scheduler picks them up
+- Scheduled posts enter the `"scheduled"` status and transition to `"publishing"` at their scheduled time
 
 ### Scheduling Without a Specific Time
 
@@ -99,20 +99,20 @@ never with a status value.
 
 ## Team Approval Flow
 
-Posts carry an `approvalStatus` (`none` (default) | `pending` | `approved` | `rejected`), orthogonal to `status`. The scheduler skips `pending` and `rejected` posts even when they are scheduled and overdue.
+Posts carry an `approvalStatus` (`none` (default) | `pending` | `approved` | `rejected`), orthogonal to `status`. `pending` and `rejected` posts do not publish, even when they are scheduled and overdue.
 
-- **Requesting approval** — pass `"requestApproval": true` on `POST /api/posts` or `PUT /api/posts/:id` to hold a scheduled post for team approval (`approvalStatus` becomes `"pending"`). For API keys belonging to members whose role lacks `post:publish` (contributors), this is **forced server-side** regardless of the flag — their scheduled posts always land in the approval queue. Those keys also get `403 APPROVAL_REQUIRED` from `POST /api/posts/:id/publish`.
+- **Requesting approval** — pass `"requestApproval": true` on `POST /api/posts` or `PUT /api/posts/:id` to hold a scheduled post for team approval (`approvalStatus` becomes `"pending"`). Approval applies only to scheduled posts: a post saved as a `"draft"` ignores `requestApproval` and comes back with `approvalStatus` `"none"`. For API keys belonging to members whose role lacks `post:publish` (contributors), this is **forced server-side** regardless of the flag — their scheduled posts always land in the approval queue. Those keys also get `403 APPROVAL_REQUIRED` from `POST /api/posts/:id/publish`.
 - **The approval queue** — `GET /api/posts?approvalStatus=pending`.
 - **Approving** — `POST /api/posts/:id/approve` (requires a role with `post:approve`: owner, admin, approver). Releases the post: it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. If the scheduled time passed more than 15 minutes ago, the post is approved but not published: it comes back with `status` `"draft"` (`approvalStatus` `"approved"`, `scheduledAt` unchanged) and the author is notified to choose a new time. Publishing a pending/rejected post as an approver implicitly approves it.
 - **Rejecting** — `POST /api/posts/:id/reject` with an optional JSON body `{ "reason": "..." }` (max 2000 chars). The post returns to draft with `approvalStatus` `"rejected"` and the reason; the author is notified and can edit + reschedule to resubmit.
 
-Both endpoints return the post on 200, `400` if the post is not awaiting approval, `403` if the role lacks `post:approve`, `404` if not found, and `409` if the post stopped awaiting approval while the request was in flight (approved, rejected or withdrawn by someone else) — reload it and review again.
+Both endpoints return the post on 200, `400` if the post is not awaiting approval, `403` if the role lacks `post:approve`, `404` if not found, and `409` if the post changed while you were reviewing it (someone else approved, rejected or withdrew it, or, on approve, its scheduled time moved) — reload it and review again.
 
 ### Gating automated sources
 
 Approval is not limited to posts you create by hand — the two automated post sources can be gated too, so nothing they generate goes out unreviewed:
 
-- **Recurring schedules** — pass `"requireApproval": true` on `POST /api/schedules` or `PUT /api/schedules/:id` (default `false`; the flag is also returned on the schedule object). Every occurrence the schedule generates lands with `approvalStatus` `"pending"` and the scheduler skips it until an approver releases it via `POST /api/posts/:id/approve`. Toggling the flag affects future occurrences only — already-generated posts keep the status they were created with.
+- **Recurring schedules** — pass `"requireApproval": true` on `POST /api/schedules` or `PUT /api/schedules/:id` (default `false`; the flag is also returned on the schedule object). Every occurrence the schedule generates lands with `approvalStatus` `"pending"` and does not publish until an approver releases it via `POST /api/posts/:id/approve`. Toggling the flag affects future occurrences only — already-generated posts keep the status they were created with.
 
   For a key whose role lacks `post:publish` (contributors), `requireApproval` is **forced to `true` server-side** on create and on every update, whatever the request sends and even when it omits the field. Editing a schedule somebody else created without approval therefore converts it to a moderated one; an approver can turn it back off. The same rule the single-post `requestApproval` flag already follows: a member who cannot publish one post cannot own an automation that publishes without review.
 - **RSS autopost feeds** — pass `"requireApproval": true` on `POST /api/rss-feeds` or `PUT /api/rss-feeds/:id` (default `false`). Items auto-published from the feed land as `approvalStatus` `"pending"` and wait for approval. Only meaningful when `mode` is `"publish"`: draft items never publish on their own, and a feed force-demoted to draft by the plan gate (Free is draft-only) stays ungated. Forced to `true` for roles without `post:publish` in exactly the same way as recurring schedules, on create and on every update.

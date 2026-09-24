@@ -512,9 +512,9 @@ class PostsResource:
             ValidationError: If the post is not awaiting approval (400).
             PermissionError: If the role lacks post:approve (403).
             NotFoundError: If the post does not exist (404).
-            ConflictError: If the post stopped awaiting approval while the
-                request was in flight (approved, rejected or withdrawn by
-                someone else) (409). Reload it and review again.
+            ConflictError: If the post changed while you were reviewing it:
+                someone else approved, rejected or withdrew it, or its
+                scheduled time moved (409). Reload it and review again.
 
         Example::
 
@@ -543,8 +543,9 @@ class PostsResource:
             ValidationError: If the post is not awaiting approval (400).
             PermissionError: If the role lacks post:approve (403).
             NotFoundError: If the post does not exist (404).
-            ConflictError: If the post stopped awaiting approval while the
-                request was in flight (409). Reload it and review again.
+            ConflictError: If the post changed while you were reviewing it:
+                someone else decided it or withdrew it (409). Reload it and
+                review again.
 
         Example::
 

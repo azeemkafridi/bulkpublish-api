@@ -73,8 +73,8 @@ class Post(TypedDict, total=False):
 
     ``approvalStatus`` is the team approval state, orthogonal to ``status``:
     one of ``none`` (default), ``pending``, ``approved``, ``rejected``.
-    ``pending`` and ``rejected`` posts are skipped by the scheduler even when
-    scheduled and overdue; approving releases them. An overdue post publishes
+    ``pending`` and ``rejected`` posts do not publish, even when scheduled
+    and overdue; approving releases them. An overdue post publishes
     immediately on approval only if its time passed less than 15 minutes ago;
     later than that it is approved but returned to ``draft`` for a new time.
     ``approvedBy``/``approvedAt`` are set when
@@ -490,7 +490,7 @@ class Schedule(TypedDict, total=False):
     applies to weekly/biweekly; ``dayOfMonth`` (1-31) to monthly.
     ``nextRunAt`` is always computed by the server. When ``requireApproval``
     is True every occurrence this schedule generates lands with
-    ``approvalStatus: "pending"`` and the scheduler skips it until an approver
+    ``approvalStatus: "pending"`` and does not publish until an approver
     releases it via ``POST /api/posts/{id}/approve``. It is forced True for
     roles that cannot publish, on create and on every update.
     """

@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-24 — Approval docs say what happens; the 409 names every cause
+
+Node **1.37.1** · Python **0.37.1** · MCP **1.39.4**
+
+### Changed
+
+- **Approve and reject describe the 409 fully.** `409 CONFLICT` means the post changed while you were reviewing it: someone else approved, rejected or withdrew it, or (on approve) its scheduled time moved. It used to mention only the first. Nothing is changed when it fires; reload the post and review again.
+- **Approval wording describes the outcome.** `pending` and `rejected` posts, and every occurrence of a schedule with `requireApproval`, "do not publish" until approved. The reference, SDK docs, MCP tool descriptions, scheduling guide and skills no longer describe how that is done. Behaviour is unchanged.
+- **Approval applies only to scheduled posts.** The scheduling guide and the `schedule-post` skill now say that a post saved as a `draft` ignores `requestApproval` and comes back with `approvalStatus` `"none"`. This has always been the server's behaviour.
+
+### Fixed
+
+- **Python: `ConflictError` is importable from the package root** (`from bulkpublish import ConflictError`). It was raised on a 409 but only importable from `bulkpublish.exceptions`.
+
 ## 2026-09-24 — Analytics days in your timezone
 
 Node **1.37.0** · Python **0.37.0** · MCP **1.39.2** (unchanged — its analytics tool reads the summary, which already had `tz`)

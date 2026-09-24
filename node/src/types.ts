@@ -117,8 +117,8 @@ export type PostStatus =
 
 /**
  * Team approval state of a post, orthogonal to {@link PostStatus}.
- * 'pending' and 'rejected' posts are skipped by the scheduler even when
- * scheduled and overdue; approving releases them. An overdue post publishes
+ * 'pending' and 'rejected' posts do not publish, even when scheduled and
+ * overdue; approving releases them. An overdue post publishes
  * immediately on approval only if its time passed less than 15 minutes ago;
  * later than that it is approved but returned to 'draft' for a new time.
  */
@@ -490,7 +490,7 @@ export interface Post {
   linkTrackingOverride: boolean | null;
   /**
    * Team approval state, orthogonal to status. 'pending' and 'rejected' posts
-   * are skipped by the scheduler even when scheduled and overdue. Members whose
+   * do not publish, even when scheduled and overdue. Members whose
    * role lacks post:publish (contributors) always get 'pending' when
    * scheduling; others can opt in with `requestApproval`. Default: 'none'.
    */
@@ -1334,8 +1334,8 @@ export interface CreateScheduleParams {
   isActive?: boolean;
   /**
    * Hold every occurrence this schedule generates for team approval — each
-   * generated post lands with `approvalStatus: 'pending'` and the scheduler
-   * skips it until an approver releases it via `posts.approve(id)`.
+   * generated post lands with `approvalStatus: 'pending'` and does not
+   * publish until an approver releases it via `posts.approve(id)`.
    * Default: false.
    *
    * Forced to true server-side for roles without publish rights
@@ -1361,8 +1361,8 @@ export interface UpdateScheduleParams {
   isActive?: boolean;
   /**
    * Hold every occurrence this schedule generates for team approval — each
-   * generated post lands with `approvalStatus: 'pending'` and the scheduler
-   * skips it until an approver releases it via `posts.approve(id)`.
+   * generated post lands with `approvalStatus: 'pending'` and does not
+   * publish until an approver releases it via `posts.approve(id)`.
    * Default: false.
    *
    * Forced to true server-side for roles without publish rights

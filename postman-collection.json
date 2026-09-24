@@ -1335,7 +1335,7 @@
             },
             {
               "id": "ef16b201-0b6a-405f-9c3e-e745c65311b6",
-              "name": "The post stopped awaiting approval while the request was in flight (approved, rejected or withdrawn by someone else). Reload it and review again.",
+              "name": "The post changed while you were reviewing it: someone else approved, rejected or withdrew it, or its scheduled time moved. Reload it and review again.",
               "originalRequest": {
                 "url": {
                   "path": [
@@ -1633,7 +1633,7 @@
             },
             {
               "id": "326b9bc5-7ac7-4d5b-aa39-89984ebda79f",
-              "name": "The post stopped awaiting approval while the request was in flight (approved, rejected or withdrawn by someone else). Reload it and review again.",
+              "name": "The post changed while you were reviewing it: someone else approved, rejected or withdrew it, or its scheduled time moved. Reload it and review again.",
               "originalRequest": {
                 "url": {
                   "path": [

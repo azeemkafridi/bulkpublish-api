@@ -1354,7 +1354,7 @@ server.tool(
   "Approve a post awaiting team approval. Requires a role with post:approve (owner, admin, approver). " +
     "Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. " +
     "If the scheduled time passed more than 15 minutes ago, the post is approved but not published: it comes back with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time — tell the user it needs rescheduling. The author is notified in-app either way. " +
-    "Errors: 400 if the post is not awaiting approval, 403 if the role lacks post:approve, 404 if not found, 409 if the post stopped awaiting approval while the request was in flight (approved, rejected or withdrawn by someone else) — reload it with get_post and review again.",
+    "Errors: 400 if the post is not awaiting approval, 403 if the role lacks post:approve, 404 if not found, 409 if the post changed while you were reviewing it (someone else approved, rejected or withdrew it, or its scheduled time moved) — reload it with get_post and review again.",
   {
     postId: z.number().describe("The post ID to approve."),
   },
@@ -1372,7 +1372,7 @@ server.tool(
   "reject_post",
   "Reject a post awaiting team approval. Requires a role with post:approve. " +
     "The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval. " +
-    "Errors: 400 if the post is not awaiting approval, 403 if the role lacks post:approve, 404 if not found, 409 if the post stopped awaiting approval while the request was in flight (approved, rejected or withdrawn by someone else) — reload it with get_post and review again.",
+    "Errors: 400 if the post is not awaiting approval, 403 if the role lacks post:approve, 404 if not found, 409 if the post changed while you were reviewing it (someone else approved, rejected or withdrew it) — reload it with get_post and review again.",
   {
     postId: z.number().describe("The post ID to reject."),
     reason: z
@@ -2329,7 +2329,7 @@ server.tool(
       .boolean()
       .optional()
       .describe(
-        "Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via approve_post. Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
+        "Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and does not publish until an approver releases it via approve_post. Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
       ),
   },
   async ({ name, channelIds, frequency, timeOfDay, dayOfWeek, dayOfMonth, contentTemplate, mediaFileIds, timezone, isActive, requireApproval }) => {
@@ -2392,7 +2392,7 @@ server.tool(
       .boolean()
       .optional()
       .describe(
-        "Hold every future occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via approve_post. Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
+        "Hold every future occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and does not publish until an approver releases it via approve_post. Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
       ),
   },
   async ({ scheduleId, name, contentTemplate, frequency, timeOfDay, dayOfWeek, dayOfMonth, mediaFileIds, timezone, isActive, requireApproval }) => {

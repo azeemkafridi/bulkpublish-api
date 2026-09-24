@@ -55,7 +55,7 @@ class SchedulesResource:
                 ``mediaFileIds``, ``isActive`` (default True),
                 ``requireApproval`` (default False — when True, every
                 occurrence this schedule generates lands with
-                ``approvalStatus: "pending"`` and the scheduler skips it until
+                ``approvalStatus: "pending"`` and does not publish until
                 an approver releases it via
                 ``bp.posts.approve(post_id)``; forced to True for API keys
                 whose role cannot publish, on create and on every update).

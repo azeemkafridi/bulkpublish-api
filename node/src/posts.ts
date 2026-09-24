@@ -229,9 +229,9 @@ export class PostsResource {
    * notified to choose a new time. The author is notified in-app either way.
    *
    * Errors: 400 if the post is not awaiting approval, 403 if the role lacks
-   * post:approve, 404 if not found, 409 CONFLICT if the post stopped awaiting
-   * approval while the request was in flight (approved, rejected or withdrawn
-   * by someone else) — reload it and review again.
+   * post:approve, 404 if not found, 409 CONFLICT if the post changed while you
+   * were reviewing it (someone else approved, rejected or withdrew it, or its
+   * scheduled time moved) — reload it and review again.
    *
    * @param id - The post ID.
    * @returns The approved post. Check `status`: 'draft' means it was approved
@@ -254,8 +254,9 @@ export class PostsResource {
    * is notified and can edit + reschedule to resubmit for approval.
    *
    * Errors: 400 if the post is not awaiting approval, 403 if the role lacks
-   * post:approve, 404 if not found, 409 CONFLICT if the post stopped awaiting
-   * approval while the request was in flight — reload it and review again.
+   * post:approve, 404 if not found, 409 CONFLICT if the post changed while you
+   * were reviewing it (someone else decided it or withdrew it) — reload it and
+   * review again.
    *
    * @param id - The post ID.
    * @param params - Optional `{ reason }` (max 2000 chars), shown to the author.

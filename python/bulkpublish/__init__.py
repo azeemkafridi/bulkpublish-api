@@ -7,9 +7,10 @@ from .exceptions import (
     RateLimitError,
     NotFoundError,
     ValidationError,
+    ConflictError,
 )
 
-__version__ = "0.37.0"
+__version__ = "0.37.1"
 __all__ = [
     "BulkPublish",
     "AsyncBulkPublish",
@@ -18,4 +19,5 @@ __all__ = [
     "RateLimitError",
     "NotFoundError",
     "ValidationError",
+    "ConflictError",
 ]

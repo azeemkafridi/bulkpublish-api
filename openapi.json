@@ -183,7 +183,7 @@
               "rejected"
             ],
             "default": "none",
-            "description": "Team approval state, orthogonal to status. 'pending' and 'rejected' posts are skipped by the scheduler even when scheduled and overdue; approving via POST /api/posts/{id}/approve releases them (an overdue post publishes immediately on approval only if its time passed less than 15 minutes ago; later than that it is approved but returned to draft for the author to reschedule). Members whose role lacks post:publish (contributors) always get 'pending' when scheduling; others can opt in with requestApproval."
+            "description": "Team approval state, orthogonal to status. 'pending' and 'rejected' posts do not publish, even when scheduled and overdue; approving via POST /api/posts/{id}/approve releases them (an overdue post publishes immediately on approval only if its time passed less than 15 minutes ago; later than that it is approved but returned to draft for the author to reschedule). Members whose role lacks post:publish (contributors) always get 'pending' when scheduling; others can opt in with requestApproval."
           },
           "approvedBy": {
             "type": [
@@ -633,7 +633,7 @@
           "requireApproval": {
             "type": "boolean",
             "default": false,
-            "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false. Forced to true server-side for roles without post:publish (contributors), regardless of this flag \u2014 on create and on every update, including an update that does not send the field."
+            "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and does not publish until an approver releases it via POST /api/posts/{id}/approve. Default false. Forced to true server-side for roles without post:publish (contributors), regardless of this flag \u2014 on create and on every update, including an update that does not send the field."
           }
         }
       },
@@ -4982,7 +4982,7 @@
                   "requireApproval": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false. Forced to true server-side for roles without post:publish (contributors), regardless of this flag \u2014 on create and on every update, including an update that does not send the field."
+                    "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and does not publish until an approver releases it via POST /api/posts/{id}/approve. Default false. Forced to true server-side for roles without post:publish (contributors), regardless of this flag \u2014 on create and on every update, including an update that does not send the field."
                   }
                 }
               }
@@ -5114,7 +5114,7 @@
                   "requireApproval": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and the scheduler skips it until an approver releases it via POST /api/posts/{id}/approve. Default false. Forced to true server-side for roles without post:publish (contributors), regardless of this flag \u2014 on create and on every update, including an update that does not send the field."
+                    "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and does not publish until an approver releases it via POST /api/posts/{id}/approve. Default false. Forced to true server-side for roles without post:publish (contributors), regardless of this flag \u2014 on create and on every update, including an update that does not send the field."
                   }
                 }
               }
@@ -6751,7 +6751,7 @@
             "description": "Post is not awaiting approval"
           },
           "409": {
-            "description": "The post stopped awaiting approval while the request was in flight (approved, rejected or withdrawn by someone else). Reload it and review again."
+            "description": "The post changed while you were reviewing it: someone else approved, rejected or withdrew it, or its scheduled time moved. Reload it and review again."
           },
           "403": {
             "description": "Role lacks post:approve"
@@ -6822,7 +6822,7 @@
             "description": "Post is not awaiting approval"
           },
           "409": {
-            "description": "The post stopped awaiting approval while the request was in flight (approved, rejected or withdrawn by someone else). Reload it and review again."
+            "description": "The post changed while you were reviewing it: someone else approved, rejected or withdrew it, or its scheduled time moved. Reload it and review again."
           },
           "403": {
             "description": "Role lacks post:approve"

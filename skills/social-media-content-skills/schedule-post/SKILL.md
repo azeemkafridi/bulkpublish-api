@@ -66,8 +66,8 @@ Every post object returned by the API also carries the read-only approval fields
 
 ## Team approval
 
-`approvalStatus` is **orthogonal to `status`**: the scheduler skips `pending` and
-`rejected` posts even when they are scheduled and overdue. Default is `"none"`.
+`approvalStatus` is **orthogonal to `status`**: `pending` and `rejected` posts do
+not publish, even when they are scheduled and overdue. Default is `"none"`.
 
 - **Requesting approval** — pass `requestApproval: true` on `create_post` or
   `update_post` (default `false`) to hold a scheduled post for team approval;
@@ -75,7 +75,8 @@ Every post object returned by the API also carries the read-only approval fields
   role lacks `post:publish` (contributors), this is **forced server-side
   regardless of the flag** — their scheduled posts always land in the approval
   queue. Never tell such a user their post was scheduled: check the returned
-  `approvalStatus` and say it is awaiting approval.
+  `approvalStatus` and say it is awaiting approval. Approval applies only to
+  scheduled posts: a `draft` ignores `requestApproval` (it stays `"none"`).
 - **The approval queue** — `list_posts` with `approvalStatus: "pending"` (the
   filter accepts `none` | `pending` | `approved` | `rejected`), or
   `GET /api/posts?approvalStatus=pending`.
@@ -94,9 +95,9 @@ Every post object returned by the API also carries the read-only approval fields
   to resubmit for approval.
 - Both return the post on 200; **400** if the post is not awaiting approval,
   **403** if the role lacks `post:approve`, **404** if not found, **409** if the
-  post stopped awaiting approval while the request was in flight (approved,
-  rejected or withdrawn by someone else) — reload it with `get_post` and review
-  again.
+  post changed while you were reviewing it (someone else approved, rejected or
+  withdrew it, or, on approve, its scheduled time moved) — reload it with
+  `get_post` and review again.
 - **`APPROVAL_REQUIRED`** — `publish_post` and `retry_post` return **403** with
   error code `APPROVAL_REQUIRED` for roles without `post:publish`. Do not retry:
   create/update the post with `requestApproval: true` and tell the user a

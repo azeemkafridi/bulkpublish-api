@@ -35,7 +35,7 @@ export class SchedulesResource {
    *
    * Pass `requireApproval: true` to hold every occurrence the schedule
    * generates for team approval — each generated post lands with
-   * `approvalStatus: 'pending'` and the scheduler skips it until an approver
+   * `approvalStatus: 'pending'` and does not publish until an approver
    * releases it via `posts.approve(id)`. Default: false.
    *
    * Forced to true for roles without publish rights (contributors): the flag
