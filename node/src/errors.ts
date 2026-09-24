@@ -53,6 +53,11 @@ export class AuthenticationError extends BulkPublishError {
 /**
  * Thrown when the API returns 403 Forbidden (e.g. accessing another user's resource).
  *
+ * `code` says why: `FORBIDDEN` (the key's role does not allow the action),
+ * `APPROVAL_REQUIRED` (the post must go through approval instead), or
+ * `SEAT_LIMIT` (the workspace has more members than its plan includes and this
+ * member is read-only until the owner upgrades or frees a seat).
+ *
  * @example
  * ```typescript
  * try {

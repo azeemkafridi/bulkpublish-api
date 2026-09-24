@@ -65,6 +65,12 @@ class AuthenticationError(BulkPublishError):
 class PermissionError(BulkPublishError):
     """Raised when the authenticated key lacks permission for the action (HTTP 403).
 
+    The error body's ``code`` says why: ``FORBIDDEN`` (the key's role does not
+    allow the action), ``APPROVAL_REQUIRED`` (the post must go through approval
+    instead), or ``SEAT_LIMIT`` (the workspace has more members than its plan
+    includes and this member is read-only until the owner upgrades or frees a
+    seat).
+
     Example::
 
         from bulkpublish.exceptions import PermissionError

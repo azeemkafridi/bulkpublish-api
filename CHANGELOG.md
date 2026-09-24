@@ -12,6 +12,7 @@ Node **1.38.0** · Python **0.39.0** · MCP **1.40.0**
 - Python: `publish_when_approved=` on `posts.create()` / `posts.update()`, `publishWhenApproved` on `Post`, and `posts.approve(post_id, when_late=None)` (sync and async) sending `whenLate`.
 - MCP: `approve_post` takes an optional `whenLate`; `create_post` and `update_post` take and forward `publishWhenApproved`. The `publish_post` description tells agents how to "publish now" for a user who needs approval.
 - Updated: openapi.json + Postman collection (approve request body, create/update field), the scheduling guide and the `schedule-post` skill.
+- **Team roles and seats documented, including the new `403 SEAT_LIMIT`.** The reference introduction now explains that every write runs with the role of the key's member (`403 FORBIDDEN`, or `APPROVAL_REQUIRED` when approval is needed), and that when a workspace has more members than its plan includes, the most recently joined members beyond the plan's seats are read-only and get `403 SEAT_LIMIT` until the owner upgrades or frees a seat. The Node `ForbiddenError` and Python `PermissionError` docs list these codes.
 
 ## 2026-09-24 — MCP sign-in codes are bound to their client
 
