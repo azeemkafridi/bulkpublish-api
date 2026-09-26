@@ -63,6 +63,22 @@ const KEY = scryptSync(SECRET, "bulkpublish-oauth-v1", 32);
 const ACCESS_TTL = 3600; // 1h
 const REFRESH_TTL = 60 * 60 * 24 * 30; // 30d
 const CODE_TTL = 600; // 10m
+
+/**
+ * Codes already exchanged, until they expire. A sealed code is otherwise valid
+ * for its whole TTL, so one leaked with its verifier could be redeemed again
+ * (OAuth 2.1 §4.1.3: a code is single-use). In-process is enough: the server
+ * runs as one container, and a restart only re-opens codes that are at most
+ * ten minutes old and still need the client's PKCE verifier.
+ */
+const redeemedCodes = new Map<string, number>();
+function claimCode(code: string, exp: number): boolean {
+  const t = now();
+  for (const [k, e] of redeemedCodes) if (e < t) redeemedCodes.delete(k);
+  if (redeemedCodes.has(code)) return false;
+  redeemedCodes.set(code, exp);
+  return true;
+}
 const CLIENT_TTL = 60 * 60 * 24 * 365; // 1y
 
 const now = () => Math.floor(Date.now() / 1000);
@@ -408,6 +424,7 @@ export const oauthProvider: OAuthServerProvider = {
     // `ci` is absent only on codes minted before this check existed (10-minute TTL).
     if (code.ci !== undefined && code.ci !== client.client_id) throw new InvalidGrantError("invalid_grant");
     if (code.ru !== undefined && redirectUri !== code.ru) throw new InvalidGrantError("invalid_grant");
+    if (!claimCode(authorizationCode, code.exp)) throw new InvalidGrantError("invalid_grant");
     return issueTokens(code.k as string);
   },
 
