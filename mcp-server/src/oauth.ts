@@ -425,16 +425,19 @@ export const oauthProvider: OAuthServerProvider = {
     if (code.ci !== undefined && code.ci !== client.client_id) throw new InvalidGrantError("invalid_grant");
     if (code.ru !== undefined && redirectUri !== code.ru) throw new InvalidGrantError("invalid_grant");
     if (!claimCode(authorizationCode, code.exp)) throw new InvalidGrantError("invalid_grant");
-    return issueTokens(code.k as string);
+    return issueTokens(code.k as string, client.client_id);
   },
 
   async exchangeRefreshToken(
-    _client: OAuthClientInformationFull,
+    client: OAuthClientInformationFull,
     refreshToken: string
   ): Promise<OAuthTokens> {
-    const rt = open<Sealed & { k: string }>(refreshToken);
+    const rt = open<Sealed & { k: string; ci?: string }>(refreshToken);
     if (!rt || rt.t !== "rt") throw new InvalidGrantError("invalid_grant");
-    return issueTokens(rt.k as string);
+    // Bound to the client it was issued to (OAuth 2.1 §4.3.1), like a code.
+    // `ci` is absent only on refresh tokens issued before this check (30-day TTL).
+    if (rt.ci !== undefined && rt.ci !== client.client_id) throw new InvalidGrantError("invalid_grant");
+    return issueTokens(rt.k as string, client.client_id);
   },
 
   async verifyAccessToken(token: string): Promise<AuthInfo> {
@@ -450,12 +453,12 @@ export const oauthProvider: OAuthServerProvider = {
   },
 };
 
-function issueTokens(bpKey: string): OAuthTokens {
+function issueTokens(bpKey: string, clientId: string): OAuthTokens {
   return {
     access_token: seal({ t: "at", k: bpKey }, ACCESS_TTL),
     token_type: "Bearer",
     expires_in: ACCESS_TTL,
-    refresh_token: seal({ t: "rt", k: bpKey }, REFRESH_TTL),
+    refresh_token: seal({ t: "rt", k: bpKey, ci: clientId }, REFRESH_TTL),
     scope: "bulkpublish",
   };
 }

@@ -7,6 +7,7 @@ MCP **1.40.4**
 ### Fixed
 
 - **An authorization code can be exchanged only once.** A code stayed redeemable for its whole ten-minute lifetime, so the same code (with its PKCE verifier) could mint a second set of tokens. A repeat exchange now fails with `invalid_grant`, as OAuth 2.1 requires. Clients that exchange each code once, which is all of them in normal use, see no change.
+- **A refresh token works only for the client it was issued to.** Refreshing with another client's token now fails with `invalid_grant`. Tokens issued before this release keep working until they expire.
 
 ## 2026-09-26 — get_analytics counts days in the user's timezone
 
