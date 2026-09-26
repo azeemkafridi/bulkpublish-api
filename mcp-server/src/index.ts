@@ -1589,9 +1589,11 @@ server.tool(
     postFormat: z.enum(["post", "thread"]).optional().describe("Only single posts or only threads."),
     mediaType: z.enum(["text", "image", "video"]).optional().describe("By the post's first media file: text (no media), image or video."),
     compare: z.boolean().optional().describe("Also return the previous equal-length window as `previous` / `previousWindow`."),
+    tz: z.string().optional().describe("IANA timezone (e.g. \"Asia/Karachi\") that sets where each day starts and ends and how daily counts are grouped. Defaults to UTC; pass the user's zone so 'today' and daily figures match their calendar."),
   },
-  async ({ from, to, channelIds, platforms, labelIds, postFormat, mediaType, compare }) => {
+  async ({ from, to, channelIds, platforms, labelIds, postFormat, mediaType, compare, tz }) => {
     const params = new URLSearchParams({ from, to });
+    if (tz) params.set("tz", tz);
     if (channelIds) params.set("channelIds", channelIds);
     if (platforms) params.set("platforms", platforms);
     if (labelIds) params.set("labelIds", labelIds);

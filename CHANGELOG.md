@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-26 — get_analytics counts days in the user's timezone
+
+MCP **1.40.3**
+
+### Added
+
+- **`tz` on the `get_analytics` tool.** The summary endpoint has always accepted an IANA timezone for day boundaries and daily counts, but the tool never forwarded one, so an agent's "today" and daily figures were UTC days. Pass the user's zone (e.g. `Asia/Karachi`); omitting it keeps UTC.
+
 ## 2026-09-24 — Skills for the core profile
 
 MCP **1.40.2**
