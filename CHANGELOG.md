@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-27 — Bluesky and Pinterest video sizes
+
+MCP **1.40.8**
+
+### Fixed
+
+- **Skills no longer state a Bluesky video size.** The 100MB figure was never verified: Bluesky publishes no upload limit for the path BulkPublish uses. About 19MB is proven to work.
+- **Pinterest video pins:** 4 seconds to 5 minutes, with no published file size for ordinary pins. The 2GB figure is Pinterest's video-ads limit.
+
 ## 2026-09-27 — X video length corrected back to 140 seconds
 
 MCP **1.40.7**

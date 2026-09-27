@@ -198,7 +198,7 @@ The two run on separate LinkedIn apps (company pages use the Community Managemen
 | `video_pin` | 1 video required | Video pin |
 | `carousel` | 2-5 images required | Multi-image pin |
 
-**Media specs:** Image max 20MB (jpg/png/webp), max 5. 1000x1500 recommended. Video max 2GB (mp4/mov), max 1; a video pin must be at least 4s.
+**Media specs:** Image max 20MB (jpg/png/webp), max 5. 1000x1500 recommended. Video mp4/mov, max 1, 4s to 5 min; Pinterest publishes no file size for ordinary video pins (2GB is its video-ads figure).
 
 **platformSpecific options:**
 - `title` — **REQUIRED**, 1-100 chars (falls back to first 100 chars of content)
@@ -251,7 +251,7 @@ The two run on separate LinkedIn apps (company pages use the Community Managemen
 | `thread` | Per-part | Use `postFormat: "thread"` + `threadParts` |
 | `repost` | None | Reposts an existing post; `platformSpecific.repostId` = post URL or ID; own text/media ignored |
 
-**Media specs:** Image max 10MB auto-resized to <976KB (jpg/png/webp), max 4. Video max 100MB (mp4 only), max 1.
+**Media specs:** Image max 10MB auto-resized to <976KB (jpg/png/webp), max 4. Video mp4 only, max 1; no size limit is published for this upload path (~19MB is proven).
 
 ---
 
