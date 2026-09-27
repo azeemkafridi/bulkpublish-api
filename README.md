@@ -349,7 +349,7 @@ See the [OpenAPI spec](openapi.json) for the complete endpoint list.
 | **Google Business Profile** | Post, Event, Offer | Images |
 | **LinkedIn** | Post, Multi-image, PDF Carousel, Article | Images (JPEG, PNG, GIF), Videos (MP4) |
 | **Mastodon** | Post, Thread | Images, Videos |
-| **Snapchat** | Story, Saved Story, Spotlight | Exactly 1 image (JPG, PNG) or video (MP4, MOV, vertical, 5–60s, max 1GB) |
+| **Snapchat** | Story, Saved Story, Spotlight | Exactly 1 image (JPG, PNG) or video (MP4, MOV, vertical, max 1GB; story video 5–60s, Spotlight 6–60s) |
 
 ## SDKs
 

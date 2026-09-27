@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-27 — Snapchat saved-story video length is not checked
+
+Node **1.38.4**, Python **0.39.4**, MCP **1.40.9**
+
+### Changed
+
+- **A Snapchat `saved_story` video is no longer length-checked.** Snap documents video length for Spotlight (6–60s) and story (5–60s) only, and lists no media requirements for a saved story. The 5–60s range the server used to apply to saved stories had no source, so it is gone from the server and from these docs. Story and Spotlight are unchanged.
+- **Length errors are worded more clearly:** `<platform> <type>: the video must be N–M seconds long (got Xs)`.
+
 ## 2026-09-27 — Bluesky and Pinterest video sizes
 
 MCP **1.40.8**

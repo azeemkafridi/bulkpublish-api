@@ -118,12 +118,12 @@ const POST_TYPE_OVERRIDES_SCHEMA = z
       .enum(["story", "saved_story", "spotlight"])
       .optional()
       .describe(
-        "story (default): 1 image or video, caption NOT sent. saved_story: 1 image or video with a title. spotlight: video only, 6\u201360s, caption becomes the description. Story and saved_story videos must be 5\u201360s; a video outside its range is refused when the post is scheduled or published."
+        "story (default): 1 image or video, caption NOT sent. saved_story: 1 image or video with a title. spotlight: video only, 6\u201360s, caption becomes the description. Story videos must be 5\u201360s; a video outside its range is refused when the post is scheduled or published. saved_story video length is not checked."
       ),
   })
   .optional()
   .describe(
-    'Per-platform post type override. E.g. { "instagram": "reel", "youtube": "short" }. Video length is checked per type when the post is scheduled or published, and a video outside the range is refused: instagram reel/feed_video 3s\u201315min, story 3\u201360s; facebook reel 3\u201390s, story 3\u201360s; threads video/carousel up to 5min; linkedin 3s\u201330min; pinterest video_pin at least 4s; snapchat story/saved_story 5\u201360s, spotlight 6\u201360s.'
+    'Per-platform post type override. E.g. { "instagram": "reel", "youtube": "short" }. Video length is checked per type when the post is scheduled or published, and a video outside the range is refused: instagram reel/feed_video 3s\u201315min, story 3\u201360s; facebook reel 3\u201390s, story 3\u201360s; threads video/carousel up to 5min; linkedin 3s\u201330min; pinterest video_pin at least 4s; snapchat story 5\u201360s, spotlight 6\u201360s (saved_story not checked).'
   );
 
 // Reddit, Discord, Tumblr and Snapchat nest their options under the BulkPublish channel
@@ -385,7 +385,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
     snapchat: channelKeyedOrFlat(SNAPCHAT_OPTIONS)
       .optional()
       .describe(
-        'Snapchat options, nested under the BulkPublish channel id: { "12": { "title": "My story" } }. A flat object applies to every Snapchat channel on the post. Post types: story (default), saved_story, spotlight. Every Snapchat post requires exactly ONE image or video (vertical, videos 5\u201360s, spotlight 6\u201360s video-only, max 1GB; a video outside its range is refused when the post is scheduled or published). The caption is NOT sent for plain stories \u2014 it is only the Spotlight description (160 chars max) and the Saved Story title fallback. First comments are not supported.'
+        'Snapchat options, nested under the BulkPublish channel id: { "12": { "title": "My story" } }. A flat object applies to every Snapchat channel on the post. Post types: story (default), saved_story, spotlight. Every Snapchat post requires exactly ONE image or video (vertical, story videos 5\u201360s, spotlight 6\u201360s video-only, saved_story videos not length-checked, max 1GB; a video outside its range is refused when the post is scheduled or published). The caption is NOT sent for plain stories \u2014 it is only the Spotlight description (160 chars max) and the Saved Story title fallback. First comments are not supported.'
       ),
   })
   .optional()

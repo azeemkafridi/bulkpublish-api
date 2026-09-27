@@ -238,7 +238,7 @@ class PostsResource:
                   locale, default ``"en_US"``), ``saveToProfile`` (Spotlight only, default
                   ``True``; ``False`` sends skip_save_to_profile). Every Snapchat post
                   requires exactly ONE image or video (vertical; jpg/png or mp4/mov,
-                  5–60s, max 1GB). The caption is NOT sent for plain stories — it is used
+                  max 1GB; story video 5–60s). The caption is NOT sent for plain stories — it is used
                   only as the Spotlight description (max 160 chars, truncated) and as the
                   Saved Story title fallback. Spotlight is video-only (6–60s). A video
                   outside its range is rejected with a 400 ``VALIDATION_ERROR`` when the
@@ -282,8 +282,8 @@ class PostsResource:
                 ``VALIDATION_ERROR``: instagram ``reel``/``feed_video`` 3s–15min,
                 ``story`` 3–60s; facebook ``reel`` 3–90s, ``story`` 3–60s; threads
                 ``video``/``carousel`` up to 5min; linkedin 3s–30min; pinterest
-                ``video_pin`` at least 4s; snapchat ``story``/``saved_story`` 5–60s,
-                ``spotlight`` 6–60s.
+                ``video_pin`` at least 4s; snapchat ``story`` 5–60s,
+                ``spotlight`` 6–60s (``saved_story`` is not checked).
 
             request_approval: Set ``True`` to hold a scheduled post for team
                 approval (``approvalStatus`` becomes ``"pending"``; default

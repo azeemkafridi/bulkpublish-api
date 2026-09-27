@@ -137,7 +137,7 @@ This publishes the post AS a story. Set it at creation time — an existing regu
 | Instagram | Depends on type | `feed_photo`=image, `reel`/`feed_video`=video, `carousel`=2-10 mixed |
 | Pinterest | Image or video | Needs board ID in `platformSpecific` or channel default |
 | Facebook/X/LinkedIn/Threads/Bluesky/Mastodon | Any or none | Text-only posts OK |
-| Snapchat | Exactly 1 image or video | jpg/png or mp4/mov, vertical, 5–60s (Spotlight 6–60s video-only), max 1GB |
+| Snapchat | Exactly 1 image or video | jpg/png or mp4/mov, vertical, max 1GB; story video 5–60s, Spotlight 6–60s video-only, Saved Story not length-checked |
 
 ## Common mistakes
 

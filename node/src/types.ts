@@ -631,7 +631,7 @@ export interface CreatePostParams {
    * Video length is checked per type when the post is scheduled or published; a video outside the range is
    * rejected with a 400 `VALIDATION_ERROR`: instagram `reel`/`feed_video` 3s–15min, `story` 3–60s; facebook
    * `reel` 3–90s, `story` 3–60s; threads `video`/`carousel` up to 5min; linkedin 3s–30min; pinterest
-   * `video_pin` at least 4s; snapchat `story`/`saved_story` 5–60s, `spotlight` 6–60s.
+   * `video_pin` at least 4s; snapchat `story` 5–60s, `spotlight` 6–60s (`saved_story` is not checked).
    *
    * @example { instagram: 'reel', facebook: 'story' }
    */
@@ -676,7 +676,7 @@ export interface CreatePostParams {
    * - **snapchat**: Optional: `title` (Saved Story title, max 45 chars — defaults to the caption's first
    *   line, truncated), `locale` (Spotlight locale, default `'en_US'`), `saveToProfile` (Spotlight only,
    *   default `true`; `false` sends skip_save_to_profile). Every Snapchat post requires exactly ONE image or
-   *   video (vertical; images jpg/png, videos mp4/mov 5–60s, max 1GB). The caption is NOT sent for plain
+   *   video (vertical; images jpg/png, videos mp4/mov, max 1GB; story video 5–60s). The caption is NOT sent for plain
    *   stories — it is used only as the Spotlight description (max 160 chars, truncated) and as the Saved
    *   Story title fallback. Spotlight is video-only (6–60s). A video outside its range is rejected with a 400
    *   `VALIDATION_ERROR` when the post is scheduled or published (drafts may be saved with it). First

@@ -155,7 +155,7 @@ when the post is scheduled or published. A draft can still be saved with it.
 | Threads | `video`, `carousel` | up to 5 minutes |
 | LinkedIn | `post` | 3 seconds to 30 minutes |
 | Pinterest | `video_pin` | at least 4 seconds |
-| Snapchat | `story`, `saved_story` | 5 to 60 seconds |
+| Snapchat | `story` | 5 to 60 seconds |
 | Snapchat | `spotlight` | 6 to 60 seconds |
 
 Other post types and platforms are not length-checked. Some platforms still
@@ -805,7 +805,8 @@ channel on the post).
 ### Notes
 
 - Every Snapchat post requires **exactly one** media file — images as jpg/png,
-  videos as mp4/mov, vertical, 5–60 seconds (6–60s for Spotlight), max 1GB.
+  videos as mp4/mov, vertical, max 1GB. Story video is 5–60 seconds and
+  Spotlight 6–60s; Snap documents no length for a Saved Story, so none is checked.
   A video outside its range is rejected with `400 VALIDATION_ERROR` when the
   post is scheduled or published; a draft can still be saved with it.
 - First comments (`_firstComment`) are **not** supported on Snapchat.

@@ -399,7 +399,7 @@ The two run on separate LinkedIn apps (company pages use the Community Managemen
 | `saved_story` | exactly 1 image or video | Title max 45 chars; defaults to the first line of the caption, truncated. |
 | `spotlight` | 1 video only, 6–60s | Caption becomes the description (max 160 chars, truncated); hashtags are clickable. |
 
-**Media specs:** exactly ONE file per post. Images jpg/png; videos mp4/mov, vertical, 5–60s (Spotlight 6–60s), max 1GB.
+**Media specs:** exactly ONE file per post. Images jpg/png; videos mp4/mov, vertical, max 1GB. Story video 5–60s, Spotlight 6–60s; Saved Story video is not length-checked.
 
 **platformSpecific** — keyed by **channel ID** (a flat object applies to every Snapchat channel):
 
