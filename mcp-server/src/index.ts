@@ -123,7 +123,7 @@ const POST_TYPE_OVERRIDES_SCHEMA = z
   })
   .optional()
   .describe(
-    'Per-platform post type override. E.g. { "instagram": "reel", "youtube": "short" }.'
+    'Per-platform post type override. E.g. { "instagram": "reel", "youtube": "short" }. Video length is checked per type when the post is scheduled or published, and a video outside the range is refused: instagram reel/feed_video 3s\u201315min, story 3\u201360s; facebook reel 3\u201390s, story 3\u201360s; threads video/carousel up to 5min; linkedin 3s\u201330min; pinterest video_pin at least 4s; snapchat story/saved_story 5\u201360s, spotlight 6\u201360s.'
   );
 
 // Reddit, Discord, Tumblr and Snapchat nest their options under the BulkPublish channel

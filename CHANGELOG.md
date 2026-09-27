@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-09-27 — Video length checked for more post types
+
+Node **1.38.3**, Python **0.39.3**, MCP **1.40.6**
+
+### Changed
+
+- **Out-of-range videos are refused when you schedule or publish**, not after, for every post type whose platform documents a length: Instagram `reel`/`feed_video` 3 seconds to 15 minutes and `story` 3–60 seconds; Facebook `reel` 3–90 seconds and `story` 3–60 seconds; Threads `video`/`carousel` up to 5 minutes; LinkedIn 3 seconds to 30 minutes; Pinterest `video_pin` at least 4 seconds. The response is `400 VALIDATION_ERROR` naming the post type and the video's length. Drafts can still be saved. Other types and platforms are not length-checked. The full table is in `guides/platforms.md` under "Video length".
+
+### Fixed
+
+- **Skill media specs corrected.** X videos were listed as 140 seconds (X allows 20 minutes, longer on X Premium), Bluesky as 60 seconds and Mastodon as 5 minutes (neither sets a length), and Instagram Reels as 3–90 seconds (3 seconds to 15 minutes). TikTok's "1–10 minutes" is now "up to 3 minutes for every account, 5 or 10 for some".
+
 ## 2026-09-27 — Snapchat video length is checked when you schedule
 
 Node **1.38.2**, Python **0.39.2**, MCP **1.40.5**

@@ -277,6 +277,14 @@ class PostsResource:
                 - snapchat: ``story`` (default), ``saved_story``, ``spotlight`` (video only)
                 - mastodon, reddit, discord, telegram, tumblr: ``post``
 
+                Video length is checked per type when the post is scheduled or
+                published; a video outside the range is rejected with a 400
+                ``VALIDATION_ERROR``: instagram ``reel``/``feed_video`` 3s–15min,
+                ``story`` 3–60s; facebook ``reel`` 3–90s, ``story`` 3–60s; threads
+                ``video``/``carousel`` up to 5min; linkedin 3s–30min; pinterest
+                ``video_pin`` at least 4s; snapchat ``story``/``saved_story`` 5–60s,
+                ``spotlight`` 6–60s.
+
             request_approval: Set ``True`` to hold a scheduled post for team
                 approval (``approvalStatus`` becomes ``"pending"``; default
                 ``False``). Forced on server-side for roles without

@@ -141,6 +141,28 @@ Use the `postTypeOverrides` field to set a specific post type per platform:
 
 If not specified, the platform's default post type is used based on the attached media.
 
+### Video length
+
+A video outside its post type's range is rejected with `400 VALIDATION_ERROR`
+when the post is scheduled or published. A draft can still be saved with it.
+
+| Platform | Post type | Video length |
+|----------|-----------|--------------|
+| Instagram | `reel`, `feed_video` | 3 seconds to 15 minutes |
+| Instagram | `story` | 3 to 60 seconds |
+| Facebook | `reel` | 3 to 90 seconds |
+| Facebook | `story` | 3 to 60 seconds |
+| Threads | `video`, `carousel` | up to 5 minutes |
+| LinkedIn | `post` | 3 seconds to 30 minutes |
+| Pinterest | `video_pin` | at least 4 seconds |
+| Snapchat | `story`, `saved_story` | 5 to 60 seconds |
+| Snapchat | `spotlight` | 6 to 60 seconds |
+
+Other post types and platforms are not length-checked. Some platforms still
+apply their own limit when the post is published: TikTok's depends on the
+account (3 minutes for everyone, 5 or 10 for some), and X allows 20 minutes,
+or longer on X Premium.
+
 ---
 
 Each platform has unique features and requirements. BulkPublish lets you configure per-platform options through the `platformSpecific` field when creating or updating a post.
