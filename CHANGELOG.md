@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-27 — X video length corrected back to 140 seconds
+
+MCP **1.40.7**
+
+### Fixed
+
+- **X videos are 140 seconds without Premium.** The previous release changed the skills and platform guide to 20 minutes, from X's API upload docs. X's own help center says accounts without Premium can post videos up to 140 seconds and 512 MB, and Premium accounts up to 4 hours. The skills and `guides/platforms.md` now say that.
+
 ## 2026-09-27 — Video length checked for more post types
 
 Node **1.38.3**, Python **0.39.3**, MCP **1.40.6**

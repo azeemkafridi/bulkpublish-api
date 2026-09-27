@@ -160,8 +160,8 @@ when the post is scheduled or published. A draft can still be saved with it.
 
 Other post types and platforms are not length-checked. Some platforms still
 apply their own limit when the post is published: TikTok's depends on the
-account (3 minutes for everyone, 5 or 10 for some), and X allows 20 minutes,
-or longer on X Premium.
+account (3 minutes for everyone, 5 or 10 for some), and X allows 140 seconds,
+or up to 4 hours on X Premium.
 
 ---
 
