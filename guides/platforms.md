@@ -784,6 +784,8 @@ channel on the post).
 
 - Every Snapchat post requires **exactly one** media file — images as jpg/png,
   videos as mp4/mov, vertical, 5–60 seconds (6–60s for Spotlight), max 1GB.
+  A video outside its range is rejected with `400 VALIDATION_ERROR` when the
+  post is scheduled or published; a draft can still be saved with it.
 - First comments (`_firstComment`) are **not** supported on Snapchat.
 - Engagement (individual comments/reactions) is not readable; per-post metrics
   are (see [Metrics by Platform](#metrics-by-platform)).

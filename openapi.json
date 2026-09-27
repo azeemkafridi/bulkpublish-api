@@ -1082,7 +1082,7 @@
           },
           "snapchat": {
             "type": "object",
-            "description": "Keyed by BulkPublish channel id (e.g. \"12\"), or flat to apply to every Snapchat channel on the post. Post types: story (default), saved_story, spotlight. Every Snapchat post requires exactly one image or video; spotlight is video-only (6\u201360s). The caption is used only for Spotlight (160-char description) and as the Saved Story title fallback \u2014 plain stories carry no text.",
+            "description": "Keyed by BulkPublish channel id (e.g. \"12\"), or flat to apply to every Snapchat channel on the post. Post types: story (default), saved_story, spotlight. Every Snapchat post requires exactly one image or video; spotlight is video-only (6\u201360s); story and saved_story videos must be 5\u201360s. A video outside its range is rejected with 400 VALIDATION_ERROR when the post is scheduled or published (drafts may be saved with it). The caption is used only for Spotlight (160-char description) and as the Saved Story title fallback \u2014 plain stories carry no text.",
             "properties": {
               "title": {
                 "type": "string",

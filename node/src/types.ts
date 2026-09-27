@@ -673,7 +673,9 @@ export interface CreatePostParams {
    *   default `true`; `false` sends skip_save_to_profile). Every Snapchat post requires exactly ONE image or
    *   video (vertical; images jpg/png, videos mp4/mov 5–60s, max 1GB). The caption is NOT sent for plain
    *   stories — it is used only as the Spotlight description (max 160 chars, truncated) and as the Saved
-   *   Story title fallback. Spotlight is video-only (6–60s). First comments are not supported on Snapchat.
+   *   Story title fallback. Spotlight is video-only (6–60s). A video outside its range is rejected with a 400
+   *   `VALIDATION_ERROR` when the post is scheduled or published (drafts may be saved with it). First
+   *   comments are not supported on Snapchat.
    *
    * `reddit`, `discord`, `tumblr` and `snapchat` nest their options under the **BulkPublish channel id**, because each
    * connected account commonly targets a different subreddit / Discord channel / blog. A flat object is also

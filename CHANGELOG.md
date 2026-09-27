@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-27 — Snapchat video length is checked when you schedule
+
+Node **1.38.2**, Python **0.39.2**, MCP **1.40.5**
+
+### Changed
+
+- **A Snapchat video outside its length range is refused up front.** Stories and Saved Stories take 5–60 second videos and Spotlight takes 6–60 seconds. Those limits were already documented, but a post that broke them was accepted and then failed when it tried to publish. Scheduling or publishing such a post (`POST /api/posts`, `PATCH /api/posts/{id}`, `POST /api/posts/{id}/publish`) now returns `400 VALIDATION_ERROR` naming the post type and the video's length. Drafts can still be saved with it. Request and response shapes are unchanged.
+
 ## 2026-09-26 — Sign-in codes work once
 
 MCP **1.40.4**
