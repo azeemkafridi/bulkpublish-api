@@ -219,6 +219,14 @@ async function handleMcp(req: Request, res: Response): Promise<void> {
 
 const app = express();
 app.disable("x-powered-by");
+// One reverse proxy (Traefik) sits in front of this process and sets
+// X-Forwarded-For to the caller's address. Without this, req.ip is the proxy's
+// address, so the per-IP rate limits mcpAuthRouter puts on /authorize,
+// /register, /token and /revoke put EVERY OAuth client into one shared bucket
+// (e.g. /register allows 20 per hour for the whole world). Trust exactly one
+// hop: the rightmost X-Forwarded-For entry is the one the proxy wrote, so a
+// client cannot choose its own bucket by sending the header itself.
+app.set("trust proxy", 1);
 // gzip every response — most importantly the widget HTML payloads from
 // resources/read (~350 KB each, 5 widgets = ~1.75 MB uncompressed). Compresses
 // to ~70 KB per widget, which stays well clear of any upstream/proxy payload

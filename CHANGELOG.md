@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-28 — Hosted MCP: sign-in rate limits are per caller
+
+MCP **1.40.10**
+
+### Fixed
+
+- **Connecting the hosted server no longer shares one rate limit with every other client.** The sign-in endpoints (`/authorize`, `/register`, `/token`, `/revoke`) are meant to limit requests per caller, but every caller was counted together, so all clients drew from one allowance (client registration: 20 per hour in total). Each caller now has its own allowance. The npm package's stdio mode is unaffected.
+
 ## 2026-09-27 — Snapchat saved-story video length is not checked
 
 Node **1.38.4**, Python **0.39.4**, MCP **1.40.9**
