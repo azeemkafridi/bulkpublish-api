@@ -2561,7 +2561,7 @@
           "request": {
             "name": "Create or get review link",
             "description": {
-              "content": "Returns a read-only review link (https://app.bulkpublish.com/p/<token>) that anyone holding it can open without signing in. It shows the post's text, media, destinations and timing, always the current version. The first call creates the token (201); later calls return the same one (200). Body `{ \"regenerate\": true }` mints a new token and kills the old link. Posts expose the token as `shareToken` (null when no link exists). Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+              "content": "Returns a read-only review link (https://app.bulkpublish.com/p/<token>) that anyone holding it can open without signing in. It shows the post's text, media, destinations and timing, always the current version. The first call creates the token (201); later calls return the same one (200). Body `{ \"regenerate\": true }` mints a new token and kills the old link. Posts expose the token as `shareToken` (null when no link exists). Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
               "type": "text/plain"
             },
             "url": {
@@ -6079,7 +6079,7 @@
           "request": {
             "name": "Set media alt text",
             "description": {
-              "content": "Sets the accessibility description of a media file. Alt text belongs to the file, so one value covers every post that reuses it. It is sent wherever the destination accepts a description: Instagram (feed photos and carousel images), LinkedIn (single and multi-image posts) and Bluesky. Video files accept a value but no platform receives it yet. Send `null` or an empty string to clear. Trimmed to 1000 characters. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+              "content": "Sets the accessibility description of a media file. Alt text belongs to the file, so one value covers every post that reuses it. It is sent wherever the destination accepts a description: Instagram (feed photos and carousel images), LinkedIn (single and multi-image posts) and Bluesky. Video files accept a value but no platform receives it yet. Send `null` or an empty string to clear. Trimmed to 1000 characters. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
               "type": "text/plain"
             },
             "url": {
@@ -7546,7 +7546,7 @@
           "request": {
             "name": "List hashtag groups",
             "description": {
-              "content": "Every saved hashtag group in the organization, sorted by name. Returns { groups: HashtagGroup[] }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
+              "content": "Every saved hashtag group in the organization, sorted by name. Returns { groups: HashtagGroup[] }.",
               "type": "text/plain"
             },
             "url": {
@@ -7610,7 +7610,7 @@
           "request": {
             "name": "Create hashtag group",
             "description": {
-              "content": "Saves a named set of hashtags the composer can insert in one click. An organization may keep up to 100 groups (400 LIMIT_REACHED beyond that). Returns 201 with { group }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+              "content": "Saves a named set of hashtags the composer can insert in one click. An organization may keep up to 100 groups (400 LIMIT_REACHED beyond that). Returns 201 with { group }. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
               "type": "text/plain"
             },
             "url": {
@@ -7703,7 +7703,7 @@
           "request": {
             "name": "Update hashtag group",
             "description": {
-              "content": "At least one of `name` or `hashtags` is required. `hashtags` replaces the whole list. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+              "content": "At least one of `name` or `hashtags` is required. `hashtags` replaces the whole list. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
               "type": "text/plain"
             },
             "url": {
@@ -7820,7 +7820,7 @@
           "request": {
             "name": "Delete hashtag group",
             "description": {
-              "content": "Removes the group. Posts that already contain its hashtags are untouched. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+              "content": "Removes the group. Posts that already contain its hashtags are untouched. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
               "type": "text/plain"
             },
             "url": {
@@ -7985,7 +7985,7 @@
           "request": {
             "name": "Create template",
             "description": {
-              "content": "Up to 200 per organization, per kind \u2014 captions and first-comment snippets each get their own 200 (400 LIMIT_REACHED beyond that). Returns 201 { template }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+              "content": "Up to 200 per organization, per kind \u2014 captions and first-comment snippets each get their own 200 (400 LIMIT_REACHED beyond that). Returns 201 { template }. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
               "type": "text/plain"
             },
             "url": {
@@ -8437,7 +8437,7 @@
           "request": {
             "name": "Revoke review link",
             "description": {
-              "content": "The posts it covered are untouched \u2014 only the link stops working. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+              "content": "The posts it covered are untouched \u2014 only the link stops working. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
               "type": "text/plain"
             },
             "url": {
@@ -8592,7 +8592,7 @@
           "request": {
             "name": "Create client connect link",
             "description": {
-              "content": "Mints a one-time link (https://app.bulkpublish.com/connect/<token>) a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. Expires after 7 days and stops working the moment an account is connected through it \u2014 creating again always makes a new link, it does not extend or reuse an existing one. Only these platforms are supported (everything else needs a form of its own instead of a plain OAuth redirect, and is connected by your own team instead): instagram, x, tiktok, youtube, threads, pinterest, gmb, linkedin, reddit, discord, tumblr, snapchat. Returns 201 { clientConnectLink, url }. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+              "content": "Mints a one-time link (https://app.bulkpublish.com/connect/<token>) a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. Expires after 7 days and stops working the moment an account is connected through it \u2014 creating again always makes a new link, it does not extend or reuse an existing one. Only these platforms are supported (everything else needs a form of its own instead of a plain OAuth redirect, and is connected by your own team instead): instagram, x, tiktok, youtube, threads, pinterest, gmb, linkedin, reddit, discord, tumblr, snapchat. Returns 201 { clientConnectLink, url }. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
               "type": "text/plain"
             },
             "url": {
@@ -8685,7 +8685,7 @@
           "request": {
             "name": "Revoke client connect link",
             "description": {
-              "content": "Idempotent: a link that already used, expired, or was previously revoked just stays that way. A channel the link already connected is untouched. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+              "content": "Idempotent: a link that already used, expired, or was previously revoked just stays that way. A channel the link already connected is untouched. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
               "type": "text/plain"
             },
             "url": {
@@ -8779,7 +8779,7 @@
           "request": {
             "name": "List calendar notes",
             "description": {
-              "content": "Notes whose date falls in [from, to] (both inclusive, at most a year apart), ordered by date. Returns { notes: CalendarNote[] }. Notes are free text pinned to a day on the calendar (a campaign, a holiday, \"no posts this week\"); they never publish anywhere. Rolling out: until it is switched on for your account, this endpoint answers 403 FEATURE_DISABLED.",
+              "content": "Notes whose date falls in [from, to] (both inclusive, at most a year apart), ordered by date. Returns { notes: CalendarNote[] }. Notes are free text pinned to a day on the calendar (a campaign, a holiday, \"no posts this week\"); they never publish anywhere. Returns { template }, or 404 when it is not in your organization.",
               "type": "text/plain"
             },
             "url": {

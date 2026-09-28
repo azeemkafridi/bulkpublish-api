@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-29 — Templates, hashtag groups, calendar notes, review links and client connect links are available to everyone
+
+Spec and Postman collection only; no package changes.
+
+### Changed
+
+- **These endpoints no longer answer `403 FEATURE_DISABLED` while rolling out**, because they have finished rolling out: `/api/templates`, `/api/hashtag-groups`, `/api/calendar-notes`, `/api/review-links`, `/api/posts/{id}/share` and `/api/client-connect-links`. The "Rolling out" notes are gone from their descriptions. Review links, share links and client connect links still answer `403 FEATURE_DISABLED` with `plan` and `upgrade: true` on the Free and Lifetime plans, as before.
+
 ## 2026-09-28 — Hosted MCP: sign-in rate limits are per caller
 
 MCP **1.40.10**
