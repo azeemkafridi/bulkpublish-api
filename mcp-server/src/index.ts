@@ -2815,6 +2815,19 @@ server.tool(
 // receive the text summary, so nothing breaks.
 // ---------------------------------------------------------------------------
 
+// ChatGPT extension metadata (openai/ui). Everything here lives under
+// `openai/*` keys, which Claude ignores; `npm run check:parity` fails if any
+// of it leaks into the surface Claude reads.
+//   entrypoints — "global" adds the panel to ChatGPT's sidebar (full screen),
+//     "thread" lets the user open it beside a conversation. The tool is called
+//     with {} when opened this way, so it must have no required inputs.
+//   displayMode — the mode ChatGPT should render the panel in first when the
+//     model opens it. ChatGPT supports inline and fullscreen only.
+type OpenAiWidgetOptions = {
+  entrypoints?: Array<{ type: "global" | "thread" }>;
+  displayMode?: "inline" | "fullscreen";
+};
+
 function registerWidget(config: {
   tool: string;
   widget: string;
@@ -2822,6 +2835,7 @@ function registerWidget(config: {
   description: string;
   inputSchema: Record<string, z.ZodTypeAny>;
   outputSchema?: Record<string, z.ZodTypeAny>;
+  openai?: OpenAiWidgetOptions;
   load: (
     args: Record<string, any>
   ) => Promise<{ text: string; data: Record<string, unknown> }>;
@@ -2859,11 +2873,19 @@ function registerWidget(config: {
     connect_domains: csp.connectDomains,
     resource_domains: csp.resourceDomains,
   };
+  const displayMode = config.openai?.displayMode;
   const meta = {
     ui: { csp },
     "openai/widgetDomain": "bulkpublish.com",
     "openai/widgetCSP": openaiCsp,
+    ...(displayMode && {
+      "openai/ui": {
+        preferredDisplayMode: displayMode,
+        availableDisplayModes: ["inline", "fullscreen"],
+      },
+    }),
   };
+  const entrypoints = config.openai?.entrypoints;
   registerAppResource(
     server,
     config.title,
@@ -2888,7 +2910,10 @@ function registerWidget(config: {
       description: config.description,
       inputSchema: config.inputSchema,
       outputSchema: config.outputSchema,
-      _meta: { ui: { resourceUri: uri } },
+      _meta: {
+        ui: { resourceUri: uri },
+        ...(entrypoints?.length && { "openai/ui": { entrypoints } }),
+      },
     },
     async (args) => {
       const { text, data } = await config.load(args as Record<string, any>);
@@ -2936,6 +2961,7 @@ registerWidget({
     "Open an interactive composer to draft or schedule a social media post. " +
     "Shows the user's connected channels to pick from and pre-fills any provided text. " +
     "The user finishes in the UI; on submit it creates the post via create_post.",
+  openai: { entrypoints: [{ type: "thread" }], displayMode: "inline" },
   inputSchema: {
     content: z
       .string()
@@ -2991,6 +3017,7 @@ registerWidget({
   description:
     "Open an interactive analytics dashboard for a date range — totals, status " +
     "breakdown, per-platform stats, and daily post counts.",
+  openai: { displayMode: "fullscreen" },
   inputSchema: {
     from: z
       .string()
@@ -3062,6 +3089,7 @@ registerWidget({
   description:
     "Open an interactive list of posts with their status, schedule, and channels. " +
     "Optionally filter by status.",
+  openai: { entrypoints: [{ type: "global" }, { type: "thread" }], displayMode: "inline" },
   inputSchema: {
     status: z
       .enum([

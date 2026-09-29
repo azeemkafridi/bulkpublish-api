@@ -5,6 +5,10 @@
  * media files (images, videos, and other assets) as a responsive thumbnail
  * grid. Data arrives via the `view_media` tool result (structuredContent) and
  * is refreshed whenever the host fires a new toolresult event.
+ *
+ * In ChatGPT, clicking a tile attaches that file to the conversation (the
+ * `openai/modelContext` host capability); other hosts don't advertise it, so
+ * there the tiles stay static.
  */
 import "./media.css";
 import {
@@ -33,6 +37,7 @@ const gridEl = $("grid");
 const emptyEl = $("empty");
 
 let loaded = false;
+let selectedId: number | undefined;
 
 /* ----------------------------- helpers ----------------------------- */
 
@@ -51,12 +56,68 @@ function extFromFilename(filename: string): string {
   return dot !== -1 ? filename.slice(dot + 1).toUpperCase() : "";
 }
 
+/* ----------------------------- model context ----------------------------- */
+
+function canShareContext(): boolean {
+  const caps = app.getHostCapabilities();
+  return !!(caps?.updateModelContext && caps.experimental?.["openai/modelContext"]);
+}
+
+function markSelected(): void {
+  for (const tile of gridEl.querySelectorAll<HTMLElement>(".tile")) {
+    tile.classList.toggle("tile--selected", tile.dataset.mediaId === String(selectedId));
+  }
+}
+
+function mediaContextText(item: MediaItem): string {
+  const details = [
+    item.mimeType,
+    item.width && item.height ? `${item.width}×${item.height}` : undefined,
+  ].filter(Boolean);
+  return (
+    `BulkPublish media file #${item.id}: ${item.filename || "untitled"}` +
+    (details.length ? ` (${details.join(", ")})` : "") +
+    `. To use it in a post, pass ${item.id} in mediaFileIds.`
+  );
+}
+
+async function toggleSelected(item: MediaItem): Promise<void> {
+  const clearing = selectedId === item.id;
+  selectedId = clearing ? undefined : item.id;
+  markSelected();
+  const meta: Record<string, unknown> = { "openai/title": item.filename || `Media #${item.id}` };
+  if (item.mimeType?.startsWith("image/") && item.url?.startsWith("https://")) {
+    meta["openai/thumbnail"] = { src: item.url };
+  }
+  try {
+    await app.updateModelContext({
+      content: clearing ? [] : [{ type: "text", text: mediaContextText(item), _meta: meta }],
+    });
+  } catch {
+    selectedId = undefined;
+    markSelected();
+  }
+}
+
 /* ----------------------------- rendering ----------------------------- */
 
 function makeTile(item: MediaItem): HTMLElement {
   const tile = document.createElement("div");
   tile.className = "tile";
   tile.setAttribute("role", "listitem");
+  if (item.id != null) tile.dataset.mediaId = String(item.id);
+  if (item.id != null && canShareContext()) {
+    tile.classList.add("tile--selectable");
+    tile.tabIndex = 0;
+    tile.title = "Attach this file to the conversation";
+    tile.addEventListener("click", () => void toggleSelected(item));
+    tile.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        void toggleSelected(item);
+      }
+    });
+  }
 
   const filename = item.filename ?? "";
   const mime = item.mimeType ?? "";
@@ -193,6 +254,7 @@ function render(data: unknown): void {
   for (const item of items) {
     gridEl.appendChild(makeTile(item));
   }
+  markSelected();
 }
 
 /* ----------------------------- app wiring ----------------------------- */
@@ -206,6 +268,11 @@ function applyHostContext(ctx: McpUiHostContext): void {
   }
   if (ctx.styles?.variables) applyHostStyleVariables(ctx.styles.variables);
   if (ctx.styles?.css?.fonts) applyHostFonts(ctx.styles.css.fonts);
+  // ChatGPT sends null here when the user removes the attached file.
+  if ((ctx as Record<string, unknown>)["openai/modelContext"] === null && selectedId !== undefined) {
+    selectedId = undefined;
+    markSelected();
+  }
 }
 
 app.addEventListener("toolresult", (params) => {

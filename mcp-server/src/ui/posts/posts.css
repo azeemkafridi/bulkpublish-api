@@ -63,6 +63,11 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
+.post-card--selectable { cursor: pointer; }
+.post-card--selectable:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent-200); }
+.post-card--selected,
+.post-card--selected:hover { box-shadow: 0 0 0 2px var(--accent-500); }
+
 .post-card__content {
   margin: 0;
   flex: 1;

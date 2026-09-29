@@ -6,6 +6,11 @@
  * status-appropriate actions wired to the host bridge — Publish now
  * (publish_post), Retry (retry_post), Schedule/Reschedule (update_post), Delete
  * (delete_post) — and refreshes the list after each.
+ *
+ * In ChatGPT the panel also opens from the sidebar, where a deep link's
+ * `?status=` picks the filter, and clicking a card attaches that post to the
+ * conversation. Both are driven by `openai/*` host context and capabilities,
+ * which other hosts never send, so there the panel behaves as before.
  */
 import "./posts.css";
 import {
@@ -116,6 +121,12 @@ const app = new App({ name: "Posts", version: "1.0.0" });
 let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 let busy = false;
 let openMenu: HTMLElement | null = null;
+// The status the list is filtered by, and the one the opening tool call asked
+// for. They differ only when a deep link overrides the opening call.
+let statusFilter: string | undefined;
+let inputStatus: string | undefined;
+let deepLinkUrl: string | undefined;
+let selectedId: number | undefined;
 
 /* ----------------------------- helpers ----------------------------- */
 
@@ -196,6 +207,19 @@ function statusClass(status: string | undefined): string {
   }
 }
 
+function statusFrom(v: unknown): string | undefined {
+  return typeof v === "string" && v in STATUS_LABELS ? v : undefined;
+}
+
+function filterArgs(): Record<string, unknown> {
+  return statusFilter ? { status: statusFilter } : {};
+}
+
+function canShareContext(): boolean {
+  const caps = app.getHostCapabilities();
+  return !!(caps?.updateModelContext && caps.experimental?.["openai/modelContext"]);
+}
+
 function showToast(msg: string, isError: boolean): void {
   toastEl.textContent = msg;
   toastEl.className = `posts__toast posts__toast--${isError ? "error" : "ok"} show`;
@@ -213,10 +237,42 @@ function closeMenu(): void {
 
 async function refresh(): Promise<void> {
   try {
-    const res = await app.callServerTool({ name: "view_posts", arguments: {} });
+    const res = await app.callServerTool({ name: "view_posts", arguments: filterArgs() });
     render(res.structuredContent);
   } catch {
     /* keep current view */
+  }
+}
+
+function postContextText(post: Post): string {
+  const status = STATUS_LABELS[post.status ?? "draft"] ?? post.status;
+  const when = post.status === "scheduled" ? formatDate(post.scheduledAt) : null;
+  const platforms = platformsFromPost(post).map((p) => PLATFORM_LABELS[p] ?? p);
+  const head =
+    `BulkPublish post #${post.id} (${status}${when ? `, ${when}` : ""})` +
+    (platforms.length ? ` on ${platforms.join(", ")}` : "");
+  return `${head}:\n${post.content || "(no content)"}`;
+}
+
+function markSelected(): void {
+  for (const card of listEl.querySelectorAll<HTMLElement>(".post-card")) {
+    card.classList.toggle("post-card--selected", card.dataset.postId === String(selectedId));
+  }
+}
+
+async function toggleSelected(post: Post): Promise<void> {
+  const clearing = selectedId === post.id;
+  selectedId = clearing ? undefined : post.id;
+  markSelected();
+  try {
+    await app.updateModelContext({
+      content: clearing
+        ? []
+        : [{ type: "text", text: postContextText(post), _meta: { "openai/title": `Post #${post.id}` } }],
+    });
+  } catch {
+    selectedId = undefined;
+    markSelected();
   }
 }
 
@@ -247,6 +303,7 @@ async function runAction(
         delete: `Deleted #${post.id} ✓`,
       };
       showToast(done[action], false);
+      if (action === "delete" && selectedId === post.id) await toggleSelected(post);
       await refresh();
     }
   } catch (e) {
@@ -314,6 +371,19 @@ function renderPost(post: Post): HTMLElement {
   const card = document.createElement("article");
   card.className = "post-card";
   card.setAttribute("role", "listitem");
+  if (post.id != null) card.dataset.postId = String(post.id);
+  if (post.id != null && canShareContext()) {
+    card.classList.add("post-card--selectable");
+    card.tabIndex = 0;
+    card.title = "Attach this post to the conversation";
+    card.addEventListener("click", () => void toggleSelected(post));
+    card.addEventListener("keydown", (e) => {
+      if (e.target === card && (e.key === "Enter" || e.key === " ")) {
+        e.preventDefault();
+        void toggleSelected(post);
+      }
+    });
+  }
 
   const status = post.status ?? "draft";
   const platforms = platformsFromPost(post);
@@ -395,7 +465,11 @@ function render(data: unknown): void {
   const total = typeof d.total === "number" ? d.total : posts.length;
 
   postsEl.removeAttribute("aria-busy");
-  subEl.textContent = total === 0 ? "No posts yet" : `${total} post${total === 1 ? "" : "s"}`;
+  const kind = statusFilter ? `${STATUS_LABELS[statusFilter].toLowerCase()} ` : "";
+  subEl.textContent =
+    total === 0
+      ? statusFilter ? `No ${kind}posts` : "No posts yet"
+      : `${total} ${kind}post${total === 1 ? "" : "s"}`;
   listEl.innerHTML = "";
 
   if (posts.length === 0) {
@@ -406,6 +480,7 @@ function render(data: unknown): void {
   for (const post of posts) {
     if (post && typeof post === "object") listEl.appendChild(renderPost(post as Post));
   }
+  markSelected();
 }
 
 /* ----------------------------- app wiring ----------------------------- */
@@ -418,9 +493,38 @@ function applyHostContext(ctx: McpUiHostContext): void {
   if (ctx.styles?.variables) applyHostStyleVariables(ctx.styles.variables);
   if (ctx.styles?.css?.fonts) applyHostFonts(ctx.styles.css.fonts);
   if (ctx.timeZone) timeZone = ctx.timeZone;
+  applyOpenAiContext(ctx as Record<string, unknown>);
 }
 
-app.addEventListener("toolresult", (params) => render(params.structuredContent));
+// ChatGPT-only host context. A deep link such as `?status=failed` sets the
+// filter; `openai/modelContext: null` means the user removed the attached post.
+function applyOpenAiContext(ctx: Record<string, unknown>): void {
+  if (ctx["openai/modelContext"] === null && selectedId !== undefined) {
+    selectedId = undefined;
+    markSelected();
+  }
+  const link = ctx["openai/deepLink"] as { url?: unknown } | null | undefined;
+  if (!link || typeof link.url !== "string" || link.url === deepLinkUrl) return;
+  deepLinkUrl = link.url;
+  let status: string | undefined;
+  try {
+    status = statusFrom(new URL(link.url, "https://app.invalid").searchParams.get("status"));
+  } catch {
+    return;
+  }
+  if (status === statusFilter) return;
+  statusFilter = status;
+  void refresh();
+}
+
+app.addEventListener("toolinput", (params) => {
+  inputStatus = statusFrom(params.arguments?.status);
+  if (deepLinkUrl === undefined) statusFilter = inputStatus;
+});
+app.addEventListener("toolresult", (params) => {
+  if (inputStatus === statusFilter) render(params.structuredContent);
+  else void refresh();
+});
 app.addEventListener("hostcontextchanged", applyHostContext);
 app.onerror = (e) => console.error("[posts]", e);
 
@@ -434,7 +538,7 @@ app.connect().then(() => {
   window.setTimeout(async () => {
     if (!postsEl.hasAttribute("aria-busy")) return; // already rendered
     try {
-      const res = await app.callServerTool({ name: "view_posts", arguments: {} });
+      const res = await app.callServerTool({ name: "view_posts", arguments: filterArgs() });
       render(res.structuredContent);
     } catch (e) {
       console.error("[posts] view_posts fallback failed", e);

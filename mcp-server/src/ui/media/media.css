@@ -56,6 +56,11 @@ body {
   gap: 4px;
 }
 
+.tile--selectable { cursor: pointer; }
+.tile--selectable:focus-visible { outline: none; }
+.tile--selectable:focus-visible .tile__thumb { box-shadow: 0 0 0 2px var(--accent-200); }
+.tile--selected .tile__thumb { box-shadow: 0 0 0 2px var(--accent-500); }
+
 .tile__thumb {
   position: relative;
   aspect-ratio: 1;

@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-09-30 — ChatGPT: sidebar, side panels and attachable posts
+
+MCP **1.41.0**
+
+### Added
+
+- **Posts in ChatGPT's sidebar.** The posts panel can be opened from ChatGPT's sidebar, full screen, and beside any conversation. A link to the panel with `?status=failed` (or any other post status) opens it filtered to that status.
+- **The composer beside a conversation.** In ChatGPT, the composer can be opened from a conversation's side panel as well as by asking for it.
+- **Attach a post or file to the conversation.** In ChatGPT, clicking a post in the posts panel, or a file in the media panel, attaches it to your next message, so "rewrite this for LinkedIn" or "post this image to Instagram" needs no ID. Click it again, or remove the attachment, to detach it.
+- **The analytics dashboard opens full screen** in ChatGPT.
+
+### Changed
+
+- **The posts panel keeps its status filter after an action.** Asking for, say, failed posts and then retrying one used to reload every post; it now reloads the failed ones, and the heading says which status is shown.
+
+Claude and other clients see the same 20 tools, with the same names, descriptions and annotations, as in 1.40.10.
+
 ## 2026-09-29 — Templates, hashtag groups, calendar notes, review links and client connect links are available to everyone
 
 Spec and Postman collection only; no package changes.
