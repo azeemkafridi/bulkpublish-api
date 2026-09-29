@@ -1,0 +1,5044 @@
+{
+  "serverInfo": {
+    "name": "bulkpublish",
+    "version": "1.0.0"
+  },
+  "capabilities": {
+    "resources": {
+      "listChanged": true
+    },
+    "tools": {
+      "listChanged": true
+    }
+  },
+  "tools": [
+    {
+      "name": "list_channels",
+      "title": "List channels",
+      "description": "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status, plus a `capabilities` object saying whether the caller may create, publish or approve posts. Check that before attempting a write rather than discovering the permission from a 403. Use this when the user wants to see which social accounts are connected.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "description": "Filter by active status. Defaults to true (only active channels).",
+            "type": "boolean"
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "channels": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "channelId": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platform": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "accountName": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "active": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "capabilities": {
+            "description": "Whether the caller may create, publish or approve posts.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "create_post",
+      "title": "Create post",
+      "description": "Create a new social media post. Can be saved as a draft or scheduled for a specific time. Supports platform-specific content overrides, media attachments, labels, and thread format. IMPORTANT: YouTube and TikTok REQUIRE video — do not include them when posting images only. Instagram defaults to feed_photo — set postTypeOverrides for video content (reel, feed_video). Use this when the user wants to draft or schedule one new post (do not publish immediately unless asked).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "description": "The post text content. Optional — defaults to empty for media-only posts. LinkedIn mentions: write @[Display Name](urn:li:organization:ID) for a Page or @[Display Name](urn:li:person:ID) for a person; search_mentions on a LinkedIn channel returns ready-made Page tokens. The token publishes as a real mention on LinkedIn and as plain @Display Name on other channels.",
+            "type": "string"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "channelId": {
+                  "type": "number",
+                  "description": "Channel ID to post to."
+                },
+                "platform": {
+                  "type": "string",
+                  "enum": [
+                    "facebook",
+                    "instagram",
+                    "x",
+                    "tiktok",
+                    "youtube",
+                    "threads",
+                    "bluesky",
+                    "pinterest",
+                    "gmb",
+                    "linkedin",
+                    "mastodon",
+                    "reddit",
+                    "discord",
+                    "telegram",
+                    "tumblr",
+                    "snapchat"
+                  ],
+                  "description": "Platform name. One of the supported BulkPublish platforms."
+                }
+              },
+              "required": [
+                "channelId",
+                "platform"
+              ]
+            },
+            "description": "Array of channels to post to. Get channel IDs from list_channels."
+          },
+          "status": {
+            "description": "Post status. \"draft\" (default) or \"scheduled\".",
+            "type": "string",
+            "enum": [
+              "draft",
+              "scheduled"
+            ]
+          },
+          "scheduledAt": {
+            "description": "ISO 8601 datetime for scheduling (e.g. 2025-01-15T10:00:00Z). Required when status is scheduled.",
+            "type": "string"
+          },
+          "timezone": {
+            "description": "Timezone for scheduling (e.g. \"America/New_York\"). Defaults to UTC.",
+            "type": "string"
+          },
+          "mediaFileIds": {
+            "description": "Array of media file IDs to attach. Upload media first with upload_media.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "labels": {
+            "description": "Array of label IDs to tag the post with.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "platformSpecific": {
+            "description": "Platform-specific settings, e.g. { \"youtube\": { \"title\": \"…\", \"privacyStatus\": \"public\" } }. Reddit, Discord, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { \"reddit\": { \"12\": { \"subreddit\": \"webdev\" } } }. Telegram takes no options.",
+            "type": "object",
+            "properties": {
+              "youtube": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "privacyStatus": {
+                    "type": "string",
+                    "enum": [
+                      "public",
+                      "private",
+                      "unlisted"
+                    ]
+                  },
+                  "categoryId": {
+                    "type": "string"
+                  },
+                  "madeForKids": {
+                    "type": "boolean"
+                  },
+                  "playlistId": {
+                    "type": "string"
+                  },
+                  "thumbnailUrl": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "pinterest": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "link": {
+                    "type": "string"
+                  },
+                  "dominantColor": {
+                    "description": "Hex color e.g. #FF5733",
+                    "type": "string"
+                  },
+                  "coverImageUrl": {
+                    "description": "Cover image URL for video pins. Optional — server falls back to an attached image, then the video's auto-extracted poster frame.",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "gmb": {
+                "type": "object",
+                "properties": {
+                  "ctaType": {
+                    "type": "string"
+                  },
+                  "ctaUrl": {
+                    "type": "string"
+                  },
+                  "eventTitle": {
+                    "type": "string"
+                  },
+                  "startDate": {
+                    "type": "string"
+                  },
+                  "startTime": {
+                    "type": "string"
+                  },
+                  "endDate": {
+                    "type": "string"
+                  },
+                  "endTime": {
+                    "type": "string"
+                  },
+                  "couponCode": {
+                    "type": "string"
+                  },
+                  "redeemOnlineUrl": {
+                    "type": "string"
+                  },
+                  "termsConditions": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "tiktok": {
+                "type": "object",
+                "properties": {
+                  "privacyLevel": {
+                    "type": "string"
+                  },
+                  "disableDuet": {
+                    "type": "boolean"
+                  },
+                  "disableStitch": {
+                    "type": "boolean"
+                  },
+                  "disableComment": {
+                    "type": "boolean"
+                  },
+                  "isAigc": {
+                    "type": "boolean"
+                  },
+                  "brandContentToggle": {
+                    "type": "boolean"
+                  },
+                  "brandOrganicToggle": {
+                    "type": "boolean"
+                  },
+                  "thumbnailTimestamp": {
+                    "description": "Cover frame for the video, in seconds from the start.",
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "x": {
+                "type": "object",
+                "properties": {
+                  "replySettings": {
+                    "type": "string"
+                  },
+                  "repostId": {
+                    "description": "With postTypeOverrides.x = 'repost': the X post URL or ID to repost (retweet).",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "facebook": {
+                "type": "object",
+                "properties": {
+                  "shareToStory": {
+                    "type": "boolean"
+                  },
+                  "thumbnailUrl": {
+                    "description": "Cover image URL for a video or Reel. Facebook only accepts a cover once the video exists, so it is applied after the video publishes and appears a moment after the post; a cover that cannot be fetched or that Facebook rejects leaves the video published with Facebook's own chosen frame rather than failing the post.",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "instagram": {
+                "type": "object",
+                "properties": {
+                  "collaborators": {
+                    "description": "Comma-separated Instagram usernames (no leading @) tagged as co-authors. Applies with postTypeOverrides.instagram of 'feed_photo', 'feed_video', 'reel' or 'carousel' — on a carousel the co-authors are set on the carousel itself, not on its individual items. Ignored on 'story', which has no co-author concept.",
+                    "type": "string"
+                  },
+                  "shareToStory": {
+                    "type": "boolean"
+                  },
+                  "trialReel": {
+                    "description": "Publish as a trial reel, shown to people who do not follow the account first. Only takes effect with postTypeOverrides.instagram of 'reel' — a 'feed_video' publishes as an ordinary reel and this is ignored, even though both use the same underlying reel container.",
+                    "type": "boolean"
+                  },
+                  "graduationStrategy": {
+                    "description": "How a trial reel becomes a normal one: 'manual' (the creator releases it) or 'auto' (released automatically if it performs well). Default 'manual'. Ignored unless trialReel is true.",
+                    "type": "string",
+                    "enum": [
+                      "manual",
+                      "auto"
+                    ]
+                  },
+                  "thumbnailTimestamp": {
+                    "description": "Cover frame for a video or Reel, in seconds from the start. Applies to postTypeOverrides.instagram of 'feed_video' or 'reel'. Ignored when coverUrl is also set.",
+                    "type": "number"
+                  },
+                  "coverUrl": {
+                    "description": "Cover image URL for a video or Reel. Takes precedence over thumbnailTimestamp: Instagram accepts one or the other and rejects a request carrying both, so only this one is forwarded when both are sent.",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "threads": {
+                "type": "object",
+                "properties": {
+                  "quotePostId": {
+                    "type": "string"
+                  },
+                  "repostId": {
+                    "description": "With postTypeOverrides.threads = 'repost': the numeric ID of the Threads post to repost (Threads links cannot be used; the ID of a post published through BulkPublish is in get_post's platforms[].platformPostId).",
+                    "type": "string"
+                  },
+                  "topicTag": {
+                    "description": "One topic tag for the post, without a leading '#'. Must not contain periods or ampersands.",
+                    "type": "string"
+                  },
+                  "locationId": {
+                    "description": "Numeric place ID from get_channel_options with a `q` search on a Threads channel. Only works once the channel has granted location tagging.",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "linkedin": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              "bluesky": {
+                "type": "object",
+                "properties": {
+                  "repostId": {
+                    "description": "With postTypeOverrides.bluesky = 'repost': the bsky.app post URL (or at:// URI) to repost.",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "mastodon": {
+                "type": "object",
+                "properties": {
+                  "repostId": {
+                    "description": "With postTypeOverrides.mastodon = 'repost': the status URL or ID to boost.",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "reddit": {
+                "description": "Reddit options, nested under the BulkPublish channel id: { \"12\": { \"subreddit\": \"webdev\" } }. A flat object (e.g. { \"subreddit\": \"webdev\" }) applies to every Reddit channel on the post. subreddit is required; a media post accepts exactly one file.",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "subreddit": {
+                          "description": "Required. Target subreddit — 'webdev', 'r/webdev' and '/r/webdev' are all accepted. Falls back to the subreddit stored on the channel.",
+                          "type": "string"
+                        },
+                        "title": {
+                          "description": "Post title. Defaults to the first line of content, truncated to 300 characters.",
+                          "type": "string"
+                        },
+                        "type": {
+                          "description": "Set to 'link' to force a link submission. Otherwise the kind is resolved from media: image -> image, video -> video, url set -> link, else self (text).",
+                          "type": "string"
+                        },
+                        "url": {
+                          "description": "Destination URL for a link post; implies type 'link'.",
+                          "type": "string"
+                        },
+                        "flairId": {
+                          "description": "Link-flair id (list via get_channel_options).",
+                          "type": "string"
+                        },
+                        "thumbnailUrl": {
+                          "description": "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, failing only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file.",
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "subreddit": {
+                        "description": "Required. Target subreddit — 'webdev', 'r/webdev' and '/r/webdev' are all accepted. Falls back to the subreddit stored on the channel.",
+                        "type": "string"
+                      },
+                      "title": {
+                        "description": "Post title. Defaults to the first line of content, truncated to 300 characters.",
+                        "type": "string"
+                      },
+                      "type": {
+                        "description": "Set to 'link' to force a link submission. Otherwise the kind is resolved from media: image -> image, video -> video, url set -> link, else self (text).",
+                        "type": "string"
+                      },
+                      "url": {
+                        "description": "Destination URL for a link post; implies type 'link'.",
+                        "type": "string"
+                      },
+                      "flairId": {
+                        "description": "Link-flair id (list via get_channel_options).",
+                        "type": "string"
+                      },
+                      "thumbnailUrl": {
+                        "description": "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, failing only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file.",
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                ]
+              },
+              "discord": {
+                "description": "Discord options, nested under the BulkPublish channel id: { \"12\": { \"channelId\": \"1090123456789012345\" } }. A flat object applies to every Discord channel on the post. The inner channelId is the target Discord text channel. Posting uses a global bot token, so failures are permission problems, never a reconnect issue.",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "channelId": {
+                          "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "channelId": {
+                        "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                ]
+              },
+              "telegram": {
+                "description": "Telegram accepts no options — the destination chat is fixed when the channel is connected. Content is sent as plain text (no markdown). Text over the 1024-char caption limit is posted as a second message alongside captionless media.",
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              "tumblr": {
+                "description": "Tumblr options, nested under the BulkPublish channel id: { \"12\": { \"blogName\": \"myblog\", \"tags\": [\"art\"] } } (tags: array of strings or one comma-separated string). A flat object applies to every Tumblr channel on the post. Up to 30 images OR exactly one video per post.",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "blogName": {
+                          "description": "Which blog to publish to. Defaults to the blog the channel was connected as (list via get_channel_options).",
+                          "type": "string"
+                        },
+                        "title": {
+                          "description": "Rendered as a heading block above the body.",
+                          "type": "string"
+                        },
+                        "tags": {
+                          "description": "Tumblr tags, without the leading '#'.",
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "link": {
+                          "description": "Appended as a link block.",
+                          "type": "string"
+                        },
+                        "sourceUrl": {
+                          "description": "Attribution URL stored as the post's source.",
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "blogName": {
+                        "description": "Which blog to publish to. Defaults to the blog the channel was connected as (list via get_channel_options).",
+                        "type": "string"
+                      },
+                      "title": {
+                        "description": "Rendered as a heading block above the body.",
+                        "type": "string"
+                      },
+                      "tags": {
+                        "description": "Tumblr tags, without the leading '#'.",
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "link": {
+                        "description": "Appended as a link block.",
+                        "type": "string"
+                      },
+                      "sourceUrl": {
+                        "description": "Attribution URL stored as the post's source.",
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                ]
+              },
+              "snapchat": {
+                "description": "Snapchat options, nested under the BulkPublish channel id: { \"12\": { \"title\": \"My story\" } }. A flat object applies to every Snapchat channel on the post. Post types: story (default), saved_story, spotlight. Every Snapchat post requires exactly ONE image or video (vertical, story videos 5–60s, spotlight 6–60s video-only, saved_story videos not length-checked, max 1GB; a video outside its range is refused when the post is scheduled or published). The caption is NOT sent for plain stories — it is only the Spotlight description (160 chars max) and the Saved Story title fallback. First comments are not supported.",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "title": {
+                          "description": "Saved Story title (max 45 chars). Defaults to the first line of the caption, truncated.",
+                          "type": "string"
+                        },
+                        "locale": {
+                          "description": "Spotlight locale, e.g. 'en_US'. Defaults to 'en_US'.",
+                          "type": "string"
+                        },
+                        "saveToProfile": {
+                          "description": "Spotlight only. Default true; false sends skip_save_to_profile to Snap.",
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "description": "Saved Story title (max 45 chars). Defaults to the first line of the caption, truncated.",
+                        "type": "string"
+                      },
+                      "locale": {
+                        "description": "Spotlight locale, e.g. 'en_US'. Defaults to 'en_US'.",
+                        "type": "string"
+                      },
+                      "saveToProfile": {
+                        "description": "Spotlight only. Default true; false sends skip_save_to_profile to Snap.",
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                ]
+              }
+            }
+          },
+          "platformContent": {
+            "description": "Per-platform content overrides, e.g. { \"x\": \"Short tweet\", \"linkedin\": \"Longer LinkedIn post\" }.",
+            "type": "object",
+            "properties": {
+              "facebook": {
+                "type": "string"
+              },
+              "instagram": {
+                "type": "string"
+              },
+              "x": {
+                "type": "string"
+              },
+              "tiktok": {
+                "type": "string"
+              },
+              "youtube": {
+                "type": "string"
+              },
+              "threads": {
+                "type": "string"
+              },
+              "bluesky": {
+                "type": "string"
+              },
+              "pinterest": {
+                "type": "string"
+              },
+              "linkedin": {
+                "type": "string"
+              },
+              "mastodon": {
+                "type": "string"
+              },
+              "gmb": {
+                "type": "string"
+              },
+              "reddit": {
+                "type": "string"
+              },
+              "discord": {
+                "type": "string"
+              },
+              "telegram": {
+                "type": "string"
+              },
+              "tumblr": {
+                "type": "string"
+              },
+              "snapchat": {
+                "type": "string"
+              }
+            }
+          },
+          "postFormat": {
+            "description": "Post format. \"post\" (default), \"video\", \"reel\", \"story\", \"carousel\", or \"thread\" for multi-part threads.",
+            "type": "string",
+            "enum": [
+              "post",
+              "video",
+              "reel",
+              "story",
+              "carousel",
+              "thread"
+            ]
+          },
+          "threadParts": {
+            "description": "Thread parts array. Required when postFormat is thread (min 2 parts). EVERY part is measured against the character limit of every platform the post targets, not only the first — an over-long part is rejected with 400 VALIDATION_ERROR naming the part number, the platform and its limit. URLs count as 23 characters on X and Mastodon, their real length elsewhere.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string",
+                  "description": "Thread part content."
+                },
+                "mediaFileIds": {
+                  "description": "Media files for this thread part.",
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              },
+              "required": [
+                "content"
+              ]
+            }
+          },
+          "postTypeOverrides": {
+            "description": "Per-platform post type override. E.g. { \"instagram\": \"reel\", \"youtube\": \"short\" }. Video length is checked per type when the post is scheduled or published, and a video outside the range is refused: instagram reel/feed_video 3s–15min, story 3–60s; facebook reel 3–90s, story 3–60s; threads video/carousel up to 5min; linkedin 3s–30min; pinterest video_pin at least 4s; snapchat story 5–60s, spotlight 6–60s (saved_story not checked).",
+            "type": "object",
+            "properties": {
+              "instagram": {
+                "type": "string",
+                "enum": [
+                  "feed_photo",
+                  "feed_video",
+                  "reel",
+                  "story",
+                  "carousel"
+                ]
+              },
+              "facebook": {
+                "type": "string",
+                "enum": [
+                  "post",
+                  "video",
+                  "reel",
+                  "story",
+                  "carousel"
+                ]
+              },
+              "x": {
+                "type": "string",
+                "enum": [
+                  "tweet",
+                  "video",
+                  "thread",
+                  "repost"
+                ]
+              },
+              "tiktok": {
+                "type": "string",
+                "enum": [
+                  "video",
+                  "photo_slideshow"
+                ]
+              },
+              "youtube": {
+                "type": "string",
+                "enum": [
+                  "video",
+                  "short"
+                ]
+              },
+              "threads": {
+                "type": "string",
+                "enum": [
+                  "text",
+                  "image",
+                  "video",
+                  "carousel",
+                  "repost"
+                ]
+              },
+              "bluesky": {
+                "type": "string",
+                "enum": [
+                  "post",
+                  "video",
+                  "thread",
+                  "repost"
+                ]
+              },
+              "linkedin": {
+                "type": "string",
+                "enum": [
+                  "post",
+                  "multi_image",
+                  "pdf_carousel",
+                  "article"
+                ]
+              },
+              "pinterest": {
+                "type": "string",
+                "enum": [
+                  "pin",
+                  "video_pin",
+                  "carousel"
+                ]
+              },
+              "gmb": {
+                "type": "string",
+                "enum": [
+                  "standard",
+                  "event",
+                  "offer"
+                ]
+              },
+              "mastodon": {
+                "type": "string",
+                "enum": [
+                  "post",
+                  "thread",
+                  "repost"
+                ]
+              },
+              "reddit": {
+                "type": "string",
+                "enum": [
+                  "post"
+                ]
+              },
+              "discord": {
+                "type": "string",
+                "enum": [
+                  "post"
+                ]
+              },
+              "telegram": {
+                "type": "string",
+                "enum": [
+                  "post"
+                ]
+              },
+              "tumblr": {
+                "type": "string",
+                "enum": [
+                  "post"
+                ]
+              },
+              "snapchat": {
+                "description": "story (default): 1 image or video, caption NOT sent. saved_story: 1 image or video with a title. spotlight: video only, 6–60s, caption becomes the description. Story videos must be 5–60s; a video outside its range is refused when the post is scheduled or published. saved_story video length is not checked.",
+                "type": "string",
+                "enum": [
+                  "story",
+                  "saved_story",
+                  "spotlight"
+                ]
+              }
+            }
+          },
+          "requestApproval": {
+            "description": "Optional (default false). Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for API keys of roles without post:publish (contributors), regardless of this flag.",
+            "type": "boolean"
+          },
+          "publishWhenApproved": {
+            "description": "Optional (default false). Set true on a post that waits for approval when it should go out as soon as it is approved, even if that is after its scheduled time. This is how someone who needs approval says 'publish now': status 'scheduled', scheduledAt = now, requestApproval true (or a contributor key), publishWhenApproved true. An approval arriving more than 15 minutes late then publishes immediately; with false it is approved but returned to draft for a new time. Stored only when the post ends up approvalStatus 'pending'; otherwise saved as false.",
+            "type": "boolean"
+          },
+          "linkTrackingOverride": {
+            "description": "Optional per-post override for link tracking (bulkpubli.sh). true forces links in this post to be shortened and their clicks counted, false forces them to publish as written, and null/omitted (the default) inherits the organization's Link Tracking setting. Shortening happens at publish time, per channel, so two accounts on the same platform get distinct codes; it is skipped for a channel when the rewrite would push the post past that platform's character limit (a short URL is 28 characters and can be longer than the link it replaces).",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "channels"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "description": "draft, scheduled, processing, published, partial or failed.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduledAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "author": {
+            "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approver": {
+            "description": "Who approved it: { id, name, image }. Null unless approvalStatus is approved.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assignee": {
+            "description": "Who is expected to act on it next: { id, name, image }. Null when nobody is.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mediaFiles": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {},
+                      "additionalProperties": {}
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postPlatforms": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "labels": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "list_posts",
+      "title": "List posts",
+      "description": "List posts with optional filters for status, search text, date range, channel, and label. Returns paginated results with platform statuses and metrics, ordered newest-first by publishedAt if the post is live, else scheduledAt, else createdAt. Use this when the user wants to browse, filter, or check the status of existing posts as raw data (not the visual dashboard).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "description": "Filter by post status.",
+            "type": "string",
+            "enum": [
+              "draft",
+              "scheduled",
+              "publishing",
+              "published",
+              "processing",
+              "failed",
+              "partial"
+            ]
+          },
+          "search": {
+            "description": "Search post content (case-insensitive).",
+            "type": "string"
+          },
+          "page": {
+            "description": "Page number (default 1).",
+            "type": "number"
+          },
+          "limit": {
+            "description": "Results per page (default 20, max 500).",
+            "type": "number"
+          },
+          "channelId": {
+            "description": "Filter by channel ID.",
+            "type": "number"
+          },
+          "labelId": {
+            "description": "Filter by label ID.",
+            "type": "number"
+          },
+          "from": {
+            "description": "Filter posts created on or after this ISO date.",
+            "type": "string"
+          },
+          "to": {
+            "description": "Filter posts created on or before this ISO date.",
+            "type": "string"
+          },
+          "scheduledFrom": {
+            "description": "Filter posts scheduled on or after this ISO date.",
+            "type": "string"
+          },
+          "scheduledTo": {
+            "description": "Filter posts scheduled on or before this ISO date.",
+            "type": "string"
+          },
+          "approvalStatus": {
+            "description": "Filter by team approval state (e.g. 'pending' for the approval queue).",
+            "type": "string",
+            "enum": [
+              "none",
+              "pending",
+              "approved",
+              "rejected"
+            ]
+          },
+          "assignedTo": {
+            "description": "Filter by who the post is assigned to: a user id, 'me' for the caller, or 'unassigned'. Orthogonal to status — a post can be scheduled AND assigned.",
+            "type": "string"
+          },
+          "order": {
+            "description": "Direction of the timeline sort (published, else due, else created). 'desc' is the default and returns the most recent first. Use 'asc' to read what is coming NEXT — with a limit, 'desc' returns the posts scheduled furthest out, not the soonest.",
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "posts": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "content": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "description": "draft, scheduled, processing, published, partial or failed.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "scheduledAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "timezone": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "approvalStatus": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "author": {
+                      "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {},
+                          "additionalProperties": {}
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "approver": {
+                      "description": "Who approved it: { id, name, image }. Null unless approvalStatus is approved.",
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {},
+                          "additionalProperties": {}
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "assignee": {
+                      "description": "Who is expected to act on it next: { id, name, image }. Null when nobody is.",
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {},
+                          "additionalProperties": {}
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "mediaFiles": {
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "object",
+                                "properties": {},
+                                "additionalProperties": {}
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "postPlatforms": {
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "platform": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "status": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "additionalProperties": {}
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "labels": {
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {},
+                            "additionalProperties": {}
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "total": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "page": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totalPages": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "get_post",
+      "title": "Get post",
+      "description": "Get a single post by ID with full details including platform statuses, labels, media files, recurring schedule info, and metrics. For a thread post, `threadParts` holds the parts and `threadMediaFiles` resolves the media they reference: that media is NOT in `mediaFiles`, which carries only the media on the post itself. Use this when the user references one specific post by its ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "number",
+            "description": "The post ID."
+          }
+        },
+        "required": [
+          "postId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "description": "draft, scheduled, processing, published, partial or failed.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduledAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "author": {
+            "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approver": {
+            "description": "Who approved it: { id, name, image }. Null unless approvalStatus is approved.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assignee": {
+            "description": "Who is expected to act on it next: { id, name, image }. Null when nobody is.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mediaFiles": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {},
+                      "additionalProperties": {}
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postPlatforms": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "labels": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "publish_post",
+      "title": "Publish post now",
+      "description": "Publish a draft or scheduled post immediately. The post will be queued for publishing to all its target channels. Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). To 'publish now' with approval, create_post with status 'scheduled', scheduledAt = now, requestApproval true and publishWhenApproved true, so it goes out the moment it is approved. Publishing a pending/rejected post as an approver implicitly approves it. Use this when the user wants to publish an existing draft or scheduled post right now.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "number",
+            "description": "The post ID to publish."
+          }
+        },
+        "required": [
+          "postId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "description": "draft, scheduled, processing, published, partial or failed.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduledAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "author": {
+            "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approver": {
+            "description": "Who approved it: { id, name, image }. Null unless approvalStatus is approved.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assignee": {
+            "description": "Who is expected to act on it next: { id, name, image }. Null when nobody is.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mediaFiles": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {},
+                      "additionalProperties": {}
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postPlatforms": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "labels": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "retry_post",
+      "title": "Retry failed post",
+      "description": "Retry publishing a failed or partially failed post. Only retries the platforms that failed, not the ones that already succeeded. Platforms in status 'unconfirmed' (the publish request may have reached the platform but its response was lost — the post may already be live) are NOT retried unless republish is true; if the post has unconfirmed platforms and no failed ones, the call fails with a 400 and code UNCONFIRMED_REQUIRES_REPUBLISH — ask the user to check the account on the platform, and only pass republish: true after they confirm the post is not live. Use this when a post failed on some platforms and the user wants to retry just those.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "number",
+            "description": "The post ID to retry."
+          },
+          "republish": {
+            "description": "Explicit opt-in to also retry platforms in status 'unconfirmed'. Their publish may have already gone through, so this can DUPLICATE the post — only pass true after the user has checked the account and confirmed the post is not live. Defaults to false.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "postId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "description": "draft, scheduled, processing, published, partial or failed.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduledAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "author": {
+            "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approver": {
+            "description": "Who approved it: { id, name, image }. Null unless approvalStatus is approved.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assignee": {
+            "description": "Who is expected to act on it next: { id, name, image }. Null when nobody is.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mediaFiles": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {},
+                      "additionalProperties": {}
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postPlatforms": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "labels": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retriedCount": {
+            "description": "How many destinations were retried.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "skippedMaxRetries": {
+            "description": "Destinations skipped for hitting the retry ceiling.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "upload_media",
+      "title": "Upload media",
+      "description": "Upload a media file (image or video) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM. Max 100MB. Provide either url OR filePath, not both. Use this when the user provides an image/video to attach to a post.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "description": "Public URL of the media file to upload.",
+            "type": "string"
+          },
+          "filePath": {
+            "description": "Absolute path to a local file to upload (e.g. /Users/me/photo.png).",
+            "type": "string"
+          },
+          "filename": {
+            "description": "Optional filename. If omitted, derived from the URL or file path.",
+            "type": "string"
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mimeType": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sizeBytes": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "list_media",
+      "title": "List media",
+      "description": "List uploaded media files with optional search and pagination. Returns file metadata including URLs, dimensions, and labels. Use this when the user wants a list of their uploaded media files.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "search": {
+            "description": "Search by filename.",
+            "type": "string"
+          },
+          "page": {
+            "description": "Page number (default 1).",
+            "type": "number"
+          },
+          "limit": {
+            "description": "Results per page (default 20, max 100).",
+            "type": "number"
+          },
+          "type": {
+            "description": "Filter by media kind (matches the MIME type prefix). The response's `total` counts matches across all pages.",
+            "type": "string",
+            "enum": [
+              "image",
+              "video"
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "url": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "filename": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "mimeType": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "sizeBytes": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "page": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "total": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "get_analytics",
+      "title": "Get analytics",
+      "description": "Get an analytics summary for a date range. Returns total posts, status breakdown (published, failed, scheduled), per-platform stats, and daily post counts. Optional filters narrow every figure to matching posts; `compare` adds the equal-length previous window under `previous` (available for windows of 15 days or fewer — the 30-day statistics-retention cap applies). Use this when the user asks how their content performed overall, across channels and over a date range.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "description": "Start date in ISO format (e.g. 2025-01-01)."
+          },
+          "to": {
+            "type": "string",
+            "description": "End date in ISO format (e.g. 2025-01-31)."
+          },
+          "channelIds": {
+            "description": "Comma-separated channel ids to include, e.g. \"12,15\".",
+            "type": "string"
+          },
+          "platforms": {
+            "description": "Comma-separated platform keys to include, e.g. \"x,linkedin\".",
+            "type": "string"
+          },
+          "labelIds": {
+            "description": "Comma-separated label ids; a post matches when it carries ANY of them.",
+            "type": "string"
+          },
+          "postFormat": {
+            "description": "Only single posts or only threads.",
+            "type": "string",
+            "enum": [
+              "post",
+              "thread"
+            ]
+          },
+          "mediaType": {
+            "description": "By the post's first media file: text (no media), image or video.",
+            "type": "string",
+            "enum": [
+              "text",
+              "image",
+              "video"
+            ]
+          },
+          "compare": {
+            "description": "Also return the previous equal-length window as `previous` / `previousWindow`.",
+            "type": "boolean"
+          },
+          "tz": {
+            "description": "IANA timezone (e.g. \"Asia/Karachi\") that sets where each day starts and ends and how daily counts are grouped. Defaults to UTC; pass the user's zone so 'today' and daily figures match their calendar.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "totalPosts": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "published": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "failed": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduled": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "partial": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "from": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "byPlatform": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "byDay": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedTimes": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "previousWindow": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "update_post",
+      "title": "Update post",
+      "description": "Update an existing post. Can change content, schedule, media, labels, status, and platform-specific settings. Only draft, scheduled, failed, or partial posts can be edited; editing a failed post resets it to draft, a partial post stays partial. Set status to 'draft' or 'scheduled' to move the post between those states — scheduling a partial post re-queues only its failed channels; use publish_post to publish immediately. Use this when the user wants to edit an existing post.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "number",
+            "description": "The post ID to update."
+          },
+          "content": {
+            "description": "New post text content.",
+            "type": "string"
+          },
+          "status": {
+            "description": "Move the post between draft and scheduled. 'scheduled' requires a future scheduledAt (in this call or already stored) and at least one channel; 'draft' unschedules it. Any other value is rejected. Omit to leave the status unchanged. To publish immediately, use publish_post instead.",
+            "type": "string",
+            "enum": [
+              "draft",
+              "scheduled"
+            ]
+          },
+          "scheduledAt": {
+            "description": "New ISO 8601 scheduled datetime.",
+            "type": "string"
+          },
+          "timezone": {
+            "description": "Timezone for scheduling.",
+            "type": "string"
+          },
+          "mediaFileIds": {
+            "description": "Replace attached media file IDs.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "labelIds": {
+            "description": "Replace label IDs on the post.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "postTypeOverrides": {
+            "description": "Per-platform post type override. E.g. { \"instagram\": \"reel\", \"youtube\": \"short\" }. Video length is checked per type when the post is scheduled or published, and a video outside the range is refused: instagram reel/feed_video 3s–15min, story 3–60s; facebook reel 3–90s, story 3–60s; threads video/carousel up to 5min; linkedin 3s–30min; pinterest video_pin at least 4s; snapchat story 5–60s, spotlight 6–60s (saved_story not checked).",
+            "type": "object",
+            "properties": {
+              "instagram": {
+                "type": "string",
+                "enum": [
+                  "feed_photo",
+                  "feed_video",
+                  "reel",
+                  "story",
+                  "carousel"
+                ]
+              },
+              "facebook": {
+                "type": "string",
+                "enum": [
+                  "post",
+                  "video",
+                  "reel",
+                  "story",
+                  "carousel"
+                ]
+              },
+              "x": {
+                "type": "string",
+                "enum": [
+                  "tweet",
+                  "video",
+                  "thread",
+                  "repost"
+                ]
+              },
+              "tiktok": {
+                "type": "string",
+                "enum": [
+                  "video",
+                  "photo_slideshow"
+                ]
+              },
+              "youtube": {
+                "type": "string",
+                "enum": [
+                  "video",
+                  "short"
+                ]
+              },
+              "threads": {
+                "type": "string",
+                "enum": [
+                  "text",
+                  "image",
+                  "video",
+                  "carousel",
+                  "repost"
+                ]
+              },
+              "bluesky": {
+                "type": "string",
+                "enum": [
+                  "post",
+                  "video",
+                  "thread",
+                  "repost"
+                ]
+              },
+              "linkedin": {
+                "type": "string",
+                "enum": [
+                  "post",
+                  "multi_image",
+                  "pdf_carousel",
+                  "article"
+                ]
+              },
+              "pinterest": {
+                "type": "string",
+                "enum": [
+                  "pin",
+                  "video_pin",
+                  "carousel"
+                ]
+              },
+              "gmb": {
+                "type": "string",
+                "enum": [
+                  "standard",
+                  "event",
+                  "offer"
+                ]
+              },
+              "mastodon": {
+                "type": "string",
+                "enum": [
+                  "post",
+                  "thread",
+                  "repost"
+                ]
+              },
+              "reddit": {
+                "type": "string",
+                "enum": [
+                  "post"
+                ]
+              },
+              "discord": {
+                "type": "string",
+                "enum": [
+                  "post"
+                ]
+              },
+              "telegram": {
+                "type": "string",
+                "enum": [
+                  "post"
+                ]
+              },
+              "tumblr": {
+                "type": "string",
+                "enum": [
+                  "post"
+                ]
+              },
+              "snapchat": {
+                "description": "story (default): 1 image or video, caption NOT sent. saved_story: 1 image or video with a title. spotlight: video only, 6–60s, caption becomes the description. Story videos must be 5–60s; a video outside its range is refused when the post is scheduled or published. saved_story video length is not checked.",
+                "type": "string",
+                "enum": [
+                  "story",
+                  "saved_story",
+                  "spotlight"
+                ]
+              }
+            }
+          },
+          "platformSpecific": {
+            "description": "Platform-specific settings, e.g. { \"youtube\": { \"title\": \"…\", \"privacyStatus\": \"public\" } }. Reddit, Discord, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { \"reddit\": { \"12\": { \"subreddit\": \"webdev\" } } }. Telegram takes no options.",
+            "type": "object",
+            "properties": {
+              "youtube": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "privacyStatus": {
+                    "type": "string",
+                    "enum": [
+                      "public",
+                      "private",
+                      "unlisted"
+                    ]
+                  },
+                  "categoryId": {
+                    "type": "string"
+                  },
+                  "madeForKids": {
+                    "type": "boolean"
+                  },
+                  "playlistId": {
+                    "type": "string"
+                  },
+                  "thumbnailUrl": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "pinterest": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "link": {
+                    "type": "string"
+                  },
+                  "dominantColor": {
+                    "description": "Hex color e.g. #FF5733",
+                    "type": "string"
+                  },
+                  "coverImageUrl": {
+                    "description": "Cover image URL for video pins. Optional — server falls back to an attached image, then the video's auto-extracted poster frame.",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "gmb": {
+                "type": "object",
+                "properties": {
+                  "ctaType": {
+                    "type": "string"
+                  },
+                  "ctaUrl": {
+                    "type": "string"
+                  },
+                  "eventTitle": {
+                    "type": "string"
+                  },
+                  "startDate": {
+                    "type": "string"
+                  },
+                  "startTime": {
+                    "type": "string"
+                  },
+                  "endDate": {
+                    "type": "string"
+                  },
+                  "endTime": {
+                    "type": "string"
+                  },
+                  "couponCode": {
+                    "type": "string"
+                  },
+                  "redeemOnlineUrl": {
+                    "type": "string"
+                  },
+                  "termsConditions": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "tiktok": {
+                "type": "object",
+                "properties": {
+                  "privacyLevel": {
+                    "type": "string"
+                  },
+                  "disableDuet": {
+                    "type": "boolean"
+                  },
+                  "disableStitch": {
+                    "type": "boolean"
+                  },
+                  "disableComment": {
+                    "type": "boolean"
+                  },
+                  "isAigc": {
+                    "type": "boolean"
+                  },
+                  "brandContentToggle": {
+                    "type": "boolean"
+                  },
+                  "brandOrganicToggle": {
+                    "type": "boolean"
+                  },
+                  "thumbnailTimestamp": {
+                    "description": "Cover frame for the video, in seconds from the start.",
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "x": {
+                "type": "object",
+                "properties": {
+                  "replySettings": {
+                    "type": "string"
+                  },
+                  "repostId": {
+                    "description": "With postTypeOverrides.x = 'repost': the X post URL or ID to repost (retweet).",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "facebook": {
+                "type": "object",
+                "properties": {
+                  "shareToStory": {
+                    "type": "boolean"
+                  },
+                  "thumbnailUrl": {
+                    "description": "Cover image URL for a video or Reel. Facebook only accepts a cover once the video exists, so it is applied after the video publishes and appears a moment after the post; a cover that cannot be fetched or that Facebook rejects leaves the video published with Facebook's own chosen frame rather than failing the post.",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "instagram": {
+                "type": "object",
+                "properties": {
+                  "collaborators": {
+                    "description": "Comma-separated Instagram usernames (no leading @) tagged as co-authors. Applies with postTypeOverrides.instagram of 'feed_photo', 'feed_video', 'reel' or 'carousel' — on a carousel the co-authors are set on the carousel itself, not on its individual items. Ignored on 'story', which has no co-author concept.",
+                    "type": "string"
+                  },
+                  "shareToStory": {
+                    "type": "boolean"
+                  },
+                  "trialReel": {
+                    "description": "Publish as a trial reel, shown to people who do not follow the account first. Only takes effect with postTypeOverrides.instagram of 'reel' — a 'feed_video' publishes as an ordinary reel and this is ignored, even though both use the same underlying reel container.",
+                    "type": "boolean"
+                  },
+                  "graduationStrategy": {
+                    "description": "How a trial reel becomes a normal one: 'manual' (the creator releases it) or 'auto' (released automatically if it performs well). Default 'manual'. Ignored unless trialReel is true.",
+                    "type": "string",
+                    "enum": [
+                      "manual",
+                      "auto"
+                    ]
+                  },
+                  "thumbnailTimestamp": {
+                    "description": "Cover frame for a video or Reel, in seconds from the start. Applies to postTypeOverrides.instagram of 'feed_video' or 'reel'. Ignored when coverUrl is also set.",
+                    "type": "number"
+                  },
+                  "coverUrl": {
+                    "description": "Cover image URL for a video or Reel. Takes precedence over thumbnailTimestamp: Instagram accepts one or the other and rejects a request carrying both, so only this one is forwarded when both are sent.",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "threads": {
+                "type": "object",
+                "properties": {
+                  "quotePostId": {
+                    "type": "string"
+                  },
+                  "repostId": {
+                    "description": "With postTypeOverrides.threads = 'repost': the numeric ID of the Threads post to repost (Threads links cannot be used; the ID of a post published through BulkPublish is in get_post's platforms[].platformPostId).",
+                    "type": "string"
+                  },
+                  "topicTag": {
+                    "description": "One topic tag for the post, without a leading '#'. Must not contain periods or ampersands.",
+                    "type": "string"
+                  },
+                  "locationId": {
+                    "description": "Numeric place ID from get_channel_options with a `q` search on a Threads channel. Only works once the channel has granted location tagging.",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "linkedin": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              "bluesky": {
+                "type": "object",
+                "properties": {
+                  "repostId": {
+                    "description": "With postTypeOverrides.bluesky = 'repost': the bsky.app post URL (or at:// URI) to repost.",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "mastodon": {
+                "type": "object",
+                "properties": {
+                  "repostId": {
+                    "description": "With postTypeOverrides.mastodon = 'repost': the status URL or ID to boost.",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": {}
+              },
+              "reddit": {
+                "description": "Reddit options, nested under the BulkPublish channel id: { \"12\": { \"subreddit\": \"webdev\" } }. A flat object (e.g. { \"subreddit\": \"webdev\" }) applies to every Reddit channel on the post. subreddit is required; a media post accepts exactly one file.",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "subreddit": {
+                          "description": "Required. Target subreddit — 'webdev', 'r/webdev' and '/r/webdev' are all accepted. Falls back to the subreddit stored on the channel.",
+                          "type": "string"
+                        },
+                        "title": {
+                          "description": "Post title. Defaults to the first line of content, truncated to 300 characters.",
+                          "type": "string"
+                        },
+                        "type": {
+                          "description": "Set to 'link' to force a link submission. Otherwise the kind is resolved from media: image -> image, video -> video, url set -> link, else self (text).",
+                          "type": "string"
+                        },
+                        "url": {
+                          "description": "Destination URL for a link post; implies type 'link'.",
+                          "type": "string"
+                        },
+                        "flairId": {
+                          "description": "Link-flair id (list via get_channel_options).",
+                          "type": "string"
+                        },
+                        "thumbnailUrl": {
+                          "description": "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, failing only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file.",
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "subreddit": {
+                        "description": "Required. Target subreddit — 'webdev', 'r/webdev' and '/r/webdev' are all accepted. Falls back to the subreddit stored on the channel.",
+                        "type": "string"
+                      },
+                      "title": {
+                        "description": "Post title. Defaults to the first line of content, truncated to 300 characters.",
+                        "type": "string"
+                      },
+                      "type": {
+                        "description": "Set to 'link' to force a link submission. Otherwise the kind is resolved from media: image -> image, video -> video, url set -> link, else self (text).",
+                        "type": "string"
+                      },
+                      "url": {
+                        "description": "Destination URL for a link post; implies type 'link'.",
+                        "type": "string"
+                      },
+                      "flairId": {
+                        "description": "Link-flair id (list via get_channel_options).",
+                        "type": "string"
+                      },
+                      "thumbnailUrl": {
+                        "description": "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, failing only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file.",
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                ]
+              },
+              "discord": {
+                "description": "Discord options, nested under the BulkPublish channel id: { \"12\": { \"channelId\": \"1090123456789012345\" } }. A flat object applies to every Discord channel on the post. The inner channelId is the target Discord text channel. Posting uses a global bot token, so failures are permission problems, never a reconnect issue.",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "channelId": {
+                          "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "channelId": {
+                        "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                ]
+              },
+              "telegram": {
+                "description": "Telegram accepts no options — the destination chat is fixed when the channel is connected. Content is sent as plain text (no markdown). Text over the 1024-char caption limit is posted as a second message alongside captionless media.",
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              "tumblr": {
+                "description": "Tumblr options, nested under the BulkPublish channel id: { \"12\": { \"blogName\": \"myblog\", \"tags\": [\"art\"] } } (tags: array of strings or one comma-separated string). A flat object applies to every Tumblr channel on the post. Up to 30 images OR exactly one video per post.",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "blogName": {
+                          "description": "Which blog to publish to. Defaults to the blog the channel was connected as (list via get_channel_options).",
+                          "type": "string"
+                        },
+                        "title": {
+                          "description": "Rendered as a heading block above the body.",
+                          "type": "string"
+                        },
+                        "tags": {
+                          "description": "Tumblr tags, without the leading '#'.",
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "link": {
+                          "description": "Appended as a link block.",
+                          "type": "string"
+                        },
+                        "sourceUrl": {
+                          "description": "Attribution URL stored as the post's source.",
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "blogName": {
+                        "description": "Which blog to publish to. Defaults to the blog the channel was connected as (list via get_channel_options).",
+                        "type": "string"
+                      },
+                      "title": {
+                        "description": "Rendered as a heading block above the body.",
+                        "type": "string"
+                      },
+                      "tags": {
+                        "description": "Tumblr tags, without the leading '#'.",
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "link": {
+                        "description": "Appended as a link block.",
+                        "type": "string"
+                      },
+                      "sourceUrl": {
+                        "description": "Attribution URL stored as the post's source.",
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                ]
+              },
+              "snapchat": {
+                "description": "Snapchat options, nested under the BulkPublish channel id: { \"12\": { \"title\": \"My story\" } }. A flat object applies to every Snapchat channel on the post. Post types: story (default), saved_story, spotlight. Every Snapchat post requires exactly ONE image or video (vertical, story videos 5–60s, spotlight 6–60s video-only, saved_story videos not length-checked, max 1GB; a video outside its range is refused when the post is scheduled or published). The caption is NOT sent for plain stories — it is only the Spotlight description (160 chars max) and the Saved Story title fallback. First comments are not supported.",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "title": {
+                          "description": "Saved Story title (max 45 chars). Defaults to the first line of the caption, truncated.",
+                          "type": "string"
+                        },
+                        "locale": {
+                          "description": "Spotlight locale, e.g. 'en_US'. Defaults to 'en_US'.",
+                          "type": "string"
+                        },
+                        "saveToProfile": {
+                          "description": "Spotlight only. Default true; false sends skip_save_to_profile to Snap.",
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "description": "Saved Story title (max 45 chars). Defaults to the first line of the caption, truncated.",
+                        "type": "string"
+                      },
+                      "locale": {
+                        "description": "Spotlight locale, e.g. 'en_US'. Defaults to 'en_US'.",
+                        "type": "string"
+                      },
+                      "saveToProfile": {
+                        "description": "Spotlight only. Default true; false sends skip_save_to_profile to Snap.",
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                ]
+              }
+            }
+          },
+          "requestApproval": {
+            "description": "Optional (default false). Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for API keys of roles without post:publish (contributors), regardless of this flag.",
+            "type": "boolean"
+          },
+          "publishWhenApproved": {
+            "description": "Optional. Set true to have the post go out as soon as it is approved, even after its scheduled time (see create_post). An explicit value is stored while the post waits for approval. Omitted, it is kept, except that sending a different scheduledAt clears it to false, and it is always false once the post is no longer approvalStatus 'pending'.",
+            "type": "boolean"
+          },
+          "linkTrackingOverride": {
+            "description": "Optional per-post override for link tracking (bulkpubli.sh). true forces links in this post to be shortened and their clicks counted, false forces them to publish as written, and null clears the override so the post inherits the organization's Link Tracking setting again. Omit to leave it unchanged.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ifUnmodifiedSince": {
+            "description": "Optional precondition: the post's updatedAt exactly as the last read returned it. The update is refused with 409 CONFLICT if a teammate has changed the post since, rather than overwriting their version. Pass it whenever you read a post before editing it; omit it to keep the previous last-write-wins behaviour.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "postId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "description": "draft, scheduled, processing, published, partial or failed.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduledAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "author": {
+            "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approver": {
+            "description": "Who approved it: { id, name, image }. Null unless approvalStatus is approved.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assignee": {
+            "description": "Who is expected to act on it next: { id, name, image }. Null when nobody is.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mediaFiles": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {},
+                      "additionalProperties": {}
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postPlatforms": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "labels": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "delete_post",
+      "title": "Delete post",
+      "description": "Delete a post by ID. Only draft and failed posts can be deleted. Use this when the user wants to permanently remove a post.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "number",
+            "description": "The post ID to delete."
+          }
+        },
+        "required": [
+          "postId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "get_post_metrics",
+      "title": "Get post metrics",
+      "description": "Get engagement metrics for a published post. Returns likes, comments, shares, impressions, and other platform-specific metrics. IMPORTANT: every platform entry carries `metricsSupported` and `supportedMetrics` — a metric key NOT in `supportedMetrics` is stored as 0 because that platform's API has no such field, so report it as unavailable rather than as zero. X reports impressions/likes/comments/shares/saves (bookmarks); Bluesky and Mastodon report no impressions; Pinterest reports no reach; YouTube reports no shares or reach; Reddit reports likes (score), comments and shares (crossposts); Discord reports likes (reaction counts) and comments (thread replies); Google Business, Telegram, Tumblr and LinkedIn personal profiles report nothing readable at all. Each platform entry also carries `linkClicks` (summed in `totals.linkClicks`): clicks on bulkpubli.sh short links in this post, measured by BulkPublish rather than reported by the platform. It sits OUTSIDE `latest` and is distinct from the platform's own `clicks` — one visit can register in both, so never add them together. It is therefore available even for the platforms that report nothing, and `supportedMetrics` always includes it. Bot and link-preview traffic is excluded; it is 0 for organizations without Link Tracking enabled. Use this when the user asks how a specific post performed (likes, views, engagement).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "number",
+            "description": "The post ID to get metrics for."
+          }
+        },
+        "required": [
+          "postId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "platforms": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totals": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "get_queue_slot",
+      "title": "Get next queue slot",
+      "description": "Get the organization's next available queue slot. Useful for finding the next optimal scheduling time. Use this when the user asks when the next available scheduling slot is, or wants a post moved to the top or bottom of the queue (then update_post with the returned scheduledAt).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "timezone": {
+            "description": "IANA timezone for the slot calculation (e.g. \"America/New_York\"). Defaults to UTC.",
+            "type": "string"
+          },
+          "position": {
+            "description": "\"next\" (default): the next free slot. \"end\": the slot after the last pending scheduled post, i.e. the bottom of the queue.",
+            "type": "string",
+            "enum": [
+              "next",
+              "end"
+            ]
+          },
+          "excludePostId": {
+            "description": "When the slot is for rescheduling an existing post, its ID — so its current slot is not counted as booked.",
+            "type": "number"
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "scheduledAt": {
+            "description": "ISO timestamp of the next free slot.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dayLabel": {
+            "description": "Human label, e.g. \"Today\" or \"Wed, Feb 14\".",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "compose_post",
+      "title": "Compose a post",
+      "description": "Open an interactive composer to draft or schedule a social media post. Shows the user's connected channels to pick from and pre-fills any provided text. The user finishes in the UI; on submit it creates the post via create_post. Use this when the user wants to compose a post interactively in a UI — prefer this over create_post when they'd review before posting.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "description": "Optional initial text to pre-fill the composer with.",
+            "type": "string"
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "channels": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "channelId": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platform": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "accountName": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "media": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "url": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "filename": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "mimeType": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://bulkpublish/composer"
+        },
+        "ui/resourceUri": "ui://bulkpublish/composer"
+      }
+    },
+    {
+      "name": "view_analytics",
+      "title": "Analytics dashboard",
+      "description": "Open an interactive analytics dashboard for a date range — totals, status breakdown, per-platform stats, and daily post counts. Use this when the user wants an interactive analytics dashboard — prefer over get_analytics for a visual view.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "description": "Start date (ISO, e.g. 2025-01-01). Defaults to 30 days ago.",
+            "type": "string"
+          },
+          "to": {
+            "description": "End date (ISO). Defaults to today.",
+            "type": "string"
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "totalPosts": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "published": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "scheduled": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "failed": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "partial": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "byPlatform": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "platform": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "count": {
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "published": {
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "failed": {
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "daily": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {}
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://bulkpublish/analytics"
+        },
+        "ui/resourceUri": "ui://bulkpublish/analytics"
+      }
+    },
+    {
+      "name": "view_posts",
+      "title": "Posts",
+      "description": "Open an interactive list of posts with their status, schedule, and channels. Optionally filter by status. Use this when the user wants to see their posts as an interactive dashboard — prefer over list_posts for a visual view.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "description": "Filter by post status.",
+            "type": "string",
+            "enum": [
+              "draft",
+              "scheduled",
+              "publishing",
+              "published",
+              "failed",
+              "partial"
+            ]
+          },
+          "limit": {
+            "description": "Max posts to show (default 20).",
+            "type": "number"
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "posts": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "content": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "scheduledAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platforms": {
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "total": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://bulkpublish/posts"
+        },
+        "ui/resourceUri": "ui://bulkpublish/posts"
+      }
+    },
+    {
+      "name": "view_channels",
+      "title": "Channels",
+      "description": "Open an interactive view of connected social channels with platform, account, and connection/token status. Use this when the user wants an interactive view of their connected channels.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "channels": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "channelId": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platform": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "accountName": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "active": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://bulkpublish/channels"
+        },
+        "ui/resourceUri": "ui://bulkpublish/channels"
+      }
+    },
+    {
+      "name": "view_media",
+      "title": "Media library",
+      "description": "Open an interactive gallery of uploaded media files with thumbnails and metadata. Use this when the user wants to browse their media library visually.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "description": "Max items to show (default 30).",
+            "type": "number"
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "media": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "url": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "filename": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "mimeType": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "width": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "height": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://bulkpublish/media"
+        },
+        "ui/resourceUri": "ui://bulkpublish/media"
+      }
+    },
+    {
+      "name": "create_media_upload",
+      "title": "Start media upload",
+      "description": "Reserve a presigned upload URL for a direct browser upload (used by the composer UI). For scripted uploads use upload_media instead. Use this when you need a presigned URL for a large direct upload (advanced; prefer upload_media for normal files).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "contentType": {
+            "type": "string",
+            "description": "File MIME type, e.g. image/png or video/mp4."
+          },
+          "sizeBytes": {
+            "type": "number",
+            "description": "File size in bytes."
+          }
+        },
+        "required": [
+          "contentType",
+          "sizeBytes"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "uploadUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "r2Key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expiresIn": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "finalize_media_upload",
+      "title": "Finalize media upload",
+      "description": "Record an uploaded file as a media file after the browser PUT (pairs with create_media_upload; used by the composer UI). Use this when a presigned direct upload finished and the file must be registered (advanced).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "r2Key": {
+            "type": "string",
+            "description": "The r2Key returned by create_media_upload."
+          },
+          "fileName": {
+            "type": "string",
+            "description": "Original file name."
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "File MIME type."
+          },
+          "sizeBytes": {
+            "type": "number",
+            "description": "File size in bytes."
+          },
+          "width": {
+            "description": "Pixel width (images/video).",
+            "type": "number"
+          },
+          "height": {
+            "description": "Pixel height (images/video).",
+            "type": "number"
+          },
+          "duration": {
+            "description": "Duration in seconds (video).",
+            "type": "number"
+          }
+        },
+        "required": [
+          "r2Key",
+          "fileName",
+          "mimeType",
+          "sizeBytes"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "filename": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    }
+  ],
+  "resources": [
+    {
+      "name": "Compose a post",
+      "uri": "ui://bulkpublish/composer",
+      "mimeType": "text/html;profile=mcp-app",
+      "_meta": {
+        "ui": {
+          "csp": {
+            "resourceDomains": [
+              "https://images.bulkpublish.com",
+              "https://app.bulkpublish.com"
+            ],
+            "connectDomains": [
+              "https://d46a1bf4b4491a708ec851e1aade51e5.r2.cloudflarestorage.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "Analytics dashboard",
+      "uri": "ui://bulkpublish/analytics",
+      "mimeType": "text/html;profile=mcp-app",
+      "_meta": {
+        "ui": {
+          "csp": {
+            "resourceDomains": [
+              "https://images.bulkpublish.com",
+              "https://app.bulkpublish.com"
+            ],
+            "connectDomains": [
+              "https://d46a1bf4b4491a708ec851e1aade51e5.r2.cloudflarestorage.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "Posts",
+      "uri": "ui://bulkpublish/posts",
+      "mimeType": "text/html;profile=mcp-app",
+      "_meta": {
+        "ui": {
+          "csp": {
+            "resourceDomains": [
+              "https://images.bulkpublish.com",
+              "https://app.bulkpublish.com"
+            ],
+            "connectDomains": [
+              "https://d46a1bf4b4491a708ec851e1aade51e5.r2.cloudflarestorage.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "Channels",
+      "uri": "ui://bulkpublish/channels",
+      "mimeType": "text/html;profile=mcp-app",
+      "_meta": {
+        "ui": {
+          "csp": {
+            "resourceDomains": [
+              "https://images.bulkpublish.com",
+              "https://app.bulkpublish.com"
+            ],
+            "connectDomains": [
+              "https://d46a1bf4b4491a708ec851e1aade51e5.r2.cloudflarestorage.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "Media library",
+      "uri": "ui://bulkpublish/media",
+      "mimeType": "text/html;profile=mcp-app",
+      "_meta": {
+        "ui": {
+          "csp": {
+            "resourceDomains": [
+              "https://images.bulkpublish.com",
+              "https://app.bulkpublish.com"
+            ],
+            "connectDomains": [
+              "https://d46a1bf4b4491a708ec851e1aade51e5.r2.cloudflarestorage.com"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "contents": [
+    {
+      "uri": "ui://bulkpublish/composer",
+      "mimeType": "text/html;profile=mcp-app",
+      "_meta": {
+        "ui": {
+          "csp": {
+            "resourceDomains": [
+              "https://images.bulkpublish.com",
+              "https://app.bulkpublish.com"
+            ],
+            "connectDomains": [
+              "https://d46a1bf4b4491a708ec851e1aade51e5.r2.cloudflarestorage.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "uri": "ui://bulkpublish/analytics",
+      "mimeType": "text/html;profile=mcp-app",
+      "_meta": {
+        "ui": {
+          "csp": {
+            "resourceDomains": [
+              "https://images.bulkpublish.com",
+              "https://app.bulkpublish.com"
+            ],
+            "connectDomains": [
+              "https://d46a1bf4b4491a708ec851e1aade51e5.r2.cloudflarestorage.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "uri": "ui://bulkpublish/posts",
+      "mimeType": "text/html;profile=mcp-app",
+      "_meta": {
+        "ui": {
+          "csp": {
+            "resourceDomains": [
+              "https://images.bulkpublish.com",
+              "https://app.bulkpublish.com"
+            ],
+            "connectDomains": [
+              "https://d46a1bf4b4491a708ec851e1aade51e5.r2.cloudflarestorage.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "uri": "ui://bulkpublish/channels",
+      "mimeType": "text/html;profile=mcp-app",
+      "_meta": {
+        "ui": {
+          "csp": {
+            "resourceDomains": [
+              "https://images.bulkpublish.com",
+              "https://app.bulkpublish.com"
+            ],
+            "connectDomains": [
+              "https://d46a1bf4b4491a708ec851e1aade51e5.r2.cloudflarestorage.com"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "uri": "ui://bulkpublish/media",
+      "mimeType": "text/html;profile=mcp-app",
+      "_meta": {
+        "ui": {
+          "csp": {
+            "resourceDomains": [
+              "https://images.bulkpublish.com",
+              "https://app.bulkpublish.com"
+            ],
+            "connectDomains": [
+              "https://d46a1bf4b4491a708ec851e1aade51e5.r2.cloudflarestorage.com"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
