@@ -125,8 +125,13 @@ let openMenu: HTMLElement | null = null;
 // for. They differ only when a deep link overrides the opening call.
 let statusFilter: string | undefined;
 let inputStatus: string | undefined;
+let inputLimit: number | undefined;
 let deepLinkUrl: string | undefined;
+let linkOverrides = false;
+// The post attached to the conversation, and the text sent for it, so a
+// refresh that changes the post can resend it instead of leaving it stale.
 let selectedId: number | undefined;
+let selectedText: string | undefined;
 
 /* ----------------------------- helpers ----------------------------- */
 
@@ -208,11 +213,14 @@ function statusClass(status: string | undefined): string {
 }
 
 function statusFrom(v: unknown): string | undefined {
-  return typeof v === "string" && v in STATUS_LABELS ? v : undefined;
+  return typeof v === "string" && Object.hasOwn(STATUS_LABELS, v) ? v : undefined;
 }
 
 function filterArgs(): Record<string, unknown> {
-  return statusFilter ? { status: statusFilter } : {};
+  const args: Record<string, unknown> = {};
+  if (statusFilter) args.status = statusFilter;
+  if (inputLimit) args.limit = inputLimit;
+  return args;
 }
 
 function canShareContext(): boolean {
@@ -260,20 +268,35 @@ function markSelected(): void {
   }
 }
 
-async function toggleSelected(post: Post): Promise<void> {
-  const clearing = selectedId === post.id;
-  selectedId = clearing ? undefined : post.id;
+async function attach(post: Post | undefined): Promise<void> {
+  selectedId = post?.id;
+  selectedText = post ? postContextText(post) : undefined;
   markSelected();
   try {
     await app.updateModelContext({
-      content: clearing
-        ? []
-        : [{ type: "text", text: postContextText(post), _meta: { "openai/title": `Post #${post.id}` } }],
+      content: selectedText
+        ? [{ type: "text", text: selectedText, _meta: { "openai/title": `Post #${post!.id}` } }]
+        : [],
     });
   } catch {
-    selectedId = undefined;
+    if (selectedId !== post?.id) return; // a later click already replaced it
+    selectedId = selectedText = undefined;
     markSelected();
   }
+}
+
+function toggleSelected(post: Post): Promise<void> {
+  return attach(selectedId === post.id ? undefined : post);
+}
+
+// On remount ChatGPT hands back what this panel attached earlier; recover the
+// post ID from the text so the card shows as attached again.
+function restoreSelected(state: unknown): void {
+  const text = (state as { content?: Array<{ text?: unknown }> } | undefined)?.content?.[0]?.text;
+  const m = typeof text === "string" ? /^BulkPublish post #(\d+)/.exec(text) : null;
+  selectedId = m ? Number(m[1]) : undefined;
+  selectedText = m ? (text as string) : undefined;
+  markSelected();
 }
 
 async function runAction(
@@ -303,7 +326,7 @@ async function runAction(
         delete: `Deleted #${post.id} ✓`,
       };
       showToast(done[action], false);
-      if (action === "delete" && selectedId === post.id) await toggleSelected(post);
+      if (action === "delete" && selectedId === post.id) await attach(undefined);
       await refresh();
     }
   } catch (e) {
@@ -376,7 +399,11 @@ function renderPost(post: Post): HTMLElement {
     card.classList.add("post-card--selectable");
     card.tabIndex = 0;
     card.title = "Attach this post to the conversation";
-    card.addEventListener("click", () => void toggleSelected(post));
+    // With a menu open, a click on the card only closes it (the document
+    // listener does that after this handler runs).
+    card.addEventListener("click", () => {
+      if (!openMenu) void toggleSelected(post);
+    });
     card.addEventListener("keydown", (e) => {
       if (e.target === card && (e.key === "Enter" || e.key === " ")) {
         e.preventDefault();
@@ -408,6 +435,8 @@ function renderPost(post: Post): HTMLElement {
     menuBtn.type = "button";
     menuBtn.className = "post-card__menu-btn";
     menuBtn.setAttribute("aria-label", "Post actions");
+    // Otherwise the button inherits the card's "Attach…" tooltip.
+    if (card.title) menuBtn.title = "Post actions";
     menuBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>`;
     menuBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -473,6 +502,7 @@ function render(data: unknown): void {
   listEl.innerHTML = "";
 
   if (posts.length === 0) {
+    emptyEl.textContent = statusFilter ? `No ${kind}posts.` : "No posts yet.";
     emptyEl.hidden = false;
     return;
   }
@@ -481,6 +511,8 @@ function render(data: unknown): void {
     if (post && typeof post === "object") listEl.appendChild(renderPost(post as Post));
   }
   markSelected();
+  const attached = posts.find((p) => p && p.id != null && p.id === selectedId);
+  if (attached && selectedText !== postContextText(attached)) void attach(attached);
 }
 
 /* ----------------------------- app wiring ----------------------------- */
@@ -499,12 +531,10 @@ function applyHostContext(ctx: McpUiHostContext): void {
 // ChatGPT-only host context. A deep link such as `?status=failed` sets the
 // filter; `openai/modelContext: null` means the user removed the attached post.
 function applyOpenAiContext(ctx: Record<string, unknown>): void {
-  if (ctx["openai/modelContext"] === null && selectedId !== undefined) {
-    selectedId = undefined;
-    markSelected();
-  }
+  if ("openai/modelContext" in ctx) restoreSelected(ctx["openai/modelContext"]);
   const link = ctx["openai/deepLink"] as { url?: unknown } | null | undefined;
   if (!link || typeof link.url !== "string" || link.url === deepLinkUrl) return;
+  const first = deepLinkUrl === undefined;
   deepLinkUrl = link.url;
   let status: string | undefined;
   try {
@@ -512,6 +542,9 @@ function applyOpenAiContext(ctx: Record<string, unknown>): void {
   } catch {
     return;
   }
+  // The panel opened at the root ("/"): keep whatever the opening call asked for.
+  if (first && status === undefined) return;
+  linkOverrides = true;
   if (status === statusFilter) return;
   statusFilter = status;
   void refresh();
@@ -519,7 +552,9 @@ function applyOpenAiContext(ctx: Record<string, unknown>): void {
 
 app.addEventListener("toolinput", (params) => {
   inputStatus = statusFrom(params.arguments?.status);
-  if (deepLinkUrl === undefined) statusFilter = inputStatus;
+  const limit = params.arguments?.limit;
+  inputLimit = typeof limit === "number" && limit > 0 ? limit : undefined;
+  if (!linkOverrides) statusFilter = inputStatus;
 });
 app.addEventListener("toolresult", (params) => {
   if (inputStatus === statusFilter) render(params.structuredContent);

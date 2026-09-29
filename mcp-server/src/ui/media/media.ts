@@ -94,6 +94,7 @@ async function toggleSelected(item: MediaItem): Promise<void> {
       content: clearing ? [] : [{ type: "text", text: mediaContextText(item), _meta: meta }],
     });
   } catch {
+    if (selectedId !== (clearing ? undefined : item.id)) return; // a later click already replaced it
     selectedId = undefined;
     markSelected();
   }
@@ -268,9 +269,14 @@ function applyHostContext(ctx: McpUiHostContext): void {
   }
   if (ctx.styles?.variables) applyHostStyleVariables(ctx.styles.variables);
   if (ctx.styles?.css?.fonts) applyHostFonts(ctx.styles.css.fonts);
-  // ChatGPT sends null here when the user removes the attached file.
-  if ((ctx as Record<string, unknown>)["openai/modelContext"] === null && selectedId !== undefined) {
-    selectedId = undefined;
+  // ChatGPT sends what this panel attached on remount, and null once the user
+  // removes it; recover the file ID from the text we sent.
+  const c = ctx as Record<string, unknown>;
+  if ("openai/modelContext" in c) {
+    const state = c["openai/modelContext"] as { content?: Array<{ text?: unknown }> } | null;
+    const text = state?.content?.[0]?.text;
+    const m = typeof text === "string" ? /^BulkPublish media file #(\d+)/.exec(text) : null;
+    selectedId = m ? Number(m[1]) : undefined;
     markSelected();
   }
 }

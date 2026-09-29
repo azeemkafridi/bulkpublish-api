@@ -15,7 +15,7 @@ MCP **1.41.0**
 
 - **The posts panel keeps its status filter after an action.** Asking for, say, failed posts and then retrying one used to reload every post; it now reloads the failed ones, and the heading says which status is shown.
 
-Claude and other clients see the same 20 tools, with the same names, descriptions and annotations, as in 1.40.10.
+Claude and other clients see the same tools (20 on the hosted server), with the same names, descriptions and annotations, as in 1.40.10.
 
 ## 2026-09-29 — Templates, hashtag groups, calendar notes, review links and client connect links are available to everyone
 
