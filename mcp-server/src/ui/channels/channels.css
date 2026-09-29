@@ -56,12 +56,7 @@ body {
   background: var(--surface-card);
   border-radius: var(--radius-xl);
   box-shadow: 0 1px 3px rgba(0 0 0 / 0.06);
-  transition: box-shadow var(--transition-base);
   min-width: 0; /* allow text truncation inside grid */
-}
-
-.channel-card:hover {
-  box-shadow: 0 2px 8px rgba(0 0 0 / 0.1);
 }
 
 /* ── platform row (icon + label) ────────────────────────────────── */
@@ -159,10 +154,6 @@ body {
 /* ── dark theme ─────────────────────────────────────────────────── */
 .theme-dark .channel-card {
   box-shadow: 0 1px 3px rgba(0 0 0 / 0.3);
-}
-
-.theme-dark .channel-card:hover {
-  box-shadow: 0 2px 8px rgba(0 0 0 / 0.4);
 }
 
 /* keep black brand marks (X, TikTok, Threads) visible on the card */

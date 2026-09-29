@@ -59,14 +59,9 @@ body {
   transition: box-shadow var(--transition-base);
 }
 
-.post-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
 .post-card--selectable { cursor: pointer; }
 .post-card--selectable:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent-200); }
-.post-card--selected,
-.post-card--selected:hover { box-shadow: 0 0 0 2px var(--accent-500); }
+.post-card--selected { box-shadow: 0 0 0 2px var(--accent-500); }
 
 .post-card__content {
   margin: 0;
@@ -275,10 +270,4 @@ body {
 .posts[aria-busy="true"] .posts__empty {
   opacity: 0.55;
   pointer-events: none;
-}
-
-/* ----------------------------- dark theme ----------------------------- */
-
-.theme-dark .post-card:hover {
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
 }
