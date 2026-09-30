@@ -14,7 +14,7 @@ import {
   type McpUiHostContext,
 } from "@modelcontextprotocol/ext-apps";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { platformIcon, platformBg } from "../composer/platform-icons";
+import { platformIcon, platformBg, PLATFORM_LABELS } from "../composer/platform-icons";
 
 type Channel = {
   channelId: number;
@@ -24,20 +24,6 @@ type Channel = {
   status?: string;
 };
 
-const PLATFORM_LABELS: Record<string, string> = {
-  x: "X",
-  instagram: "Instagram",
-  linkedin: "LinkedIn",
-  facebook: "Facebook",
-  tiktok: "TikTok",
-  youtube: "YouTube",
-  pinterest: "Pinterest",
-  threads: "Threads",
-  bluesky: "Bluesky",
-  google_business: "Google Business",
-  gmb: "Google Business",
-  mastodon: "Mastodon",
-};
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) =>
   document.getElementById(id) as T;

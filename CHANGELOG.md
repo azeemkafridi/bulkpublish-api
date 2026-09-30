@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-30 — Composer and panels: every platform named, schedule field on iPhone
+
+MCP **1.41.1**
+
+### Fixed
+
+- **Snapchat, Reddit, Discord, Telegram and Tumblr channels** showed a blank icon and a lower-case name ("snapchat") in the composer, posts and channels panels, and a raw name in analytics. They now carry their mark and proper name like every other platform.
+- **The "Schedule for" field on iPhone** showed as an empty grey box with a chevron. It now reads "Pick a date and time" until a time is chosen.
+
 ## 2026-09-30 — ChatGPT: sidebar, side panels and attachable posts
 
 MCP **1.41.0**

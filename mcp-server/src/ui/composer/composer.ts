@@ -17,7 +17,7 @@ import {
   type McpUiHostContext,
 } from "@modelcontextprotocol/ext-apps";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { platformIcon, platformBg } from "./platform-icons";
+import { platformIcon, platformBg, PLATFORM_LABELS } from "./platform-icons";
 
 type Channel = { channelId: number; platform: string; accountName?: string };
 type Media = {
@@ -27,20 +27,6 @@ type Media = {
   mimeType?: string;
 };
 
-const PLATFORM_LABELS: Record<string, string> = {
-  x: "X",
-  instagram: "Instagram",
-  linkedin: "LinkedIn",
-  facebook: "Facebook",
-  tiktok: "TikTok",
-  youtube: "YouTube",
-  pinterest: "Pinterest",
-  threads: "Threads",
-  bluesky: "Bluesky",
-  google_business: "Google Business",
-  gmb: "Google Business",
-  mastodon: "Mastodon",
-};
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) =>
   document.getElementById(id) as T;
@@ -55,6 +41,7 @@ const mediaField = $("media-field");
 const mediaGrid = $("media-grid");
 const mediaFileEl = $<HTMLInputElement>("media-file");
 const scheduledAtEl = $<HTMLInputElement>("scheduled-at");
+const scheduledWrapEl = $("scheduled-wrap");
 const tzLabelEl = $("tz-label");
 const errorEl = $("error");
 const successEl = $("success");
@@ -354,6 +341,7 @@ function updateButtons(): void {
   draftBtn.disabled = !base;
   publishBtn.disabled = !base;
   scheduleBtn.disabled = !base || !scheduledAtEl.value;
+  scheduledWrapEl.classList.toggle("is-empty", !scheduledAtEl.value);
 }
 
 function showError(msg: string): void {
@@ -461,6 +449,8 @@ contentEl.addEventListener("input", () => {
   updateButtons();
 });
 scheduledAtEl.addEventListener("input", updateButtons);
+// iOS's wheel picker reports through change, not input.
+scheduledAtEl.addEventListener("change", updateButtons);
 mediaFileEl.addEventListener("change", () => {
   if (mediaFileEl.files && mediaFileEl.files.length) void handleFiles(mediaFileEl.files);
   mediaFileEl.value = ""; // let the same file be re-picked

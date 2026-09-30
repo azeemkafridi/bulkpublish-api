@@ -26,7 +26,10 @@
           Schedule for <span class="label-hint">optional</span>
         </label>
         <div class="schedule">
-          <input type="datetime-local" id="scheduled-at" class="input" />
+          <div class="dt is-empty" id="scheduled-wrap">
+            <input type="datetime-local" id="scheduled-at" class="input" aria-describedby="scheduled-ph" />
+            <span class="dt__ph" id="scheduled-ph">Pick a date and time</span>
+          </div>
           <span class="tz" id="tz-label"></span>
         </div>
       </section>

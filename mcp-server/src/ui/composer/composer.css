@@ -169,7 +169,26 @@ body {
 
 /* schedule row */
 .schedule { display: flex; align-items: center; gap: 10px; }
-.schedule .input { max-width: 230px; }
+.schedule .dt { position: relative; flex: 1; min-width: 0; max-width: 230px; }
+/* iOS draws an empty datetime-local as a blank grey pill with its own chevron
+   and no placeholder, so an empty field read as broken. Take the platform
+   styling off, and while it is empty show our own placeholder over it (with
+   the native "mm/dd/yyyy --:--" mask hidden, so the two never overlap). */
+.dt .input { -webkit-appearance: none; appearance: none; min-width: 0; text-align: left; }
+.dt .input::-webkit-date-and-time-value { text-align: left; }
+.dt__ph {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--stone-400);
+  font-size: var(--text-base);
+  pointer-events: none;
+  display: none;
+}
+.dt.is-empty:not(:focus-within) .dt__ph { display: block; }
+.dt.is-empty:not(:focus-within) .input { color: transparent; }
+.dt.is-empty:not(:focus-within) .input::-webkit-datetime-edit { color: transparent; }
 .tz { font-size: var(--text-xs); color: var(--stone-400); }
 
 /* banners */

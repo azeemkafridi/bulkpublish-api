@@ -5,6 +5,7 @@
  * (structuredContent), then renders stat cards, a per-platform bar chart,
  * and a daily sparkline — all with plain DOM + CSS, no chart libraries.
  */
+import { PLATFORM_LABELS } from "../composer/platform-icons";
 import "./analytics.css";
 import {
   App,
@@ -67,20 +68,6 @@ interface AnalyticsPayload {
 
 /* ----------------------------- constants ----------------------------- */
 
-const PLATFORM_LABELS: Record<string, string> = {
-  x: "X",
-  instagram: "Instagram",
-  linkedin: "LinkedIn",
-  facebook: "Facebook",
-  tiktok: "TikTok",
-  youtube: "YouTube",
-  pinterest: "Pinterest",
-  threads: "Threads",
-  bluesky: "Bluesky",
-  google_business: "Google Business",
-  gmb: "Google Business",
-  mastodon: "Mastodon",
-};
 
 /* ----------------------------- helpers ----------------------------- */
 
