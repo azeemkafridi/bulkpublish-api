@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-02 — @mention search on Mastodon
+
+MCP **1.41.2**
+
+### Added
+
+- **`search_mentions` works on Mastodon channels.** It searches the account's own server and returns each account as the address to put in the post: `@username` for someone on the same server, `@username@domain` for someone elsewhere. Type a full `username@domain` address to find an account that server has not seen before. The REST endpoint `GET /api/channels/{id}/mentions`, the OpenAPI spec and the Postman collection say the same.
+
 ## 2026-09-30 — Composer and panels: every platform named, schedule field on iPhone
 
 MCP **1.41.1**

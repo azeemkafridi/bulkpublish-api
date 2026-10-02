@@ -152,7 +152,7 @@ Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles))
 | `list_channels` ★ | List all connected social media channels |
 | `get_channel_health` | Check channel token health |
 | `get_channel_options` | Get platform-specific options (boards, playlists) |
-| `search_mentions` | Search users for @mention (X, Bluesky, LinkedIn Pages — LinkedIn results carry the `vanityName` slug they matched on) |
+| `search_mentions` | Search users for @mention (X, Bluesky, Mastodon, LinkedIn Pages — LinkedIn results carry the `vanityName` slug they matched on) |
 | **Channel Sets** | |
 | `list_channel_sets` | List saved channel groups for one-click multi-channel targeting |
 | `create_channel_set` | Save a named group of channels (max 50 per org, names unique per org) |

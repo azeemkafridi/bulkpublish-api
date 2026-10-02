@@ -4839,7 +4839,7 @@
     {
       "name": "search_mentions",
       "title": "Search mentions",
-      "description": "Search for @mention suggestions on a channel (X, Bluesky, LinkedIn). On LinkedIn the query is a Page's URL slug (exact match), each result's handle is a ready-to-paste @[Name](urn:li:organization:ID) token, and vanityName is the slug it matched — check it against the Page you meant before using the token, since a display name alone is ambiguous. Use this when you need @mention suggestions from a connected channel while drafting a post.",
+      "description": "Search for @mention suggestions on a channel (X, Bluesky, Mastodon, LinkedIn). On LinkedIn the query is a Page's URL slug (exact match), each result's handle is a ready-to-paste @[Name](urn:li:organization:ID) token, and vanityName is the slug it matched — check it against the Page you meant before using the token, since a display name alone is ambiguous. Use this when you need @mention suggestions from a connected channel while drafting a post.",
       "inputSchema": {
         "type": "object",
         "properties": {
