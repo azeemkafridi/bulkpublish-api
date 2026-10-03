@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-03 — Deleting media keeps the previews of posts that used it
+
+Node SDK **1.38.5** · MCP **1.41.3** · Python SDK **0.39.5**
+
+### Changed
+
+- **`DELETE /api/media/{id}` on a file a post still uses** now keeps the small preview images, so that post still shows a picture in Posts and Analytics. The file still leaves your library: `GET /api/media` no longer lists it, and `GET`/`PATCH`/`DELETE` on its id return 404. The full-size file is deleted and stops counting toward storage. A post that has not published yet and still uses the file will fail to publish, as before. The OpenAPI spec, the SDK docs and the `delete_media` tool say the same.
+
 ## 2026-10-02 — @mention search on Mastodon
 
 MCP **1.41.2**

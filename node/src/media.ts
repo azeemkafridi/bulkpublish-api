@@ -126,7 +126,9 @@ export class MediaResource {
 
   /**
    * Delete a media file. The library entry is removed immediately and the
-   * stored file is cleaned up in the background.
+   * stored file is cleaned up in the background. If a post still uses the
+   * file, its small previews are kept so that post still shows a picture; a
+   * post that has not published yet and still uses it will fail to publish.
    *
    * @param id - The media file ID.
    * @returns Confirmation with the deleted file ID.

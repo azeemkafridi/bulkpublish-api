@@ -182,8 +182,11 @@ class MediaResource:
     def delete(self, media_id: str) -> Dict[str, Any]:
         """Delete a media file.
 
-        Removes the file from storage.  Posts that reference this file will
-        lose their attachment.
+        Removes the file from the media library. If a post still uses it, the
+        full-size file is deleted (and stops counting toward storage) but the
+        small previews are kept, so that post still shows a picture. A post
+        that has not published yet and still uses the file will fail to
+        publish.
 
         Args:
             media_id: The media file's unique identifier.
