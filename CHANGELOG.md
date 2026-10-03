@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-03 — Post metrics: TikTok insights and unsynced X posts
+
+Node SDK **1.38.6** · MCP **1.41.4**
+
+### Fixed
+
+- **TikTok reach, saves and clicks** were returned for accounts that have granted TikTok insights, but `supportedMetrics` did not list them, so clients showed them as unavailable. They are now listed, and `conditionalMetrics` names them for TikTok, because accounts without insights still do not report them.
+- **X posts that have never been synced** (their channel has not turned on X metrics sync) now come back with `metricsSupported: false` from `GET /api/posts/{id}/metrics` and in `platformMetrics` from `GET /api/analytics/engagement`, instead of a row of zeros that looked measured.
+
 ## 2026-10-03 — Deleting media keeps the previews of posts that used it
 
 Node SDK **1.38.5** · MCP **1.41.3** · Python SDK **0.39.5**
