@@ -170,7 +170,8 @@ class MediaResource:
         """Set the accessibility description of a media file.
 
         Alt text belongs to the file, so one value covers every post that
-        reuses it; it is sent to Instagram, LinkedIn and Bluesky. Pass ``None``
+        reuses it; it is sent to Instagram, LinkedIn, X, Bluesky, Tumblr and
+        Discord. Pass ``None``
         or ``""`` to clear. Trimmed to 1000 characters.
 
         Example::

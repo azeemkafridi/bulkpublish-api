@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-05 — Alt text reaches six platforms
+
+Node SDK **1.38.7** · Python SDK **0.39.6** · MCP **1.41.5**
+
+### Changed
+
+- **`PATCH /api/media/{id}`** no longer answers 403 `FEATURE_DISABLED`: setting alt text is available to every account.
+- **Where alt text goes** is now described correctly everywhere (spec, `MediaFile.altText`, Node and Python `media.update`, the MCP `update_media` tool): Instagram, LinkedIn, X, Bluesky, Tumblr and Discord. On a video file only Discord passes it on. The spec's description of this endpoint also no longer claims it returns a template.
+
 ## 2026-10-04 — Repost post type available to every account
 
 Spec only — no SDK or MCP release.

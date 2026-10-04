@@ -1947,7 +1947,7 @@ server.tool(
 
 server.tool(
   "update_media",
-  "Set a media file's alt text (accessibility description). It belongs to the file, so one value covers every post that reuses it, and is sent to Instagram, LinkedIn and Bluesky. Pass an empty string to clear.",
+  "Set a media file's alt text (accessibility description). It belongs to the file, so one value covers every post that reuses it, and is sent to Instagram, LinkedIn, X, Bluesky, Tumblr and Discord. Pass an empty string to clear.",
   {
     mediaId: z.number().describe("The media file ID."),
     altText: z.string().max(1000).describe("Description of the image for people who cannot see it. Empty string clears it."),

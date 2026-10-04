@@ -3565,7 +3565,7 @@
     {
       "name": "update_media",
       "title": "Set media alt text",
-      "description": "Set a media file's alt text (accessibility description). It belongs to the file, so one value covers every post that reuses it, and is sent to Instagram, LinkedIn and Bluesky. Pass an empty string to clear. Use this when the user wants to add or change an image's alt text / accessibility description.",
+      "description": "Set a media file's alt text (accessibility description). It belongs to the file, so one value covers every post that reuses it, and is sent to Instagram, LinkedIn, X, Bluesky, Tumblr and Discord. Pass an empty string to clear. Use this when the user wants to add or change an image's alt text / accessibility description.",
       "inputSchema": {
         "type": "object",
         "properties": {
