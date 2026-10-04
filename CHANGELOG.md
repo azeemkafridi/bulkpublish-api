@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-04 — Repost post type available to every account
+
+Spec only — no SDK or MCP release.
+
+### Changed
+
+- **`repost` post type** (X, Threads, Bluesky, Mastodon, via `postTypeOverrides`) is now accepted for every account. It previously answered 403 `FEATURE_DISABLED` unless switched on for yours. It is offered through the API only; the composer in the app does not have it.
+
 ## 2026-10-03 — Post metrics: TikTok insights and unsynced X posts
 
 Node SDK **1.38.6** · MCP **1.41.4**
