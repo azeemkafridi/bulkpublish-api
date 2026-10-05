@@ -48,6 +48,7 @@ from .client_connect_links import AsyncClientConnectLinksResource, ClientConnect
 from .calendar_notes import AsyncCalendarNotesResource, CalendarNotesResource
 from .media import AsyncMediaResource, MediaResource
 from .posts import AsyncPostsResource, PostsResource
+from .inbox import AsyncInboxResource, InboxResource
 from .notifications import AsyncNotificationsResource, NotificationsResource
 from .organizations import AsyncOrganizationsResource, OrganizationsResource
 from .platforms import AsyncPlatformsResource, PlatformsResource
@@ -197,6 +198,7 @@ class BulkPublish(_BaseClient):
         organizations: :class:`~bulkpublish.organizations.OrganizationsResource`
         notifications: :class:`~bulkpublish.notifications.NotificationsResource`
         rss_feeds: :class:`~bulkpublish.rss_feeds.RssFeedsResource`
+        inbox: :class:`~bulkpublish.inbox.InboxResource`
     Example::
 
         from bulkpublish import BulkPublish
@@ -258,6 +260,7 @@ class BulkPublish(_BaseClient):
         self.platforms = PlatformsResource(self)
         self.organizations = OrganizationsResource(self)
         self.notifications = NotificationsResource(self)
+        self.inbox = InboxResource(self)
 
     def close(self) -> None:
         """Close the underlying HTTP connection pool.
@@ -580,6 +583,7 @@ class AsyncBulkPublish(_BaseClient):
         self.platforms = AsyncPlatformsResource(self)
         self.organizations = AsyncOrganizationsResource(self)
         self.notifications = AsyncNotificationsResource(self)
+        self.inbox = AsyncInboxResource(self)
 
     async def close(self) -> None:
         """Close the underlying async HTTP connection pool.

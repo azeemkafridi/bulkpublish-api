@@ -721,6 +721,84 @@ class PostsResource:
         """Revoke the post's review link (idempotent)."""
         return self._client._request("DELETE", f"/api/posts/{post_id}/share")
 
+    # -- Comments -------------------------------------------------------------
+
+    def engagement(
+        self,
+        post_id: str,
+        *,
+        comments_limit: Optional[int] = None,
+        reactions_limit: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Who commented on and reacted to a published post, per channel.
+
+        Each platform entry's ``postPlatformId`` and a comment's ``id`` are what
+        :meth:`reply_to_comment` and :meth:`moderate_comment` take.
+
+        Returns:
+            ``{"postId", "platforms": [...]}``.
+        """
+        params: Dict[str, Any] = {}
+        if comments_limit is not None:
+            params["commentsLimit"] = comments_limit
+        if reactions_limit is not None:
+            params["reactionsLimit"] = reactions_limit
+        return self._client._request("GET", f"/api/posts/{post_id}/engagement", params=params)
+
+    def reply_to_comment(
+        self,
+        post_id: str,
+        *,
+        post_platform_id: int,
+        comment_id: str,
+        text: str,
+        root_comment_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Post a public reply to a comment, immediately, as the channel the
+        post was published to. It cannot be taken back from here.
+
+        Raises ``PermissionError`` (403 ``FEATURE_DISABLED``, feature
+        ``comments_inbox``) until comment replies are available to the
+        account, and ``ConflictError`` (409) when the channel must be
+        reconnected or the post is not published there. OAuth tokens need
+        ``inbox:write`` (or ``full``); ``posts:write`` does not cover it.
+
+        Args:
+            post_id: The post id.
+            post_platform_id: From the post's engagement entry for that channel.
+            comment_id: The comment's ``id``.
+            text: Up to 2,000 characters.
+            root_comment_id: When replying to a reply, the thread's top-level
+                comment (Instagram, YouTube).
+
+        Returns:
+            ``{"success", "replyId", "accountName"}``.
+        """
+        body: Dict[str, Any] = {"postPlatformId": post_platform_id, "commentId": comment_id, "text": text}
+        if root_comment_id is not None:
+            body["rootCommentId"] = root_comment_id
+        return self._client._request("POST", f"/api/posts/{post_id}/comments/reply", json=body)
+
+    def moderate_comment(
+        self,
+        post_id: str,
+        *,
+        post_platform_id: int,
+        comment_id: str,
+        action: str,
+    ) -> Dict[str, Any]:
+        """Like, unlike, hide, unhide or delete a comment on the platform.
+
+        ``"delete"`` is permanent and needs a role that can publish. Which
+        actions a channel supports is in ``commentActions`` on its engagement
+        entry.
+
+        Returns:
+            ``{"success", "action"}``.
+        """
+        body = {"postPlatformId": post_platform_id, "commentId": comment_id, "action": action}
+        return self._client._request("POST", f"/api/posts/{post_id}/comments/moderate", json=body)
+
     # -- Queue slot -----------------------------------------------------------
 
     def queue_slot(
@@ -861,6 +939,27 @@ class AsyncPostsResource:
     async def unshare(self, post_id: str) -> Dict[str, Any]:
         """Revoke review link — see :meth:`PostsResource.unshare`."""
         return await self._client._request("DELETE", f"/api/posts/{post_id}/share")
+
+    async def engagement(self, post_id: str, *, comments_limit: Optional[int] = None, reactions_limit: Optional[int] = None) -> Dict[str, Any]:
+        """Engagement — see :meth:`PostsResource.engagement`."""
+        params: Dict[str, Any] = {}
+        if comments_limit is not None:
+            params["commentsLimit"] = comments_limit
+        if reactions_limit is not None:
+            params["reactionsLimit"] = reactions_limit
+        return await self._client._request("GET", f"/api/posts/{post_id}/engagement", params=params)
+
+    async def reply_to_comment(self, post_id: str, *, post_platform_id: int, comment_id: str, text: str, root_comment_id: Optional[str] = None) -> Dict[str, Any]:
+        """Reply to a comment — see :meth:`PostsResource.reply_to_comment`."""
+        body: Dict[str, Any] = {"postPlatformId": post_platform_id, "commentId": comment_id, "text": text}
+        if root_comment_id is not None:
+            body["rootCommentId"] = root_comment_id
+        return await self._client._request("POST", f"/api/posts/{post_id}/comments/reply", json=body)
+
+    async def moderate_comment(self, post_id: str, *, post_platform_id: int, comment_id: str, action: str) -> Dict[str, Any]:
+        """Moderate a comment — see :meth:`PostsResource.moderate_comment`."""
+        body = {"postPlatformId": post_platform_id, "commentId": comment_id, "action": action}
+        return await self._client._request("POST", f"/api/posts/{post_id}/comments/moderate", json=body)
 
     async def queue_slot(self, *, timezone: Optional[str] = None, position: Optional[str] = None, exclude_post_id: Optional[int] = None) -> QueueSlot:
         """Queue slot — see :meth:`PostsResource.queue_slot`."""

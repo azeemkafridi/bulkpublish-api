@@ -80,7 +80,7 @@ asyncio.run(main())
 
 | Resource | Methods |
 |----------|---------|
-| `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `approve`, `reject`, `bulk`, `queue_slot`, `share`, `unshare` |
+| `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `approve`, `reject`, `bulk`, `queue_slot`, `share`, `unshare`, `engagement`, `reply_to_comment`, `moderate_comment` |
 | `bp.channels` | `list`, `get`, `delete`, `health` |
 | `bp.media` | `upload`, `list`, `get`, `update` (alt text), `delete`, `get_labels`, `set_labels`, `create_multipart`, `complete_multipart`, `abort_multipart` |
 | `bp.analytics` | `summary`, `engagement`, `refresh`, `account` |
@@ -95,6 +95,7 @@ asyncio.run(main())
 | `bp.rss_feeds` | `list`, `create`, `update`, `delete` — RSS/Atom autopost feeds (new items become posts; optional `field_mapping` controls caption template, media, truncation, per-channel overrides) |
 | `bp.organizations` | `list`, `create` — the organizations this key's user belongs to, and the role held in each. API key only: not reachable with an OAuth token |
 | `bp.notifications` | `list`, `mark_read`, `delete`, `preferences`, `update_preferences` — publish failures, expiring connections. API key only |
+| `bp.inbox` | `list_conversations`, `update_conversation`, `list_messages`, `send_message` — direct messages, reviews and comment threads (Pro and Business plans). See the [Inbox guide](../guides/inbox.md) |
 
 Every method has docstrings with usage examples — works great with IDE autocomplete and LLM code generation.
 
