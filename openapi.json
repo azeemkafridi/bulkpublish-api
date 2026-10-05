@@ -4082,8 +4082,32 @@
                               "commentsNotice": {
                                 "type": "string",
                                 "description": "Why the COMMENT list specifically is empty, set whenever the comment read did not succeed (missing token, a gate declined \u2014 e.g. X analytics not enabled \u2014 the platform API errored, or the platform has no thread for this post, like a Discord message without a thread). `notice` mixes comment- and reaction-scoped messages; a client that renders only comments should show this field and treat an empty `comments` with `commentsNotice` absent as a genuine measured zero."
+                              },
+                              "commentActions": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": ["like", "unlike", "hide", "unhide", "delete"]
+                                },
+                                "description": "The moderation actions this channel accepts on these comments. Absent or empty when the platform offers none; `POST /api/posts/{id}/comments/moderate` refuses any action not listed here with 422."
+                              },
+                              "replyUnsupported": {
+                                "type": "boolean",
+                                "description": "True when replying to comments from this channel will not work. `replyNotice` says why, for example that the account needs reconnecting."
+                              },
+                              "replyNotice": {
+                                "type": "string",
+                                "description": "Why replies are unavailable for this channel. Set only alongside `replyUnsupported`."
                               }
                             }
+                          },
+                          "postPlatformId": {
+                            "type": "integer",
+                            "description": "This destination's id. Pass it as `postPlatformId` to `POST /api/posts/{id}/comments/reply` and `/moderate`. Absent when the read for this platform failed (see `error`)."
+                          },
+                          "error": {
+                            "type": "string",
+                            "description": "Route-level failure for this platform: the live read threw, or the post is published (`platformPostId` set) but the channel has no stored access token (needs reconnecting). When set alongside `engagement: null` the post IS live on this platform \u2014 the data simply could not be read."
                           },
                           "error": {
                             "type": "string",
