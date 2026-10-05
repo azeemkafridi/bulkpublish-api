@@ -5537,7 +5537,7 @@
     {
       "name": "reply_to_comment",
       "title": "Reply to comment",
-      "description": "Reply to a comment on one of the workspace's published posts. The reply is posted publicly on the platform right away, as the channel the post was published to, and it cannot be taken back from here. Up to 2,000 characters. If the channel's connection has stopped working, the call is refused and the channel needs reconnecting from the Channels page. Comment replies are part of the Pro and Business plans; on other plans, or before they are available to the account, the call is refused with a message saying so. Use this when the user wants to answer a comment on one of their published posts.",
+      "description": "Reply to a comment on one of the workspace's published posts. The reply is posted publicly on the platform right away, as the channel the post was published to, and it cannot be taken back from here. Up to 2,000 characters. If the channel's connection has stopped working, the call is refused and the channel needs reconnecting from the Channels page. Comment replies are on every plan except Free; on Free, or before they are available to the account, the call is refused with a message saying so. Use this when the user wants to answer a comment on one of their published posts.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -5621,7 +5621,7 @@
     {
       "name": "moderate_comment",
       "title": "Like, hide or delete comment",
-      "description": "Like, unlike, hide, unhide or delete a comment on one of the workspace's published posts, on the platform, as the channel the post was published to. Likes and hides can be undone; delete is permanent and needs a role that can publish. Hiding or deleting also removes the comment from the Inbox. Which actions a channel supports is in its commentActions from list_post_comments. If the channel's connection has stopped working, the call is refused and the channel needs reconnecting from the Channels page. Comment replies are part of the Pro and Business plans; on other plans, or before they are available to the account, the call is refused with a message saying so. Use this when the user wants to like, hide or delete a comment on one of their published posts.",
+      "description": "Like, unlike, hide, unhide or delete a comment on one of the workspace's published posts, on the platform, as the channel the post was published to. Likes and hides can be undone; delete is permanent and needs a role that can publish. Hiding or deleting also removes the comment from the Inbox. Which actions a channel supports is in its commentActions from list_post_comments. If the channel's connection has stopped working, the call is refused and the channel needs reconnecting from the Channels page. Comment replies are on every plan except Free; on Free, or before they are available to the account, the call is refused with a message saying so. Use this when the user wants to like, hide or delete a comment on one of their published posts.",
       "inputSchema": {
         "type": "object",
         "properties": {
