@@ -13,9 +13,15 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createServer } from "../dist/index.js";
 
-const DIR = process.argv[2]
-  ? path.resolve(process.argv[2])
-  : path.resolve(import.meta.dirname, "../../skills/core-profile-skills");
+// --profile inbox checks skills/inbox-profile-skills against the 27-tool inbox
+// profile instead; the ABSENT list applies to both, since inbox only adds the
+// Inbox and comment tools.
+const pi = process.argv.indexOf("--profile");
+const PROFILE = pi > -1 ? process.argv[pi + 1] : "core";
+const positional = process.argv.slice(2).filter((a, i, all) => a !== "--profile" && all[i - 1] !== "--profile");
+const DIR = positional[0]
+  ? path.resolve(positional[0])
+  : path.resolve(import.meta.dirname, `../../skills/${PROFILE}-profile-skills`);
 
 async function names(profile) {
   const s = createServer({ profile });
@@ -26,7 +32,7 @@ async function names(profile) {
   await c.close();
   return t;
 }
-const core = new Set(await names("core"));
+const core = new Set(await names(PROFILE));
 const all = await names("full");
 
 // Capabilities the core profile cannot perform at all. Prose promising these
@@ -62,12 +68,12 @@ for (const d of dirs) {
 
   for (const t of all) {
     // r2Key is a required parameter name, not prose — allow that one token.
-    if (new RegExp("\\b" + t + "\\b").test(txt) && !core.has(t)) fail(`${d}: names non-core tool ${t}`);
+    if (new RegExp("\\b" + t + "\\b").test(txt) && !core.has(t)) fail(`${d}: names ${t}, absent from the ${PROFILE} profile`);
   }
   const body = txt.slice(fm[0].length);
-  for (const [re, label] of ABSENT) if (re.test(body)) fail(`${d}: promises ${label}, absent from core`);
+  for (const [re, label] of ABSENT) if (re.test(body)) fail(`${d}: promises ${label}, absent from ${PROFILE}`);
   const stack = body.replace(/`r2Key`/g, "").match(STACK);
   if (stack) fail(`${d}: names "${stack[0]}" (stack disclosure)`);
 }
-console.log(`core-profile-skills: ${dirs.length} skills checked against ${core.size} core tools`);
+console.log(`${PROFILE}-profile-skills: ${dirs.length} skills checked against ${core.size} ${PROFILE} tools`);
 process.exit(failed ? 1 : 0);

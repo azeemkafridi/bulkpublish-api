@@ -25,7 +25,7 @@
     "check:annotations": "node scripts/check-annotations.mjs",
     "prepublishOnly": "npm run build && npm run check:annotations && npm run check:parity && npm run check:skills",
     "check:parity": "node scripts/check-host-parity.mjs",
-    "check:skills": "node scripts/check-core-skills.mjs"
+    "check:skills": "node scripts/check-core-skills.mjs && node scripts/check-core-skills.mjs --profile inbox"
   },
   "keywords": [
     "mcp",
