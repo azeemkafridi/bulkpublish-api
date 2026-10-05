@@ -4113,7 +4113,7 @@
                               },
                               "replyUnsupported": {
                                 "type": "boolean",
-                                "description": "True when replying to comments from this channel will not work. `replyNotice` says why, for example that the account needs reconnecting."
+                                "description": "True when replying to comments from this channel will not work. `replyNotice` says why, for example that the account needs reconnecting. It describes the channel, not your plan: on a plan without comment replies (Free, Lifetime) the reply and moderate calls return 403 `FEATURE_DISABLED` even when this is false."
                               },
                               "replyNotice": {
                                 "type": "string",
