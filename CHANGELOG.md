@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-05 — Two Inbox tools say they reach outside services
+
+MCP **1.42.1**
+
+### Changed
+
+- `list_post_comments` and `update_conversation` are now `openWorldHint: true`. The first reads comments live from the social networks; the second can notify a teammate by email when it assigns a conversation. Behaviour is unchanged; only the annotations, which tell an assistant how careful to be, now match it.
+
 ## 2026-10-06 — Inbox and comment replies through the API, SDKs and MCP server
 
 Node SDK **1.39.0** · Python SDK **0.40.0** · MCP **1.42.0**
