@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-05 — Instagram stories list only the metrics they report
+
+Node SDK **1.38.8** · MCP **1.41.6**
+
+### Fixed
+
+- **Instagram stories** listed likes, saves and shares in `supportedMetrics`, which a story never reports, so clients showed them as 0. A story now lists `impressions`, `reach`, `comments` (story replies) and `engagementRate`. This applies to `GET /api/posts/{id}/metrics`, `platformMetrics` in `GET /api/analytics/engagement`, and `GET /api/analytics/post-history`.
+
 ## 2026-10-05 — Alt text reaches six platforms
 
 Node SDK **1.38.7** · Python SDK **0.39.6** · MCP **1.41.5**
