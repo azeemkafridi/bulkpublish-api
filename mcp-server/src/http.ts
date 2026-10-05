@@ -37,8 +37,12 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createServer, requestContext, resolveToolProfile, type ToolProfile } from "./index.js";
 
 // The hosted server is the one the directories review, so it defaults to the
-// trimmed `core` profile (see CORE_TOOLS in index.ts). BULKPUBLISH_TOOL_PROFILE=full
-// restores every tool.
+// trimmed `core` profile (see CORE_TOOLS in index.ts). BULKPUBLISH_TOOL_PROFILE=inbox
+// adds the seven Inbox and comment tools on top of core, leaving core's own
+// tools byte-identical; =full restores every tool. The default stays `core`
+// on purpose: moving the hosted server to `inbox` is a one-variable change in
+// the deployment (and one variable to roll back), made when the directory
+// listings are ready for the new tools, not as a side effect of a release.
 const TOOL_PROFILE: ToolProfile = resolveToolProfile("core");
 import { oauthProvider, handleConsent } from "./oauth.js";
 

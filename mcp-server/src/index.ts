@@ -453,11 +453,16 @@ function formatResponse(res: ApiResponse): string {
     // The API answers with either { error: { message, code } } or a bare
     // { error: "text" }. The bare form used to fall through to "HTTP 400
     // error" — the generic error the directory review rejects.
-    const err = res.data as { error?: string | { message?: string }; message?: string };
+    const err = res.data as { error?: string | { message?: string; hint?: string }; message?: string };
     const msg =
       (typeof err?.error === "string" ? err.error : err?.error?.message) ||
       err?.message ||
       `HTTP ${res.status} error`;
+    // A coded refusal can carry a remedy ("Upgrade to Pro to use it."). Append
+    // it after the message — never instead of it — so the text still starts
+    // with "Error: <message>" and attachStructured still flags it as isError.
+    const hint = typeof err?.error === "object" ? err.error?.hint : undefined;
+    if (typeof hint === "string" && hint.trim() && !msg.includes(hint)) return `Error: ${msg} ${hint.trim()}`;
     return `Error: ${msg}`;
   }
   return JSON.stringify(res.data, null, 2);
@@ -544,6 +549,29 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
     byPlatform: sObj(), byDay: sArr(), publishedTimes: z.array(z.any()).nullish(),
     previous: sObj(), previousWindow: sObj(),
   },
+  // ---- Inbox profile (shapes from openapi.json, all lenient) --------------
+  list_conversations: {
+    conversations: sArr({
+      id: sNum(), platform: sStr(), kind: sStr().describe("dm, review or comment."),
+      status: sStr().describe("open, archived or snoozed."), unreadCount: sNum(),
+      lastMessageAt: sStr(), lastMessagePreview: sStr(),
+      canReply: sBool().describe("Whether a reply sent now can be delivered; replyNotice says why not."),
+      replyNotice: sStr(), participant: sObj(), channel: sObj(), assignee: sObj(),
+    }),
+    nextCursor: sStr().describe("Pass back as cursor for the next page; null on the last page."),
+  },
+  get_conversation: {
+    conversationId: sNum(),
+    messages: sArr({ id: sNum(), direction: sStr().describe("in (from the other person) or out (sent by the workspace)."), text: sStr(), sentAt: sStr() }),
+  },
+  reply_to_conversation: { success: sBool(), messageId: sStr().describe("The platform's id for the sent message.") },
+  update_conversation: { success: sBool() },
+  list_post_comments: {
+    postId: sNum(),
+    platforms: sArr({ postPlatformId: sNum(), platform: sStr(), accountName: sStr(), engagement: sObj(), error: sStr() }),
+  },
+  reply_to_comment: { success: sBool(), replyId: sStr(), accountName: sStr() },
+  moderate_comment: { success: sBool(), action: sStr() },
 };
 
 // Turns a plain tool's text-only result into one carrying structuredContent,
@@ -591,8 +619,12 @@ function attachStructured(result: unknown, toolName: string): unknown {
 // the panel's buttons break. `full` is every tool; the npm/stdio server
 // defaults to it so existing local setups lose nothing.
 //
-// BULKPUBLISH_TOOL_PROFILE=core|full overrides either default.
-export type ToolProfile = "core" | "full";
+// `inbox` is core plus the seven Inbox and comment tools (INBOX_TOOLS). Core's
+// own tools are byte-identical in both: the parity fixtures pin each profile,
+// and check-annotations fails if a core tool differs between them.
+//
+// BULKPUBLISH_TOOL_PROFILE=core|inbox|full overrides either default.
+export type ToolProfile = "core" | "inbox" | "full";
 export const CORE_TOOLS: ReadonlySet<string> = new Set([
   "list_channels",
   "list_posts",
@@ -615,14 +647,24 @@ export const CORE_TOOLS: ReadonlySet<string> = new Set([
   "view_media",
   "view_analytics",
 ]);
+export const INBOX_TOOLS: ReadonlySet<string> = new Set([
+  "list_conversations",
+  "get_conversation",
+  "reply_to_conversation",
+  "update_conversation",
+  "list_post_comments",
+  "reply_to_comment",
+  "moderate_comment",
+]);
 export function resolveToolProfile(fallback: ToolProfile): ToolProfile {
   const v = process.env.BULKPUBLISH_TOOL_PROFILE;
-  if (v === "core" || v === "full") return v;
-  if (v) console.error(`Warning: BULKPUBLISH_TOOL_PROFILE=${v} is not core|full — using ${fallback}.`);
+  if (v === "core" || v === "inbox" || v === "full") return v;
+  if (v) console.error(`Warning: BULKPUBLISH_TOOL_PROFILE=${v} is not core|inbox|full — using ${fallback}.`);
   return fallback;
 }
 function toolInProfile(name: string, profile: ToolProfile): boolean {
-  return profile === "full" || CORE_TOOLS.has(name);
+  if (profile === "full" || CORE_TOOLS.has(name)) return true;
+  return profile === "inbox" && INBOX_TOOLS.has(name);
 }
 
 // ---------------------------------------------------------------------------
@@ -739,6 +781,14 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   delete_rss_feed: { title: "Delete RSS feed", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/rss-feeds/{id}; stops auto-publishing from that feed." },
   unshare_post: { title: "Revoke post review link", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/posts/{id}/share; revokes access for anyone holding the link." },
   delete_review_link: { title: "Revoke client review link", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/review-links/{id}; revokes access. The posts it covered are unaffected." },
+  // ---- Inbox and comments -------------------------------------------------
+  list_conversations: { title: "List Inbox conversations", ...READ, why: "GET /api/inbox/conversations; reads the workspace's stored conversations. Calls no platform and does not mark anything read." },
+  get_conversation: { title: "Get Inbox conversation", ...READ, why: "GET /api/inbox/conversations/{id}/messages; reads stored messages. Reading does not mark the conversation read." },
+  list_post_comments: { title: "List post comments", ...READ, why: "GET /api/posts/{id}/engagement. Reads comments and reactions; changes nothing in BulkPublish or on the platform. The read is made from the platforms, but it only reads the caller's own published posts." },
+  update_conversation: { title: "Update Inbox conversation", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false, why: "PATCH /api/inbox/conversations/{id}. Marks read/unread, archives, reopens, snoozes or assigns; every change is reversible with another call, nothing is sent to the other person and nothing changes on the platform. Same payload twice leaves the same state." },
+  reply_to_conversation: { title: "Reply in Inbox conversation", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/inbox/conversations/{id}/messages. Sends a message to a person on a public platform immediately; it cannot be unsent from BulkPublish, so destructive. Each call sends another message." },
+  reply_to_comment: { title: "Reply to comment", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/comments/reply. Posts a public reply on the platform immediately; it cannot be taken back from BulkPublish, so destructive. Each call posts another reply." },
+  moderate_comment: { title: "Like, hide or delete comment", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/comments/moderate. Acts on a comment on the platform: delete is permanent and hiding changes what others see, so destructive. Not idempotent: some platforms refuse a repeated like or hide rather than ignoring it." },
   delete_client_connect_link: { title: "Revoke client connect link", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/client-connect-links/{id}; revokes an unused link. An account it already connected stays connected." },
 };
 
@@ -839,6 +889,13 @@ export function createServer(opts: { profile?: ToolProfile } = {}): McpServer {
     view_media: "the user wants to browse their media library visually.",
     view_analytics: "the user wants an interactive analytics dashboard — prefer over get_analytics for a visual view.",
     view_quota: "the user wants a visual view of their plan usage.",
+    list_conversations: "the user asks about their direct messages, reviews or comment threads, or what is waiting for a reply.",
+    get_conversation: "the user wants to read one Inbox conversation in full.",
+    reply_to_conversation: "the user wants to answer a direct message, review or comment thread in their Inbox.",
+    update_conversation: "the user wants to mark a conversation read or unread, archive or reopen it, snooze it, or assign it to a teammate.",
+    list_post_comments: "the user asks who commented on one of their published posts, or needs a comment's id to reply to or moderate it.",
+    reply_to_comment: "the user wants to answer a comment on one of their published posts.",
+    moderate_comment: "the user wants to like, hide or delete a comment on one of their published posts.",
   };
   {
     const srv = server as unknown as {
@@ -3353,6 +3410,161 @@ if (!HIDE_BILLING_TOOLS) {
       if (height !== undefined) body.height = height;
       if (duration !== undefined) body.duration = duration;
       const res = await api("POST", "/api/media/finalize", body);
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+
+  // ---------------------------------------------------------------------------
+  // Tools: Inbox and comments (the `inbox` and `full` profiles)
+  // ---------------------------------------------------------------------------
+  // Plan and rollout refusals come back from the API as a coded 403; the text
+  // the caller sees is the API's message plus its hint (formatResponse).
+  const INBOX_AVAILABILITY =
+    " The Inbox is part of the Pro and Business plans; on other plans, or before it is available to the account, the call is refused with a message saying so.";
+  const COMMENTS_AVAILABILITY =
+    " Available on every plan once comment replies are available to the account; before that the call is refused with a message saying so.";
+  const RECONNECT =
+    " If the channel's connection has stopped working, the call is refused and the channel needs reconnecting from the Channels page.";
+
+  server.tool(
+    "list_conversations",
+    "List Inbox conversations: direct messages, reviews and comment threads across the connected channels, newest activity first. Each conversation has its platform, kind (dm, review or comment), the other person, unread count, a preview of the last message, and canReply with replyNotice saying why a reply cannot be sent now. Internal team notes are not included. Results are paged: pass nextCursor back as cursor for the next page." +
+      INBOX_AVAILABILITY,
+    {
+      status: z.enum(["open", "archived", "snoozed"]).optional().describe("open (default), archived or snoozed."),
+      kind: z.enum(["dm", "review", "comment"]).optional().describe("Only direct messages, reviews or comment threads. Omit for all."),
+      platforms: z.array(z.string()).optional().describe("Only these platforms, e.g. [\"instagram\", \"facebook\"]."),
+      channelId: z.number().optional().describe("Only this channel."),
+      assigned: z.string().optional().describe("me, unassigned, or a teammate's user id."),
+      q: z.string().optional().describe("Search the person's name and handle and the message text (2 to 100 characters)."),
+      cursor: z.string().optional().describe("nextCursor from the previous page."),
+      limit: z.number().optional().describe("Page size, 1 to 100 (default 50)."),
+    },
+    async ({ status, kind, platforms, channelId, assigned, q, cursor, limit }) => {
+      const params = new URLSearchParams();
+      if (status) params.set("status", status);
+      if (kind) params.set("kind", kind);
+      if (platforms?.length) params.set("platforms", platforms.join(","));
+      if (channelId !== undefined) params.set("channelId", String(channelId));
+      if (assigned) params.set("assigned", assigned);
+      if (q) params.set("q", q);
+      if (cursor) params.set("cursor", cursor);
+      if (limit !== undefined) params.set("limit", String(limit));
+      const qs = params.toString();
+      const res = await api("GET", `/api/inbox/conversations${qs ? `?${qs}` : ""}`);
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+
+  server.tool(
+    "get_conversation",
+    "Get the messages of one Inbox conversation: the newest 500, oldest first, each with its direction (in from the other person, out sent by the workspace), text, attachments and time. Reading does not mark the conversation read." +
+      INBOX_AVAILABILITY,
+    {
+      conversationId: z.number().describe("The conversation id from list_conversations."),
+    },
+    async ({ conversationId }) => {
+      const res = await api("GET", `/api/inbox/conversations/${conversationId}/messages`);
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+
+  server.tool(
+    "reply_to_conversation",
+    "Send a reply in an Inbox conversation. The message goes to the person on the platform right away, from the channel the conversation belongs to, and it cannot be unsent. Send text (up to 4,000 characters), up to 4 media library files, or both; reviews and comment threads take text only. Facebook Messenger and Instagram accept a reply only within 24 hours of the person's last message; after that the call is refused." +
+      RECONNECT +
+      INBOX_AVAILABILITY,
+    {
+      conversationId: z.number().describe("The conversation id from list_conversations."),
+      text: z.string().max(4000).optional().describe("The reply text."),
+      mediaIds: z.array(z.number()).max(4).optional().describe("Media library file ids to attach (direct messages only)."),
+      replyToMessageId: z.number().optional().describe("Comment threads only: the id of the incoming message to answer. Defaults to the newest one from the other person."),
+    },
+    async ({ conversationId, text, mediaIds, replyToMessageId }) => {
+      if (!text && !mediaIds?.length) {
+        return { content: [{ type: "text" as const, text: "Error: Provide text, mediaIds, or both." }] };
+      }
+      const body: Record<string, unknown> = {};
+      if (text) body.text = text;
+      if (mediaIds?.length) body.mediaIds = mediaIds;
+      if (replyToMessageId !== undefined) body.replyToMessageId = replyToMessageId;
+      const res = await api("POST", `/api/inbox/conversations/${conversationId}/messages`, body);
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+
+  server.tool(
+    "update_conversation",
+    "Change how the workspace handles one Inbox conversation: mark it read or unread, archive or reopen it, snooze it until a time (at most 90 days out), or assign it to a teammate, who is notified. Nothing is sent to the other person and nothing changes on the platform. Send at least one field." +
+      INBOX_AVAILABILITY,
+    {
+      conversationId: z.number().describe("The conversation id from list_conversations."),
+      read: z.boolean().optional().describe("true marks it read, false unread."),
+      status: z.enum(["open", "archived"]).optional().describe("archived archives it, open reopens it. Either clears a snooze."),
+      snoozedUntil: z.string().nullable().optional().describe("ISO timestamp in the future to snooze until; null unsnoozes."),
+      assignedUserId: z.string().nullable().optional().describe("A workspace member's user id; null unassigns."),
+    },
+    async ({ conversationId, read, status, snoozedUntil, assignedUserId }) => {
+      const body: Record<string, unknown> = {};
+      if (read !== undefined) body.read = read;
+      if (status !== undefined) body.status = status;
+      if (snoozedUntil !== undefined) body.snoozedUntil = snoozedUntil;
+      if (assignedUserId !== undefined) body.assignedUserId = assignedUserId;
+      if (Object.keys(body).length === 0) {
+        return { content: [{ type: "text" as const, text: "Error: Provide at least one of read, status, snoozedUntil or assignedUserId." }] };
+      }
+      const res = await api("PATCH", `/api/inbox/conversations/${conversationId}`, body);
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+
+  server.tool(
+    "list_post_comments",
+    "List the comments and reactions on one published post, per channel, read from each platform. Each channel's entry has its postPlatformId and each comment its id, which reply_to_comment and moderate_comment take, plus commentActions listing the actions that channel supports. Some platforms have no comment access (TikTok, Pinterest, Google Business, Telegram, Snapchat) and say so in a notice.",
+    {
+      postId: z.number().describe("The post id."),
+      commentsLimit: z.number().optional().describe("Max comments per channel (default 25, max 100)."),
+    },
+    async ({ postId, commentsLimit }) => {
+      const qs = commentsLimit !== undefined ? `?commentsLimit=${commentsLimit}` : "";
+      const res = await api("GET", `/api/posts/${postId}/engagement${qs}`);
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+
+  server.tool(
+    "reply_to_comment",
+    "Reply to a comment on one of the workspace's published posts. The reply is posted publicly on the platform right away, as the channel the post was published to, and it cannot be taken back from here. Up to 2,000 characters." +
+      RECONNECT +
+      COMMENTS_AVAILABILITY,
+    {
+      postId: z.number().describe("The post id."),
+      postPlatformId: z.number().describe("The channel's postPlatformId from list_post_comments."),
+      commentId: z.string().describe("The comment's id from list_post_comments."),
+      text: z.string().max(2000).describe("The reply text."),
+      rootCommentId: z.string().optional().describe("When replying to a reply: the thread's top-level comment id (Instagram and YouTube)."),
+    },
+    async ({ postId, postPlatformId, commentId, text, rootCommentId }) => {
+      const body: Record<string, unknown> = { postPlatformId, commentId, text };
+      if (rootCommentId) body.rootCommentId = rootCommentId;
+      const res = await api("POST", `/api/posts/${postId}/comments/reply`, body);
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+
+  server.tool(
+    "moderate_comment",
+    "Like, unlike, hide, unhide or delete a comment on one of the workspace's published posts, on the platform, as the channel the post was published to. Likes and hides can be undone; delete is permanent and needs a role that can publish. Hiding or deleting also removes the comment from the Inbox. Which actions a channel supports is in its commentActions from list_post_comments." +
+      RECONNECT +
+      COMMENTS_AVAILABILITY,
+    {
+      postId: z.number().describe("The post id."),
+      postPlatformId: z.number().describe("The channel's postPlatformId from list_post_comments."),
+      commentId: z.string().describe("The comment's id from list_post_comments."),
+      action: z.enum(["like", "unlike", "hide", "unhide", "delete"]).describe("What to do with the comment."),
+    },
+    async ({ postId, postPlatformId, commentId, action }) => {
+      const res = await api("POST", `/api/posts/${postId}/comments/moderate`, { postPlatformId, commentId, action });
       return { content: [{ type: "text" as const, text: formatResponse(res) }] };
     }
   );

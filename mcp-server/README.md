@@ -116,20 +116,21 @@ Once deployed, add it to **claude.ai → Settings → Connectors → Add custom 
 
 ### Tool profiles
 
-The server ships two tool profiles, chosen with `BULKPUBLISH_TOOL_PROFILE`:
+The server ships three tool profiles, chosen with `BULKPUBLISH_TOOL_PROFILE`:
 
 | Profile | Tools | Default for |
 |---|---|---|
 | `core` | 20 — channels, posts, media, analytics, and the interactive panels | The hosted HTTP server (`dist/http.js`), which is what the Claude and ChatGPT directories list |
-| `full` | Every tool (labels, hashtag groups, templates, calendar notes, review links, client-connect links, recurring schedules, channel sets, RSS feeds, chunked uploads, quota) | The local stdio server (`npx @bulkpublish/mcp-server`) |
+| `inbox` | 27 — everything in `core`, plus the Inbox and comment tools: `list_conversations`, `get_conversation`, `reply_to_conversation`, `update_conversation`, `list_post_comments`, `reply_to_comment`, `moderate_comment` | Opt-in on a hosted deployment (`BULKPUBLISH_TOOL_PROFILE=inbox`). The `core` tools in it are identical to the `core` profile's |
+| `full` | Every tool (including the Inbox and comment tools; labels, hashtag groups, templates, calendar notes, review links, client-connect links, recurring schedules, channel sets, RSS feeds, chunked uploads, quota) | The local stdio server (`npx @bulkpublish/mcp-server`) |
 
 Set `BULKPUBLISH_TOOL_PROFILE=full` on a hosted deployment to expose everything, or `core` locally to keep a small tool list. The panels' buttons call back into `create_post`, `publish_post`, `retry_post`, `update_post`, `delete_post`, `list_channels`, `list_media`, `get_post`, `create_media_upload` and `finalize_media_upload`, so all of those are in `core`.
 
-Every tool carries a `title` and explicit `readOnlyHint`, `destructiveHint`, `idempotentHint` and `openWorldHint` booleans; `npm run check:annotations` verifies that for both profiles (add `--table` to print the per-tool justification table used in directory submissions).
+Every tool carries a `title` and explicit `readOnlyHint`, `destructiveHint`, `idempotentHint` and `openWorldHint` booleans; `npm run check:annotations` verifies that for every profile (add `--table` to print the per-tool justification table used in directory submissions).
 
 ## Available Tools
 
-Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles)); the rest need `full`.
+Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles)); tools marked ✉ are in `inbox` (with every ★ tool); the rest need `full`.
 
 | Tool | Description |
 |------|-------------|
@@ -185,6 +186,14 @@ Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles))
 | `create_schedule` | Create a recurring schedule |
 | `update_schedule` | Update a schedule |
 | `delete_schedule` | Delete a schedule |
+| **Inbox and comments** | |
+| `list_conversations` ✉ | List direct messages, reviews and comment threads, newest activity first, with filters and paging (Pro and Business plans) |
+| `get_conversation` ✉ | Read one conversation's messages, oldest first; does not mark it read |
+| `reply_to_conversation` ✉ | Send a reply to the person on the platform right away; it cannot be unsent |
+| `update_conversation` ✉ | Mark read or unread, archive or reopen, snooze, or assign a conversation; nothing is sent |
+| `list_post_comments` ✉ | List the comments and reactions on a published post, per channel, with the ids the reply and moderate tools take |
+| `reply_to_comment` ✉ | Post a public reply to a comment right away, as the channel the post went out on |
+| `moderate_comment` ✉ | Like, unlike, hide, unhide or delete a comment on the platform (delete is permanent) |
 | **Account** | |
 | `get_quota_usage` | Check current account usage (hidden when `BULKPUBLISH_HIDE_BILLING=1`) |
 | **Interactive UI (MCP Apps)** | |
@@ -259,7 +268,7 @@ Draft post created (ID: 43) with the product launch image attached. You can revi
 |----------|----------|---------|-------------|
 | `BULKPUBLISH_API_KEY` | Yes | — | Your API key (starts with `bp_`) |
 | `BULKPUBLISH_BASE_URL` | No | `https://app.bulkpublish.com` | API base URL (for self-hosted instances) |
-| `BULKPUBLISH_TOOL_PROFILE` | No | `full` (stdio) / `core` (hosted HTTP) | `core` or `full` — see [Tool profiles](#tool-profiles) |
+| `BULKPUBLISH_TOOL_PROFILE` | No | `full` (stdio) / `core` (hosted HTTP) | `core`, `inbox` or `full` — see [Tool profiles](#tool-profiles) |
 | `BULKPUBLISH_HIDE_BILLING` | No | — | `1` drops `get_quota_usage` and `view_quota` (only relevant with `full`; `core` never includes them) |
 
 ## License

@@ -3,7 +3,10 @@
 // `openai/*` keys, which Claude ignores — so if the surface with every
 // `openai/*` key removed is byte-identical to the committed snapshot, Claude
 // sees exactly what it saw before. Covers initialize, tools/list,
-// resources/list and each ui:// resource's metadata, for both profiles.
+// resources/list and each ui:// resource's metadata, for every profile
+// (core, inbox, full). The core snapshot is the surface both directories
+// approved: any change to it — a name, a schema, a description, an
+// annotation — fails here.
 //
 // Widget HTML is NOT compared: panel code changes reach both hosts, so those
 // are checked by rendering them as a plain host (`npm run preview`).
@@ -106,7 +109,7 @@ const SUMMARY = (s) =>
 
 let failed = false;
 mkdirSync(FIXTURES, { recursive: true });
-for (const profile of ["core", "full"]) {
+for (const profile of ["core", "inbox", "full"]) {
   const s = await surface(profile);
   const file = join(FIXTURES, `claude-surface.${profile}.json`);
   const actual = JSON.stringify(stripOpenAi(s), null, 2) + "\n";

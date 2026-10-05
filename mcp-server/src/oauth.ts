@@ -365,6 +365,7 @@ export function consentPage(params: {
   <a class="logo" href="https://www.bulkpublish.com" target="_blank" rel="noopener"><img src="${BASE_URL}/assets/logo.svg" alt="BulkPublish" width="36" height="22" style="display:block;" /></a>
   <h1>Connect BulkPublish</h1>
   <p class="sub">${who} wants to manage your social posts, channels, media, and analytics through BulkPublish.</p>
+  <p class="sub" style="margin-top:-20px">Where your workspace has the Inbox, it can also read your Inbox messages and reply to them.</p>
   ${params.error ? `<div class="err">${escapeHtml(params.error)}</div>` : ""}
   <label for="apiKey">Your BulkPublish API key</label>
   <input id="apiKey" name="apiKey" type="password" placeholder="bp_..." autocomplete="off" autofocus required />
