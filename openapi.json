@@ -26,7 +26,7 @@
       },
       "oauth2": {
         "type": "oauth2",
-        "description": "**Beta.** For products that embed BulkPublish and do not want their users pasting an API key. The user approves your app on BulkPublish and you receive a scoped token bound to the workspace they chose. PKCE (S256) is required for every client, `scope` is required (there is no implicit default), authorization codes are single-use, and refresh tokens rotate. Pass the token as `Bearer bpat_...`.\n\nOAuth tokens reach posts, schedules, labels, media, analytics, quota usage and read-only channel data \u2014 and nothing else. Account administration (team, organizations, billing and credit purchases, API keys, OAuth app management) returns 403 for **any** OAuth token, including `full`, because those actions would outlive the user disconnecting the app. Use an API key (`Bearer bp_...`) for those; keys are unaffected by this and remain the default for server-to-server use.",
+        "description": "**Beta.** For products that embed BulkPublish and do not want their users pasting an API key. The user approves your app on BulkPublish and you receive a scoped token bound to the workspace they chose. PKCE (S256) is required for every client, `scope` is required (there is no implicit default), authorization codes are single-use, and refresh tokens rotate. Pass the token as `Bearer bpat_...`.\n\nOAuth tokens reach posts, schedules, labels, media, the Inbox, analytics, quota usage and read-only channel data \u2014 and nothing else. Grants made before the Inbox scopes existed do not cover it unless they hold `full`; `posts:write` never does. Account administration (team, organizations, billing and credit purchases, API keys, OAuth app management) returns 403 for **any** OAuth token, including `full`, because those actions would outlive the user disconnecting the app. Use an API key (`Bearer bp_...`) for those; keys are unaffected by this and remain the default for server-to-server use.",
         "flows": {
           "authorizationCode": {
             "authorizationUrl": "https://app.bulkpublish.com/oauth/authorize",
@@ -39,7 +39,9 @@
               "media:write": "Upload and delete media",
               "analytics:read": "View analytics and post metrics",
               "channels:read": "See which social accounts are connected",
-              "full": "Everything an app may do: read and write posts, schedules, labels and media, and read analytics and channels"
+              "inbox:read": "Read the messages, reviews and comments in the Inbox",
+              "inbox:write": "Reply to messages, reviews and comments, and organize the Inbox (read, archive, snooze, assign)",
+              "full": "Everything an app may do: read and write posts, schedules, labels, media and the Inbox, and read analytics and channels"
             }
           }
         }
@@ -1462,6 +1464,10 @@
       "description": "Beta: let your users connect their own BulkPublish account instead of pasting an API key. Register an app under Settings > API to get a client ID."
     },
     {
+      "name": "Inbox",
+      "description": "Read and answer direct messages, reviews and comments across your channels"
+    },
+    {
       "name": "Utilities",
       "description": "Link previews, quotas, activity log"
     }
@@ -2615,6 +2621,1302 @@
           {
             "oauth2": [
               "posts:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/inbox/conversations": {
+      "get": {
+        "tags": [
+          "Inbox"
+        ],
+        "operationId": "listConversations",
+        "summary": "List conversations",
+        "description": "Direct messages, reviews and comment threads across your connected channels, newest activity first.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence. Comment threads (`kind: \"comment\"`) are included only once comment replies are available to your account; until then they are left out of every view, including `kind=comment`.\n\n**What API keys and OAuth apps do not see.** Internal notes your team leaves on a conversation are never returned and search does not match on them; inbox labels are not returned (and the label filters are ignored); WhatsApp conversations are not included.\n\n**Paging.** Pass `nextCursor` back as `cursor` to get the next page; `nextCursor` is `null` on the last page. Treat it as opaque.\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — `open` (default), `archived` or `snoozed`. An unknown value is treated as `open`.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "open",
+                "archived",
+                "snoozed"
+              ],
+              "default": "open"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — `dm`, `review` or `comment`. Omit for all kinds.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "dm",
+                "review",
+                "comment"
+              ]
+            }
+          },
+          {
+            "name": "platforms",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Comma-separated platforms; matches any of them. Unknown names are ignored.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Single platform (older form of `platforms`).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "channelId",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Only this channel.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "assigned",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — `me`, `unassigned`, or a teammate's user id.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Search the participant's name and handle and the message text (2 to 100 characters; shorter is ignored).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — `nextCursor` from the previous page.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Page size, 1 to 100 (default 50).",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of conversations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "conversations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "platform": {
+                            "type": "string",
+                            "description": "The platform the conversation is on."
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "dm",
+                              "review",
+                              "comment"
+                            ],
+                            "description": "`dm` is a direct-message thread, `review` a single review (Facebook Page recommendations, Google Business reviews), `comment` the comment thread on one of your published posts."
+                          },
+                          "rating": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
+                            "description": "Star rating, for reviews."
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "open",
+                              "archived",
+                              "snoozed"
+                            ]
+                          },
+                          "snoozedUntil": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          },
+                          "assignee": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "image": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            }
+                          },
+                          "channel": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "accountName": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "profileImage": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            }
+                          },
+                          "participant": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "handle": {
+                                "type": "string"
+                              },
+                              "avatar": {
+                                "type": "string"
+                              },
+                              "profileUrl": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "unreadCount": {
+                            "type": "integer"
+                          },
+                          "lastMessageAt": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          },
+                          "lastInboundAt": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          },
+                          "lastMessagePreview": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "canReply": {
+                            "type": "boolean",
+                            "description": "Whether a reply sent now can be delivered. False when the channel cannot reply here or the platform's reply window has closed; `replyNotice` says which."
+                          },
+                          "attachments": {
+                            "type": "object",
+                            "description": "What a reply may attach on this platform (direct messages only; reviews and comments are text).",
+                            "properties": {
+                              "max": {
+                                "type": "integer"
+                              },
+                              "kinds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "image",
+                                    "video",
+                                    "file"
+                                  ]
+                                }
+                              }
+                            }
+                          },
+                          "replyNotice": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "description": "Why `canReply` is false, in a sentence you can show a person."
+                          }
+                        }
+                      }
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Not available: `FEATURE_DISABLED` (see Availability above), or `FORBIDDEN` when your role cannot do this, or `INSUFFICIENT_SCOPE` for an OAuth app without the scope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "feature": {
+                          "type": "string"
+                        },
+                        "plan": {
+                          "type": "string"
+                        },
+                        "upgrade": {
+                          "type": "boolean"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "inbox:read"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/inbox/conversations/{id}": {
+      "patch": {
+        "tags": [
+          "Inbox"
+        ],
+        "operationId": "updateConversation",
+        "summary": "Update a conversation (read, archive, snooze, assign)",
+        "description": "Changes your workspace's handling of one conversation. Nothing is sent to the other person and nothing changes on the platform.\n\nFields may be combined; send at least one.\n\n- `read: true` marks it read; `read: false` marks it unread.\n- `status: \"archived\"` archives it, `status: \"open\"` reopens it. Either clears a snooze.\n- `snoozedUntil` (ISO timestamp, in the future and at most 90 days out) hides it until then and sets `status` to `snoozed`; it reopens on its own at that time (within a few minutes). `null` unsnoozes it.\n- `assignedUserId` assigns it to a member of the workspace (that teammate is notified); `null` unassigns it.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 `FORBIDDEN`. Limited to 60 Inbox changes per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "read": {
+                    "type": "boolean"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "open",
+                      "archived"
+                    ]
+                  },
+                  "snoozedUntil": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "assignedUserId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body, or nothing to update",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not available: `FEATURE_DISABLED` (see Availability above), or `FORBIDDEN` when your role cannot do this, or `INSUFFICIENT_SCOPE` for an OAuth app without the scope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "feature": {
+                          "type": "string"
+                        },
+                        "plan": {
+                          "type": "string"
+                        },
+                        "upgrade": {
+                          "type": "boolean"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Conversation not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`assignedUserId` is not a member of this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "inbox:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/inbox/conversations/{id}/messages": {
+      "get": {
+        "tags": [
+          "Inbox"
+        ],
+        "operationId": "getConversationMessages",
+        "summary": "Get a conversation's messages",
+        "description": "The newest 500 messages of one conversation, oldest first. Reading does not mark the conversation read; use `PATCH /api/inbox/conversations/{id}` with `read: true` for that.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\n**What API keys and OAuth apps do not see.** Internal notes your team leaves on a conversation are never returned and search does not match on them; inbox labels are not returned (and the label filters are ignored); WhatsApp conversations are not included.\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The thread",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "conversationId": {
+                      "type": "integer"
+                    },
+                    "messages": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "platformMessageId": {
+                            "type": "string"
+                          },
+                          "direction": {
+                            "type": "string",
+                            "enum": [
+                              "in",
+                              "out"
+                            ],
+                            "description": "`in` from the other person, `out` sent by your workspace."
+                          },
+                          "text": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "attachments": {
+                            "type": [
+                              "array",
+                              "null"
+                            ],
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string"
+                                },
+                                "url": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "rating": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ]
+                          },
+                          "sentAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "readAt": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          },
+                          "actor": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "description": "Comment threads: who wrote this comment."
+                          },
+                          "authorUserId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "description": "The teammate who sent an `out` message from BulkPublish, when known."
+                          },
+                          "author": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "image": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            }
+                          },
+                          "parentId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "description": "Comment threads: the platform id of the comment this one replies to."
+                          },
+                          "likeCount": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not available: `FEATURE_DISABLED` (see Availability above), or `FORBIDDEN` when your role cannot do this, or `INSUFFICIENT_SCOPE` for an OAuth app without the scope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "feature": {
+                          "type": "string"
+                        },
+                        "plan": {
+                          "type": "string"
+                        },
+                        "upgrade": {
+                          "type": "boolean"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Conversation not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "inbox:read"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Inbox"
+        ],
+        "operationId": "sendConversationMessage",
+        "summary": "Reply in a conversation",
+        "description": "Sends a reply to the person on the platform, immediately, from the channel the conversation belongs to. It cannot be unsent from here. In a comment thread the reply answers the newest comment from the other person, or the one given in `replyToMessageId`.\n\nSend `text` (up to 4,000 characters), `mediaIds` (up to 4 files from your media library), or both. Whether a platform accepts attachments, and which kinds, is in the conversation's `attachments`; reviews and comments are text only.\n\nSome platforms only accept a reply within 24 hours of the person's last message (Facebook Messenger and Instagram); after that this returns 422 and `canReply` is false on the conversation.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor). Limited to 30 replies per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "mediaIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "maxItems": 4
+                  },
+                  "replyToMessageId": {
+                    "type": "integer",
+                    "description": "Comment threads only: the `id` of the incoming message (comment) to answer."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "messageId": {
+                      "type": "string",
+                      "description": "The platform's id for the sent message."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body (no text or media, too long, bad ids)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not available: `FEATURE_DISABLED` (see Availability above), or `FORBIDDEN` when your role cannot do this, or `INSUFFICIENT_SCOPE` for an OAuth app without the scope. Also returned with `code: \"QUOTA_EXCEEDED\"` (`resource: \"x_api_budget\"`) when the workspace's monthly X budget cannot cover the call. X charges for every message and reply sent, and those charges count against the same plan budget (and credits) as publishing to X.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "feature": {
+                          "type": "string"
+                        },
+                        "plan": {
+                          "type": "string"
+                        },
+                        "upgrade": {
+                          "type": "boolean"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Conversation not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`RECONNECT_REQUIRED`: the channel this conversation belongs to has no working connection, or needs a permission the account can grant from the Channels page. Reconnect it, then retry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The channel cannot reply here, the reply window has closed, or an attachment is not accepted. `error` says which, in a sentence you can show a person.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "502": {
+            "description": "The platform refused or failed the send. `error` carries its reason.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "inbox:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/posts/{id}/comments/reply": {
+      "post": {
+        "tags": [
+          "Inbox"
+        ],
+        "operationId": "replyToComment",
+        "summary": "Reply to a comment on a published post",
+        "description": "Posts a public reply to a comment, immediately, as the channel the post was published to. It cannot be taken back from here.\n\n`postPlatformId` and `commentId` come from `GET /api/posts/{id}/engagement`: the post's entry for that channel, and the comment's `id`.\n\nWhen replying to a reply, pass the thread's top-level comment as `rootCommentId` (Instagram and YouTube address replies to the top-level comment).\n\n**Availability.** Replying to and moderating comments is being rolled out. Until it is available to your account this returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"comments_inbox\"`. It is not tied to a plan: unlike the Inbox's messages and reviews, comment replies work on every plan once available.\n\nRequires a role that can edit posts (owner, admin, approver, contributor). Limited to 10 replies per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The post id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "postPlatformId",
+                  "commentId",
+                  "text"
+                ],
+                "properties": {
+                  "postPlatformId": {
+                    "type": "integer"
+                  },
+                  "commentId": {
+                    "type": "string"
+                  },
+                  "text": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "rootCommentId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Replied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "replyId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "accountName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not available: `FEATURE_DISABLED` (see Availability above), or `FORBIDDEN` when your role cannot do this, or `INSUFFICIENT_SCOPE` for an OAuth app without the scope. Also returned with `code: \"QUOTA_EXCEEDED\"` (`resource: \"x_api_budget\"`) when the workspace's monthly X budget cannot cover the call. X charges for every message and reply sent, and those charges count against the same plan budget (and credits) as publishing to X.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "feature": {
+                          "type": "string"
+                        },
+                        "plan": {
+                          "type": "string"
+                        },
+                        "upgrade": {
+                          "type": "boolean"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`RECONNECT_REQUIRED` (coded `error` object) when the channel must be reconnected; a plain `error` string when the post has not been published to that channel yet.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "This channel cannot reply to comments. `error` says why.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "502": {
+            "description": "The platform refused or failed the reply.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "inbox:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/posts/{id}/comments/moderate": {
+      "post": {
+        "tags": [
+          "Inbox"
+        ],
+        "operationId": "moderateComment",
+        "summary": "Like, hide or delete a comment on a published post",
+        "description": "Acts on a comment, on the platform, as the channel the post was published to. `like`/`unlike` and `hide`/`unhide` can be undone; **`delete` is permanent on the platform** and needs a role that can publish (owner, admin, approver) — other roles get 403. Hiding or deleting also removes the comment from your Inbox.\n\nWhich actions a channel supports is in `commentActions` on its `GET /api/posts/{id}/engagement` entry; anything else returns 422.\n\n`postPlatformId` and `commentId` come from `GET /api/posts/{id}/engagement`: the post's entry for that channel, and the comment's `id`.\n\n**Availability.** Replying to and moderating comments is being rolled out. Until it is available to your account this returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"comments_inbox\"`. It is not tied to a plan: unlike the Inbox's messages and reviews, comment replies work on every plan once available.\n\nRequires a role that can edit posts (owner, admin, approver, contributor). Limited to 30 actions per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The post id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "postPlatformId",
+                  "commentId",
+                  "action"
+                ],
+                "properties": {
+                  "postPlatformId": {
+                    "type": "integer"
+                  },
+                  "commentId": {
+                    "type": "string"
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "like",
+                      "unlike",
+                      "hide",
+                      "unhide",
+                      "delete"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "action": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not available: `FEATURE_DISABLED` (see Availability above), or `FORBIDDEN` when your role cannot do this, or `INSUFFICIENT_SCOPE` for an OAuth app without the scope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "feature": {
+                          "type": "string"
+                        },
+                        "plan": {
+                          "type": "string"
+                        },
+                        "upgrade": {
+                          "type": "boolean"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`RECONNECT_REQUIRED` (coded `error` object) when the channel must be reconnected; a plain `error` string when the post has not been published to that channel yet.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "This channel cannot take that action on this comment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "502": {
+            "description": "The platform refused or failed the action.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "inbox:write"
             ]
           }
         ]

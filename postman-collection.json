@@ -10994,6 +10994,818 @@
       ]
     },
     {
+      "name": "Inbox",
+      "description": "Read and answer direct messages, reviews and comments across your channels",
+      "item": [
+        {
+          "id": "bc4b046d-f0f2-41cf-a59f-7ded3e849df0",
+          "name": "List conversations",
+          "request": {
+            "name": "List conversations",
+            "description": {
+              "content": "Direct messages, reviews and comment threads across your connected channels, newest activity first.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence. Comment threads (`kind: \"comment\"`) are included only once comment replies are available to your account; until then they are left out of every view, including `kind=comment`.\n\n**What API keys and OAuth apps do not see.** Internal notes your team leaves on a conversation are never returned and search does not match on them; inbox labels are not returned (and the label filters are ignored); WhatsApp conversations are not included.\n\n**Paging.** Pass `nextCursor` back as `cursor` to get the next page; `nextCursor` is `null` on the last page. Treat it as opaque.\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "inbox",
+                "conversations"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — `open` (default), `archived` or `snoozed`. An unknown value is treated as `open`.",
+                    "type": "text/plain"
+                  },
+                  "key": "status",
+                  "value": "open"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — `dm`, `review` or `comment`. Omit for all kinds.",
+                    "type": "text/plain"
+                  },
+                  "key": "kind",
+                  "value": "dm"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — Comma-separated platforms; matches any of them. Unknown names are ignored.",
+                    "type": "text/plain"
+                  },
+                  "key": "platforms",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — Single platform (older form of `platforms`).",
+                    "type": "text/plain"
+                  },
+                  "key": "platform",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — Only this channel.",
+                    "type": "text/plain"
+                  },
+                  "key": "channelId",
+                  "value": "<integer>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — `me`, `unassigned`, or a teammate's user id.",
+                    "type": "text/plain"
+                  },
+                  "key": "assigned",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — Search the participant's name and handle and the message text (2 to 100 characters; shorter is ignored).",
+                    "type": "text/plain"
+                  },
+                  "key": "q",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — `nextCursor` from the previous page.",
+                    "type": "text/plain"
+                  },
+                  "key": "cursor",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — Page size, 1 to 100 (default 50).",
+                    "type": "text/plain"
+                  },
+                  "key": "limit",
+                  "value": "50"
+                }
+              ],
+              "variable": []
+            },
+            "method": "GET",
+            "body": {},
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "553efbd4-8c40-419f-b551-d79206310849",
+              "name": "One page of conversations",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "inbox",
+                    "conversations"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — `open` (default), `archived` or `snoozed`. An unknown value is treated as `open`.",
+                        "type": "text/plain"
+                      },
+                      "key": "status",
+                      "value": "open"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — `dm`, `review` or `comment`. Omit for all kinds.",
+                        "type": "text/plain"
+                      },
+                      "key": "kind",
+                      "value": "dm"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — Comma-separated platforms; matches any of them. Unknown names are ignored.",
+                        "type": "text/plain"
+                      },
+                      "key": "platforms",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — Single platform (older form of `platforms`).",
+                        "type": "text/plain"
+                      },
+                      "key": "platform",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — Only this channel.",
+                        "type": "text/plain"
+                      },
+                      "key": "channelId",
+                      "value": "<integer>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — `me`, `unassigned`, or a teammate's user id.",
+                        "type": "text/plain"
+                      },
+                      "key": "assigned",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — Search the participant's name and handle and the message text (2 to 100 characters; shorter is ignored).",
+                        "type": "text/plain"
+                      },
+                      "key": "q",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — `nextCursor` from the previous page.",
+                        "type": "text/plain"
+                      },
+                      "key": "cursor",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — Page size, 1 to 100 (default 50).",
+                        "type": "text/plain"
+                      },
+                      "key": "limit",
+                      "value": "50"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "c73c89f7-56bf-4388-b292-676293ab2779",
+          "name": "Update a conversation (read, archive, snooze, assign)",
+          "request": {
+            "name": "Update a conversation (read, archive, snooze, assign)",
+            "description": {
+              "content": "Changes your workspace's handling of one conversation. Nothing is sent to the other person and nothing changes on the platform.\n\nFields may be combined; send at least one.\n\n- `read: true` marks it read; `read: false` marks it unread.\n- `status: \"archived\"` archives it, `status: \"open\"` reopens it. Either clears a snooze.\n- `snoozedUntil` (ISO timestamp, in the future and at most 90 days out) hides it until then and sets `status` to `snoozed`; it reopens on its own at that time (within a few minutes). `null` unsnoozes it.\n- `assignedUserId` assigns it to a member of the workspace (that teammate is notified); `null` unassigns it.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 `FORBIDDEN`. Limited to 60 Inbox changes per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "inbox",
+                "conversations",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) ",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "PATCH",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"read\": \"<boolean>\",\n  \"status\": \"open\",\n  \"snoozedUntil\": \"<dateTime>\",\n  \"assignedUserId\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "1202d73c-5345-410b-8bc1-2a0d9f8d71f0",
+              "name": "Updated",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "inbox",
+                    "conversations",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "PATCH",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"read\": \"<boolean>\",\n  \"status\": \"open\",\n  \"snoozedUntil\": \"<dateTime>\",\n  \"assignedUserId\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "9fc02d09-1307-4853-84aa-925a7066f115",
+          "name": "Get a conversation's messages",
+          "request": {
+            "name": "Get a conversation's messages",
+            "description": {
+              "content": "The newest 500 messages of one conversation, oldest first. Reading does not mark the conversation read; use `PATCH /api/inbox/conversations/{id}` with `read: true` for that.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\n**What API keys and OAuth apps do not see.** Internal notes your team leaves on a conversation are never returned and search does not match on them; inbox labels are not returned (and the label filters are ignored); WhatsApp conversations are not included.\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "inbox",
+                "conversations",
+                ":id",
+                "messages"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) ",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "method": "GET",
+            "body": {},
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "b2bbe8cf-61f8-4384-9705-1ed55f94b65c",
+              "name": "The thread",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "inbox",
+                    "conversations",
+                    ":id",
+                    "messages"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "4a31c2ec-3bdd-4ef3-8ee9-445b1e55fa99",
+          "name": "Reply in a conversation",
+          "request": {
+            "name": "Reply in a conversation",
+            "description": {
+              "content": "Sends a reply to the person on the platform, immediately, from the channel the conversation belongs to. It cannot be unsent from here. In a comment thread the reply answers the newest comment from the other person, or the one given in `replyToMessageId`.\n\nSend `text` (up to 4,000 characters), `mediaIds` (up to 4 files from your media library), or both. Whether a platform accepts attachments, and which kinds, is in the conversation's `attachments`; reviews and comments are text only.\n\nSome platforms only accept a reply within 24 hours of the person's last message (Facebook Messenger and Instagram); after that this returns 422 and `canReply` is false on the conversation.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor). Limited to 30 replies per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "inbox",
+                "conversations",
+                ":id",
+                "messages"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) ",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"<string>\",\n  \"mediaIds\": [\n    \"<integer>\"\n  ],\n  \"replyToMessageId\": \"<integer>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "f96085aa-cdd3-41eb-bde0-b0f638b5e5e9",
+              "name": "Sent",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "inbox",
+                    "conversations",
+                    ":id",
+                    "messages"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) ",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"text\": \"<string>\",\n  \"mediaIds\": [\n    \"<integer>\"\n  ],\n  \"replyToMessageId\": \"<integer>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "724aca8c-d7bd-4660-9eeb-5c8403ed3f9e",
+          "name": "Reply to a comment on a published post",
+          "request": {
+            "name": "Reply to a comment on a published post",
+            "description": {
+              "content": "Posts a public reply to a comment, immediately, as the channel the post was published to. It cannot be taken back from here.\n\n`postPlatformId` and `commentId` come from `GET /api/posts/{id}/engagement`: the post's entry for that channel, and the comment's `id`.\n\nWhen replying to a reply, pass the thread's top-level comment as `rootCommentId` (Instagram and YouTube address replies to the top-level comment).\n\n**Availability.** Replying to and moderating comments is being rolled out. Until it is available to your account this returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"comments_inbox\"`. It is not tied to a plan: unlike the Inbox's messages and reviews, comment replies work on every plan once available.\n\nRequires a role that can edit posts (owner, admin, approver, contributor). Limited to 10 replies per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "posts",
+                ":id",
+                "comments",
+                "reply"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) The post id",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postPlatformId\": \"<integer>\",\n  \"commentId\": \"<string>\",\n  \"text\": \"<string>\",\n  \"rootCommentId\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "790e9d40-78a0-461e-b199-1947c2b06dec",
+              "name": "Replied",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "posts",
+                    ":id",
+                    "comments",
+                    "reply"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) The post id",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"postPlatformId\": \"<integer>\",\n  \"commentId\": \"<string>\",\n  \"text\": \"<string>\",\n  \"rootCommentId\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "585c8d4b-fb29-494b-9de8-a3b575fc15f3",
+          "name": "Like, hide or delete a comment on a published post",
+          "request": {
+            "name": "Like, hide or delete a comment on a published post",
+            "description": {
+              "content": "Acts on a comment, on the platform, as the channel the post was published to. `like`/`unlike` and `hide`/`unhide` can be undone; **`delete` is permanent on the platform** and needs a role that can publish (owner, admin, approver) — other roles get 403. Hiding or deleting also removes the comment from your Inbox.\n\nWhich actions a channel supports is in `commentActions` on its `GET /api/posts/{id}/engagement` entry; anything else returns 422.\n\n`postPlatformId` and `commentId` come from `GET /api/posts/{id}/engagement`: the post's entry for that channel, and the comment's `id`.\n\n**Availability.** Replying to and moderating comments is being rolled out. Until it is available to your account this returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"comments_inbox\"`. It is not tied to a plan: unlike the Inbox's messages and reviews, comment replies work on every plan once available.\n\nRequires a role that can edit posts (owner, admin, approver, contributor). Limited to 30 actions per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "posts",
+                ":id",
+                "comments",
+                "moderate"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) The post id",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postPlatformId\": \"<integer>\",\n  \"commentId\": \"<string>\",\n  \"action\": \"like\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "c1693623-12fc-4796-ab5b-dd0a82f00751",
+              "name": "Done",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "posts",
+                    ":id",
+                    "comments",
+                    "moderate"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "type": "any",
+                      "value": "<integer>",
+                      "key": "id",
+                      "disabled": false,
+                      "description": {
+                        "content": "(Required) The post id",
+                        "type": "text/plain"
+                      }
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"postPlatformId\": \"<integer>\",\n  \"commentId\": \"<string>\",\n  \"action\": \"like\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ]
+    },
+    {
       "name": "Utilities",
       "description": "Link previews, quotas, activity log",
       "item": [
