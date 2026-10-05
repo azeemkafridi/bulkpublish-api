@@ -2719,6 +2719,18 @@
             }
           },
           {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "description": "**optional** — Skip this many conversations, for numbered pages (0 to 100000, default 0). Ignored when `cursor` is sent; prefer `cursor` for walking the whole list, since new messages reorder it between requests.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000,
+              "default": 0
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,
@@ -2904,6 +2916,14 @@
                         "string",
                         "null"
                       ]
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "description": "The `offset` this page started at (0 when paging by `cursor`)."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "How many conversations match the filters, across every page."
                     }
                   }
                 }

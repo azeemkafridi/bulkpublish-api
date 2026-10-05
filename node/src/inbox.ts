@@ -50,12 +50,18 @@ export interface ListConversationsParams {
   cursor?: string;
   /** Page size, 1 to 100 (default 50). */
   limit?: number;
+  /** Skip this many conversations, for numbered pages. Ignored when `cursor` is sent. */
+  offset?: number;
 }
 
 export interface ListConversationsResponse {
   conversations: Conversation[];
   /** Pass back as `cursor` for the next page; `null` on the last page. */
   nextCursor: string | null;
+  /** Where this page started when paging by `offset`; 0 when paging by `cursor`. */
+  offset?: number;
+  /** How many conversations match the filters, across every page. */
+  total?: number;
 }
 
 export interface UpdateConversationParams {

@@ -28,8 +28,11 @@ def _list_params(
     q: Optional[str],
     cursor: Optional[str],
     limit: Optional[int],
+    offset: Optional[int] = None,
 ) -> Dict[str, Any]:
     params: Dict[str, Any] = {}
+    if offset is not None:
+        params["offset"] = offset
     if status is not None:
         params["status"] = status
     if kind is not None:
@@ -102,6 +105,7 @@ class InboxResource:
         q: Optional[str] = None,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
+        offset: Optional[int] = None,
     ) -> Dict[str, Any]:
         """List conversations, newest activity first.
 
@@ -115,14 +119,17 @@ class InboxResource:
                 (2 to 100 characters).
             cursor: ``nextCursor`` from the previous page (opaque).
             limit: Page size, 1 to 100 (default 50).
+            offset: Skip this many conversations, for numbered pages. Ignored
+                when ``cursor`` is sent.
 
         Returns:
-            ``{"conversations": [...], "nextCursor": str | None}``.
+            ``{"conversations": [...], "nextCursor": str | None, "offset": int,
+            "total": int}``. ``total`` counts every match across all pages.
         """
         return self._client._request(
             "GET",
             "/api/inbox/conversations",
-            params=_list_params(status, kind, platforms, channel_id, assigned, q, cursor, limit),
+            params=_list_params(status, kind, platforms, channel_id, assigned, q, cursor, limit, offset),
         )
 
     def update_conversation(
@@ -215,12 +222,13 @@ class AsyncInboxResource:
         q: Optional[str] = None,
         cursor: Optional[str] = None,
         limit: Optional[int] = None,
+        offset: Optional[int] = None,
     ) -> Dict[str, Any]:
         """List conversations — see :meth:`InboxResource.list_conversations`."""
         return await self._client._request(
             "GET",
             "/api/inbox/conversations",
-            params=_list_params(status, kind, platforms, channel_id, assigned, q, cursor, limit),
+            params=_list_params(status, kind, platforms, channel_id, assigned, q, cursor, limit, offset),
         )
 
     async def update_conversation(

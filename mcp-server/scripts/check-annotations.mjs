@@ -48,7 +48,7 @@ const OUTPUT_FIXTURES = {
   upload_media: { file: { id: 3056, fileName: "a.jpg", mimeType: "image/jpeg", sizeBytes: 127085, width: 1200, height: 630 } },
   list_channels: { channels: [{ id: 143, platform: "instagram", accountName: "Acme Studio", isActive: true, needsReconnect: false }] },
   // Inbox profile — shapes from the webapp's openapi.json responses.
-  list_conversations: { conversations: [{ id: 7, platform: "instagram", kind: "dm", rating: null, status: "open", snoozedUntil: null, assignee: null, channel: { id: 143, accountName: "Acme", profileImage: null }, participant: { id: "p1", name: "Sam" }, unreadCount: 2, lastMessageAt: "2026-10-05T10:00:00.000Z", lastInboundAt: "2026-10-05T10:00:00.000Z", lastMessagePreview: "Hi", canReply: true, attachments: { max: 1, kinds: ["image"] }, replyNotice: null }], nextCursor: null },
+  list_conversations: { conversations: [{ id: 7, platform: "instagram", kind: "dm", rating: null, status: "open", snoozedUntil: null, assignee: null, channel: { id: 143, accountName: "Acme", profileImage: null }, participant: { id: "p1", name: "Sam" }, unreadCount: 2, lastMessageAt: "2026-10-05T10:00:00.000Z", lastInboundAt: "2026-10-05T10:00:00.000Z", lastMessagePreview: "Hi", canReply: true, attachments: { max: 1, kinds: ["image"] }, replyNotice: null }], nextCursor: null, offset: 0, total: 1 },
   get_conversation: { conversationId: 7, messages: [{ id: 1, platformMessageId: "m1", direction: "in", text: null, attachments: null, rating: null, sentAt: "2026-10-05T10:00:00.000Z", readAt: null, actor: null, authorUserId: null, author: null, parentId: null, likeCount: null }] },
   reply_to_conversation: { success: true, messageId: "m2" },
   update_conversation: { success: true },

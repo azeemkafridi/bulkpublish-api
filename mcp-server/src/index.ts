@@ -559,6 +559,8 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
       replyNotice: sStr(), participant: sObj(), channel: sObj(), assignee: sObj(),
     }),
     nextCursor: sStr().describe("Pass back as cursor for the next page; null on the last page."),
+    offset: sNum().describe("Where this page started when paging by position; 0 when paging by cursor."),
+    total: sNum().describe("How many conversations match the filters, across every page."),
   },
   get_conversation: {
     conversationId: sNum(),

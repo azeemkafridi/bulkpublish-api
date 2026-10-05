@@ -7105,6 +7105,42 @@
                 "type": "null"
               }
             ]
+          },
+          "offset": {
+            "description": "Where this page started when paging by position; 0 when paging by cursor.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "total": {
+            "description": "How many conversations match the filters, across every page.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
