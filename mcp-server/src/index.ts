@@ -1186,7 +1186,7 @@ server.tool(
       .nullable()
       .optional()
       .describe(
-        "Optional per-post override for link tracking (bulkpubli.sh). true forces links in this post to be shortened and their clicks counted, false forces them to publish as written, and null/omitted (the default) inherits the organization's Link Tracking setting. Shortening happens at publish time, per channel, so two accounts on the same platform get distinct codes; it is skipped for a channel when the rewrite would push the post past that platform's character limit (a short URL is 28 characters and can be longer than the link it replaces)."
+        "Optional per-post override for link tracking (bulkpubli.sh). true forces links in this post to be shortened and their clicks counted, false forces them to publish as written, and null/omitted (the default) inherits the organization's Link Tracking setting. Shortening happens at publish time, per channel, so two accounts on the same platform get distinct codes; it is skipped for a channel when the rewrite would push the post past that platform's character limit (a short URL is 28 characters and can be longer than the link it replaces). Short links are part of the Pro and Business plans: on Free, links always publish as written and true has no effect."
       ),
   },
   async ({

@@ -767,6 +767,9 @@ export interface CreatePostParams {
    * same platform get distinct codes. It is skipped for a channel when the
    * rewrite would push the post past that platform's character limit — a short
    * URL is 28 characters and can be longer than the link it replaces.
+   *
+   * Short links are part of the Pro and Business plans: on Free, links always
+   * publish as written and `true` has no effect.
    */
   linkTrackingOverride?: boolean | null;
 }
@@ -833,6 +836,9 @@ export interface UpdatePostParams {
    * this post to be shortened and their clicks counted, `false` forces them to
    * publish as written, and `null` clears the override so the post inherits the
    * organization's Link Tracking setting again.
+   *
+   * Short links are part of the Pro and Business plans: on Free, links always
+   * publish as written and `true` has no effect.
    */
   linkTrackingOverride?: boolean | null;
 }

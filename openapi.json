@@ -1917,7 +1917,7 @@
                       "null"
                     ],
                     "default": null,
-                    "description": "Per-post override for link tracking (bulkpubli.sh). `true` forces links in this post to be shortened and their clicks counted, `false` forces them to publish as written, and `null` (the default) inherits the organization's Link Tracking setting. Shortening happens at publish time, per channel, so two accounts on the same platform get distinct codes; it is skipped for a channel when the rewrite would push the post past that platform's character limit."
+                    "description": "Per-post override for link tracking (bulkpubli.sh). `true` forces links in this post to be shortened and their clicks counted, `false` forces them to publish as written, and `null` (the default) inherits the organization's Link Tracking setting. Shortening happens at publish time, per channel, so two accounts on the same platform get distinct codes; it is skipped for a channel when the rewrite would push the post past that platform's character limit. Short links are part of the Pro and Business plans: on Free, links always publish as written and `true` has no effect."
                   }
                 }
               },
@@ -2215,7 +2215,7 @@
                       "null"
                     ],
                     "default": null,
-                    "description": "Per-post override for link tracking (bulkpubli.sh). `true` forces links in this post to be shortened and their clicks counted, `false` forces them to publish as written, and `null` (the default) inherits the organization's Link Tracking setting. Shortening happens at publish time, per channel, so two accounts on the same platform get distinct codes; it is skipped for a channel when the rewrite would push the post past that platform's character limit."
+                    "description": "Per-post override for link tracking (bulkpubli.sh). `true` forces links in this post to be shortened and their clicks counted, `false` forces them to publish as written, and `null` (the default) inherits the organization's Link Tracking setting. Shortening happens at publish time, per channel, so two accounts on the same platform get distinct codes; it is skipped for a channel when the rewrite would push the post past that platform's character limit. Short links are part of the Pro and Business plans: on Free, links always publish as written and `true` has no effect."
                   },
                   "ifUnmodifiedSince": {
                     "type": "string",

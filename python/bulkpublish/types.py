@@ -90,6 +90,8 @@ class Post(TypedDict, total=False):
     (bulkpubli.sh): ``True`` forces links in this post to be shortened and
     their clicks counted, ``False`` forces them to publish as written, and
     ``None`` (the default) inherits the organization's Link Tracking setting.
+    Short links are part of the Pro and Business plans: on Free, links always
+    publish as written and ``True`` has no effect.
     """
 
     id: int
