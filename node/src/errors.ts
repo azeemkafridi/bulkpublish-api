@@ -56,7 +56,9 @@ export class AuthenticationError extends BulkPublishError {
  * `code` says why: `FORBIDDEN` (the key's role does not allow the action),
  * `APPROVAL_REQUIRED` (the post must go through approval instead), or
  * `SEAT_LIMIT` (the workspace has more members than its plan includes and this
- * member is read-only until the owner upgrades or frees a seat).
+ * member is read-only until the owner upgrades or frees a seat), or
+ * `FEATURE_DISABLED` (the feature is not available to the account; on a plan
+ * without it, `hint` names the plan to upgrade to).
  *
  * @example
  * ```typescript
@@ -70,8 +72,8 @@ export class AuthenticationError extends BulkPublishError {
  * ```
  */
 export class ForbiddenError extends BulkPublishError {
-  constructor(message = 'Forbidden', code?: string) {
-    super(message, 403, code || 'FORBIDDEN');
+  constructor(message = 'Forbidden', code?: string, hint?: string) {
+    super(message, 403, code || 'FORBIDDEN', hint);
     this.name = 'ForbiddenError';
   }
 }

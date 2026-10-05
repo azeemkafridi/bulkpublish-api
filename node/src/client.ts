@@ -135,7 +135,7 @@ export class HttpClient {
       case 401:
         throw new AuthenticationError(message);
       case 403:
-        throw new ForbiddenError(message, code);
+        throw new ForbiddenError(message, code, hint);
       case 404:
         throw new NotFoundError(message);
       case 422:

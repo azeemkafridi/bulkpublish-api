@@ -15,6 +15,7 @@ import { RssFeedsResource } from './rss-feeds.js';
 import { PlatformsResource } from './platforms.js';
 import { OrganizationsResource } from './organizations.js';
 import { NotificationsResource } from './notifications.js';
+import { InboxResource } from './inbox.js';
 import type {
   ActivityLog,
   ApiKeyInfo,
@@ -75,6 +76,8 @@ export class BulkPublish {
   readonly platforms: PlatformsResource;
   readonly organizations: OrganizationsResource;
   readonly notifications: NotificationsResource;
+  /** Direct messages, reviews and comment threads (Pro and Business plans). */
+  readonly inbox: InboxResource;
 
   private readonly http: HttpClient;
 
@@ -97,6 +100,7 @@ export class BulkPublish {
     this.platforms = new PlatformsResource(http);
     this.organizations = new OrganizationsResource(http);
     this.notifications = new NotificationsResource(http);
+    this.inbox = new InboxResource(http);
   }
 
   // ---------------------------------------------------------------------
@@ -228,6 +232,20 @@ export { RssFeedsResource } from './rss-feeds.js';
 export { PlatformsResource } from './platforms.js';
 export { OrganizationsResource } from './organizations.js';
 export { NotificationsResource } from './notifications.js';
+export { InboxResource } from './inbox.js';
+export type {
+  Conversation,
+  ConversationKind,
+  ConversationStatus,
+  ConversationMessage,
+  ConversationMessagesResponse,
+  InboxPerson,
+  ListConversationsParams,
+  ListConversationsResponse,
+  SendConversationMessageParams,
+  SendConversationMessageResponse,
+  UpdateConversationParams,
+} from './inbox.js';
 export {
   BulkPublishError,
   AuthenticationError,

@@ -70,7 +70,7 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 
 | Resource | Methods |
 |----------|---------|
-| `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `approve`, `reject`, `bulk`, `queueSlot`, `metrics`, `story`, `share`, `unshare` |
+| `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `approve`, `reject`, `bulk`, `queueSlot`, `metrics`, `story`, `share`, `unshare`, `engagement`, `replyToComment`, `moderateComment` |
 | `bp.channels` | `list`, `get`, `delete`, `health` |
 | `bp.media` | `upload`, `list`, `get`, `delete`, `getLabels`, `setLabels`, `createMultipart`, `completeMultipart`, `abortMultipart` |
 | `bp.analytics` | `summary`, `engagement`, `refresh`, `account` |
@@ -85,6 +85,7 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 | `bp.rssFeeds` | `list`, `create`, `update`, `delete` — RSS/Atom autopost feeds (new items become posts; optional `fieldMapping` controls caption template, media, truncation, per-channel overrides) |
 | `bp.organizations` | `list`, `create` — the organizations this key's user belongs to, and the role held in each. API key only: not reachable with an OAuth token |
 | `bp.notifications` | `list`, `markRead`, `delete`, `preferences`, `updatePreferences` — publish failures, expiring connections. API key only |
+| `bp.inbox` | `listConversations`, `updateConversation`, `listMessages`, `sendMessage` — direct messages, reviews and comment threads (Pro and Business plans). See the [Inbox guide](../guides/inbox.md) |
 
 ## Platform Requirements
 

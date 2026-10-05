@@ -16,6 +16,11 @@ import type {
   BulkPostResponse,
   QueueSlotResponse,
   PostMetricsResponse,
+  PostEngagementResponse,
+  ReplyToCommentParams,
+  ReplyToCommentResponse,
+  ModerateCommentParams,
+  CommentModerationAction,
 } from './types.js';
 
 /**
@@ -395,5 +400,48 @@ export class PostsResource {
   /** Revoke the post's review link. Idempotent. */
   unshare(id: number): Promise<{ success: boolean; revoked: boolean }> {
     return this.http.delete(`/api/posts/${id}/share`);
+  }
+
+  /**
+   * Who commented on and reacted to a published post, per channel, read live
+   * from each platform. Each entry's `postPlatformId` and a comment's `id` are
+   * what `replyToComment` and `moderateComment` take.
+   *
+   * @param id - The post ID.
+   * @param params - Optional `{ commentsLimit, reactionsLimit }`.
+   */
+  engagement(id: number, params?: { commentsLimit?: number; reactionsLimit?: number }): Promise<PostEngagementResponse> {
+    return this.http.get<PostEngagementResponse>(`/api/posts/${id}/engagement`, params);
+  }
+
+  /**
+   * Post a public reply to a comment, immediately, as the channel the post was
+   * published to. It cannot be taken back from here.
+   *
+   * Throws 403 `FEATURE_DISABLED` (`feature: 'comments_inbox'`) until comment
+   * replies are available to the account, and 409 `RECONNECT_REQUIRED` when
+   * the channel must be reconnected. OAuth tokens need `inbox:write` (or
+   * `full`); `posts:write` does not cover it.
+   *
+   * @example
+   * ```typescript
+   * const { platforms } = await bp.posts.engagement(42);
+   * const p = platforms[0];
+   * const c = p.engagement!.comments[0];
+   * await bp.posts.replyToComment(42, { postPlatformId: p.postPlatformId!, commentId: c.id, text: 'Thank you!' });
+   * ```
+   */
+  replyToComment(id: number, params: ReplyToCommentParams): Promise<ReplyToCommentResponse> {
+    return this.http.post<ReplyToCommentResponse>(`/api/posts/${id}/comments/reply`, params);
+  }
+
+  /**
+   * Like, unlike, hide, unhide or delete a comment on the platform, as the
+   * channel the post was published to. `delete` is permanent and needs a role
+   * that can publish. Supported actions per channel are in the engagement
+   * entry's `commentActions`.
+   */
+  moderateComment(id: number, params: ModerateCommentParams): Promise<{ success: boolean; action: CommentModerationAction }> {
+    return this.http.post(`/api/posts/${id}/comments/moderate`, params);
   }
 }

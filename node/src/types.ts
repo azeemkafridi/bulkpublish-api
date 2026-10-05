@@ -1943,3 +1943,73 @@ export interface CompleteMultipartUploadParams {
   height?: number;
   duration?: number;
 }
+
+// ---------------------------------------------------------------------------
+// Post comments (engagement read, reply, moderate)
+// ---------------------------------------------------------------------------
+
+export type CommentModerationAction = 'like' | 'unlike' | 'hide' | 'unhide' | 'delete';
+
+export interface PostComment {
+  id: string;
+  text: string;
+  createdAt: string;
+  likeCount?: number;
+  actor?: { id?: string; name?: string; handle?: string; headline?: string; profileImage?: string; profileUrl?: string };
+  /** Set when this comment is a reply: the id of the comment it replies to. */
+  parentId?: string;
+}
+
+export interface PostEngagementPlatform {
+  /** What `replyToComment` / `moderateComment` address. Absent when the read failed. */
+  postPlatformId?: number;
+  platform: string;
+  accountName: string | null;
+  platformPostId: string | null;
+  platformUrl: string | null;
+  engagement: {
+    comments: PostComment[];
+    reactions: Array<{ id: string; type?: string; createdAt?: string; actor?: Record<string, unknown> }>;
+    hasMoreComments?: boolean;
+    hasMoreReactions?: boolean;
+    unsupported?: boolean;
+    notice?: string;
+    reactionsUnsupported?: boolean;
+    commentsNotice?: string;
+    /** True when this channel cannot reply to comments; `replyNotice` says why. */
+    replyUnsupported?: boolean;
+    replyNotice?: string;
+    /** Which `moderateComment` actions this channel supports. */
+    commentActions?: CommentModerationAction[];
+  } | null;
+  error?: string;
+}
+
+export interface PostEngagementResponse {
+  postId: number;
+  platforms: PostEngagementPlatform[];
+}
+
+export interface ReplyToCommentParams {
+  /** From the post's `engagement` entry for that channel. */
+  postPlatformId: number;
+  /** The comment's `id`. */
+  commentId: string;
+  /** Up to 2,000 characters. */
+  text: string;
+  /** When replying to a reply: the thread's top-level comment id (Instagram, YouTube). */
+  rootCommentId?: string;
+}
+
+export interface ReplyToCommentResponse {
+  success: boolean;
+  replyId: string | null;
+  accountName: string | null;
+}
+
+export interface ModerateCommentParams {
+  postPlatformId: number;
+  commentId: string;
+  /** `delete` is permanent on the platform and needs a role that can publish. */
+  action: CommentModerationAction;
+}
