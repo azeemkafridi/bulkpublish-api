@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-10-06 — Inbox and comment replies through the API, SDKs and MCP server
+
+Node SDK **1.39.0** · Python SDK **0.40.0** · MCP **1.42.0**
+
+### Added
+
+- **Inbox endpoints** for API keys and OAuth apps: `GET /api/inbox/conversations` (filters `status`, `kind`, `platforms`, `channelId`, `assigned`, `q`; cursor paging with `nextCursor`), `PATCH /api/inbox/conversations/{id}` (read, archive, snooze, assign), and `GET`/`POST /api/inbox/conversations/{id}/messages` (read a thread, send a reply). The Inbox is part of the Pro and Business plans; other plans get `403 FEATURE_DISABLED` with `upgrade: true` and a `hint` naming the plan to upgrade to.
+- **Comment replies and moderation:** `POST /api/posts/{id}/comments/reply` and `POST /api/posts/{id}/comments/moderate` (`like`, `unlike`, `hide`, `unhide`, `delete`). Available on every plan once rolled out to the account; until then `403 FEATURE_DISABLED` with `feature: "comments_inbox"`.
+- **OAuth scopes `inbox:read` and `inbox:write`.** `full` covers both. `posts:write` does not cover replying to people, so existing `posts:*` grants gain nothing.
+- **Node SDK:** `bp.inbox.listConversations`, `updateConversation`, `listMessages`, `sendMessage`; `bp.posts.engagement`, `replyToComment`, `moderateComment`. `ForbiddenError` now carries the API's `hint`.
+- **Python SDK:** `bp.inbox.list_conversations`, `update_conversation`, `list_messages`, `send_message`; `bp.posts.engagement`, `reply_to_comment`, `moderate_comment` (sync and async).
+- **MCP server:** seven tools — `list_conversations`, `get_conversation`, `reply_to_conversation`, `update_conversation`, `list_post_comments`, `reply_to_comment`, `moderate_comment`. They are in the local server by default (72 → 79 tools) and in a new `inbox` profile (core + these seven, 27 tools) for the hosted server. The `core` profile is unchanged.
+- **MCP error messages** now end with the API's hint when it sends one, e.g. "Error: This feature is not available on the Free plan. Upgrade to Pro to use it."
+- [Inbox and Comments guide](guides/inbox.md).
+
 ## 2026-10-05 — Instagram stories list only the metrics they report
 
 Node SDK **1.38.8** · MCP **1.41.6**

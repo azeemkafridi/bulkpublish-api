@@ -148,7 +148,7 @@ BulkPublish ships an MCP server so AI assistants can manage your social media di
 }
 ```
 
-72 tools in the local (stdio) server: `create_post`, `list_channels`, `upload_media`, `get_analytics`, the interactive `compose_post` composer (MCP Apps), and more. The hosted server at `https://mcp.bulkpublish.com/mcp` (OAuth 2.1) serves the 20-tool `core` profile: channels, posts, media, analytics and the interactive panels. See [mcp-server/README.md](mcp-server/README.md#tool-profiles).
+79 tools in the local (stdio) server: `create_post`, `list_channels`, `upload_media`, `get_analytics`, the interactive `compose_post` composer (MCP Apps), and more. The hosted server at `https://mcp.bulkpublish.com/mcp` (OAuth 2.1) serves the 20-tool `core` profile: channels, posts, media, analytics and the interactive panels. The 27-tool `inbox` profile adds reading and answering direct messages, reviews and comments. See [mcp-server/README.md](mcp-server/README.md#tool-profiles).
 
 ### Social Media Content Skills
 
@@ -331,6 +331,12 @@ Authorization: Bearer bp_your_key_here
 | `GET` | `/api/analytics/links` | Tracked bulkpubli.sh links with click counts |
 | `POST` | `/api/schedules` | Create a recurring schedule |
 | `GET` | `/api/quotas/usage` | Check current plan limits and usage |
+| `GET` | `/api/inbox/conversations` | Inbox: direct messages, reviews and comment threads, with filters and cursor paging (Pro and Business) |
+| `GET`/`POST` | `/api/inbox/conversations/:id/messages` | Read a conversation, or send a reply to the person on the platform |
+| `PATCH` | `/api/inbox/conversations/:id` | Mark read, archive, snooze or assign a conversation |
+| `GET` | `/api/posts/:id/engagement` | Comments and reactions on a published post, per channel |
+| `POST` | `/api/posts/:id/comments/reply` | Reply to a comment on a published post |
+| `POST` | `/api/posts/:id/comments/moderate` | Like, unlike, hide, unhide or delete a comment |
 
 See the [OpenAPI spec](openapi.json) for the complete endpoint list.
 
@@ -406,6 +412,7 @@ See the [rate limits guide](guides/rate-limits.md) for headers, backoff strategi
 - [Media Uploads](guides/media-uploads.md) — File uploads, supported formats, using media in posts
 - [Platform Options](guides/platforms.md) — Per-platform configuration and quirks
 - [Rate Limits](guides/rate-limits.md) — Burst limits, daily quotas, best practices
+- [Inbox and Comments](guides/inbox.md) — Read and answer direct messages, reviews and comments
 
 ## Integrations
 
