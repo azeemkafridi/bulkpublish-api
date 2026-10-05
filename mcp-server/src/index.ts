@@ -3424,7 +3424,7 @@ if (!HIDE_BILLING_TOOLS) {
   const INBOX_AVAILABILITY =
     " The Inbox is part of the Pro and Business plans; on other plans, or before it is available to the account, the call is refused with a message saying so.";
   const COMMENTS_AVAILABILITY =
-    " Available on every plan once comment replies are available to the account; before that the call is refused with a message saying so.";
+    " Comment replies are part of the Pro and Business plans; on other plans, or before they are available to the account, the call is refused with a message saying so.";
   const RECONNECT =
     " If the channel's connection has stopped working, the call is refused and the channel needs reconnecting from the Channels page.";
 

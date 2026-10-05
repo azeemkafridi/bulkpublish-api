@@ -12,10 +12,10 @@ There are two parts:
 | | Plans | Before it is available to your account |
 |---|---|---|
 | Inbox (`/api/inbox/...`) | Pro and Business | `403` with `code: "FEATURE_DISABLED"`, `feature: "inbox"` |
-| Comment replies and moderation (`/api/posts/{id}/comments/...`) | Every plan | `403` with `code: "FEATURE_DISABLED"`, `feature: "comments_inbox"` |
+| Comment replies and moderation (`/api/posts/{id}/comments/...`) | Pro and Business | `403` with `code: "FEATURE_DISABLED"`, `feature: "comments_inbox"` |
 | Reading a post's comments (`GET /api/posts/{id}/engagement`) | Every plan | Always available |
 
-On a plan without the Inbox, the `403` also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to:
+On a plan without the Inbox or comment replies, the `403` also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to:
 
 ```json
 {
