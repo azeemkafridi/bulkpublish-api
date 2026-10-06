@@ -17,11 +17,12 @@ export interface ClientConnectLink {
 /**
  * Platforms a client can connect through an anonymous client-connect link.
  * For `facebook`, the client signs in to Facebook and then picks which one of
- * their Pages to connect.
+ * their Pages to connect. For `mastodon`, they first enter the address of the
+ * server their account is on.
  */
 export const CLIENT_CONNECT_PLATFORMS = [
   'facebook', 'instagram', 'x', 'tiktok', 'youtube', 'threads', 'pinterest',
-  'gmb', 'linkedin', 'reddit', 'discord', 'tumblr', 'snapchat',
+  'gmb', 'linkedin', 'mastodon', 'reddit', 'discord', 'tumblr', 'snapchat',
 ] as const;
 
 /**

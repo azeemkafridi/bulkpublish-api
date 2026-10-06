@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-06 — Clients can connect Mastodon through a client connect link
+
+Node SDK **1.41.0** · Python SDK **0.42.0** · MCP **1.44.0**
+
+### Added
+
+- `mastodon` is now one of the platforms a client can connect through a client connect link. The client enters the address of the server their account is on, then signs in on that server's own page. Bluesky and Telegram are still connected by your own team.
+- Node and Python `CLIENT_CONNECT_PLATFORMS` and the `create_client_connect_link` tool description list it.
+
 ## 2026-10-06 — Clients can connect Facebook through a client connect link
 
 Node SDK **1.40.0** · Python SDK **0.41.0** · MCP **1.43.0**
