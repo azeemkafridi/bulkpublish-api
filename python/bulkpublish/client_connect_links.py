@@ -9,8 +9,10 @@ if TYPE_CHECKING:
 
 from .types import ClientConnectLink
 
+# For "facebook", the client signs in to Facebook and then picks which one of
+# their Pages to connect.
 CLIENT_CONNECT_PLATFORMS = (
-    "instagram", "x", "tiktok", "youtube", "threads", "pinterest",
+    "facebook", "instagram", "x", "tiktok", "youtube", "threads", "pinterest",
     "gmb", "linkedin", "reddit", "discord", "tumblr", "snapchat",
 )
 

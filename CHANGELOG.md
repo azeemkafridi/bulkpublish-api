@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-10-06 — Clients can connect Facebook through a client connect link
+
+Node SDK **1.40.0** · Python SDK **0.41.0** · MCP **1.43.0**
+
+### Added
+
+- `facebook` is now one of the platforms a client can connect through a client connect link. The client signs in to Facebook and then chooses which one of their Pages to connect. The link still connects one account.
+- Node `CLIENT_CONNECT_PLATFORMS`, Python `CLIENT_CONNECT_PLATFORMS` and the `create_client_connect_link` tool description list it. Bluesky, Mastodon and Telegram are still connected by your own team.
+
+### Fixed
+
+- `POST /api/client-connect-links` description in `openapi.json` and the Postman collection: removed a sentence about templates that did not belong to this endpoint.
+
 ## 2026-10-06 — Each kind of X read has its own switch
 
 Node SDK **1.39.1** · Python SDK **0.40.1**
