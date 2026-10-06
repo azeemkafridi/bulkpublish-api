@@ -88,8 +88,9 @@ export class ChannelsResource {
 
   /**
    * Update a channel's per-channel opt-ins. Both switches apply to X channels
-   * only, where each read is billed: analytics sync and inbox reads are off by
-   * default. Fields not sent are left as they are. Requires a role that can
+   * only, where each read is billed, and each kind is off by default and only
+   * unlocked by its own switch: `metricsSyncEnabled` for analytics and likers,
+   * `inboxSyncEnabled` for DMs and replies. Fields not sent are left as they are. Requires a role that can
    * manage channels; viewers get 403.
    *
    * @example

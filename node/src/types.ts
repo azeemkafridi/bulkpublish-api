@@ -348,9 +348,9 @@ export interface ChannelHealthResponse {
 /** Response from deleting a channel. */
 /** Body for `channels.update()` — per-channel opt-ins, X only today. */
 export interface UpdateChannelParams {
-  /** Turn on analytics sync for this channel (X bills per read; synced at most once every 7 days). */
+  /** Turn on analytics sync and post likers for this channel (X bills per read; synced at most once every 7 days). Does not read replies. */
   metricsSyncEnabled?: boolean;
-  /** Turn on inbox reads (comments and DMs) for this channel. */
+  /** Turn on direct messages and replies to this channel's posts, together. A value set before 2026-10-06 is not carried over. */
   inboxSyncEnabled?: boolean;
 }
 

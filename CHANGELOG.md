@@ -2,12 +2,13 @@
 
 ## 2026-10-06 — Each kind of X read has its own switch
 
-Python SDK **0.40.1**
+Node SDK **1.39.1** · Python SDK **0.40.1**
 
 ### Changed
 
 - On X channels, `metricsSyncEnabled` no longer turns on reading replies to a post; it covers analytics and the list of people who liked a post. Replies and direct messages are covered by `inboxSyncEnabled`, as documented. A value of `inboxSyncEnabled` set before 2026-10-06 is not carried over: send `PATCH /api/channels/{id}` with `inboxSyncEnabled: true` again to turn those reads back on. The request and response shapes are unchanged.
-- Python: `channels.update` docstring describes the above.
+- `GET /api/posts/{id}/engagement`: on X, replies need `inboxSyncEnabled` and likers need `metricsSyncEnabled`; the description now says so.
+- Node and Python: `channels.update` docs describe the above.
 
 ## 2026-10-05 — Two Inbox tools say they reach outside services
 
