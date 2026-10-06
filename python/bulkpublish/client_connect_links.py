@@ -9,11 +9,12 @@ if TYPE_CHECKING:
 
 from .types import ClientConnectLink
 
-# For "facebook", the client signs in to Facebook and then picks which one of
-# their Pages to connect. For "mastodon", they first enter the address of the
-# server their account is on.
+# For "bluesky", the client enters their handle and approves access on Bluesky
+# (never a password). For "facebook", they sign in to Facebook and then pick
+# which one of their Pages to connect. For "mastodon", they first enter the
+# address of the server their account is on.
 CLIENT_CONNECT_PLATFORMS = (
-    "facebook", "instagram", "x", "tiktok", "youtube", "threads", "pinterest",
+    "bluesky", "facebook", "instagram", "x", "tiktok", "youtube", "threads", "pinterest",
     "gmb", "linkedin", "mastodon", "reddit", "discord", "tumblr", "snapchat",
 )
 

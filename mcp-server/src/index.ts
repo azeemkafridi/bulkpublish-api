@@ -1964,7 +1964,7 @@ server.tool(
 // ---------------------------------------------------------------------------
 
 const CLIENT_CONNECT_PLATFORMS = [
-  "facebook", "instagram", "x", "tiktok", "youtube", "threads", "pinterest",
+  "bluesky", "facebook", "instagram", "x", "tiktok", "youtube", "threads", "pinterest",
   "gmb", "linkedin", "mastodon", "reddit", "discord", "tumblr", "snapchat",
 ] as const;
 
@@ -1980,7 +1980,7 @@ server.tool(
 
 server.tool(
   "create_client_connect_link",
-  `Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (bluesky and telegram ask for a credential instead of a plain sign-in, and stay a manual connect by your own team): ${CLIENT_CONNECT_PLATFORMS.join(", ")}. For facebook, the client signs in to Facebook and then picks which one of their Pages to connect. For mastodon, they first enter the address of the server their account is on. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.`,
+  `Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (telegram asks for a bot token instead of a plain sign-in, and stays a manual connect by your own team): ${CLIENT_CONNECT_PLATFORMS.join(", ")}. For bluesky, the client enters their handle and approves access on Bluesky; they are never asked for a password. For facebook, the client signs in to Facebook and then picks which one of their Pages to connect. For mastodon, they first enter the address of the server their account is on. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.`,
   {
     name: z.string().max(150).describe("Your own label for the client (e.g. \"Acme Corp\"). Never shown to the client — only applied to the resulting channel so you can tell whose account it is."),
   },

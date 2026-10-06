@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-06 — Clients can connect Bluesky through a client connect link
+
+Node SDK **1.42.0** · Python SDK **0.43.0** · MCP **1.45.0**
+
+### Added
+
+- `bluesky` is now one of the platforms a client can connect through a client connect link. The client enters their handle and approves access on Bluesky; they are never asked for a password. Telegram is still connected by your own team.
+- Node and Python `CLIENT_CONNECT_PLATFORMS` and the `create_client_connect_link` tool description list it.
+
 ## 2026-10-06 — Clients can connect Mastodon through a client connect link
 
 Node SDK **1.41.0** · Python SDK **0.42.0** · MCP **1.44.0**
