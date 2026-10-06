@@ -140,8 +140,12 @@ class ChannelsResource:
     ) -> Dict[str, Any]:
         """Update a channel's per-channel opt-ins (X only today).
 
-        X bills per read, so analytics sync and inbox reads are off by default
-        and switched on per channel. Fields left as ``None`` are not sent.
+        X bills per read, so each kind of read is off by default and switched
+        on per channel by its own field: ``metrics_sync_enabled`` for analytics
+        and post likers, ``inbox_sync_enabled`` for direct messages and replies
+        to the channel's posts. A value of ``inbox_sync_enabled`` set before
+        2026-10-06 is not carried over; send it again to turn those reads back
+        on. Fields left as ``None`` are not sent.
         Requires a role that can manage channels; viewers get 403.
 
         Example::
