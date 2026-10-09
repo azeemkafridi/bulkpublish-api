@@ -163,8 +163,7 @@ export class AnalyticsResource {
    * reach, clicks or video views); Bluesky and Mastodon report no impressions,
    * so their engagement rate is always 0 — though Bluesky does report `saves`,
    * via bookmarks; Pinterest reports no reach; YouTube reports no shares or
-   * reach; Reddit reports likes (score), comments and shares (crossposts);
-   * Discord reports likes (reaction counts) and comments (thread replies).
+   * reach; Discord reports likes (reaction counts) and comments (thread replies).
    * `supportedTotals` is the union across the window — a `total*` field whose key
    * is absent there should be shown as "not available", never as 0.
    * `partialTotals` maps a supported key to the platforms that do NOT report it,

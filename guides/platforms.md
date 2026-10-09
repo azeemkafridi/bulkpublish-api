@@ -135,7 +135,6 @@ Use the `postTypeOverrides` field to set a specific post type per platform:
 | Google Business | `standard`, `event`, `offer` |
 | Tumblr | `post` |
 | Snapchat | `story` (default), `saved_story`, `spotlight` |
-| Reddit | `post` |
 | Discord | `post` |
 | Telegram | `post` |
 
@@ -259,7 +258,7 @@ Most platforms support `_firstComment` in `platformSpecific`. After the post is 
 This is commonly used on Instagram to keep the caption clean while adding hashtags or CTAs in the first comment.
 
 **Not every platform can post one.** Supported on X, Instagram, Facebook,
-LinkedIn, YouTube, Threads, Bluesky, Mastodon, Reddit and Telegram. **Not
+LinkedIn, YouTube, Threads, Bluesky, Mastodon and Telegram. **Not
 supported on Discord, Pinterest, TikTok, Google Business, Tumblr or Snapchat.**
 
 Sending `_firstComment` to an unsupported platform does **not** fail the post.
@@ -798,7 +797,7 @@ Set via `postTypeOverrides.snapchat` — one of `story`, `saved_story`, `spotlig
 | `locale` | string | Spotlight locale, e.g. `en_US` (the default). |
 | `saveToProfile` | boolean | Spotlight only. Default `true`; `false` sends `skip_save_to_profile` to Snap. |
 
-Like Reddit, Discord and Tumblr, `platformSpecific.snapchat` is keyed by
+Like Discord and Tumblr, `platformSpecific.snapchat` is keyed by
 **channel ID** (a flat object is also accepted and applies to every Snapchat
 channel on the post).
 
@@ -812,73 +811,6 @@ channel on the post).
 - First comments (`_firstComment`) are **not** supported on Snapchat.
 - Engagement (individual comments/reactions) is not readable; per-post metrics
   are (see [Metrics by Platform](#metrics-by-platform)).
-
----
-
-## Reddit
-
-```json
-{
-  "platformSpecific": {
-    "reddit": {
-      "12": {
-        "subreddit": "webdev",
-        "title": "We rebuilt our scheduler — here's what broke",
-        "flairId": "a1b2c3d4-0000-11ee-8c99-0242ac120002"
-      }
-    }
-  }
-}
-```
-
-`platformSpecific.reddit` is keyed by **channel ID**, because each connected
-Reddit account commonly posts to a different subreddit. A flat object (no
-channel-ID level) is also accepted and applies to every Reddit channel on the
-post.
-
-### Options
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `subreddit` | string | **Required.** Target subreddit. Accepts `webdev`, `r/webdev`, or `/r/webdev` — all are normalized to a bare lowercase name. Falls back to the subreddit stored on the channel if omitted. |
-| `title` | string | Post title. When omitted, the first line of `content` is used, truncated to 300 characters. |
-| `type` | string | Set to `link` to force a link submission. Usually unnecessary — see the kind table below. |
-| `url` | string | Destination URL for a link post. Supplying it implies `type: "link"`. |
-| `flairId` | string | Link-flair ID. Call `GET /api/channels/{id}/options` to list a subreddit's flairs. |
-| `thumbnailUrl` | string | Poster image for video posts. Optional — falls back to the video's auto-extracted poster frame. |
-
-### How the submission kind is chosen
-
-You do not set the kind directly. The server resolves it from the attached media
-and options, in this order:
-
-| Condition | Reddit submission kind |
-|-----------|------------------------|
-| An image file is attached | `image` |
-| A video file is attached | `video` |
-| `type` is `link`, or `url` is set | `link` |
-| Otherwise | `self` (text post) |
-
-### Notes
-
-- A media post accepts **exactly one** file. Attaching two images, or an image
-  and a video, fails validation — Reddit has no multi-asset submission.
-- **Video posts need a poster image, but you rarely have to supply one.**
-  `thumbnailUrl` falls back to the video's auto-extracted poster frame, and the
-  publish fails only when neither exists. Unlike Pinterest there is no
-  attached-image fallback — a media post accepts exactly one file, so a video
-  post cannot also carry a cover image.
-- Reddit returns HTTP 200 even when a subreddit rule rejects the submission. The
-  real error arrives in the response body and is surfaced as a failed post, so
-  check `errorMessage` rather than assuming success.
-- Media submissions resolve **asynchronously**: Reddit confirms the permalink
-  over a websocket. If it does not confirm within 20 seconds the post is marked
-  failed with a message saying it may still have appeared — verify on the
-  subreddit before retrying, or you risk a duplicate.
-- A text post's `content` is submitted as the body, and the title is separate,
-  so the first line is effectively used twice unless you set `title` yourself.
-- Character limit: 40,000. Images up to 20 MB (jpg, png, gif); video up to 1 GB
-  (mp4, mov).
 
 ---
 
@@ -1026,7 +958,6 @@ fields — so **never present a `0` as a measurement without checking them first
 | Pinterest | impressions, clicks, saves, likes, comments, video views | reach |
 | Bluesky | likes, comments, shares, saves (bookmarks) | impressions, reach, clicks, video views |
 | Mastodon | likes, comments, shares | everything else |
-| Reddit | likes (score), comments, shares (crossposts) | impressions, reach, saves, clicks, video views |
 | Discord | likes (reaction counts), comments (thread replies) | everything else |
 | Snapchat | impressions, reach, likes, comments, shares, clicks, video views | saves |
 | Google Business, Telegram, Tumblr | *nothing* | — |
@@ -1074,7 +1005,6 @@ Each platform enforces its own character limit on the `content` field:
 | Google Business | 1,500 |
 | Mastodon | 500 (varies by instance) |
 | Tumblr | 32,768 |
-| Reddit | 40,000 |
 | Discord | 2,000 |
 | Telegram | 4,096 (1,024 when the text rides as a media caption) |
 | Snapchat | 160 (used only as the Spotlight description / Saved Story title fallback — plain stories send no text) |
@@ -1087,4 +1017,4 @@ When link tracking is on — the organization setting, or `linkTrackingOverride`
 
 A short URL is 28 characters, which can be **longer** than the link it replaces. Because validation runs on the rewritten text, shortening is skipped for any channel where the rewrite would push the post past that platform's limit: a post composed at 295/300 for Bluesky publishes with its original links rather than failing at 308. The post still goes out — only the tracking is dropped for that channel, and no short link is minted for it, so `linkClicks` stays 0 there.
 
-The tight limits above are where this bites: X (280), Bluesky (300), Threads / Pinterest / Mastodon (500), and to a lesser degree Google Business (1,500) and Discord (2,000). It never applies on Facebook, LinkedIn, Tumblr, Reddit or Telegram.
+The tight limits above are where this bites: X (280), Bluesky (300), Threads / Pinterest / Mastodon (500), and to a lesser degree Google Business (1,500) and Discord (2,000). It never applies on Facebook, LinkedIn, Tumblr or Telegram.

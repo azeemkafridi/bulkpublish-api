@@ -17,7 +17,6 @@ export type Platform =
   | 'gmb'
   | 'linkedin'
   | 'mastodon'
-  | 'reddit'
   | 'discord'
   | 'telegram'
   | 'tumblr'
@@ -661,12 +660,6 @@ export interface CreatePostParams {
    * - **gmb**: Optional: `ctaType`, `ctaUrl`, `eventTitle`, `startDate`, `endDate`, `startTime`, `endTime`, `couponCode`, `redeemOnlineUrl`
    * - **mastodon**: Optional: `visibility` (public|unlisted|private|direct), `spoilerText`, `language`, `repostId` (with post type `repost`: status URL or ID to boost)
    * - **threads**: Optional: `repostId` (with post type `repost`: the numeric Threads post ID to repost), `quotePostId`, `topicTag` (one topic, no leading '#', no periods or ampersands), `locationId` (numeric place ID from `GET /api/channels/{id}/options?q=<place>`; needs location tagging granted on the channel)
-   * - **reddit**: `{ subreddit }` (required; accepts `webdev`, `r/webdev` or `/r/webdev`, else falls back to the
-   *   subreddit stored on the channel). Optional: `title` (defaults to the first line of `content`, truncated to
-   *   300 chars), `type` (`'link'` forces a link post), `url`, `flairId`, `thumbnailUrl`.
-   *   `thumbnailUrl` is optional on video posts — omitted, it falls back to the video's auto-extracted poster
-   *   frame and fails only if neither exists. Unlike Pinterest's `coverImageUrl` there is no attached-image
-   *   fallback, because a media post accepts exactly one file.
    * - **discord**: `{ channelId }` (required) — the target Discord *text channel* snowflake inside the connected
    *   server, which is not the BulkPublish channel id. Publishing uses a global bot token, so failures are
    *   permission problems rather than a reconnect issue.
@@ -682,12 +675,12 @@ export interface CreatePostParams {
    *   `VALIDATION_ERROR` when the post is scheduled or published (drafts may be saved with it). First
    *   comments are not supported on Snapchat.
    *
-   * `reddit`, `discord`, `tumblr` and `snapchat` nest their options under the **BulkPublish channel id**, because each
-   * connected account commonly targets a different subreddit / Discord channel / blog. A flat object is also
+   * `discord`, `tumblr` and `snapchat` nest their options under the **BulkPublish channel id**, because each
+   * connected account commonly targets a different Discord channel / blog. A flat object is also
    * accepted and applies to every channel of that platform on the post.
    *
    * @example { youtube: { title: 'My Video' }, pinterest: { title: 'My Pin', boardId: '123' } }
-   * @example { reddit: { 12: { subreddit: 'webdev', title: 'Show and tell' } }, discord: { 13: { channelId: '1090123456789012345' } } }
+   * @example { discord: { 13: { channelId: '1090123456789012345' } } }
    */
   platformSpecific?: Record<string, Record<string, unknown>>;
   /**

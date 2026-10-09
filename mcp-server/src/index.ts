@@ -88,7 +88,6 @@ const PLATFORM_ENUM = z.enum([
   "gmb",
   "linkedin",
   "mastodon",
-  "reddit",
   "discord",
   "telegram",
   "tumblr",
@@ -110,7 +109,6 @@ const POST_TYPE_OVERRIDES_SCHEMA = z
     pinterest: z.enum(["pin", "video_pin", "carousel"]).optional(),
     gmb: z.enum(["standard", "event", "offer"]).optional(),
     mastodon: z.enum(["post", "thread", "repost"]).optional(),
-    reddit: z.enum(["post"]).optional(),
     discord: z.enum(["post"]).optional(),
     telegram: z.enum(["post"]).optional(),
     tumblr: z.enum(["post"]).optional(),
@@ -126,48 +124,11 @@ const POST_TYPE_OVERRIDES_SCHEMA = z
     'Per-platform post type override. E.g. { "instagram": "reel", "youtube": "short" }. Video length is checked per type when the post is scheduled or published, and a video outside the range is refused: instagram reel/feed_video 3s\u201315min, story 3\u201360s; facebook reel 3\u201390s, story 3\u201360s; threads video/carousel up to 5min; linkedin 3s\u201330min; pinterest video_pin at least 4s; snapchat story 5\u201360s, spotlight 6\u201360s (saved_story not checked).'
   );
 
-// Reddit, Discord, Tumblr and Snapchat nest their options under the BulkPublish channel
+// Discord, Tumblr and Snapchat nest their options under the BulkPublish channel
 // id (e.g. { "12": { … } }) because each connected account commonly targets a
-// different subreddit / Discord channel / blog. The server also accepts a FLAT
+// different Discord channel / blog. The server also accepts a FLAT
 // object, which applies to every channel of that platform on the post, so both
 // shapes have to validate here.
-const REDDIT_OPTIONS = z
-  .object({
-    subreddit: z
-      .string()
-      .optional()
-      .describe(
-        "Required. Target subreddit — 'webdev', 'r/webdev' and '/r/webdev' are all accepted. Falls back to the subreddit stored on the channel."
-      ),
-    title: z
-      .string()
-      .optional()
-      .describe(
-        "Post title. Defaults to the first line of content, truncated to 300 characters."
-      ),
-    type: z
-      .string()
-      .optional()
-      .describe(
-        "Set to 'link' to force a link submission. Otherwise the kind is resolved from media: image -> image, video -> video, url set -> link, else self (text)."
-      ),
-    url: z
-      .string()
-      .optional()
-      .describe("Destination URL for a link post; implies type 'link'."),
-    flairId: z
-      .string()
-      .optional()
-      .describe("Link-flair id (list via get_channel_options)."),
-    thumbnailUrl: z
-      .string()
-      .optional()
-      .describe(
-        "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, failing only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file."
-      ),
-  })
-  .passthrough();
-
 const DISCORD_OPTIONS = z
   .object({
     channelId: z
@@ -360,11 +321,6 @@ const PLATFORM_SPECIFIC_SCHEMA = z
     linkedin: z.object({}).passthrough().optional(),
     bluesky: z.object({ repostId: z.string().optional().describe("With postTypeOverrides.bluesky = 'repost': the bsky.app post URL (or at:// URI) to repost.") }).passthrough().optional(),
     mastodon: z.object({ repostId: z.string().optional().describe("With postTypeOverrides.mastodon = 'repost': the status URL or ID to boost.") }).passthrough().optional(),
-    reddit: channelKeyedOrFlat(REDDIT_OPTIONS)
-      .optional()
-      .describe(
-        'Reddit options, nested under the BulkPublish channel id: { "12": { "subreddit": "webdev" } }. A flat object (e.g. { "subreddit": "webdev" }) applies to every Reddit channel on the post. subreddit is required; a media post accepts exactly one file.'
-      ),
     discord: channelKeyedOrFlat(DISCORD_OPTIONS)
       .optional()
       .describe(
@@ -390,7 +346,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
   })
   .optional()
   .describe(
-    'Platform-specific settings, e.g. { "youtube": { "title": "…", "privacyStatus": "public" } }. Reddit, Discord, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { "reddit": { "12": { "subreddit": "webdev" } } }. Telegram takes no options.'
+    'Platform-specific settings, e.g. { "youtube": { "title": "…", "privacyStatus": "public" } }. Discord, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { "discord": { "12": { "channelId": "1090123456789012345" } } }. Telegram takes no options.'
   );
 
 const PLATFORM_CONTENT_SCHEMA = z
@@ -406,7 +362,6 @@ const PLATFORM_CONTENT_SCHEMA = z
     linkedin: z.string().optional(),
     mastodon: z.string().optional(),
     gmb: z.string().optional(),
-    reddit: z.string().optional(),
     discord: z.string().optional(),
     telegram: z.string().optional(),
     tumblr: z.string().optional(),
@@ -1965,7 +1920,7 @@ server.tool(
 
 const CLIENT_CONNECT_PLATFORMS = [
   "bluesky", "facebook", "instagram", "x", "tiktok", "youtube", "threads", "pinterest",
-  "gmb", "linkedin", "mastodon", "reddit", "discord", "tumblr", "snapchat",
+  "gmb", "linkedin", "mastodon", "discord", "tumblr", "snapchat",
 ] as const;
 
 server.tool(
@@ -2152,7 +2107,7 @@ server.tool(
 
 server.tool(
   "get_post_metrics",
-  "Get engagement metrics for a published post. Returns likes, comments, shares, impressions, and other platform-specific metrics. IMPORTANT: every platform entry carries `metricsSupported` and `supportedMetrics` — a metric key NOT in `supportedMetrics` is stored as 0 because that platform's API has no such field, so report it as unavailable rather than as zero. X reports impressions/likes/comments/shares/saves (bookmarks); Bluesky and Mastodon report no impressions; Pinterest reports no reach; YouTube reports no shares or reach; Reddit reports likes (score), comments and shares (crossposts); Discord reports likes (reaction counts) and comments (thread replies); TikTok reports reach, saves and clicks only for accounts that have granted TikTok insights. An Instagram story reports only impressions, reach and comments (story replies). Google Business, Telegram, Tumblr and LinkedIn personal profiles report nothing readable at all, and an X post comes back with `metricsSupported: false` until its channel turns on X metrics sync. Each platform entry also carries `linkClicks` (summed in `totals.linkClicks`): clicks on bulkpubli.sh short links in this post, measured by BulkPublish rather than reported by the platform. It sits OUTSIDE `latest` and is distinct from the platform's own `clicks` — one visit can register in both, so never add them together. It is therefore available even for the platforms that report nothing, and `supportedMetrics` always includes it. Bot and link-preview traffic is excluded; it is 0 for organizations without Link Tracking enabled.",
+  "Get engagement metrics for a published post. Returns likes, comments, shares, impressions, and other platform-specific metrics. IMPORTANT: every platform entry carries `metricsSupported` and `supportedMetrics` — a metric key NOT in `supportedMetrics` is stored as 0 because that platform's API has no such field, so report it as unavailable rather than as zero. X reports impressions/likes/comments/shares/saves (bookmarks); Bluesky and Mastodon report no impressions; Pinterest reports no reach; YouTube reports no shares or reach; Discord reports likes (reaction counts) and comments (thread replies); TikTok reports reach, saves and clicks only for accounts that have granted TikTok insights. An Instagram story reports only impressions, reach and comments (story replies). Google Business, Telegram, Tumblr and LinkedIn personal profiles report nothing readable at all, and an X post comes back with `metricsSupported: false` until its channel turns on X metrics sync. Each platform entry also carries `linkClicks` (summed in `totals.linkClicks`): clicks on bulkpubli.sh short links in this post, measured by BulkPublish rather than reported by the platform. It sits OUTSIDE `latest` and is distinct from the platform's own `clicks` — one visit can register in both, so never add them together. It is therefore available even for the platforms that report nothing, and `supportedMetrics` always includes it. Bot and link-preview traffic is excluded; it is 0 for organizations without Link Tracking enabled.",
   {
     postId: z.number().describe("The post ID to get metrics for."),
   },
@@ -2262,19 +2217,17 @@ server.tool(
 
 server.tool(
   "get_channel_options",
-  "Get platform-specific options for a channel: Pinterest boards, YouTube playlists, Tumblr blogs, Discord text channels, Reddit subreddit search or flairs, Threads location search.",
+  "Get platform-specific options for a channel: Pinterest boards, YouTube playlists, Tumblr blogs, Discord text channels, Threads location search.",
   {
     channelId: z.number().describe("The channel ID to get options for."),
     q: z
       .string()
       .optional()
-      .describe("Search term. Reddit: subreddit name search. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging)."),
-    subreddit: z.string().optional().describe("Reddit only: return that subreddit's post flairs instead of searching."),
+      .describe("Search term. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging)."),
   },
-  async ({ channelId, q, subreddit }) => {
+  async ({ channelId, q }) => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
-    if (subreddit) params.set("subreddit", subreddit);
     const qs = params.toString();
     const res = await api("GET", `/api/channels/${channelId}/options${qs ? `?${qs}` : ""}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };

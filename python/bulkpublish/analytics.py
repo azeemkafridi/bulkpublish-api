@@ -231,8 +231,7 @@ class AnalyticsResource:
             comments/shares/saves — saves via bookmarks (never reach, clicks or
             video views); Bluesky and Mastodon report no impressions, so
             engagement rate is always 0; Pinterest reports no reach; YouTube
-            reports no shares or reach; Reddit reports likes (score), comments
-            and shares (crossposts); Discord reports likes (reaction counts)
+            reports no shares or reach; Discord reports likes (reaction counts)
             and comments (thread replies).
             ``supportedTotals`` is the union across the window — render a
             ``total*`` field whose key is missing there as "not available", never

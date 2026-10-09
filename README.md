@@ -313,7 +313,7 @@ Authorization: Bearer bp_your_key_here
 | `POST` | `/api/posts/bulk` | Bulk delete or retry |
 | `GET` | `/api/channels` | List connected social media channels |
 | `GET` | `/api/channels/:id/health` | Check channel token health |
-| `GET` | `/api/channels/:id/options` | Get platform options (Pinterest boards, YouTube playlists, Tumblr blogs, Discord channels, Reddit `?q=`/`?subreddit=`, Threads `?q=` place search) |
+| `GET` | `/api/channels/:id/options` | Get platform options (Pinterest boards, YouTube playlists, Tumblr blogs, Discord channels, Threads `?q=` place search) |
 | `GET` | `/api/channels/:id/mentions` | Search accounts for @mention (X, Bluesky, Mastodon, LinkedIn Pages — LinkedIn results are `@[Name](urn:li:organization:ID)` tokens plus the `vanityName` slug they matched on) |
 | `GET`/`POST` | `/api/templates` | Saved post templates (get/update/delete via `/api/templates/:id`) |
 | `GET`/`POST` | `/api/calendar-notes` | Notes pinned to calendar days, `?from&to` range (update/delete via `/api/calendar-notes/:id`) |

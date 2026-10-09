@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-10-09 — Reddit is no longer a supported platform
+
+Node SDK **1.43.0** · Python SDK **0.44.0** · MCP **1.46.0**
+
+### Removed
+
+- Reddit platform support removed. **Breaking:** `reddit` is no longer a valid platform value anywhere in the API — channels, posts, `postTypeOverrides`, `platformContent` and client connect links all reject it. The published platform enum drops from 16 values to 15.
+- `platformSpecific.reddit` and its options (`subreddit`, `title`, `type`, `url`, `flairId`, `thumbnailUrl`) are gone from the OpenAPI spec, Postman collection, Node and Python SDK docs and the MCP `create_post`/`update_post` schemas.
+- `GET /api/channels/{id}/options` no longer documents the `subreddit` query parameter or the `subreddits`/`flairs` result types; the MCP `get_channel_options` tool drops its `subreddit` argument.
+- Node and Python `CLIENT_CONNECT_PLATFORMS`, the Node `Platform` type, the composer widget's platform icons and the platform guide no longer list Reddit.
+
 ## 2026-10-06 — Clients can connect Bluesky through a client connect link
 
 Node SDK **1.42.0** · Python SDK **0.43.0** · MCP **1.45.0**

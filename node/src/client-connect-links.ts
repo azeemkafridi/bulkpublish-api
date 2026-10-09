@@ -23,7 +23,7 @@ export interface ClientConnectLink {
  */
 export const CLIENT_CONNECT_PLATFORMS = [
   'bluesky', 'facebook', 'instagram', 'x', 'tiktok', 'youtube', 'threads', 'pinterest',
-  'gmb', 'linkedin', 'mastodon', 'reddit', 'discord', 'tumblr', 'snapchat',
+  'gmb', 'linkedin', 'mastodon', 'discord', 'tumblr', 'snapchat',
 ] as const;
 
 /**
