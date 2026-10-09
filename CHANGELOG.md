@@ -16,9 +16,9 @@ Node SDK **1.44.0** · Python SDK **0.45.0** · MCP **1.47.0**
 - **YouTube:** `containsSyntheticMedia`, `notifySubscribers`, `license`, `embeddable`, `publicStatsViewable`, `defaultLanguage`, `defaultAudioLanguage` and `recordingDate`.
 - **Pinterest:** `boardSectionId` and `coverKeyFrameTime`. `GET /api/channels/{id}/options?boardId=<boardId>` lists a board's sections (MCP `get_channel_options` takes `boardId`).
 - **Telegram:** `silent`, `protectContent`, `pin`, `threadId`, `buttons`, `spoiler`, `disablePreview` and `poll`. Telegram options are now keyed by channel id (or flat), like Discord's.
-- **Discord:** `silent`, `buttons`, `startThread`, `threadName`, `embed`, `poll`, `pin` and `tags`.
+- **Discord:** `silent`, `buttons`, `startThread`, `threadName`, `embed`, `poll`, `pin` and `tags` A poll is left off a forum post, whose starter message cannot carry one.
 - **Tumblr:** `state`, `slug`, `reblogInteraction` and `reblogUrl`.
-- **LinkedIn:** three new post types, `document`, `poll` and `reshare`, and the options `documentTitle`, `poll`, `reshareId`, `thumbnailUrl`, `visibility` and `disableReshare`.
+- **LinkedIn:** three new post types, `document`, `poll` and `reshare`, and the options `documentTitle`, `poll`, `reshareId`, `thumbnailUrl`, `visibility` and `disableReshare`. The `article` fields (`url`, required on an article post, plus optional `title` and `description`) are now documented too.
 - **Documents in the media library.** PDF, Word and PowerPoint files upload like any other file (up to 100MB) and `type=document` lists them (Node `media.list({ type: 'document' })`, Python `type="document"`, MCP `list_media`). A document can only be published to LinkedIn, as a `document` post; attaching one to any other platform is rejected with 400 `VALIDATION_ERROR` when the post is scheduled or published. The MCP `upload_media` tool and the Node SDK pick the right content type for these file extensions.
 - **Comment moderation:** Threads supports `hide` and `unhide`; Facebook supports `hide`, `unhide` and `delete` (see `commentActions`). A comment you hid on Threads or Facebook comes back from the engagement read with `hidden: true`, and the Node `PostComment` type has the field.
 
