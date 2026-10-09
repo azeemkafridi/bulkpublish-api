@@ -12,11 +12,12 @@ import type {
 } from './types.js';
 
 /**
- * Resource for managing media files (images and videos).
+ * Resource for managing media files (images, videos and documents).
  *
  * Access via `client.media`.
  *
- * Supports uploading images (JPEG, PNG, WebP, GIF) and videos (MP4, QuickTime, WebM)
+ * Supports uploading images (JPEG, PNG, WebP, GIF), videos (MP4, QuickTime, WebM) and
+ * documents (PDF, Word, PowerPoint; LinkedIn `document` posts only)
  * up to 100 MB per single-request upload; larger videos (up to 1GB) can be sent in
  * chunks via {@link MediaResource.createMultipart}. Uploaded files are stored in
  * your media library and automatically generate thumbnails and preview variants.
@@ -102,7 +103,9 @@ export class MediaResource {
    *
    * Accepts a file path (string), a Node.js Buffer, or a Blob/File object.
    * Maximum file size is 100 MB. Supported types: JPEG, PNG, WebP, GIF, MP4,
-   * QuickTime (.mov), WebM.
+   * QuickTime (.mov), WebM, and documents: PDF, Word (.doc, .docx) and PowerPoint
+   * (.ppt, .pptx). A document has no thumbnail or preview and can only be published
+   * to LinkedIn, as a `document` post.
    *
    * @param file - File path, URL (http/https), Buffer, Blob, or File to upload. URLs are downloaded automatically.
    * @param fileName - Optional file name override (used when passing a Buffer or URL).

@@ -189,14 +189,26 @@ class PostsResource:
             platform_specific: Per-platform settings. Required fields by platform:
 
                 - **youtube**: ``{"title": "..."}`` (required, 1-100 chars).
-                  Optional: ``privacyStatus``, ``categoryId``, ``tags``, ``playlistId``, ``thumbnailUrl``, ``madeForKids``
+                  Optional: ``privacyStatus``, ``categoryId``, ``tags``, ``playlistId``, ``thumbnailUrl``, ``madeForKids``.
+                  Also, for post types ``video`` and ``short`` (sent to YouTube only when set):
+                  ``containsSyntheticMedia`` (discloses realistic altered or synthetic content),
+                  ``notifySubscribers`` (only an explicit ``False`` changes anything), ``license``
+                  (``"youtube"``/``"creativeCommon"``), ``embeddable`` and ``publicStatsViewable``
+                  (``False`` restricts), ``defaultLanguage`` and ``defaultAudioLanguage`` (language
+                  codes such as ``"en"``, ``"pt-BR"``), ``recordingDate`` (``YYYY-MM-DD`` or an
+                  ISO 8601 date-time)
                 - **pinterest**: ``{"title": "..."}`` (required, 1-100 chars).
                   Optional: ``boardId``, ``description``, ``link``, ``dominantColor``,
                   ``coverImageUrl`` (video pins; when omitted the server falls back to an
-                  attached image, then the video's auto-extracted poster frame)
+                  attached image, then the video's auto-extracted poster frame),
+                  ``boardSectionId`` (numeric section of the chosen board, for ``pin``,
+                  ``video_pin`` and ``carousel``; list sections with
+                  ``GET /api/channels/{id}/options?boardId=<boardId>``; ignored when no board was
+                  chosen), ``coverKeyFrameTime`` (``video_pin`` only: whole seconds, 0 or more, used
+                  as the cover frame; ``coverImageUrl`` wins when both are sent)
                 - **instagram**: Optional: ``collaborators``, ``shareToStory``, ``trialReel``,
                   ``graduationStrategy`` (``"manual"``/``"auto"``), ``thumbnailTimestamp``,
-                  ``coverUrl``. ``collaborators`` is a comma-separated list of usernames (no
+                  ``coverUrl``, ``userTags``, ``shareToFeed``, ``locationId``. ``collaborators`` is a comma-separated list of usernames (no
                   leading @) tagged as co-authors; it applies to post types ``feed_photo``,
                   ``feed_video``, ``reel`` and ``carousel`` -- on a carousel the co-authors go
                   on the carousel itself, not on its individual items -- and is ignored on
@@ -207,21 +219,82 @@ class PostsResource:
                   ``thumbnailTimestamp`` and ``coverUrl`` both set the still shown before a
                   video or Reel plays (post types ``feed_video`` and ``reel``); ``coverUrl``
                   wins when both are sent, because Instagram rejects a request carrying both.
-                - **facebook**: Optional: ``shareToStory``, ``thumbnailUrl``. ``thumbnailUrl`` is
+                  ``userTags`` is a list of ``{"username", "x", "y", "mediaIndex"}`` (up to 20 per photo
+                  or video; ``x``/``y`` are 0 to 1 from the top left, given together; ``mediaIndex`` counts
+                  from 0 in attachment order, default 0). On a photo, and each photo of a carousel, a tag
+                  needs ``x`` and ``y`` or it is left out; on a Reel or video post people are tagged by
+                  username only. Carousel videos and Stories carry no tags. ``shareToFeed`` (Reels only):
+                  ``False`` shows the Reel only in the Reels tab, ``True`` also in the main feed.
+                  ``locationId`` (digits) is the numeric ID of a Facebook Page that has a location
+                  (photos, videos, Reels, carousels; not Stories).
+                - **facebook**: Optional: ``shareToStory``, ``thumbnailUrl``, ``textFormatPresetId``.
+                  ``textFormatPresetId`` (digits, a Facebook background ID) shows a short text post on a
+                  coloured background; used only on a Page feed post with no photo, video or link card
+                  and at most 130 characters, otherwise left out, and dropped (published as plain text)
+                  if Facebook refuses it. ``thumbnailUrl`` is
                   the cover for a video or Reel; Facebook only accepts one once the video exists, so
                   it is applied after the video publishes and lands a moment after the post. A cover
                   that cannot be fetched, or that Facebook rejects, leaves the video published with
                   Facebook's own chosen frame rather than failing the post.
-                - **tiktok**: Optional: ``privacyLevel`` (SELF_ONLY|PUBLIC|FRIENDS), ``disableDuet``, ``disableStitch``
-                - **linkedin**: Optional: ``title``, ``description``, ``url`` (required for article type)
+                - **tiktok**: Optional: ``privacyLevel`` (SELF_ONLY|PUBLIC|FRIENDS), ``disableDuet``, ``disableStitch``, ``autoAddMusic`` (photo posts), ``sendToDrafts``,
+                  ``photoCoverIndex``. ``sendToDrafts=True`` sends a ``video`` or ``photo_slideshow``
+                  post to the creator's TikTok drafts instead of publishing it: ``privacyLevel`` is then
+                  not required and the direct-post settings are ignored; a video draft carries no
+                  caption, a photo draft does. Once delivered the destination is ``published`` with no
+                  ``platformUrl`` and analytics are not collected. ``photoCoverIndex`` (whole number
+                  0 to 34, default 0) picks the cover image of a ``photo_slideshow``.
+                - **x**: Optional: ``replySettings`` (single post and first post of a thread), ``poll``
+                  (``{"options": 2-4 strings of 1-25 chars, "durationMinutes": 5-10080}``; not with media
+                  or ``quoteId``), ``quoteId`` (numeric ID or x.com status URL; not with ``poll``),
+                  ``communityId`` (numeric ID or ``https://x.com/i/communities/<id>``; the account must be
+                  a member), ``shareWithFollowers`` (default ``False``; with ``communityId``). On a thread,
+                  ``poll``, ``quoteId`` and ``communityId`` apply to the first post only; none applies to a repost
+                - **bluesky**: Optional: ``replyAllow`` (list: omitted or empty = everyone, else
+                  ``["nobody"]`` or any mix of ``"mention"``, ``"following"``, ``"follower"``),
+                  ``allowQuotes`` (default ``True``), ``quoteId`` (bsky.app link or at:// URI), ``langs``
+                  (up to 3 language codes), ``contentLabel`` (``"sexual"``/``"nudity"``/``"porn"``/
+                  ``"graphic-media"``). ``replyAllow``, ``allowQuotes`` and ``quoteId`` apply to the first
+                  post of a thread; ``langs`` and ``contentLabel`` to every part
+                - **linkedin**: Optional: ``title``, ``description``, ``url`` (required for article type),
+                  ``documentTitle`` (``document`` posts; defaults to the file's name), ``poll``
+                  (``{"question": up to 140 chars, "options": 2-4 strings of up to 30 chars, "duration":
+                  "ONE_DAY"|"THREE_DAYS"|"SEVEN_DAYS"|"FOURTEEN_DAYS"}``, default ``THREE_DAYS``;
+                  required for ``poll`` posts), ``reshareId`` (LinkedIn post link or
+                  ``urn:li:share:``/``urn:li:ugcPost:`` ID; required for ``reshare`` posts; activity links
+                  are rejected), ``thumbnailUrl`` (public image URL up to 10MB, cover for a ``post`` with a
+                  video; skipped if it cannot be fetched), ``visibility`` (``"PUBLIC"``/``"CONNECTIONS"``/
+                  ``"LOGGED_IN"``, default ``PUBLIC``; ``CONNECTIONS`` on a Page is published as ``PUBLIC``),
+                  ``disableReshare`` (default ``False``). A ``document`` post needs exactly one PDF, Word
+                  or PowerPoint file in ``media_files``; documents can be published only to LinkedIn
                 - **gmb**: Optional: ``ctaType``, ``ctaUrl``, ``eventTitle``, ``startDate``, ``endDate``
-                - **mastodon**: Optional: ``visibility``, ``spoilerText``, ``language``
-                - **discord**: ``{"channelId": "..."}`` (required) — the target Discord *text
+                - **mastodon**: Optional: ``visibility``, ``spoilerText``, ``language``, ``poll``
+                  (``{"options": 2-4 strings of 1-50 chars, "expiresIn": 300-2629746 seconds, "multiple",
+                  "hideTotals"}``; not with media), ``sensitive`` (hides attached media), ``quoteId`` (URL
+                  or status ID on your own server; needs a server running Mastodon 4.5 or later).
+                  ``poll`` and ``quoteId`` apply to the first post of a thread
+                - **threads**: Optional: ``replyControl`` (``"everyone"``/``"accounts_you_follow"``/
+                  ``"mentioned_only"``/``"parent_post_author_only"``/``"followers_only"``; default
+                  ``everyone``; the post itself and first part of a thread), ``pollOptions`` (2-4 strings
+                  of 1-25 chars; text-only posts), ``linkAttachment`` (public http(s) URL shown as the
+                  preview card on a text post; Threads refuses more than 5 links in total), plus
+                  ``topicTag``, ``locationId``, ``quotePostId``
+                - **discord**: Optional: ``silent``, ``buttons`` (up to 5 ``{label, url}``), ``startThread``,
+                  ``threadName``, ``embed`` (``{title, color}``), ``poll`` (``{question, answers: 2-10,
+                  durationHours, multiselect}``), ``pin``, ``tags`` (up to 5 forum tag IDs); polls and pins
+                  need the Send Polls and Pin Messages permissions. ``{"channelId": "..."}`` (required) — the target Discord *text
                   channel* snowflake inside the connected server, which is not the BulkPublish
                   channel id. Publishing uses a global bot token, so failures are permission
                   problems rather than a reconnect issue.
-                - **telegram**: no options — the destination chat is fixed at connect time.
-                - **tumblr**: Optional: ``blogName`` (defaults to the blog the channel was
+                - **telegram**: Optional: ``silent``, ``protectContent``, ``pin``, ``threadId`` (forum topic,
+                  digits), ``buttons`` (up to 3 ``{label, url}``), ``spoiler``, ``disablePreview``,
+                  ``poll`` (``{question, options: 2-12, anonymous, multipleAnswers, quiz,
+                  correctOption}``; ``correctOption`` is the 0-based answer and required when ``quiz`` is
+                  true; ``multipleAnswers`` cannot be combined with ``quiz``). The destination chat is
+                  fixed at connect time.
+                - **tumblr**: Optional: ``state`` (``"published"``/``"queue"``/``"draft"``/``"private"``; ``draft`` and
+                  ``private`` override scheduling), ``slug`` (up to 200 chars), ``reblogInteraction``
+                  (``"everyone"``/``"noone"``), ``reblogUrl`` (a Tumblr post link: publishes a reblog with
+                  your text as the comment), ``blogName`` (defaults to the blog the channel was
                   connected as), ``title``, ``tags`` (list of strings, no leading ``#``),
                   ``link``, ``sourceUrl``
                 - **snapchat**: Optional: ``title`` (Saved Story title, max 45 chars —
@@ -236,7 +309,7 @@ class PostsResource:
                   post is scheduled or published (drafts may be saved with it). First
                   comments are not supported on Snapchat.
 
-                ``discord``, ``tumblr`` and ``snapchat`` nest their options under the
+                ``discord``, ``telegram``, ``tumblr`` and ``snapchat`` nest their options under the
                 **BulkPublish channel id**, because each connected account commonly targets a
                 different Discord channel / blog. A flat object is also accepted
                 and applies to every channel of that platform on the post::
@@ -261,7 +334,9 @@ class PostsResource:
                 - instagram: ``feed_photo``, ``feed_video``, ``reel``, ``story``, ``carousel``
                 - youtube: ``video``, ``short`` (video file required)
                 - tiktok: ``video``, ``photo_slideshow``
-                - linkedin: ``post``, ``multi_image``, ``pdf_carousel``, ``article``
+                - linkedin: ``post``, ``multi_image``, ``pdf_carousel``, ``article``, ``document``
+                  (one PDF, Word or PowerPoint file; title from ``documentTitle``), ``poll`` (from
+                  ``poll``; needs text, no media), ``reshare`` (from ``reshareId``; text optional, no media)
                 - pinterest: ``pin``, ``video_pin``, ``carousel``
                 - threads: ``text``, ``image``, ``video``, ``carousel``
                 - gmb: ``standard``, ``event``, ``offer``
@@ -782,7 +857,8 @@ class PostsResource:
 
         ``"delete"`` is permanent and needs a role that can publish. Which
         actions a channel supports is in ``commentActions`` on its engagement
-        entry.
+        entry (Threads: ``hide``/``unhide``; Facebook: ``hide``/``unhide``/``delete``).
+        A comment hidden on Threads or Facebook comes back with ``hidden: true``.
 
         Returns:
             ``{"success", "action"}``.

@@ -439,7 +439,8 @@ export class PostsResource {
    * Like, unlike, hide, unhide or delete a comment on the platform, as the
    * channel the post was published to. `delete` is permanent and needs a role
    * that can publish. Supported actions per channel are in the engagement
-   * entry's `commentActions`.
+   * entry's `commentActions` (Threads: `hide`/`unhide`; Facebook: `hide`/`unhide`/`delete`).
+   * A comment hidden on Threads or Facebook comes back with `hidden: true`.
    */
   moderateComment(id: number, params: ModerateCommentParams): Promise<{ success: boolean; action: CommentModerationAction }> {
     return this.http.post(`/api/posts/${id}/comments/moderate`, params);

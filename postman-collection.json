@@ -3134,7 +3134,7 @@
           "request": {
             "name": "Get platform-specific options for a channel",
             "description": {
-              "content": "Returns the channel's platform sub-resources, keyed by `type`: `boards` (Pinterest), `playlists` (YouTube), `blogs` (Tumblr), `channels` (Discord text channels), `locations` (Threads, see below) and `creator_info` (TikTok, where the payload is an `info` object with the creator's `privacyLevelOptions` and limits rather than an `items` list). Returns `{ type: null, items: [] }` for platforms without sub-resources. Threads: `?q=<place>` returns `{ type: 'locations', items: [{ id, name, address? }] }`; until the connected account has granted location tagging the response is `{ type: 'locations', items: [], unavailable: true }`.",
+              "content": "Returns the channel's platform sub-resources, keyed by `type`: `boards` (Pinterest), `playlists` (YouTube), `blogs` (Tumblr), `channels` (Discord text channels), `locations` (Threads, see below) and `creator_info` (TikTok, where the payload is an `info` object with the creator's `privacyLevelOptions` and limits rather than an `items` list). Returns `{ type: null, items: [] }` for platforms without sub-resources. Threads: `?q=<place>` returns `{ type: 'locations', items: [{ id, name, address? }] }`; until the connected account has granted location tagging the response is `{ type: 'locations', items: [], unavailable: true }`. Pinterest: with `?boardId=<boardId>` it returns `{ type: 'sections', items: [{ id, name }] }`, the sections of that board, instead of the boards; the section `id` is what `platformSpecific.pinterest.boardSectionId` takes.",
               "type": "text/plain"
             },
             "url": {
@@ -3147,7 +3147,17 @@
               "host": [
                 "{{baseUrl}}"
               ],
-              "query": [],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** Pinterest only: numeric board ID. Returns that board's sections instead of the boards. Anything non-numeric returns 400 `Invalid board ID`.",
+                    "type": "text/plain"
+                  },
+                  "key": "boardId",
+                  "value": "<string>"
+                }
+              ],
               "variable": [
                 {
                   "type": "any",
@@ -4584,7 +4594,7 @@
                 {
                   "disabled": true,
                   "description": {
-                    "content": "**optional** \u2014 Filter by media kind: `image` or `video` (matches the MIME type prefix)",
+                    "content": "**optional** \u2014 Filter by media kind: `image`, `video` or `document` (PDF, Word and PowerPoint files). Omit for all files.",
                     "type": "text/plain"
                   },
                   "key": "type",
@@ -4681,7 +4691,7 @@
           "request": {
             "name": "Upload media (single request)",
             "description": {
-              "content": "Upload an image or video file in one multipart request (server relays to storage). Max 100MB (for videos up to 1GB use the multipart endpoints: /api/media/multipart/create \u2192 PUT each part \u2192 /api/media/multipart/complete). Formats: JPEG, PNG, WebP, GIF, MP4, QuickTime, WebM. Browser clients should prefer the faster direct-to-storage flow: POST /api/media/presign then PUT the file to the returned URL then POST /api/media/finalize. MP4/QuickTime files must be complete (contain a moov atom) \u2014 a video captured mid-encode or truncated in transit is rejected with 400 at upload instead of failing at publish time. The same check runs on /api/media/finalize (via ranged reads) and on remote URL imports. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+              "content": "Upload an image, video or document file in one multipart request (server relays to storage). Max 100MB (for videos up to 1GB use the multipart endpoints: /api/media/multipart/create \u2192 PUT each part \u2192 /api/media/multipart/complete). Formats: JPEG, PNG, WebP, GIF, MP4, QuickTime, WebM. Documents: PDF (application/pdf), Word (application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document) and PowerPoint (application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation) files are also accepted, up to 100MB. We check the file itself, not just its name, so a renamed file is refused. Documents have no thumbnail or preview (`thumbnailUrl`, `previewUrl`, `largeUrl`, `width` and `height` are null) and can only be published to LinkedIn, as a `document` post. Browser clients should prefer the faster direct-to-storage flow: POST /api/media/presign then PUT the file to the returned URL then POST /api/media/finalize. MP4/QuickTime files must be complete (contain a moov atom) \u2014 a video captured mid-encode or truncated in transit is rejected with 400 at upload instead of failing at publish time. The same check runs on /api/media/finalize (via ranged reads) and on remote URL imports. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
               "type": "text/plain"
             },
             "url": {
@@ -11688,7 +11698,7 @@
           "request": {
             "name": "Like, hide or delete a comment on a published post",
             "description": {
-              "content": "Acts on a comment, on the platform, as the channel the post was published to. `like`/`unlike` and `hide`/`unhide` can be undone; **`delete` is permanent on the platform** and needs a role that can publish (owner, admin, approver) — other roles get 403. Hiding or deleting also removes the comment from your Inbox.\n\nWhich actions a channel supports is in `commentActions` on its `GET /api/posts/{id}/engagement` entry; anything else returns 422.\n\n`postPlatformId` and `commentId` come from `GET /api/posts/{id}/engagement`: the post's entry for that channel, and the comment's `id`.\n\n**Availability.** Replying to and moderating comments is being rolled out. Until it is available to your account this returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"comments_inbox\"`. Comment replies are part of every plan except Free: on Free the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence. Reading comments through `GET /api/posts/{id}/engagement` is not affected and stays available on every plan.\n\nRequires a role that can edit posts (owner, admin, approver, contributor). Limited to 30 actions per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
+              "content": "Acts on a comment, on the platform, as the channel the post was published to. `like`/`unlike` and `hide`/`unhide` can be undone; **`delete` is permanent on the platform** and needs a role that can publish (owner, admin, approver) — other roles get 403. Hiding or deleting also removes the comment from your Inbox.\n\nWhich actions a channel supports is in `commentActions` on its `GET /api/posts/{id}/engagement` entry; anything else returns 422. Threads supports `hide` and `unhide`; Facebook supports `hide`, `unhide` and `delete`. A comment you hid on Threads or Facebook comes back from `GET /api/posts/{id}/engagement` with `hidden: true`.\n\n`postPlatformId` and `commentId` come from `GET /api/posts/{id}/engagement`: the post's entry for that channel, and the comment's `id`.\n\n**Availability.** Replying to and moderating comments is being rolled out. Until it is available to your account this returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"comments_inbox\"`. Comment replies are part of every plan except Free: on Free the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence. Reading comments through `GET /api/posts/{id}/engagement` is not affected and stays available on every plan.\n\nRequires a role that can edit posts (owner, admin, approver, contributor). Limited to 30 actions per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
               "type": "text/plain"
             },
             "url": {

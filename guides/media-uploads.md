@@ -1,6 +1,8 @@
 # Media Uploads
 
-BulkPublish supports uploading images and videos that can be attached to posts across all platforms.
+BulkPublish supports uploading images and videos that can be attached to posts across all platforms, and documents (PDF, Word and PowerPoint files) for LinkedIn.
+
+**Documents.** PDF (`application/pdf`), Word (`.doc`, `.docx`) and PowerPoint (`.ppt`, `.pptx`) files are accepted up to 100 MB. We check the file itself, not just its name, so a renamed file is refused. A document has no thumbnail or preview (`thumbnailUrl`, `previewUrl`, `largeUrl`, `width` and `height` are `null`) and can only be published to LinkedIn, as a `document` post; a post that attaches one to any other platform is rejected with `400 VALIDATION_ERROR` when it is scheduled or published. List them with `GET /api/media?type=document`.
 
 ## Upload Flow
 

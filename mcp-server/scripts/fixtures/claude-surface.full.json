@@ -172,6 +172,7 @@
                     "gmb",
                     "linkedin",
                     "mastodon",
+                    "reddit",
                     "discord",
                     "telegram",
                     "tumblr",
@@ -218,7 +219,7 @@
             }
           },
           "platformSpecific": {
-            "description": "Platform-specific settings, e.g. { \"youtube\": { \"title\": \"…\", \"privacyStatus\": \"public\" } }. Discord, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { \"discord\": { \"12\": { \"channelId\": \"1090123456789012345\" } } }. Telegram takes no options.",
+            "description": "Platform-specific settings, e.g. { \"youtube\": { \"title\": \"…\", \"privacyStatus\": \"public\" } }. Reddit, Discord, Telegram, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { \"reddit\": { \"12\": { \"subreddit\": \"webdev\" } } }. Full per-platform option lists (polls, quotes, tags, drafts, settings) are on each platform key; bad values are refused with 400 VALIDATION_ERROR.",
             "type": "object",
             "properties": {
               "youtube": {
@@ -246,6 +247,42 @@
                   },
                   "thumbnailUrl": {
                     "type": "string"
+                  },
+                  "containsSyntheticMedia": {
+                    "description": "true discloses realistic altered or synthetic content. Video and short posts.",
+                    "type": "boolean"
+                  },
+                  "notifySubscribers": {
+                    "description": "Only an explicit false changes anything: publishes without notifying subscribers.",
+                    "type": "boolean"
+                  },
+                  "license": {
+                    "description": "Default youtube; creativeCommon publishes under Creative Commons Attribution.",
+                    "type": "string",
+                    "enum": [
+                      "youtube",
+                      "creativeCommon"
+                    ]
+                  },
+                  "embeddable": {
+                    "description": "false stops other websites embedding the video.",
+                    "type": "boolean"
+                  },
+                  "publicStatsViewable": {
+                    "description": "false hides extended statistics on the watch page.",
+                    "type": "boolean"
+                  },
+                  "defaultLanguage": {
+                    "description": "Language of the title and description, e.g. 'en', 'pt-BR', 'zh-Hans'.",
+                    "type": "string"
+                  },
+                  "defaultAudioLanguage": {
+                    "description": "Language spoken in the video, e.g. 'en'.",
+                    "type": "string"
+                  },
+                  "recordingDate": {
+                    "description": "YYYY-MM-DD or an ISO 8601 date-time; a plain date is stored as midnight UTC.",
+                    "type": "string"
                   }
                 },
                 "additionalProperties": {}
@@ -269,6 +306,14 @@
                   "coverImageUrl": {
                     "description": "Cover image URL for video pins. Optional — server falls back to an attached image, then the video's auto-extracted poster frame.",
                     "type": "string"
+                  },
+                  "boardSectionId": {
+                    "description": "Numeric ID of a section of the chosen board (list with get_channel_options and boardId). Send it beside its board, per channel or flat. Pin, video_pin and carousel. A flat value is ignored for a channel with its own boardId, and any section is ignored when no board was chosen.",
+                    "type": "string"
+                  },
+                  "coverKeyFrameTime": {
+                    "description": "video_pin only: use the frame at this many seconds (whole number, 0 or more) as the cover. A time past the end uses the last frame; coverImageUrl wins when both are sent.",
+                    "type": "number"
                   }
                 },
                 "additionalProperties": {}
@@ -336,6 +381,18 @@
                   "thumbnailTimestamp": {
                     "description": "Cover frame for the video, in seconds from the start.",
                     "type": "number"
+                  },
+                  "sendToDrafts": {
+                    "description": "Send a video or photo_slideshow post to the creator's TikTok drafts instead of publishing it (default false). privacyLevel is then not required, and the direct-post settings (privacyLevel, disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, autoAddMusic, thumbnailTimestamp) are ignored. A video draft carries no caption; a photo draft sends it. Once delivered the destination becomes published with no platformUrl, and analytics are not collected.",
+                    "type": "boolean"
+                  },
+                  "photoCoverIndex": {
+                    "description": "photo_slideshow only: which image is the cover, a whole number 0 to 34 counting from 0 in attachment order (default 0). An index past the last image falls back to the first.",
+                    "type": "number"
+                  },
+                  "autoAddMusic": {
+                    "description": "Photo posts published directly only: lets TikTok add a recommended track (default false). Ignored with sendToDrafts.",
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": {}
@@ -344,11 +401,45 @@
                 "type": "object",
                 "properties": {
                   "replySettings": {
+                    "description": "Who can reply: everyone, following, verified, subscribers or mentionedUsers. Applies to a single post and to the first post of a thread.",
                     "type": "string"
                   },
                   "repostId": {
                     "description": "With postTypeOverrides.x = 'repost': the X post URL or ID to repost (retweet).",
                     "type": "string"
+                  },
+                  "poll": {
+                    "description": "Adds a poll. Cannot be combined with media or quoteId. On a thread it goes on the first post.",
+                    "type": "object",
+                    "properties": {
+                      "options": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "2 to 4 choices, each 1 to 25 characters."
+                      },
+                      "durationMinutes": {
+                        "type": "number",
+                        "description": "How long the poll stays open, whole minutes from 5 to 10080 (7 days)."
+                      }
+                    },
+                    "required": [
+                      "options",
+                      "durationMinutes"
+                    ]
+                  },
+                  "quoteId": {
+                    "description": "The post to quote: its numeric ID or its x.com / twitter.com status URL. Cannot be combined with poll. On a thread it applies to the first post.",
+                    "type": "string"
+                  },
+                  "communityId": {
+                    "description": "Posts into an X Community: its numeric ID or its https://x.com/i/communities/<id> URL. The account must be a member.",
+                    "type": "string"
+                  },
+                  "shareWithFollowers": {
+                    "description": "With communityId, also shows the post to your followers (default false). Ignored without communityId.",
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": {}
@@ -358,6 +449,10 @@
                 "properties": {
                   "shareToStory": {
                     "type": "boolean"
+                  },
+                  "textFormatPresetId": {
+                    "description": "Digits only (a Facebook background ID). Shows a short text post on a coloured background. Used only on a Page feed post with no photo, video or link card and at most 130 characters; anywhere else it is left out and the post publishes as plain text. If Facebook refuses the background the post is published once more without it.",
+                    "type": "string"
                   },
                   "thumbnailUrl": {
                     "description": "Cover image URL for a video or Reel. Facebook only accepts a cover once the video exists, so it is applied after the video publishes and appears a moment after the post; a cover that cannot be fetched or that Facebook rejects leaves the video published with Facebook's own chosen frame rather than failing the post.",
@@ -375,6 +470,42 @@
                   },
                   "shareToStory": {
                     "type": "boolean"
+                  },
+                  "userTags": {
+                    "description": "People tagged in the post, up to 20 per photo or video. On a photo (and each photo of a carousel) a tag needs x and y or it is left out; on a Reel or video post people are tagged by username only and any position is ignored. Carousel videos and Stories carry no tags.",
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "username": {
+                          "type": "string",
+                          "description": "A public Instagram username, leading @ optional."
+                        },
+                        "x": {
+                          "description": "Position on the photo, 0 to 1 from the left. Give x and y together or not at all.",
+                          "type": "number"
+                        },
+                        "y": {
+                          "description": "Position on the photo, 0 to 1 from the top.",
+                          "type": "number"
+                        },
+                        "mediaIndex": {
+                          "description": "Which attached media item the tag belongs to, counting from 0 in attachment order (default 0).",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "username"
+                      ]
+                    }
+                  },
+                  "shareToFeed": {
+                    "description": "Reels only. false shows the Reel only in the Reels tab; true also shows it in the main feed. Omitted: Instagram's own default (feed and Reels tab).",
+                    "type": "boolean"
+                  },
+                  "locationId": {
+                    "description": "Digits only: the numeric ID of a Facebook Page that has a location. Applies to photos, videos, Reels and carousels, not Stories. Instagram refuses the post if it does not recognise the ID as a place.",
+                    "type": "string"
                   },
                   "trialReel": {
                     "description": "Publish as a trial reel, shown to people who do not follow the account first. Only takes effect with postTypeOverrides.instagram of 'reel' — a 'feed_video' publishes as an ordinary reel and this is ignored, even though both use the same underlying reel container.",
@@ -416,13 +547,92 @@
                   "locationId": {
                     "description": "Numeric place ID from get_channel_options with a `q` search on a Threads channel. Only works once the channel has granted location tagging.",
                     "type": "string"
+                  },
+                  "replyControl": {
+                    "description": "Who can reply (default everyone). parent_post_author_only means only you. Applies to the post itself, never to later replies in a thread; ignored on a repost.",
+                    "type": "string",
+                    "enum": [
+                      "everyone",
+                      "accounts_you_follow",
+                      "mentioned_only",
+                      "parent_post_author_only",
+                      "followers_only"
+                    ]
+                  },
+                  "pollOptions": {
+                    "description": "2 to 4 poll choices, each 1 to 25 characters. Text-only posts: on an image, video or carousel post the poll is left out. In a thread it goes on the first part when that part has no media.",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "linkAttachment": {
+                    "description": "An http(s) URL on a public host shown as the preview card on a text post; left out on other post types. Threads refuses a post with more than 5 links in total, and a link here that differs from every link in the text counts as one more.",
+                    "type": "string"
                   }
                 },
                 "additionalProperties": {}
               },
               "linkedin": {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "documentTitle": {
+                    "description": "`document` posts only: the title shown above the document in the feed. Defaults to the file's name.",
+                    "type": "string"
+                  },
+                  "poll": {
+                    "description": "Required for `poll` posts, which also need post text and take no media.",
+                    "type": "object",
+                    "properties": {
+                      "question": {
+                        "type": "string",
+                        "description": "Up to 140 characters."
+                      },
+                      "options": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "2 to 4 answers, each up to 30 characters; blank entries are ignored."
+                      },
+                      "duration": {
+                        "description": "Default THREE_DAYS.",
+                        "type": "string",
+                        "enum": [
+                          "ONE_DAY",
+                          "THREE_DAYS",
+                          "SEVEN_DAYS",
+                          "FOURTEEN_DAYS"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "question",
+                      "options"
+                    ]
+                  },
+                  "reshareId": {
+                    "description": "Required for `reshare` posts: the post's LinkedIn link, or its urn:li:share:<id> / urn:li:ugcPost:<id> ID. Activity links (urn:li:activity:<id>) cannot be reshared.",
+                    "type": "string"
+                  },
+                  "thumbnailUrl": {
+                    "description": "Cover for a `post` that carries a video: a public http(s) link to an image of up to 10MB. A cover that cannot be fetched is skipped and LinkedIn picks the frame.",
+                    "type": "string"
+                  },
+                  "visibility": {
+                    "description": "Who can see the post (default PUBLIC). CONNECTIONS applies to personal profiles only; on a Page it is published as PUBLIC.",
+                    "type": "string",
+                    "enum": [
+                      "PUBLIC",
+                      "CONNECTIONS",
+                      "LOGGED_IN"
+                    ]
+                  },
+                  "disableReshare": {
+                    "description": "true stops other members resharing the post (default false).",
+                    "type": "boolean"
+                  }
+                },
                 "additionalProperties": {}
               },
               "bluesky": {
@@ -431,6 +641,44 @@
                   "repostId": {
                     "description": "With postTypeOverrides.bluesky = 'repost': the bsky.app post URL (or at:// URI) to repost.",
                     "type": "string"
+                  },
+                  "replyAllow": {
+                    "description": "Who can reply. Omitted or [] means everyone; otherwise ['nobody'] or any mix of mention, following, follower ('nobody' cannot be combined). Set right after the post publishes; if Bluesky refuses it the post stays published without it. First post of a thread.",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "nobody",
+                        "mention",
+                        "following",
+                        "follower"
+                      ]
+                    }
+                  },
+                  "allowQuotes": {
+                    "description": "false stops other accounts quoting the post (default true). Set right after publishing, like replyAllow.",
+                    "type": "boolean"
+                  },
+                  "quoteId": {
+                    "description": "The post to quote: a bsky.app post link or an at:// URI (a bare ID is read as one of your own posts). Replaces a link card; with media attached both appear together. Publishing fails before anything is posted if the post cannot be found.",
+                    "type": "string"
+                  },
+                  "langs": {
+                    "description": "Up to 3 language codes such as 'en' or 'pt-BR'. Applies to every part of a thread.",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "contentLabel": {
+                    "description": "Adds a content warning. Applies to every part of a thread.",
+                    "type": "string",
+                    "enum": [
+                      "sexual",
+                      "nudity",
+                      "porn",
+                      "graphic-media"
+                    ]
                   }
                 },
                 "additionalProperties": {}
@@ -441,9 +689,157 @@
                   "repostId": {
                     "description": "With postTypeOverrides.mastodon = 'repost': the status URL or ID to boost.",
                     "type": "string"
+                  },
+                  "poll": {
+                    "description": "Adds a poll. Cannot be combined with media. First post of a thread. A server with tighter limits refuses it at publish time.",
+                    "type": "object",
+                    "properties": {
+                      "options": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "2 to 4 choices, each 1 to 50 characters."
+                      },
+                      "expiresIn": {
+                        "type": "number",
+                        "description": "Seconds the poll stays open, 300 to 2629746."
+                      },
+                      "multiple": {
+                        "description": "Voters may pick more than one choice (default false).",
+                        "type": "boolean"
+                      },
+                      "hideTotals": {
+                        "description": "Hide counts until the poll ends (default false).",
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "options",
+                      "expiresIn"
+                    ]
+                  },
+                  "sensitive": {
+                    "description": "Hides attached media behind a click (default false). No effect without media. Applies to every part of a thread.",
+                    "type": "boolean"
+                  },
+                  "quoteId": {
+                    "description": "The post to quote: its URL, or its status ID on your own server. Needs a server running Mastodon 4.5 or later, otherwise publishing fails and nothing is posted.",
+                    "type": "string"
                   }
                 },
                 "additionalProperties": {}
+              },
+              "reddit": {
+                "description": "Reddit options, nested under the BulkPublish channel id: { \"12\": { \"subreddit\": \"webdev\" } }. A flat object (e.g. { \"subreddit\": \"webdev\" }) applies to every Reddit channel on the post. subreddit is required; a media post accepts exactly one file.",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "subreddit": {
+                          "description": "Required. Target subreddit — 'webdev', 'r/webdev' and '/r/webdev' are all accepted. Falls back to the subreddit stored on the channel.",
+                          "type": "string"
+                        },
+                        "title": {
+                          "description": "Post title. Defaults to the first line of content, truncated to 300 characters.",
+                          "type": "string"
+                        },
+                        "type": {
+                          "description": "Set to 'link' to force a link submission. Otherwise the kind is resolved from media: image -> image, video -> video, url set -> link, else self (text).",
+                          "type": "string"
+                        },
+                        "url": {
+                          "description": "Destination URL for a link post; implies type 'link'.",
+                          "type": "string"
+                        },
+                        "flairId": {
+                          "description": "Link-flair id (list via get_channel_options).",
+                          "type": "string"
+                        },
+                        "thumbnailUrl": {
+                          "description": "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, failing only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file.",
+                          "type": "string"
+                        },
+                        "nsfw": {
+                          "description": "Marks the post NSFW.",
+                          "type": "boolean"
+                        },
+                        "spoiler": {
+                          "description": "Marks the post as a spoiler.",
+                          "type": "boolean"
+                        },
+                        "sendReplies": {
+                          "description": "Send replies to the account's inbox.",
+                          "type": "boolean"
+                        },
+                        "flairText": {
+                          "description": "Custom flair text (up to 64 characters) for a flair the subreddit lets you edit; ignored for flairs that are not editable.",
+                          "type": "string"
+                        },
+                        "crosspostUrl": {
+                          "description": "A Reddit post link (reddit.com/r/<sub>/comments/<id>, redd.it/<id>) or post ID to crosspost, using the post's own title. /r/<sub>/s/<code> share links are not accepted.",
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "subreddit": {
+                        "description": "Required. Target subreddit — 'webdev', 'r/webdev' and '/r/webdev' are all accepted. Falls back to the subreddit stored on the channel.",
+                        "type": "string"
+                      },
+                      "title": {
+                        "description": "Post title. Defaults to the first line of content, truncated to 300 characters.",
+                        "type": "string"
+                      },
+                      "type": {
+                        "description": "Set to 'link' to force a link submission. Otherwise the kind is resolved from media: image -> image, video -> video, url set -> link, else self (text).",
+                        "type": "string"
+                      },
+                      "url": {
+                        "description": "Destination URL for a link post; implies type 'link'.",
+                        "type": "string"
+                      },
+                      "flairId": {
+                        "description": "Link-flair id (list via get_channel_options).",
+                        "type": "string"
+                      },
+                      "thumbnailUrl": {
+                        "description": "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, failing only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file.",
+                        "type": "string"
+                      },
+                      "nsfw": {
+                        "description": "Marks the post NSFW.",
+                        "type": "boolean"
+                      },
+                      "spoiler": {
+                        "description": "Marks the post as a spoiler.",
+                        "type": "boolean"
+                      },
+                      "sendReplies": {
+                        "description": "Send replies to the account's inbox.",
+                        "type": "boolean"
+                      },
+                      "flairText": {
+                        "description": "Custom flair text (up to 64 characters) for a flair the subreddit lets you edit; ignored for flairs that are not editable.",
+                        "type": "string"
+                      },
+                      "crosspostUrl": {
+                        "description": "A Reddit post link (reddit.com/r/<sub>/comments/<id>, redd.it/<id>) or post ID to crosspost, using the post's own title. /r/<sub>/s/<code> share links are not accepted.",
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                ]
               },
               "discord": {
                 "description": "Discord options, nested under the BulkPublish channel id: { \"12\": { \"channelId\": \"1090123456789012345\" } }. A flat object applies to every Discord channel on the post. The inner channelId is the target Discord text channel. Posting uses a global bot token, so failures are permission problems, never a reconnect issue.",
@@ -459,6 +855,99 @@
                         "channelId": {
                           "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
                           "type": "string"
+                        },
+                        "silent": {
+                          "description": "Suppress notifications for the message.",
+                          "type": "boolean"
+                        },
+                        "buttons": {
+                          "description": "Link buttons, up to 5.",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string",
+                                "description": "Up to 80 characters."
+                              },
+                              "url": {
+                                "type": "string",
+                                "description": "http(s) link."
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "url"
+                            ]
+                          }
+                        },
+                        "startThread": {
+                          "description": "Start a thread from the message (no effect on a forum channel).",
+                          "type": "boolean"
+                        },
+                        "threadName": {
+                          "description": "Name for that thread, up to 100 characters.",
+                          "type": "string"
+                        },
+                        "embed": {
+                          "description": "Send the text as a rich embed with the first image inside.",
+                          "type": "object",
+                          "properties": {
+                            "title": {
+                              "description": "Up to 256 characters.",
+                              "type": "string"
+                            },
+                            "color": {
+                              "type": "string",
+                              "enum": [
+                                "orange",
+                                "blue",
+                                "green",
+                                "red",
+                                "purple",
+                                "gray"
+                              ]
+                            }
+                          }
+                        },
+                        "poll": {
+                          "description": "A native poll. The bot needs the Send Polls permission.",
+                          "type": "object",
+                          "properties": {
+                            "question": {
+                              "type": "string",
+                              "description": "Up to 300 characters."
+                            },
+                            "answers": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "2 to 10 answers, each up to 55 characters."
+                            },
+                            "durationHours": {
+                              "description": "Whole hours 1 to 768 (default 24).",
+                              "type": "number"
+                            },
+                            "multiselect": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "question",
+                            "answers"
+                          ]
+                        },
+                        "pin": {
+                          "description": "Pin the message. If Discord refuses, the post stays published and a warning is recorded. The bot needs the Pin Messages permission.",
+                          "type": "boolean"
+                        },
+                        "tags": {
+                          "description": "Up to 5 forum tag IDs (digits) for a forum channel; IDs come from get_channel_options.",
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
                         }
                       },
                       "additionalProperties": {}
@@ -470,6 +959,99 @@
                       "channelId": {
                         "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
                         "type": "string"
+                      },
+                      "silent": {
+                        "description": "Suppress notifications for the message.",
+                        "type": "boolean"
+                      },
+                      "buttons": {
+                        "description": "Link buttons, up to 5.",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string",
+                              "description": "Up to 80 characters."
+                            },
+                            "url": {
+                              "type": "string",
+                              "description": "http(s) link."
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "url"
+                          ]
+                        }
+                      },
+                      "startThread": {
+                        "description": "Start a thread from the message (no effect on a forum channel).",
+                        "type": "boolean"
+                      },
+                      "threadName": {
+                        "description": "Name for that thread, up to 100 characters.",
+                        "type": "string"
+                      },
+                      "embed": {
+                        "description": "Send the text as a rich embed with the first image inside.",
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "description": "Up to 256 characters.",
+                            "type": "string"
+                          },
+                          "color": {
+                            "type": "string",
+                            "enum": [
+                              "orange",
+                              "blue",
+                              "green",
+                              "red",
+                              "purple",
+                              "gray"
+                            ]
+                          }
+                        }
+                      },
+                      "poll": {
+                        "description": "A native poll. The bot needs the Send Polls permission.",
+                        "type": "object",
+                        "properties": {
+                          "question": {
+                            "type": "string",
+                            "description": "Up to 300 characters."
+                          },
+                          "answers": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "2 to 10 answers, each up to 55 characters."
+                          },
+                          "durationHours": {
+                            "description": "Whole hours 1 to 768 (default 24).",
+                            "type": "number"
+                          },
+                          "multiselect": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "question",
+                          "answers"
+                        ]
+                      },
+                      "pin": {
+                        "description": "Pin the message. If Discord refuses, the post stays published and a warning is recorded. The bot needs the Pin Messages permission.",
+                        "type": "boolean"
+                      },
+                      "tags": {
+                        "description": "Up to 5 forum tag IDs (digits) for a forum channel; IDs come from get_channel_options.",
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
                       }
                     },
                     "additionalProperties": {}
@@ -477,10 +1059,205 @@
                 ]
               },
               "telegram": {
-                "description": "Telegram accepts no options — the destination chat is fixed when the channel is connected. Content is sent as plain text (no markdown). Text over the 1024-char caption limit is posted as a second message alongside captionless media.",
-                "type": "object",
-                "properties": {},
-                "additionalProperties": {}
+                "description": "Telegram options, nested under the BulkPublish channel id: { \"12\": { \"silent\": true } }. A flat object applies to every Telegram channel on the post. The destination chat is fixed when the channel is connected. Content is sent as plain text (no markdown). Text over the 1024-char caption limit is posted as a second message alongside captionless media. Attached GIFs, audio and other files are sent as an animation, an audio file or a document according to their type.",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "silent": {
+                          "description": "Send without a notification sound.",
+                          "type": "boolean"
+                        },
+                        "protectContent": {
+                          "description": "Recipients cannot forward or save the message.",
+                          "type": "boolean"
+                        },
+                        "pin": {
+                          "description": "Pin after sending. If the bot lacks the right to pin the post still publishes and a warning is recorded.",
+                          "type": "boolean"
+                        },
+                        "threadId": {
+                          "description": "Forum topic to post into: digits only, up to 12.",
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "buttons": {
+                          "description": "Link buttons under the message, up to 3.",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string",
+                                "description": "Up to 64 characters."
+                              },
+                              "url": {
+                                "type": "string",
+                                "description": "http(s) link."
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "url"
+                            ]
+                          }
+                        },
+                        "spoiler": {
+                          "description": "Hides a photo or video behind a spoiler.",
+                          "type": "boolean"
+                        },
+                        "disablePreview": {
+                          "description": "Turns off the link preview.",
+                          "type": "boolean"
+                        },
+                        "poll": {
+                          "description": "Sent as a poll after the message.",
+                          "type": "object",
+                          "properties": {
+                            "question": {
+                              "type": "string",
+                              "description": "1 to 300 characters."
+                            },
+                            "options": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "2 to 12 answers, each up to 100 characters."
+                            },
+                            "anonymous": {
+                              "description": "Default true.",
+                              "type": "boolean"
+                            },
+                            "multipleAnswers": {
+                              "description": "Default false. Cannot be combined with quiz.",
+                              "type": "boolean"
+                            },
+                            "quiz": {
+                              "description": "Default false.",
+                              "type": "boolean"
+                            },
+                            "correctOption": {
+                              "description": "0-based index of the right answer; required when quiz is true.",
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "question",
+                            "options"
+                          ]
+                        }
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "silent": {
+                        "description": "Send without a notification sound.",
+                        "type": "boolean"
+                      },
+                      "protectContent": {
+                        "description": "Recipients cannot forward or save the message.",
+                        "type": "boolean"
+                      },
+                      "pin": {
+                        "description": "Pin after sending. If the bot lacks the right to pin the post still publishes and a warning is recorded.",
+                        "type": "boolean"
+                      },
+                      "threadId": {
+                        "description": "Forum topic to post into: digits only, up to 12.",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "buttons": {
+                        "description": "Link buttons under the message, up to 3.",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string",
+                              "description": "Up to 64 characters."
+                            },
+                            "url": {
+                              "type": "string",
+                              "description": "http(s) link."
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "url"
+                          ]
+                        }
+                      },
+                      "spoiler": {
+                        "description": "Hides a photo or video behind a spoiler.",
+                        "type": "boolean"
+                      },
+                      "disablePreview": {
+                        "description": "Turns off the link preview.",
+                        "type": "boolean"
+                      },
+                      "poll": {
+                        "description": "Sent as a poll after the message.",
+                        "type": "object",
+                        "properties": {
+                          "question": {
+                            "type": "string",
+                            "description": "1 to 300 characters."
+                          },
+                          "options": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "2 to 12 answers, each up to 100 characters."
+                          },
+                          "anonymous": {
+                            "description": "Default true.",
+                            "type": "boolean"
+                          },
+                          "multipleAnswers": {
+                            "description": "Default false. Cannot be combined with quiz.",
+                            "type": "boolean"
+                          },
+                          "quiz": {
+                            "description": "Default false.",
+                            "type": "boolean"
+                          },
+                          "correctOption": {
+                            "description": "0-based index of the right answer; required when quiz is true.",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "question",
+                          "options"
+                        ]
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                ]
               },
               "tumblr": {
                 "description": "Tumblr options, nested under the BulkPublish channel id: { \"12\": { \"blogName\": \"myblog\", \"tags\": [\"art\"] } } (tags: array of strings or one comma-separated string). A flat object applies to every Tumblr channel on the post. Up to 30 images OR exactly one video per post.",
@@ -515,6 +1292,32 @@
                         "sourceUrl": {
                           "description": "Attribution URL stored as the post's source.",
                           "type": "string"
+                        },
+                        "state": {
+                          "description": "Default published. A scheduled post with published still goes out at its time; draft and private override that and the post is never made public by BulkPublish.",
+                          "type": "string",
+                          "enum": [
+                            "published",
+                            "queue",
+                            "draft",
+                            "private"
+                          ]
+                        },
+                        "slug": {
+                          "description": "Up to 200 characters; lowercased and hyphenated into the permalink.",
+                          "type": "string"
+                        },
+                        "reblogInteraction": {
+                          "description": "Who can reblog the post.",
+                          "type": "string",
+                          "enum": [
+                            "everyone",
+                            "noone"
+                          ]
+                        },
+                        "reblogUrl": {
+                          "description": "A Tumblr post link (tumblr.com/<blog>/<id> or <blog>.tumblr.com/post/<id>): publishes a reblog of that post with your text as the comment.",
+                          "type": "string"
                         }
                       },
                       "additionalProperties": {}
@@ -544,6 +1347,32 @@
                       },
                       "sourceUrl": {
                         "description": "Attribution URL stored as the post's source.",
+                        "type": "string"
+                      },
+                      "state": {
+                        "description": "Default published. A scheduled post with published still goes out at its time; draft and private override that and the post is never made public by BulkPublish.",
+                        "type": "string",
+                        "enum": [
+                          "published",
+                          "queue",
+                          "draft",
+                          "private"
+                        ]
+                      },
+                      "slug": {
+                        "description": "Up to 200 characters; lowercased and hyphenated into the permalink.",
+                        "type": "string"
+                      },
+                      "reblogInteraction": {
+                        "description": "Who can reblog the post.",
+                        "type": "string",
+                        "enum": [
+                          "everyone",
+                          "noone"
+                        ]
+                      },
+                      "reblogUrl": {
+                        "description": "A Tumblr post link (tumblr.com/<blog>/<id> or <blog>.tumblr.com/post/<id>): publishes a reblog of that post with your text as the comment.",
                         "type": "string"
                       }
                     },
@@ -635,6 +1464,9 @@
                 "type": "string"
               },
               "gmb": {
+                "type": "string"
+              },
+              "reddit": {
                 "type": "string"
               },
               "discord": {
@@ -753,12 +1585,16 @@
                 ]
               },
               "linkedin": {
+                "description": "document: one PDF, Word or PowerPoint file from the media library (exactly one document, no images or videos; title from platformSpecific.linkedin.documentTitle). poll: a question with 2-4 answers from platformSpecific.linkedin.poll (needs post text, no media). reshare: shares an existing LinkedIn post from platformSpecific.linkedin.reshareId (post text optional, no media).",
                 "type": "string",
                 "enum": [
                   "post",
                   "multi_image",
                   "pdf_carousel",
-                  "article"
+                  "article",
+                  "document",
+                  "poll",
+                  "reshare"
                 ]
               },
               "pinterest": {
@@ -783,6 +1619,12 @@
                   "post",
                   "thread",
                   "repost"
+                ]
+              },
+              "reddit": {
+                "type": "string",
+                "enum": [
+                  "post"
                 ]
               },
               "discord": {
@@ -2273,7 +3115,7 @@
     {
       "name": "upload_media",
       "title": "Upload media",
-      "description": "Upload a media file (image or video) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM. Max 100MB. Provide either url OR filePath, not both. Use this when the user provides an image/video to attach to a post.",
+      "description": "Upload a media file (image, video or document) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM, and documents (PDF, Word .doc/.docx, PowerPoint .ppt/.pptx). Max 100MB. A document has no thumbnail or preview and can only be published to LinkedIn, as a `document` post. Provide either url OR filePath, not both. Use this when the user provides an image, video or document to attach to a post.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -2405,11 +3247,12 @@
             "type": "number"
           },
           "type": {
-            "description": "Filter by media kind (matches the MIME type prefix). The response's `total` counts matches across all pages.",
+            "description": "Filter by media kind: image, video or document (PDF, Word and PowerPoint files). Omit for all files. The response's `total` counts matches across all pages.",
             "type": "string",
             "enum": [
               "image",
-              "video"
+              "video",
+              "document"
             ]
           }
         },
@@ -3429,7 +4272,7 @@
     {
       "name": "create_client_connect_link",
       "title": "Create client connect link",
-      "description": "Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (telegram asks for a bot token instead of a plain sign-in, and stays a manual connect by your own team): bluesky, facebook, instagram, x, tiktok, youtube, threads, pinterest, gmb, linkedin, mastodon, discord, tumblr, snapchat. For bluesky, the client enters their handle and approves access on Bluesky; they are never asked for a password. For facebook, the client signs in to Facebook and then picks which one of their Pages to connect. For mastodon, they first enter the address of the server their account is on. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user (an agency) wants a client to connect their own platform account without giving the agency their login, and without the client needing a BulkPublish account.",
+      "description": "Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (telegram asks for a bot token instead of a plain sign-in, and stays a manual connect by your own team): bluesky, facebook, instagram, x, tiktok, youtube, threads, pinterest, gmb, linkedin, mastodon, reddit, discord, tumblr, snapchat. For bluesky, the client enters their handle and approves access on Bluesky; they are never asked for a password. For facebook, the client signs in to Facebook and then picks which one of their Pages to connect. For mastodon, they first enter the address of the server their account is on. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user (an agency) wants a client to connect their own platform account without giving the agency their login, and without the client needing a BulkPublish account.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3645,12 +4488,16 @@
                 ]
               },
               "linkedin": {
+                "description": "document: one PDF, Word or PowerPoint file from the media library (exactly one document, no images or videos; title from platformSpecific.linkedin.documentTitle). poll: a question with 2-4 answers from platformSpecific.linkedin.poll (needs post text, no media). reshare: shares an existing LinkedIn post from platformSpecific.linkedin.reshareId (post text optional, no media).",
                 "type": "string",
                 "enum": [
                   "post",
                   "multi_image",
                   "pdf_carousel",
-                  "article"
+                  "article",
+                  "document",
+                  "poll",
+                  "reshare"
                 ]
               },
               "pinterest": {
@@ -3675,6 +4522,12 @@
                   "post",
                   "thread",
                   "repost"
+                ]
+              },
+              "reddit": {
+                "type": "string",
+                "enum": [
+                  "post"
                 ]
               },
               "discord": {
@@ -3707,7 +4560,7 @@
             }
           },
           "platformSpecific": {
-            "description": "Platform-specific settings, e.g. { \"youtube\": { \"title\": \"…\", \"privacyStatus\": \"public\" } }. Discord, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { \"discord\": { \"12\": { \"channelId\": \"1090123456789012345\" } } }. Telegram takes no options.",
+            "description": "Platform-specific settings, e.g. { \"youtube\": { \"title\": \"…\", \"privacyStatus\": \"public\" } }. Reddit, Discord, Telegram, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { \"reddit\": { \"12\": { \"subreddit\": \"webdev\" } } }. Full per-platform option lists (polls, quotes, tags, drafts, settings) are on each platform key; bad values are refused with 400 VALIDATION_ERROR.",
             "type": "object",
             "properties": {
               "youtube": {
@@ -3735,6 +4588,42 @@
                   },
                   "thumbnailUrl": {
                     "type": "string"
+                  },
+                  "containsSyntheticMedia": {
+                    "description": "true discloses realistic altered or synthetic content. Video and short posts.",
+                    "type": "boolean"
+                  },
+                  "notifySubscribers": {
+                    "description": "Only an explicit false changes anything: publishes without notifying subscribers.",
+                    "type": "boolean"
+                  },
+                  "license": {
+                    "description": "Default youtube; creativeCommon publishes under Creative Commons Attribution.",
+                    "type": "string",
+                    "enum": [
+                      "youtube",
+                      "creativeCommon"
+                    ]
+                  },
+                  "embeddable": {
+                    "description": "false stops other websites embedding the video.",
+                    "type": "boolean"
+                  },
+                  "publicStatsViewable": {
+                    "description": "false hides extended statistics on the watch page.",
+                    "type": "boolean"
+                  },
+                  "defaultLanguage": {
+                    "description": "Language of the title and description, e.g. 'en', 'pt-BR', 'zh-Hans'.",
+                    "type": "string"
+                  },
+                  "defaultAudioLanguage": {
+                    "description": "Language spoken in the video, e.g. 'en'.",
+                    "type": "string"
+                  },
+                  "recordingDate": {
+                    "description": "YYYY-MM-DD or an ISO 8601 date-time; a plain date is stored as midnight UTC.",
+                    "type": "string"
                   }
                 },
                 "additionalProperties": {}
@@ -3758,6 +4647,14 @@
                   "coverImageUrl": {
                     "description": "Cover image URL for video pins. Optional — server falls back to an attached image, then the video's auto-extracted poster frame.",
                     "type": "string"
+                  },
+                  "boardSectionId": {
+                    "description": "Numeric ID of a section of the chosen board (list with get_channel_options and boardId). Send it beside its board, per channel or flat. Pin, video_pin and carousel. A flat value is ignored for a channel with its own boardId, and any section is ignored when no board was chosen.",
+                    "type": "string"
+                  },
+                  "coverKeyFrameTime": {
+                    "description": "video_pin only: use the frame at this many seconds (whole number, 0 or more) as the cover. A time past the end uses the last frame; coverImageUrl wins when both are sent.",
+                    "type": "number"
                   }
                 },
                 "additionalProperties": {}
@@ -3825,6 +4722,18 @@
                   "thumbnailTimestamp": {
                     "description": "Cover frame for the video, in seconds from the start.",
                     "type": "number"
+                  },
+                  "sendToDrafts": {
+                    "description": "Send a video or photo_slideshow post to the creator's TikTok drafts instead of publishing it (default false). privacyLevel is then not required, and the direct-post settings (privacyLevel, disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, autoAddMusic, thumbnailTimestamp) are ignored. A video draft carries no caption; a photo draft sends it. Once delivered the destination becomes published with no platformUrl, and analytics are not collected.",
+                    "type": "boolean"
+                  },
+                  "photoCoverIndex": {
+                    "description": "photo_slideshow only: which image is the cover, a whole number 0 to 34 counting from 0 in attachment order (default 0). An index past the last image falls back to the first.",
+                    "type": "number"
+                  },
+                  "autoAddMusic": {
+                    "description": "Photo posts published directly only: lets TikTok add a recommended track (default false). Ignored with sendToDrafts.",
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": {}
@@ -3833,11 +4742,45 @@
                 "type": "object",
                 "properties": {
                   "replySettings": {
+                    "description": "Who can reply: everyone, following, verified, subscribers or mentionedUsers. Applies to a single post and to the first post of a thread.",
                     "type": "string"
                   },
                   "repostId": {
                     "description": "With postTypeOverrides.x = 'repost': the X post URL or ID to repost (retweet).",
                     "type": "string"
+                  },
+                  "poll": {
+                    "description": "Adds a poll. Cannot be combined with media or quoteId. On a thread it goes on the first post.",
+                    "type": "object",
+                    "properties": {
+                      "options": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "2 to 4 choices, each 1 to 25 characters."
+                      },
+                      "durationMinutes": {
+                        "type": "number",
+                        "description": "How long the poll stays open, whole minutes from 5 to 10080 (7 days)."
+                      }
+                    },
+                    "required": [
+                      "options",
+                      "durationMinutes"
+                    ]
+                  },
+                  "quoteId": {
+                    "description": "The post to quote: its numeric ID or its x.com / twitter.com status URL. Cannot be combined with poll. On a thread it applies to the first post.",
+                    "type": "string"
+                  },
+                  "communityId": {
+                    "description": "Posts into an X Community: its numeric ID or its https://x.com/i/communities/<id> URL. The account must be a member.",
+                    "type": "string"
+                  },
+                  "shareWithFollowers": {
+                    "description": "With communityId, also shows the post to your followers (default false). Ignored without communityId.",
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": {}
@@ -3847,6 +4790,10 @@
                 "properties": {
                   "shareToStory": {
                     "type": "boolean"
+                  },
+                  "textFormatPresetId": {
+                    "description": "Digits only (a Facebook background ID). Shows a short text post on a coloured background. Used only on a Page feed post with no photo, video or link card and at most 130 characters; anywhere else it is left out and the post publishes as plain text. If Facebook refuses the background the post is published once more without it.",
+                    "type": "string"
                   },
                   "thumbnailUrl": {
                     "description": "Cover image URL for a video or Reel. Facebook only accepts a cover once the video exists, so it is applied after the video publishes and appears a moment after the post; a cover that cannot be fetched or that Facebook rejects leaves the video published with Facebook's own chosen frame rather than failing the post.",
@@ -3864,6 +4811,42 @@
                   },
                   "shareToStory": {
                     "type": "boolean"
+                  },
+                  "userTags": {
+                    "description": "People tagged in the post, up to 20 per photo or video. On a photo (and each photo of a carousel) a tag needs x and y or it is left out; on a Reel or video post people are tagged by username only and any position is ignored. Carousel videos and Stories carry no tags.",
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "username": {
+                          "type": "string",
+                          "description": "A public Instagram username, leading @ optional."
+                        },
+                        "x": {
+                          "description": "Position on the photo, 0 to 1 from the left. Give x and y together or not at all.",
+                          "type": "number"
+                        },
+                        "y": {
+                          "description": "Position on the photo, 0 to 1 from the top.",
+                          "type": "number"
+                        },
+                        "mediaIndex": {
+                          "description": "Which attached media item the tag belongs to, counting from 0 in attachment order (default 0).",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "username"
+                      ]
+                    }
+                  },
+                  "shareToFeed": {
+                    "description": "Reels only. false shows the Reel only in the Reels tab; true also shows it in the main feed. Omitted: Instagram's own default (feed and Reels tab).",
+                    "type": "boolean"
+                  },
+                  "locationId": {
+                    "description": "Digits only: the numeric ID of a Facebook Page that has a location. Applies to photos, videos, Reels and carousels, not Stories. Instagram refuses the post if it does not recognise the ID as a place.",
+                    "type": "string"
                   },
                   "trialReel": {
                     "description": "Publish as a trial reel, shown to people who do not follow the account first. Only takes effect with postTypeOverrides.instagram of 'reel' — a 'feed_video' publishes as an ordinary reel and this is ignored, even though both use the same underlying reel container.",
@@ -3905,13 +4888,92 @@
                   "locationId": {
                     "description": "Numeric place ID from get_channel_options with a `q` search on a Threads channel. Only works once the channel has granted location tagging.",
                     "type": "string"
+                  },
+                  "replyControl": {
+                    "description": "Who can reply (default everyone). parent_post_author_only means only you. Applies to the post itself, never to later replies in a thread; ignored on a repost.",
+                    "type": "string",
+                    "enum": [
+                      "everyone",
+                      "accounts_you_follow",
+                      "mentioned_only",
+                      "parent_post_author_only",
+                      "followers_only"
+                    ]
+                  },
+                  "pollOptions": {
+                    "description": "2 to 4 poll choices, each 1 to 25 characters. Text-only posts: on an image, video or carousel post the poll is left out. In a thread it goes on the first part when that part has no media.",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "linkAttachment": {
+                    "description": "An http(s) URL on a public host shown as the preview card on a text post; left out on other post types. Threads refuses a post with more than 5 links in total, and a link here that differs from every link in the text counts as one more.",
+                    "type": "string"
                   }
                 },
                 "additionalProperties": {}
               },
               "linkedin": {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "documentTitle": {
+                    "description": "`document` posts only: the title shown above the document in the feed. Defaults to the file's name.",
+                    "type": "string"
+                  },
+                  "poll": {
+                    "description": "Required for `poll` posts, which also need post text and take no media.",
+                    "type": "object",
+                    "properties": {
+                      "question": {
+                        "type": "string",
+                        "description": "Up to 140 characters."
+                      },
+                      "options": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "2 to 4 answers, each up to 30 characters; blank entries are ignored."
+                      },
+                      "duration": {
+                        "description": "Default THREE_DAYS.",
+                        "type": "string",
+                        "enum": [
+                          "ONE_DAY",
+                          "THREE_DAYS",
+                          "SEVEN_DAYS",
+                          "FOURTEEN_DAYS"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "question",
+                      "options"
+                    ]
+                  },
+                  "reshareId": {
+                    "description": "Required for `reshare` posts: the post's LinkedIn link, or its urn:li:share:<id> / urn:li:ugcPost:<id> ID. Activity links (urn:li:activity:<id>) cannot be reshared.",
+                    "type": "string"
+                  },
+                  "thumbnailUrl": {
+                    "description": "Cover for a `post` that carries a video: a public http(s) link to an image of up to 10MB. A cover that cannot be fetched is skipped and LinkedIn picks the frame.",
+                    "type": "string"
+                  },
+                  "visibility": {
+                    "description": "Who can see the post (default PUBLIC). CONNECTIONS applies to personal profiles only; on a Page it is published as PUBLIC.",
+                    "type": "string",
+                    "enum": [
+                      "PUBLIC",
+                      "CONNECTIONS",
+                      "LOGGED_IN"
+                    ]
+                  },
+                  "disableReshare": {
+                    "description": "true stops other members resharing the post (default false).",
+                    "type": "boolean"
+                  }
+                },
                 "additionalProperties": {}
               },
               "bluesky": {
@@ -3920,6 +4982,44 @@
                   "repostId": {
                     "description": "With postTypeOverrides.bluesky = 'repost': the bsky.app post URL (or at:// URI) to repost.",
                     "type": "string"
+                  },
+                  "replyAllow": {
+                    "description": "Who can reply. Omitted or [] means everyone; otherwise ['nobody'] or any mix of mention, following, follower ('nobody' cannot be combined). Set right after the post publishes; if Bluesky refuses it the post stays published without it. First post of a thread.",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "nobody",
+                        "mention",
+                        "following",
+                        "follower"
+                      ]
+                    }
+                  },
+                  "allowQuotes": {
+                    "description": "false stops other accounts quoting the post (default true). Set right after publishing, like replyAllow.",
+                    "type": "boolean"
+                  },
+                  "quoteId": {
+                    "description": "The post to quote: a bsky.app post link or an at:// URI (a bare ID is read as one of your own posts). Replaces a link card; with media attached both appear together. Publishing fails before anything is posted if the post cannot be found.",
+                    "type": "string"
+                  },
+                  "langs": {
+                    "description": "Up to 3 language codes such as 'en' or 'pt-BR'. Applies to every part of a thread.",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "contentLabel": {
+                    "description": "Adds a content warning. Applies to every part of a thread.",
+                    "type": "string",
+                    "enum": [
+                      "sexual",
+                      "nudity",
+                      "porn",
+                      "graphic-media"
+                    ]
                   }
                 },
                 "additionalProperties": {}
@@ -3930,9 +5030,157 @@
                   "repostId": {
                     "description": "With postTypeOverrides.mastodon = 'repost': the status URL or ID to boost.",
                     "type": "string"
+                  },
+                  "poll": {
+                    "description": "Adds a poll. Cannot be combined with media. First post of a thread. A server with tighter limits refuses it at publish time.",
+                    "type": "object",
+                    "properties": {
+                      "options": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "2 to 4 choices, each 1 to 50 characters."
+                      },
+                      "expiresIn": {
+                        "type": "number",
+                        "description": "Seconds the poll stays open, 300 to 2629746."
+                      },
+                      "multiple": {
+                        "description": "Voters may pick more than one choice (default false).",
+                        "type": "boolean"
+                      },
+                      "hideTotals": {
+                        "description": "Hide counts until the poll ends (default false).",
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "options",
+                      "expiresIn"
+                    ]
+                  },
+                  "sensitive": {
+                    "description": "Hides attached media behind a click (default false). No effect without media. Applies to every part of a thread.",
+                    "type": "boolean"
+                  },
+                  "quoteId": {
+                    "description": "The post to quote: its URL, or its status ID on your own server. Needs a server running Mastodon 4.5 or later, otherwise publishing fails and nothing is posted.",
+                    "type": "string"
                   }
                 },
                 "additionalProperties": {}
+              },
+              "reddit": {
+                "description": "Reddit options, nested under the BulkPublish channel id: { \"12\": { \"subreddit\": \"webdev\" } }. A flat object (e.g. { \"subreddit\": \"webdev\" }) applies to every Reddit channel on the post. subreddit is required; a media post accepts exactly one file.",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "subreddit": {
+                          "description": "Required. Target subreddit — 'webdev', 'r/webdev' and '/r/webdev' are all accepted. Falls back to the subreddit stored on the channel.",
+                          "type": "string"
+                        },
+                        "title": {
+                          "description": "Post title. Defaults to the first line of content, truncated to 300 characters.",
+                          "type": "string"
+                        },
+                        "type": {
+                          "description": "Set to 'link' to force a link submission. Otherwise the kind is resolved from media: image -> image, video -> video, url set -> link, else self (text).",
+                          "type": "string"
+                        },
+                        "url": {
+                          "description": "Destination URL for a link post; implies type 'link'.",
+                          "type": "string"
+                        },
+                        "flairId": {
+                          "description": "Link-flair id (list via get_channel_options).",
+                          "type": "string"
+                        },
+                        "thumbnailUrl": {
+                          "description": "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, failing only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file.",
+                          "type": "string"
+                        },
+                        "nsfw": {
+                          "description": "Marks the post NSFW.",
+                          "type": "boolean"
+                        },
+                        "spoiler": {
+                          "description": "Marks the post as a spoiler.",
+                          "type": "boolean"
+                        },
+                        "sendReplies": {
+                          "description": "Send replies to the account's inbox.",
+                          "type": "boolean"
+                        },
+                        "flairText": {
+                          "description": "Custom flair text (up to 64 characters) for a flair the subreddit lets you edit; ignored for flairs that are not editable.",
+                          "type": "string"
+                        },
+                        "crosspostUrl": {
+                          "description": "A Reddit post link (reddit.com/r/<sub>/comments/<id>, redd.it/<id>) or post ID to crosspost, using the post's own title. /r/<sub>/s/<code> share links are not accepted.",
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "subreddit": {
+                        "description": "Required. Target subreddit — 'webdev', 'r/webdev' and '/r/webdev' are all accepted. Falls back to the subreddit stored on the channel.",
+                        "type": "string"
+                      },
+                      "title": {
+                        "description": "Post title. Defaults to the first line of content, truncated to 300 characters.",
+                        "type": "string"
+                      },
+                      "type": {
+                        "description": "Set to 'link' to force a link submission. Otherwise the kind is resolved from media: image -> image, video -> video, url set -> link, else self (text).",
+                        "type": "string"
+                      },
+                      "url": {
+                        "description": "Destination URL for a link post; implies type 'link'.",
+                        "type": "string"
+                      },
+                      "flairId": {
+                        "description": "Link-flair id (list via get_channel_options).",
+                        "type": "string"
+                      },
+                      "thumbnailUrl": {
+                        "description": "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, failing only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file.",
+                        "type": "string"
+                      },
+                      "nsfw": {
+                        "description": "Marks the post NSFW.",
+                        "type": "boolean"
+                      },
+                      "spoiler": {
+                        "description": "Marks the post as a spoiler.",
+                        "type": "boolean"
+                      },
+                      "sendReplies": {
+                        "description": "Send replies to the account's inbox.",
+                        "type": "boolean"
+                      },
+                      "flairText": {
+                        "description": "Custom flair text (up to 64 characters) for a flair the subreddit lets you edit; ignored for flairs that are not editable.",
+                        "type": "string"
+                      },
+                      "crosspostUrl": {
+                        "description": "A Reddit post link (reddit.com/r/<sub>/comments/<id>, redd.it/<id>) or post ID to crosspost, using the post's own title. /r/<sub>/s/<code> share links are not accepted.",
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                ]
               },
               "discord": {
                 "description": "Discord options, nested under the BulkPublish channel id: { \"12\": { \"channelId\": \"1090123456789012345\" } }. A flat object applies to every Discord channel on the post. The inner channelId is the target Discord text channel. Posting uses a global bot token, so failures are permission problems, never a reconnect issue.",
@@ -3948,6 +5196,99 @@
                         "channelId": {
                           "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
                           "type": "string"
+                        },
+                        "silent": {
+                          "description": "Suppress notifications for the message.",
+                          "type": "boolean"
+                        },
+                        "buttons": {
+                          "description": "Link buttons, up to 5.",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string",
+                                "description": "Up to 80 characters."
+                              },
+                              "url": {
+                                "type": "string",
+                                "description": "http(s) link."
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "url"
+                            ]
+                          }
+                        },
+                        "startThread": {
+                          "description": "Start a thread from the message (no effect on a forum channel).",
+                          "type": "boolean"
+                        },
+                        "threadName": {
+                          "description": "Name for that thread, up to 100 characters.",
+                          "type": "string"
+                        },
+                        "embed": {
+                          "description": "Send the text as a rich embed with the first image inside.",
+                          "type": "object",
+                          "properties": {
+                            "title": {
+                              "description": "Up to 256 characters.",
+                              "type": "string"
+                            },
+                            "color": {
+                              "type": "string",
+                              "enum": [
+                                "orange",
+                                "blue",
+                                "green",
+                                "red",
+                                "purple",
+                                "gray"
+                              ]
+                            }
+                          }
+                        },
+                        "poll": {
+                          "description": "A native poll. The bot needs the Send Polls permission.",
+                          "type": "object",
+                          "properties": {
+                            "question": {
+                              "type": "string",
+                              "description": "Up to 300 characters."
+                            },
+                            "answers": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "2 to 10 answers, each up to 55 characters."
+                            },
+                            "durationHours": {
+                              "description": "Whole hours 1 to 768 (default 24).",
+                              "type": "number"
+                            },
+                            "multiselect": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "question",
+                            "answers"
+                          ]
+                        },
+                        "pin": {
+                          "description": "Pin the message. If Discord refuses, the post stays published and a warning is recorded. The bot needs the Pin Messages permission.",
+                          "type": "boolean"
+                        },
+                        "tags": {
+                          "description": "Up to 5 forum tag IDs (digits) for a forum channel; IDs come from get_channel_options.",
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
                         }
                       },
                       "additionalProperties": {}
@@ -3959,6 +5300,99 @@
                       "channelId": {
                         "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
                         "type": "string"
+                      },
+                      "silent": {
+                        "description": "Suppress notifications for the message.",
+                        "type": "boolean"
+                      },
+                      "buttons": {
+                        "description": "Link buttons, up to 5.",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string",
+                              "description": "Up to 80 characters."
+                            },
+                            "url": {
+                              "type": "string",
+                              "description": "http(s) link."
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "url"
+                          ]
+                        }
+                      },
+                      "startThread": {
+                        "description": "Start a thread from the message (no effect on a forum channel).",
+                        "type": "boolean"
+                      },
+                      "threadName": {
+                        "description": "Name for that thread, up to 100 characters.",
+                        "type": "string"
+                      },
+                      "embed": {
+                        "description": "Send the text as a rich embed with the first image inside.",
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "description": "Up to 256 characters.",
+                            "type": "string"
+                          },
+                          "color": {
+                            "type": "string",
+                            "enum": [
+                              "orange",
+                              "blue",
+                              "green",
+                              "red",
+                              "purple",
+                              "gray"
+                            ]
+                          }
+                        }
+                      },
+                      "poll": {
+                        "description": "A native poll. The bot needs the Send Polls permission.",
+                        "type": "object",
+                        "properties": {
+                          "question": {
+                            "type": "string",
+                            "description": "Up to 300 characters."
+                          },
+                          "answers": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "2 to 10 answers, each up to 55 characters."
+                          },
+                          "durationHours": {
+                            "description": "Whole hours 1 to 768 (default 24).",
+                            "type": "number"
+                          },
+                          "multiselect": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "question",
+                          "answers"
+                        ]
+                      },
+                      "pin": {
+                        "description": "Pin the message. If Discord refuses, the post stays published and a warning is recorded. The bot needs the Pin Messages permission.",
+                        "type": "boolean"
+                      },
+                      "tags": {
+                        "description": "Up to 5 forum tag IDs (digits) for a forum channel; IDs come from get_channel_options.",
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
                       }
                     },
                     "additionalProperties": {}
@@ -3966,10 +5400,205 @@
                 ]
               },
               "telegram": {
-                "description": "Telegram accepts no options — the destination chat is fixed when the channel is connected. Content is sent as plain text (no markdown). Text over the 1024-char caption limit is posted as a second message alongside captionless media.",
-                "type": "object",
-                "properties": {},
-                "additionalProperties": {}
+                "description": "Telegram options, nested under the BulkPublish channel id: { \"12\": { \"silent\": true } }. A flat object applies to every Telegram channel on the post. The destination chat is fixed when the channel is connected. Content is sent as plain text (no markdown). Text over the 1024-char caption limit is posted as a second message alongside captionless media. Attached GIFs, audio and other files are sent as an animation, an audio file or a document according to their type.",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "silent": {
+                          "description": "Send without a notification sound.",
+                          "type": "boolean"
+                        },
+                        "protectContent": {
+                          "description": "Recipients cannot forward or save the message.",
+                          "type": "boolean"
+                        },
+                        "pin": {
+                          "description": "Pin after sending. If the bot lacks the right to pin the post still publishes and a warning is recorded.",
+                          "type": "boolean"
+                        },
+                        "threadId": {
+                          "description": "Forum topic to post into: digits only, up to 12.",
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "buttons": {
+                          "description": "Link buttons under the message, up to 3.",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string",
+                                "description": "Up to 64 characters."
+                              },
+                              "url": {
+                                "type": "string",
+                                "description": "http(s) link."
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "url"
+                            ]
+                          }
+                        },
+                        "spoiler": {
+                          "description": "Hides a photo or video behind a spoiler.",
+                          "type": "boolean"
+                        },
+                        "disablePreview": {
+                          "description": "Turns off the link preview.",
+                          "type": "boolean"
+                        },
+                        "poll": {
+                          "description": "Sent as a poll after the message.",
+                          "type": "object",
+                          "properties": {
+                            "question": {
+                              "type": "string",
+                              "description": "1 to 300 characters."
+                            },
+                            "options": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "2 to 12 answers, each up to 100 characters."
+                            },
+                            "anonymous": {
+                              "description": "Default true.",
+                              "type": "boolean"
+                            },
+                            "multipleAnswers": {
+                              "description": "Default false. Cannot be combined with quiz.",
+                              "type": "boolean"
+                            },
+                            "quiz": {
+                              "description": "Default false.",
+                              "type": "boolean"
+                            },
+                            "correctOption": {
+                              "description": "0-based index of the right answer; required when quiz is true.",
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "question",
+                            "options"
+                          ]
+                        }
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "silent": {
+                        "description": "Send without a notification sound.",
+                        "type": "boolean"
+                      },
+                      "protectContent": {
+                        "description": "Recipients cannot forward or save the message.",
+                        "type": "boolean"
+                      },
+                      "pin": {
+                        "description": "Pin after sending. If the bot lacks the right to pin the post still publishes and a warning is recorded.",
+                        "type": "boolean"
+                      },
+                      "threadId": {
+                        "description": "Forum topic to post into: digits only, up to 12.",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "buttons": {
+                        "description": "Link buttons under the message, up to 3.",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string",
+                              "description": "Up to 64 characters."
+                            },
+                            "url": {
+                              "type": "string",
+                              "description": "http(s) link."
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "url"
+                          ]
+                        }
+                      },
+                      "spoiler": {
+                        "description": "Hides a photo or video behind a spoiler.",
+                        "type": "boolean"
+                      },
+                      "disablePreview": {
+                        "description": "Turns off the link preview.",
+                        "type": "boolean"
+                      },
+                      "poll": {
+                        "description": "Sent as a poll after the message.",
+                        "type": "object",
+                        "properties": {
+                          "question": {
+                            "type": "string",
+                            "description": "1 to 300 characters."
+                          },
+                          "options": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "2 to 12 answers, each up to 100 characters."
+                          },
+                          "anonymous": {
+                            "description": "Default true.",
+                            "type": "boolean"
+                          },
+                          "multipleAnswers": {
+                            "description": "Default false. Cannot be combined with quiz.",
+                            "type": "boolean"
+                          },
+                          "quiz": {
+                            "description": "Default false.",
+                            "type": "boolean"
+                          },
+                          "correctOption": {
+                            "description": "0-based index of the right answer; required when quiz is true.",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "question",
+                          "options"
+                        ]
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                ]
               },
               "tumblr": {
                 "description": "Tumblr options, nested under the BulkPublish channel id: { \"12\": { \"blogName\": \"myblog\", \"tags\": [\"art\"] } } (tags: array of strings or one comma-separated string). A flat object applies to every Tumblr channel on the post. Up to 30 images OR exactly one video per post.",
@@ -4004,6 +5633,32 @@
                         "sourceUrl": {
                           "description": "Attribution URL stored as the post's source.",
                           "type": "string"
+                        },
+                        "state": {
+                          "description": "Default published. A scheduled post with published still goes out at its time; draft and private override that and the post is never made public by BulkPublish.",
+                          "type": "string",
+                          "enum": [
+                            "published",
+                            "queue",
+                            "draft",
+                            "private"
+                          ]
+                        },
+                        "slug": {
+                          "description": "Up to 200 characters; lowercased and hyphenated into the permalink.",
+                          "type": "string"
+                        },
+                        "reblogInteraction": {
+                          "description": "Who can reblog the post.",
+                          "type": "string",
+                          "enum": [
+                            "everyone",
+                            "noone"
+                          ]
+                        },
+                        "reblogUrl": {
+                          "description": "A Tumblr post link (tumblr.com/<blog>/<id> or <blog>.tumblr.com/post/<id>): publishes a reblog of that post with your text as the comment.",
+                          "type": "string"
                         }
                       },
                       "additionalProperties": {}
@@ -4033,6 +5688,32 @@
                       },
                       "sourceUrl": {
                         "description": "Attribution URL stored as the post's source.",
+                        "type": "string"
+                      },
+                      "state": {
+                        "description": "Default published. A scheduled post with published still goes out at its time; draft and private override that and the post is never made public by BulkPublish.",
+                        "type": "string",
+                        "enum": [
+                          "published",
+                          "queue",
+                          "draft",
+                          "private"
+                        ]
+                      },
+                      "slug": {
+                        "description": "Up to 200 characters; lowercased and hyphenated into the permalink.",
+                        "type": "string"
+                      },
+                      "reblogInteraction": {
+                        "description": "Who can reblog the post.",
+                        "type": "string",
+                        "enum": [
+                          "everyone",
+                          "noone"
+                        ]
+                      },
+                      "reblogUrl": {
+                        "description": "A Tumblr post link (tumblr.com/<blog>/<id> or <blog>.tumblr.com/post/<id>): publishes a reblog of that post with your text as the comment.",
                         "type": "string"
                       }
                     },
@@ -4385,7 +6066,7 @@
     {
       "name": "get_post_metrics",
       "title": "Get post metrics",
-      "description": "Get engagement metrics for a published post. Returns likes, comments, shares, impressions, and other platform-specific metrics. IMPORTANT: every platform entry carries `metricsSupported` and `supportedMetrics` — a metric key NOT in `supportedMetrics` is stored as 0 because that platform's API has no such field, so report it as unavailable rather than as zero. X reports impressions/likes/comments/shares/saves (bookmarks); Bluesky and Mastodon report no impressions; Pinterest reports no reach; YouTube reports no shares or reach; Discord reports likes (reaction counts) and comments (thread replies); TikTok reports reach, saves and clicks only for accounts that have granted TikTok insights. An Instagram story reports only impressions, reach and comments (story replies). Google Business, Telegram, Tumblr and LinkedIn personal profiles report nothing readable at all, and an X post comes back with `metricsSupported: false` until its channel turns on X metrics sync. Each platform entry also carries `linkClicks` (summed in `totals.linkClicks`): clicks on bulkpubli.sh short links in this post, measured by BulkPublish rather than reported by the platform. It sits OUTSIDE `latest` and is distinct from the platform's own `clicks` — one visit can register in both, so never add them together. It is therefore available even for the platforms that report nothing, and `supportedMetrics` always includes it. Bot and link-preview traffic is excluded; it is 0 for organizations without Link Tracking enabled. Use this when the user asks how a specific post performed (likes, views, engagement).",
+      "description": "Get engagement metrics for a published post. Returns likes, comments, shares, impressions, and other platform-specific metrics. IMPORTANT: every platform entry carries `metricsSupported` and `supportedMetrics` — a metric key NOT in `supportedMetrics` is stored as 0 because that platform's API has no such field, so report it as unavailable rather than as zero. X reports impressions/likes/comments/shares/saves (bookmarks); Bluesky and Mastodon report no impressions; Pinterest reports no reach; YouTube reports no shares or reach; Reddit reports likes (score), comments and shares (crossposts); Discord reports likes (reaction counts) and comments (thread replies); TikTok reports reach, saves and clicks only for accounts that have granted TikTok insights. An Instagram story reports only impressions, reach and comments (story replies). Google Business, Telegram, Tumblr and LinkedIn personal profiles report nothing readable at all, and an X post comes back with `metricsSupported: false` until its channel turns on X metrics sync. Each platform entry also carries `linkClicks` (summed in `totals.linkClicks`): clicks on bulkpubli.sh short links in this post, measured by BulkPublish rather than reported by the platform. It sits OUTSIDE `latest` and is distinct from the platform's own `clicks` — one visit can register in both, so never add them together. It is therefore available even for the platforms that report nothing, and `supportedMetrics` always includes it. Bot and link-preview traffic is excluded; it is 0 for organizations without Link Tracking enabled. Use this when the user asks how a specific post performed (likes, views, engagement).",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -4646,7 +6327,7 @@
     {
       "name": "get_channel_options",
       "title": "Get channel post-type options",
-      "description": "Get platform-specific options for a channel: Pinterest boards, YouTube playlists, Tumblr blogs, Discord text channels, Threads location search. Use this when you need a platform's valid post types before creating a post for it.",
+      "description": "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Reddit subreddit search or flairs, Threads location search. Use this when you need a platform's valid post types before creating a post for it.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -4655,7 +6336,15 @@
             "description": "The channel ID to get options for."
           },
           "q": {
-            "description": "Search term. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging).",
+            "description": "Search term. Reddit: subreddit name search. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging).",
+            "type": "string"
+          },
+          "subreddit": {
+            "description": "Reddit only: return that subreddit's post flairs instead of searching.",
+            "type": "string"
+          },
+          "boardId": {
+            "description": "Pinterest only: numeric board ID. Returns that board's sections ({ type: 'sections', items: [{ id, name }] }) for platformSpecific.pinterest.boardSectionId, instead of the boards. Non-numeric values return 400.",
             "type": "string"
           }
         },
@@ -7476,7 +9165,7 @@
     {
       "name": "moderate_comment",
       "title": "Like, hide or delete comment",
-      "description": "Like, unlike, hide, unhide or delete a comment on one of the workspace's published posts, on the platform, as the channel the post was published to. Likes and hides can be undone; delete is permanent and needs a role that can publish. Hiding or deleting also removes the comment from the Inbox. Which actions a channel supports is in its commentActions from list_post_comments. If the channel's connection has stopped working, the call is refused and the channel needs reconnecting from the Channels page. Comment replies are on every plan except Free; on Free, or before they are available to the account, the call is refused with a message saying so. Use this when the user wants to like, hide or delete a comment on one of their published posts.",
+      "description": "Like, unlike, hide, unhide or delete a comment on one of the workspace's published posts, on the platform, as the channel the post was published to. Likes and hides can be undone; delete is permanent and needs a role that can publish. Hiding or deleting also removes the comment from the Inbox. Which actions a channel supports is in its commentActions from list_post_comments (Threads supports hide and unhide; Facebook supports hide, unhide and delete). A comment hidden on Threads or Facebook comes back with hidden: true. If the channel's connection has stopped working, the call is refused and the channel needs reconnecting from the Channels page. Comment replies are on every plan except Free; on Free, or before they are available to the account, the call is refused with a message saying so. Use this when the user wants to like, hide or delete a comment on one of their published posts.",
       "inputSchema": {
         "type": "object",
         "properties": {

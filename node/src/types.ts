@@ -214,7 +214,7 @@ export interface MediaFile {
   duration: number | null;
   isOriginalDeleted?: boolean;
   originalUrl: string;
-  /** 160x160 square crop (webp). For videos, from an extracted poster frame. */
+  /** 160x160 square crop (webp). For videos, from an extracted poster frame. Always null for documents (PDF, Word, PowerPoint). */
   thumbnailUrl: string | null;
   /** 400px-wide derivative (webp) for grids. For videos, from the poster frame. */
   previewUrl?: string | null;
@@ -241,8 +241,8 @@ export interface ListMediaParams extends PaginationParams {
   search?: string;
   /** Comma-separated label IDs to filter by. */
   labelIds?: string;
-  /** Filter by media kind (matches the MIME type prefix). */
-  type?: 'image' | 'video';
+  /** Filter by media kind: `image`, `video` or `document` (PDF, Word and PowerPoint files). Omit for all files. */
+  type?: 'image' | 'video' | 'document';
 }
 
 /** Response from listing media files. */
@@ -619,7 +619,9 @@ export interface CreatePostParams {
    * - x: `tweet`, `video`, `thread`, `repost`
    * - youtube: `video`, `short` (video file required)
    * - tiktok: `video`, `photo_slideshow`
-   * - linkedin: `post`, `multi_image`, `pdf_carousel`, `article`
+   * - linkedin: `post`, `multi_image`, `pdf_carousel`, `article`, `document` (one PDF, Word or PowerPoint file, from
+   *   `platformSpecific.linkedin.documentTitle`), `poll` (from `platformSpecific.linkedin.poll`; needs text, no media),
+   *   `reshare` (from `platformSpecific.linkedin.reshareId`; text optional, no media)
    * - pinterest: `pin`, `video_pin`, `carousel`
    * - threads: `text`, `image`, `video`, `carousel`, `repost`
    * - bluesky: `post`
@@ -639,32 +641,67 @@ export interface CreatePostParams {
    * Per-platform specific settings.
    *
    * Required fields by platform:
-   * - **youtube**: `{ title }` (required, 1-100 chars). Optional: `privacyStatus`, `categoryId`, `tags`, `playlistId`, `thumbnailUrl`, `madeForKids`
-   * - **pinterest**: `{ title }` (required, 1-100 chars). Optional: `boardId` (or falls back to channel default), `description`, `link`, `dominantColor` (hex e.g. #FF5733), `coverImageUrl` (video pins; when omitted the server falls back to an attached image, then the video's auto-extracted poster frame)
+   * - **youtube**: `{ title }` (required, 1-100 chars). Optional: `privacyStatus`, `categoryId`, `tags`, `playlistId`, `thumbnailUrl`, `madeForKids`.
+   *   Also (post types `video` and `short`, sent to YouTube only when set): `containsSyntheticMedia` (boolean, discloses realistic
+   *   altered or synthetic content), `notifySubscribers` (only an explicit `false` changes anything), `license` (`'youtube'|'creativeCommon'`),
+   *   `embeddable`, `publicStatsViewable` (booleans; `false` restricts), `defaultLanguage` (title/description language) and
+   *   `defaultAudioLanguage` (language codes such as `'en'`, `'pt-BR'`), `recordingDate` (`YYYY-MM-DD` or an ISO 8601 date-time)
+   * - **pinterest**: `{ title }` (required, 1-100 chars). Optional: `boardId` (or falls back to channel default), `description`, `link`, `dominantColor` (hex e.g. #FF5733), `coverImageUrl` (video pins; when omitted the server falls back to an attached image, then the video's auto-extracted poster frame),
+   *   `boardSectionId` (numeric section of the chosen board, for `pin`, `video_pin` and `carousel`; list sections with
+   *   `GET /api/channels/{id}/options?boardId=<boardId>`; ignored when no board was chosen), `coverKeyFrameTime` (`video_pin` only: whole seconds, 0 or more, used as the cover frame; `coverImageUrl` wins when both are sent)
    * - **instagram**: Optional: `collaborators`, `shareToStory`, `trialReel`, `graduationStrategy`
-   *   (`'manual'|'auto'`), `thumbnailTimestamp`, `coverUrl`. `collaborators` is a comma-separated
+   *   (`'manual'|'auto'`), `thumbnailTimestamp`, `coverUrl`, `userTags`, `shareToFeed`, `locationId`. `collaborators` is a comma-separated
    *   list of usernames (no leading @) tagged as co-authors; it applies to post types
    *   `feed_photo`, `feed_video`, `reel` and `carousel` — on a carousel the co-authors go on the
    *   carousel itself, not on its individual items — and is ignored on `story`, which has no
    *   co-author concept. `thumbnailTimestamp` and `coverUrl` both set the still shown
    *   before a video or Reel plays (post types `feed_video` and `reel`); `coverUrl` wins when both
-   *   are sent, because Instagram rejects a request carrying both.
-   * - **facebook**: Optional: `shareToStory`, `thumbnailUrl`. `thumbnailUrl` is the cover for a video
+   *   are sent, because Instagram rejects a request carrying both. `userTags` is an array of
+   *   `{ username, x?, y?, mediaIndex? }` (up to 20 per photo or video; `x`/`y` are 0 to 1 from the top left, given together; `mediaIndex`
+   *   counts from 0 in attachment order, default 0). On a photo, and each photo of a carousel, a tag needs `x` and `y` or it is left out; on a
+   *   Reel or video post people are tagged by username only. Carousel videos and Stories carry no tags. `shareToFeed` (Reels only): `false`
+   *   shows the Reel only in the Reels tab, `true` also in the main feed; omitted keeps Instagram's default. `locationId` (digits) is the numeric
+   *   ID of a Facebook Page that has a location (photos, videos, Reels, carousels; not Stories).
+   * - **facebook**: Optional: `shareToStory`, `thumbnailUrl`, `textFormatPresetId`. `textFormatPresetId` (digits, a Facebook background ID) shows a short
+   *   text post on a coloured background; used only on a Page feed post with no photo, video or link card and at most 130 characters,
+   *   otherwise left out, and dropped (published as plain text) if Facebook refuses it. `thumbnailUrl` is the cover for a video
    *   or Reel; Facebook only accepts one once the video exists, so it is applied after the video
    *   publishes and lands a moment after the post. A cover that cannot be fetched, or that Facebook
    *   rejects, leaves the video published with Facebook's own chosen frame rather than failing the post.
-   * - **tiktok**: Optional: `privacyLevel` (SELF_ONLY|PUBLIC|FRIENDS), `disableDuet`, `disableStitch`, `disableComment`, `isAigc`
-   * - **x**: Optional: `replySettings`, `repostId` (with post type `repost`: status URL or ID to repost)
-   * - **bluesky**: Optional: `repostId` (with post type `repost`: bsky.app post URL or at:// URI)
-   * - **linkedin**: Optional: `title`, `description`, `url` (required for article type), `carouselTitle`
+   * - **tiktok**: Optional: `privacyLevel` (SELF_ONLY|PUBLIC|FRIENDS), `disableDuet`, `disableStitch`, `disableComment`, `isAigc`, `autoAddMusic` (photo posts), `sendToDrafts`, `photoCoverIndex`.
+   *   `sendToDrafts: true` sends a `video` or `photo_slideshow` post to the creator's TikTok drafts instead of publishing it:
+   *   `privacyLevel` is then not required and the direct-post settings (`privacyLevel`, `disableDuet`, `disableStitch`, `disableComment`, `isAigc`,
+   *   brand toggles, `autoAddMusic`, `thumbnailTimestamp`) are ignored; a video draft carries no caption, a photo draft does. Once delivered the
+   *   destination is `published` with no `platformUrl`, and analytics are not collected. `photoCoverIndex` (whole number 0 to 34, default 0)
+   *   picks the cover image of a `photo_slideshow` (past the last image falls back to the first).
+   * - **x**: Optional: `replySettings` (single post and first post of a thread), `repostId` (with post type `repost`: status URL or ID to repost),
+   *   `poll` (`{ options: 2-4 strings of 1-25 chars, durationMinutes: 5-10080 }`; not with media or `quoteId`), `quoteId` (numeric ID or x.com
+   *   status URL; not with `poll`), `communityId` (numeric ID or `https://x.com/i/communities/<id>`; the account must be a member),
+   *   `shareWithFollowers` (boolean, default `false`; with `communityId`). On a thread, `poll`, `quoteId` and `communityId` apply to the first post only; none applies to a repost
+   * - **bluesky**: Optional: `repostId` (with post type `repost`: bsky.app post URL or at:// URI), `replyAllow` (array: omitted or `[]` = everyone,
+   *   else `['nobody']` or any mix of `'mention'`, `'following'`, `'follower'`), `allowQuotes` (default `true`), `quoteId` (bsky.app link or at:// URI),
+   *   `langs` (up to 3 language codes), `contentLabel` (`'sexual'|'nudity'|'porn'|'graphic-media'`). `replyAllow`, `allowQuotes` and `quoteId` apply to the
+   *   first post of a thread; `langs` and `contentLabel` to every part
+   * - **linkedin**: Optional: `title`, `description`, `url` (required for article type), `carouselTitle`, `documentTitle` (`document` posts; defaults to the
+   *   file's name), `poll` (`{ question: up to 140 chars, options: 2-4 strings of up to 30 chars, duration: 'ONE_DAY'|'THREE_DAYS'|'SEVEN_DAYS'|'FOURTEEN_DAYS' }`,
+   *   default `THREE_DAYS`; required for `poll` posts), `reshareId` (LinkedIn post link or `urn:li:share:`/`urn:li:ugcPost:` ID; required for `reshare` posts;
+   *   activity links are rejected), `thumbnailUrl` (public image URL up to 10MB, cover for a `post` with a video; skipped if it cannot be fetched),
+   *   `visibility` (`'PUBLIC'|'CONNECTIONS'|'LOGGED_IN'`, default `PUBLIC`; `CONNECTIONS` on a Page is published as `PUBLIC`), `disableReshare` (boolean, default `false`).
+   *   A `document` post needs exactly one PDF, Word or PowerPoint file in `mediaIds`; documents can be published only to LinkedIn
    * - **gmb**: Optional: `ctaType`, `ctaUrl`, `eventTitle`, `startDate`, `endDate`, `startTime`, `endTime`, `couponCode`, `redeemOnlineUrl`
-   * - **mastodon**: Optional: `visibility` (public|unlisted|private|direct), `spoilerText`, `language`, `repostId` (with post type `repost`: status URL or ID to boost)
-   * - **threads**: Optional: `repostId` (with post type `repost`: the numeric Threads post ID to repost), `quotePostId`, `topicTag` (one topic, no leading '#', no periods or ampersands), `locationId` (numeric place ID from `GET /api/channels/{id}/options?q=<place>`; needs location tagging granted on the channel)
-   * - **discord**: `{ channelId }` (required) — the target Discord *text channel* snowflake inside the connected
+   * - **mastodon**: Optional: `visibility` (public|unlisted|private|direct), `spoilerText`, `language`, `repostId` (with post type `repost`: status URL or ID to boost),
+   *   `poll` (`{ options: 2-4 strings of 1-50 chars, expiresIn: 300-2629746 seconds, multiple?, hideTotals? }`; not with media), `sensitive` (hides attached media), `quoteId`
+   *   (URL or status ID on your own server; needs a server running Mastodon 4.5 or later). `poll` and `quoteId` apply to the first post of a thread; `sensitive` to every part
+   * - **threads**: Optional: `repostId` (with post type `repost`: the numeric Threads post ID to repost), `quotePostId`, `topicTag` (one topic, no leading '#', no periods or ampersands), `locationId` (numeric place ID from `GET /api/channels/{id}/options?q=<place>`; needs location tagging granted on the channel),
+   *   `replyControl` (`'everyone'|'accounts_you_follow'|'mentioned_only'|'parent_post_author_only'|'followers_only'`; default `everyone`; the post itself and the first part of a thread, never later replies),
+   *   `pollOptions` (2-4 strings of 1-25 chars; text-only posts, left out on image/video/carousel), `linkAttachment` (public http(s) URL shown as the preview card on a text post; Threads refuses more than 5 links in total)
+   * - **discord**: Optional: `silent`, `buttons` (up to 5 `{ label, url }`), `startThread`, `threadName`, `embed` (`{ title, color }`), `poll` (`{ question, answers: 2-10, durationHours?, multiselect? }`), `pin`, `tags` (up to 5 forum tag IDs). Polls and pins need the Send Polls and Pin Messages permissions. `{ channelId }` (required) — the target Discord *text channel* snowflake inside the connected
    *   server, which is not the BulkPublish channel id. Publishing uses a global bot token, so failures are
    *   permission problems rather than a reconnect issue.
-   * - **telegram**: no options — the destination chat is fixed when the channel is connected.
-   * - **tumblr**: Optional: `blogName` (defaults to the blog the channel was connected as), `title`, `tags` (array of strings, or one comma-separated string; leading '#' and blank entries are dropped)
+   * - **telegram**: Optional: `silent`, `protectContent`, `pin`, `threadId` (forum topic, digits), `buttons` (up to 3 `{ label, url }`), `spoiler`, `disablePreview`,
+   *   `poll` (`{ question, options: 2-12, anonymous?, multipleAnswers?, quiz?, correctOption? }`; `correctOption` is the 0-based answer and required when `quiz` is true;
+   *   `multipleAnswers` cannot be combined with `quiz`). The destination chat is fixed when the channel is connected.
+   * - **tumblr**: Optional: `state` (`'published'|'queue'|'draft'|'private'`; `draft` and `private` override scheduling), `slug` (up to 200 chars), `reblogInteraction` (`'everyone'|'noone'`), `reblogUrl` (a Tumblr post link: publishes a reblog with your text as the comment), `blogName` (defaults to the blog the channel was connected as), `title`, `tags` (array of strings, or one comma-separated string; leading '#' and blank entries are dropped)
    *   (string[], no leading `#`), `link`, `sourceUrl`
    * - **snapchat**: Optional: `title` (Saved Story title, max 45 chars — defaults to the caption's first
    *   line, truncated), `locale` (Spotlight locale, default `'en_US'`), `saveToProfile` (Spotlight only,
@@ -675,7 +712,7 @@ export interface CreatePostParams {
    *   `VALIDATION_ERROR` when the post is scheduled or published (drafts may be saved with it). First
    *   comments are not supported on Snapchat.
    *
-   * `discord`, `tumblr` and `snapchat` nest their options under the **BulkPublish channel id**, because each
+   * `discord`, `telegram`, `tumblr` and `snapchat` nest their options under the **BulkPublish channel id**, because each
    * connected account commonly targets a different Discord channel / blog. A flat object is also
    * accepted and applies to every channel of that platform on the post.
    *
@@ -1957,6 +1994,8 @@ export interface PostComment {
   actor?: { id?: string; name?: string; handle?: string; headline?: string; profileImage?: string; profileUrl?: string };
   /** Set when this comment is a reply: the id of the comment it replies to. */
   parentId?: string;
+  /** True when the account hid this comment (Threads and Facebook). */
+  hidden?: boolean;
 }
 
 export interface PostEngagementPlatform {
@@ -1978,7 +2017,7 @@ export interface PostEngagementPlatform {
     /** True when this channel cannot reply to comments; `replyNotice` says why. */
     replyUnsupported?: boolean;
     replyNotice?: string;
-    /** Which `moderateComment` actions this channel supports. */
+    /** Which `moderateComment` actions this channel supports (Threads: `hide`/`unhide`; Facebook: `hide`/`unhide`/`delete`). */
     commentActions?: CommentModerationAction[];
   } | null;
   error?: string;

@@ -28,6 +28,10 @@ const MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
   ".webp": "image/webp", ".gif": "image/gif", ".mp4": "video/mp4",
   ".mov": "video/quicktime", ".webm": "video/webm",
+  ".pdf": "application/pdf", ".doc": "application/msword",
+  ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ".ppt": "application/vnd.ms-powerpoint",
+  ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 };
 function mimeFromPath(filePath: string): string {
   const ext = filePath.toLowerCase().match(/\.[^.]+$/)?.[0] || "";
@@ -105,7 +109,10 @@ const POST_TYPE_OVERRIDES_SCHEMA = z
     youtube: z.enum(["video", "short"]).optional(),
     threads: z.enum(["text", "image", "video", "carousel", "repost"]).optional(),
     bluesky: z.enum(["post", "video", "thread", "repost"]).optional(),
-    linkedin: z.enum(["post", "multi_image", "pdf_carousel", "article"]).optional(),
+    linkedin: z
+      .enum(["post", "multi_image", "pdf_carousel", "article", "document", "poll", "reshare"])
+      .optional()
+      .describe("document: one PDF, Word or PowerPoint file from the media library (exactly one document, no images or videos; title from platformSpecific.linkedin.documentTitle). poll: a question with 2-4 answers from platformSpecific.linkedin.poll (needs post text, no media). reshare: shares an existing LinkedIn post from platformSpecific.linkedin.reshareId (post text optional, no media)."),
     pinterest: z.enum(["pin", "video_pin", "carousel"]).optional(),
     gmb: z.enum(["standard", "event", "offer"]).optional(),
     mastodon: z.enum(["post", "thread", "repost"]).optional(),
@@ -137,6 +144,51 @@ const DISCORD_OPTIONS = z
       .describe(
         "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options."
       ),
+    silent: z.boolean().optional().describe("Suppress notifications for the message."),
+    buttons: z.array(z.object({ label: z.string().describe("Up to 80 characters."), url: z.string().describe("http(s) link.") })).optional().describe("Link buttons, up to 5."),
+    startThread: z.boolean().optional().describe("Start a thread from the message (no effect on a forum channel)."),
+    threadName: z.string().optional().describe("Name for that thread, up to 100 characters."),
+    embed: z
+      .object({
+        title: z.string().optional().describe("Up to 256 characters."),
+        color: z.enum(["orange", "blue", "green", "red", "purple", "gray"]).optional(),
+      })
+      .optional()
+      .describe("Send the text as a rich embed with the first image inside."),
+    poll: z
+      .object({
+        question: z.string().describe("Up to 300 characters."),
+        answers: z.array(z.string()).describe("2 to 10 answers, each up to 55 characters."),
+        durationHours: z.number().optional().describe("Whole hours 1 to 768 (default 24)."),
+        multiselect: z.boolean().optional(),
+      })
+      .optional()
+      .describe("A native poll. The bot needs the Send Polls permission."),
+    pin: z.boolean().optional().describe("Pin the message. If Discord refuses, the post stays published and a warning is recorded. The bot needs the Pin Messages permission."),
+    tags: z.array(z.string()).optional().describe("Up to 5 forum tag IDs (digits) for a forum channel; IDs come from get_channel_options."),
+  })
+  .passthrough();
+
+const TELEGRAM_OPTIONS = z
+  .object({
+    silent: z.boolean().optional().describe("Send without a notification sound."),
+    protectContent: z.boolean().optional().describe("Recipients cannot forward or save the message."),
+    pin: z.boolean().optional().describe("Pin after sending. If the bot lacks the right to pin the post still publishes and a warning is recorded."),
+    threadId: z.union([z.string(), z.number()]).optional().describe("Forum topic to post into: digits only, up to 12."),
+    buttons: z.array(z.object({ label: z.string().describe("Up to 64 characters."), url: z.string().describe("http(s) link.") })).optional().describe("Link buttons under the message, up to 3."),
+    spoiler: z.boolean().optional().describe("Hides a photo or video behind a spoiler."),
+    disablePreview: z.boolean().optional().describe("Turns off the link preview."),
+    poll: z
+      .object({
+        question: z.string().describe("1 to 300 characters."),
+        options: z.array(z.string()).describe("2 to 12 answers, each up to 100 characters."),
+        anonymous: z.boolean().optional().describe("Default true."),
+        multipleAnswers: z.boolean().optional().describe("Default false. Cannot be combined with quiz."),
+        quiz: z.boolean().optional().describe("Default false."),
+        correctOption: z.number().optional().describe("0-based index of the right answer; required when quiz is true."),
+      })
+      .optional()
+      .describe("Sent as a poll after the message."),
   })
   .passthrough();
 
@@ -161,6 +213,10 @@ const TUMBLR_OPTIONS = z
       .string()
       .optional()
       .describe("Attribution URL stored as the post's source."),
+    state: z.enum(["published", "queue", "draft", "private"]).optional().describe("Default published. A scheduled post with published still goes out at its time; draft and private override that and the post is never made public by BulkPublish."),
+    slug: z.string().optional().describe("Up to 200 characters; lowercased and hyphenated into the permalink."),
+    reblogInteraction: z.enum(["everyone", "noone"]).optional().describe("Who can reblog the post."),
+    reblogUrl: z.string().optional().describe("A Tumblr post link (tumblr.com/<blog>/<id> or <blog>.tumblr.com/post/<id>): publishes a reblog of that post with your text as the comment."),
   })
   .passthrough();
 
@@ -199,6 +255,14 @@ const PLATFORM_SPECIFIC_SCHEMA = z
         madeForKids: z.boolean().optional(),
         playlistId: z.string().optional(),
         thumbnailUrl: z.string().optional(),
+        containsSyntheticMedia: z.boolean().optional().describe("true discloses realistic altered or synthetic content. Video and short posts."),
+        notifySubscribers: z.boolean().optional().describe("Only an explicit false changes anything: publishes without notifying subscribers."),
+        license: z.enum(["youtube", "creativeCommon"]).optional().describe("Default youtube; creativeCommon publishes under Creative Commons Attribution."),
+        embeddable: z.boolean().optional().describe("false stops other websites embedding the video."),
+        publicStatsViewable: z.boolean().optional().describe("false hides extended statistics on the watch page."),
+        defaultLanguage: z.string().optional().describe("Language of the title and description, e.g. 'en', 'pt-BR', 'zh-Hans'."),
+        defaultAudioLanguage: z.string().optional().describe("Language spoken in the video, e.g. 'en'."),
+        recordingDate: z.string().optional().describe("YYYY-MM-DD or an ISO 8601 date-time; a plain date is stored as midnight UTC."),
       })
       .passthrough()
       .optional(),
@@ -214,6 +278,14 @@ const PLATFORM_SPECIFIC_SCHEMA = z
           .describe(
             "Cover image URL for video pins. Optional — server falls back to an attached image, then the video's auto-extracted poster frame."
           ),
+        boardSectionId: z
+          .string()
+          .optional()
+          .describe("Numeric ID of a section of the chosen board (list with get_channel_options and boardId). Send it beside its board, per channel or flat. Pin, video_pin and carousel. A flat value is ignored for a channel with its own boardId, and any section is ignored when no board was chosen."),
+        coverKeyFrameTime: z
+          .number()
+          .optional()
+          .describe("video_pin only: use the frame at this many seconds (whole number, 0 or more) as the cover. A time past the end uses the last frame; coverImageUrl wins when both are sent."),
       })
       .passthrough()
       .optional(),
@@ -245,19 +317,39 @@ const PLATFORM_SPECIFIC_SCHEMA = z
           .number()
           .optional()
           .describe("Cover frame for the video, in seconds from the start."),
+        sendToDrafts: z
+          .boolean()
+          .optional()
+          .describe("Send a video or photo_slideshow post to the creator's TikTok drafts instead of publishing it (default false). privacyLevel is then not required, and the direct-post settings (privacyLevel, disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, autoAddMusic, thumbnailTimestamp) are ignored. A video draft carries no caption; a photo draft sends it. Once delivered the destination becomes published with no platformUrl, and analytics are not collected."),
+        photoCoverIndex: z.number().optional().describe("photo_slideshow only: which image is the cover, a whole number 0 to 34 counting from 0 in attachment order (default 0). An index past the last image falls back to the first."),
+        autoAddMusic: z.boolean().optional().describe("Photo posts published directly only: lets TikTok add a recommended track (default false). Ignored with sendToDrafts."),
       })
       .passthrough()
       .optional(),
     x: z
       .object({
-        replySettings: z.string().optional(),
+        replySettings: z.string().optional().describe("Who can reply: everyone, following, verified, subscribers or mentionedUsers. Applies to a single post and to the first post of a thread."),
         repostId: z.string().optional().describe("With postTypeOverrides.x = 'repost': the X post URL or ID to repost (retweet)."),
+        poll: z
+          .object({
+            options: z.array(z.string()).describe("2 to 4 choices, each 1 to 25 characters."),
+            durationMinutes: z.number().describe("How long the poll stays open, whole minutes from 5 to 10080 (7 days)."),
+          })
+          .optional()
+          .describe("Adds a poll. Cannot be combined with media or quoteId. On a thread it goes on the first post."),
+        quoteId: z.string().optional().describe("The post to quote: its numeric ID or its x.com / twitter.com status URL. Cannot be combined with poll. On a thread it applies to the first post."),
+        communityId: z.string().optional().describe("Posts into an X Community: its numeric ID or its https://x.com/i/communities/<id> URL. The account must be a member."),
+        shareWithFollowers: z.boolean().optional().describe("With communityId, also shows the post to your followers (default false). Ignored without communityId."),
       })
       .passthrough()
       .optional(),
     facebook: z
       .object({
         shareToStory: z.boolean().optional(),
+        textFormatPresetId: z
+          .string()
+          .optional()
+          .describe("Digits only (a Facebook background ID). Shows a short text post on a coloured background. Used only on a Page feed post with no photo, video or link card and at most 130 characters; anywhere else it is left out and the post publishes as plain text. If Facebook refuses the background the post is published once more without it."),
         thumbnailUrl: z
           .string()
           .optional()
@@ -276,6 +368,19 @@ const PLATFORM_SPECIFIC_SCHEMA = z
             "Comma-separated Instagram usernames (no leading @) tagged as co-authors. Applies with postTypeOverrides.instagram of 'feed_photo', 'feed_video', 'reel' or 'carousel' \u2014 on a carousel the co-authors are set on the carousel itself, not on its individual items. Ignored on 'story', which has no co-author concept."
           ),
         shareToStory: z.boolean().optional(),
+        userTags: z
+          .array(
+            z.object({
+              username: z.string().describe("A public Instagram username, leading @ optional."),
+              x: z.number().optional().describe("Position on the photo, 0 to 1 from the left. Give x and y together or not at all."),
+              y: z.number().optional().describe("Position on the photo, 0 to 1 from the top."),
+              mediaIndex: z.number().optional().describe("Which attached media item the tag belongs to, counting from 0 in attachment order (default 0)."),
+            })
+          )
+          .optional()
+          .describe("People tagged in the post, up to 20 per photo or video. On a photo (and each photo of a carousel) a tag needs x and y or it is left out; on a Reel or video post people are tagged by username only and any position is ignored. Carousel videos and Stories carry no tags."),
+        shareToFeed: z.boolean().optional().describe("Reels only. false shows the Reel only in the Reels tab; true also shows it in the main feed. Omitted: Instagram's own default (feed and Reels tab)."),
+        locationId: z.string().optional().describe("Digits only: the numeric ID of a Facebook Page that has a location. Applies to photos, videos, Reels and carousels, not Stories. Instagram refuses the post if it does not recognise the ID as a place."),
         trialReel: z
           .boolean()
           .optional()
@@ -315,23 +420,79 @@ const PLATFORM_SPECIFIC_SCHEMA = z
           .string()
           .optional()
           .describe("Numeric place ID from get_channel_options with a `q` search on a Threads channel. Only works once the channel has granted location tagging."),
+        replyControl: z
+          .enum(["everyone", "accounts_you_follow", "mentioned_only", "parent_post_author_only", "followers_only"])
+          .optional()
+          .describe("Who can reply (default everyone). parent_post_author_only means only you. Applies to the post itself, never to later replies in a thread; ignored on a repost."),
+        pollOptions: z
+          .array(z.string())
+          .optional()
+          .describe("2 to 4 poll choices, each 1 to 25 characters. Text-only posts: on an image, video or carousel post the poll is left out. In a thread it goes on the first part when that part has no media."),
+        linkAttachment: z
+          .string()
+          .optional()
+          .describe("An http(s) URL on a public host shown as the preview card on a text post; left out on other post types. Threads refuses a post with more than 5 links in total, and a link here that differs from every link in the text counts as one more."),
       })
       .passthrough()
       .optional(),
-    linkedin: z.object({}).passthrough().optional(),
-    bluesky: z.object({ repostId: z.string().optional().describe("With postTypeOverrides.bluesky = 'repost': the bsky.app post URL (or at:// URI) to repost.") }).passthrough().optional(),
-    mastodon: z.object({ repostId: z.string().optional().describe("With postTypeOverrides.mastodon = 'repost': the status URL or ID to boost.") }).passthrough().optional(),
+    linkedin: z
+      .object({
+        documentTitle: z.string().optional().describe("`document` posts only: the title shown above the document in the feed. Defaults to the file's name."),
+        poll: z
+          .object({
+            question: z.string().describe("Up to 140 characters."),
+            options: z.array(z.string()).describe("2 to 4 answers, each up to 30 characters; blank entries are ignored."),
+            duration: z.enum(["ONE_DAY", "THREE_DAYS", "SEVEN_DAYS", "FOURTEEN_DAYS"]).optional().describe("Default THREE_DAYS."),
+          })
+          .optional()
+          .describe("Required for `poll` posts, which also need post text and take no media."),
+        reshareId: z.string().optional().describe("Required for `reshare` posts: the post's LinkedIn link, or its urn:li:share:<id> / urn:li:ugcPost:<id> ID. Activity links (urn:li:activity:<id>) cannot be reshared."),
+        thumbnailUrl: z.string().optional().describe("Cover for a `post` that carries a video: a public http(s) link to an image of up to 10MB. A cover that cannot be fetched is skipped and LinkedIn picks the frame."),
+        visibility: z.enum(["PUBLIC", "CONNECTIONS", "LOGGED_IN"]).optional().describe("Who can see the post (default PUBLIC). CONNECTIONS applies to personal profiles only; on a Page it is published as PUBLIC."),
+        disableReshare: z.boolean().optional().describe("true stops other members resharing the post (default false)."),
+      })
+      .passthrough()
+      .optional(),
+    bluesky: z
+      .object({
+        repostId: z.string().optional().describe("With postTypeOverrides.bluesky = 'repost': the bsky.app post URL (or at:// URI) to repost."),
+        replyAllow: z
+          .array(z.enum(["nobody", "mention", "following", "follower"]))
+          .optional()
+          .describe("Who can reply. Omitted or [] means everyone; otherwise ['nobody'] or any mix of mention, following, follower ('nobody' cannot be combined). Set right after the post publishes; if Bluesky refuses it the post stays published without it. First post of a thread."),
+        allowQuotes: z.boolean().optional().describe("false stops other accounts quoting the post (default true). Set right after publishing, like replyAllow."),
+        quoteId: z.string().optional().describe("The post to quote: a bsky.app post link or an at:// URI (a bare ID is read as one of your own posts). Replaces a link card; with media attached both appear together. Publishing fails before anything is posted if the post cannot be found."),
+        langs: z.array(z.string()).optional().describe("Up to 3 language codes such as 'en' or 'pt-BR'. Applies to every part of a thread."),
+        contentLabel: z.enum(["sexual", "nudity", "porn", "graphic-media"]).optional().describe("Adds a content warning. Applies to every part of a thread."),
+      })
+      .passthrough()
+      .optional(),
+    mastodon: z
+      .object({
+        repostId: z.string().optional().describe("With postTypeOverrides.mastodon = 'repost': the status URL or ID to boost."),
+        poll: z
+          .object({
+            options: z.array(z.string()).describe("2 to 4 choices, each 1 to 50 characters."),
+            expiresIn: z.number().describe("Seconds the poll stays open, 300 to 2629746."),
+            multiple: z.boolean().optional().describe("Voters may pick more than one choice (default false)."),
+            hideTotals: z.boolean().optional().describe("Hide counts until the poll ends (default false)."),
+          })
+          .optional()
+          .describe("Adds a poll. Cannot be combined with media. First post of a thread. A server with tighter limits refuses it at publish time."),
+        sensitive: z.boolean().optional().describe("Hides attached media behind a click (default false). No effect without media. Applies to every part of a thread."),
+        quoteId: z.string().optional().describe("The post to quote: its URL, or its status ID on your own server. Needs a server running Mastodon 4.5 or later, otherwise publishing fails and nothing is posted."),
+      })
+      .passthrough()
+      .optional(),
     discord: channelKeyedOrFlat(DISCORD_OPTIONS)
       .optional()
       .describe(
         'Discord options, nested under the BulkPublish channel id: { "12": { "channelId": "1090123456789012345" } }. A flat object applies to every Discord channel on the post. The inner channelId is the target Discord text channel. Posting uses a global bot token, so failures are permission problems, never a reconnect issue.'
       ),
-    telegram: z
-      .object({})
-      .passthrough()
+    telegram: channelKeyedOrFlat(TELEGRAM_OPTIONS)
       .optional()
       .describe(
-        "Telegram accepts no options — the destination chat is fixed when the channel is connected. Content is sent as plain text (no markdown). Text over the 1024-char caption limit is posted as a second message alongside captionless media."
+        'Telegram options, nested under the BulkPublish channel id: { "12": { "silent": true } }. A flat object applies to every Telegram channel on the post. The destination chat is fixed when the channel is connected. Content is sent as plain text (no markdown). Text over the 1024-char caption limit is posted as a second message alongside captionless media. Attached GIFs, audio and other files are sent as an animation, an audio file or a document according to their type.'
       ),
     tumblr: channelKeyedOrFlat(TUMBLR_OPTIONS)
       .optional()
@@ -346,7 +507,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
   })
   .optional()
   .describe(
-    'Platform-specific settings, e.g. { "youtube": { "title": "…", "privacyStatus": "public" } }. Discord, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { "discord": { "12": { "channelId": "1090123456789012345" } } }. Telegram takes no options.'
+    'Platform-specific settings, e.g. { "youtube": { "title": "…", "privacyStatus": "public" } }. Discord, Telegram, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { "discord": { "12": { "channelId": "1090123456789012345" } } }. Full per-platform option lists (polls, quotes, tags, drafts, settings) are on each platform key; bad values are refused with 400 VALIDATION_ERROR.'
   );
 
 const PLATFORM_CONTENT_SCHEMA = z
@@ -813,7 +974,7 @@ export function createServer(opts: { profile?: ToolProfile } = {}): McpServer {
     update_post: "the user wants to edit an existing post.",
     list_platforms: "the user asks which platforms are supported or available, or a connect/publish attempt failed with PLATFORM_DISABLED.",
     bulk_posts: "the user wants to delete, retry, or reschedule many posts in a single request.",
-    upload_media: "the user provides an image/video to attach to a post.",
+    upload_media: "the user provides an image, video or document to attach to a post.",
     create_media_upload: "you need a presigned URL for a large direct upload (advanced; prefer upload_media for normal files).",
     finalize_media_upload: "a presigned direct upload finished and the file must be registered (advanced).",
     create_multipart_upload: "a file is too large for a single upload (e.g. a video over 100MB, up to 1GB) and must be sent in 10MB chunks.",
@@ -1446,7 +1607,7 @@ server.tool(
 
 server.tool(
   "upload_media",
-  "Upload a media file (image or video) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM. Max 100MB. Provide either url OR filePath, not both.",
+  "Upload a media file (image, video or document) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM, and documents (PDF, Word .doc/.docx, PowerPoint .ppt/.pptx). Max 100MB. A document has no thumbnail or preview and can only be published to LinkedIn, as a `document` post. Provide either url OR filePath, not both.",
   {
     url: z
       .string()
@@ -1572,7 +1733,7 @@ server.tool(
     search: z.string().optional().describe("Search by filename."),
     page: z.number().optional().describe("Page number (default 1)."),
     limit: z.number().optional().describe("Results per page (default 20, max 100)."),
-    type: z.enum(["image", "video"]).optional().describe("Filter by media kind (matches the MIME type prefix). The response's `total` counts matches across all pages."),
+    type: z.enum(["image", "video", "document"]).optional().describe("Filter by media kind: image, video or document (PDF, Word and PowerPoint files). Omit for all files. The response's `total` counts matches across all pages."),
   },
   async ({ search, page, limit, type }) => {
     const params = new URLSearchParams();
@@ -2217,17 +2378,19 @@ server.tool(
 
 server.tool(
   "get_channel_options",
-  "Get platform-specific options for a channel: Pinterest boards, YouTube playlists, Tumblr blogs, Discord text channels, Threads location search.",
+  "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search.",
   {
     channelId: z.number().describe("The channel ID to get options for."),
     q: z
       .string()
       .optional()
       .describe("Search term. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging)."),
+    boardId: z.string().optional().describe("Pinterest only: numeric board ID. Returns that board's sections ({ type: 'sections', items: [{ id, name }] }) for platformSpecific.pinterest.boardSectionId, instead of the boards. Non-numeric values return 400."),
   },
-  async ({ channelId, q }) => {
+  async ({ channelId, q, boardId }) => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
+    if (boardId) params.set("boardId", boardId);
     const qs = params.toString();
     const res = await api("GET", `/api/channels/${channelId}/options${qs ? `?${qs}` : ""}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -3509,7 +3672,7 @@ if (!HIDE_BILLING_TOOLS) {
 
   server.tool(
     "moderate_comment",
-    "Like, unlike, hide, unhide or delete a comment on one of the workspace's published posts, on the platform, as the channel the post was published to. Likes and hides can be undone; delete is permanent and needs a role that can publish. Hiding or deleting also removes the comment from the Inbox. Which actions a channel supports is in its commentActions from list_post_comments." +
+    "Like, unlike, hide, unhide or delete a comment on one of the workspace's published posts, on the platform, as the channel the post was published to. Likes and hides can be undone; delete is permanent and needs a role that can publish. Hiding or deleting also removes the comment from the Inbox. Which actions a channel supports is in its commentActions from list_post_comments (Threads supports hide and unhide; Facebook supports hide, unhide and delete). A comment hidden on Threads or Facebook comes back with hidden: true." +
       RECONNECT +
       COMMENTS_AVAILABILITY,
     {

@@ -96,7 +96,7 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 | X / Twitter | `tweet` | Optional (max 4 images or 1 video) | — | 280 |
 | YouTube | `video`, `short` | **Video required** | **`platformSpecific.youtube.title`** | 5,000 |
 | TikTok | `video`, `photo_slideshow` | **Video or images required** | — | 2,200 |
-| LinkedIn | `post`, `multi_image`, `pdf_carousel`, `article` | Varies by type | `url` for article | 3,000 |
+| LinkedIn | `post`, `multi_image`, `pdf_carousel`, `article`, `document`, `poll`, `reshare` | Varies by type | `url` for article, `poll` for poll, `reshareId` for reshare | 3,000 |
 | Pinterest | `pin`, `video_pin`, `carousel` | **Required** | **`platformSpecific.pinterest.title`** | 500 |
 | Threads | `text`, `image`, `video`, `carousel` | Optional | — | 500 |
 | Bluesky | `post` | Optional (max 4 images or 1 video) | — | 300 |

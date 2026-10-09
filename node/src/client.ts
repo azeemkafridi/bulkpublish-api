@@ -212,6 +212,11 @@ export class HttpClient {
         mp4: 'video/mp4',
         mov: 'video/quicktime',
         webm: 'video/webm',
+        pdf: 'application/pdf',
+        doc: 'application/msword',
+        docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ppt: 'application/vnd.ms-powerpoint',
+        pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
       };
       const mimeType = mimeMap[ext] || 'application/octet-stream';
       blob = new Blob([buf], { type: mimeType });

@@ -353,7 +353,7 @@ See the [OpenAPI spec](openapi.json) for the complete endpoint list.
 | **Bluesky** | Post, Thread | Images |
 | **Pinterest** | Pin | Images, Videos |
 | **Google Business Profile** | Post, Event, Offer | Images |
-| **LinkedIn** | Post, Multi-image, PDF Carousel, Article | Images (JPEG, PNG, GIF), Videos (MP4) |
+| **LinkedIn** | Post, Multi-image, PDF Carousel, Article, Document, Poll, Reshare | Images (JPEG, PNG, GIF), Videos (MP4), Documents (PDF, Word, PowerPoint) |
 | **Mastodon** | Post, Thread | Images, Videos |
 | **Snapchat** | Story, Saved Story, Spotlight | Exactly 1 image (JPG, PNG) or video (MP4, MOV, vertical, max 1GB; story video 5–60s, Spotlight 6–60s) |
 

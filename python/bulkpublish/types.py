@@ -311,7 +311,9 @@ class MediaFile(TypedDict, total=False):
     """An uploaded media file.
 
     ``width``/``height``/``duration``/``thumbnailUrl``/``previewUrl``/
-    ``largeUrl`` can be ``None`` (e.g. before async processing finishes).
+    ``largeUrl`` can be ``None`` (e.g. before async processing finishes). For a
+    document (PDF, Word, PowerPoint) the dimensions and all three derivative URLs
+    are always ``None``.
 
     The three derivative URLs are webp renditions — ``thumbnailUrl`` a 160x160
     square crop, ``previewUrl`` 400px wide for grids, ``largeUrl`` 1200px wide

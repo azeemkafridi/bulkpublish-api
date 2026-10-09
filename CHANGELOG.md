@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-10-09 — More post options on every platform, documents for LinkedIn, comment moderation on Threads and Facebook
+
+Node SDK **1.44.0** · Python SDK **0.45.0** · MCP **1.47.0**
+
+### Added
+
+- **X:** `platformSpecific.x.poll`, `quoteId`, `communityId` and `shareWithFollowers`. A poll cannot be combined with media or `quoteId`.
+- **Bluesky:** `replyAllow`, `allowQuotes`, `quoteId`, `langs` and `contentLabel`.
+- **Mastodon:** `poll`, `sensitive` and `quoteId`.
+- **Threads:** `replyControl`, `pollOptions` and `linkAttachment`.
+- **Instagram:** `userTags`, `shareToFeed` (Reels) and `locationId`.
+- **Facebook:** `textFormatPresetId`, a coloured background for a short text post on a Page.
+- **TikTok:** `sendToDrafts` (send a video or photo post to the creator's drafts instead of publishing it), `photoCoverIndex`, and `autoAddMusic` is now documented.
+- **YouTube:** `containsSyntheticMedia`, `notifySubscribers`, `license`, `embeddable`, `publicStatsViewable`, `defaultLanguage`, `defaultAudioLanguage` and `recordingDate`.
+- **Pinterest:** `boardSectionId` and `coverKeyFrameTime`. `GET /api/channels/{id}/options?boardId=<boardId>` lists a board's sections (MCP `get_channel_options` takes `boardId`).
+- **Telegram:** `silent`, `protectContent`, `pin`, `threadId`, `buttons`, `spoiler`, `disablePreview` and `poll`. Telegram options are now keyed by channel id (or flat), like Discord's.
+- **Discord:** `silent`, `buttons`, `startThread`, `threadName`, `embed`, `poll`, `pin` and `tags`.
+- **Tumblr:** `state`, `slug`, `reblogInteraction` and `reblogUrl`.
+- **LinkedIn:** three new post types, `document`, `poll` and `reshare`, and the options `documentTitle`, `poll`, `reshareId`, `thumbnailUrl`, `visibility` and `disableReshare`.
+- **Documents in the media library.** PDF, Word and PowerPoint files upload like any other file (up to 100MB) and `type=document` lists them (Node `media.list({ type: 'document' })`, Python `type="document"`, MCP `list_media`). A document can only be published to LinkedIn, as a `document` post; attaching one to any other platform is rejected with 400 `VALIDATION_ERROR` when the post is scheduled or published. The MCP `upload_media` tool and the Node SDK pick the right content type for these file extensions.
+- **Comment moderation:** Threads supports `hide` and `unhide`; Facebook supports `hide`, `unhide` and `delete` (see `commentActions`). A comment you hid on Threads or Facebook comes back from the engagement read with `hidden: true`, and the Node `PostComment` type has the field.
+
+### Changed
+
+- X `replySettings` now also applies to the first post of a thread (it was ignored for threads before).
+- Values outside these options' limits are refused with 400 `VALIDATION_ERROR` naming the path.
+
 ## 2026-10-09 — Reddit is no longer a supported platform
 
 Node SDK **1.43.0** · Python SDK **0.44.0** · MCP **1.46.0**

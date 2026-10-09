@@ -25,7 +25,11 @@ from .types import (
 
 
 class MediaResource:
-    """Operations on media files (images, videos, etc.).
+    """Operations on media files (images, videos and documents).
+
+    Documents (PDF, Word, PowerPoint) upload like any other file, up to 100MB. A
+    document has no thumbnail or preview and can only be published to LinkedIn,
+    as a ``document`` post.
 
     Access via ``client.media``:
 
@@ -55,8 +59,8 @@ class MediaResource:
             page: Page number (1-based).
             limit: Results per page.
             label_ids: Filter by label IDs.
-            type: Filter by media kind — ``"image"`` or ``"video"``
-                (matches the MIME type prefix).
+            type: Filter by media kind — ``"image"``, ``"video"`` or ``"document"``
+                (PDF, Word and PowerPoint files). Omit for all files.
 
         Returns:
             Paginated media list with ``files``, ``page``, ``limit``, and
