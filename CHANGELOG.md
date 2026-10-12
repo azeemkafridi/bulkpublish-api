@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-12 — X budget renews on the billing date
+
+### Changed
+
+- **`GET /api/quotas/x-usage`:** the monthly X budget now renews on the workspace's billing date instead of the 1st (still the 1st for a workspace without one, such as Free), and `budget.resetsAt` reports that date. A post the budget cannot cover is held for up to 24 hours, published as soon as credits cover it, and only then fails. Response shape unchanged; no SDK release needed.
+
 ## 2026-10-09 — More post options on every platform, documents for LinkedIn, comment moderation on Threads and Facebook
 
 Node SDK **1.44.0** · Python SDK **0.45.0** · MCP **1.47.0**

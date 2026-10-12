@@ -7015,7 +7015,7 @@
           "Utilities"
         ],
         "summary": "X (Twitter) API spend",
-        "description": "Per-org X API call costs. Writes AND metered reads (metrics, engagement, user search, health checks) draw from ONE monthly budget \u2014 plan allowance first, purchased credits as overage; there is no separate read quota, and metered reads are unavailable on the Free and Lifetime plans, which have no included budget (credits unlock publishing only). `absorbedDcents` is retained for compatibility and covers only historical pre-2026-08 read usage. Returns today's breakdown, monthly budget status, and 30-day history.",
+        "description": "Per-org X API call costs. Writes AND metered reads (metrics, engagement, user search, health checks) draw from ONE monthly budget \u2014 plan allowance first, purchased credits as overage; there is no separate read quota, and metered reads are unavailable on the Free and Lifetime plans, which have no included budget (credits unlock publishing only). `absorbedDcents` is retained for compatibility and covers only historical pre-2026-08 read usage. Returns today's breakdown, monthly budget status, and 30-day history. The budget renews monthly on the workspace's billing date (on the 1st for a workspace without one, such as Free); `budget.resetsAt` is when the current period ends. A post the budget cannot cover is held for up to 24 hours and published as soon as credits cover it, then fails.",
         "parameters": [
           {
             "name": "days",
