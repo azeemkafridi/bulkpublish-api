@@ -1,30 +1,59 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.azeemkafridi/bulkpublish",
-  "description": "Publish, schedule, and manage social media across 15 platforms via MCP.",
+  "description": "Schedule, cross-post, and analyze social media posts across 15 platforms from AI agents.",
+  "title": "BulkPublish",
   "repository": {
     "url": "https://github.com/azeemkafridi/bulkpublish-api",
     "source": "github",
     "subfolder": "mcp-server"
   },
-  "version": "1.2.0",
+  "version": "1.42.0",
+  "websiteUrl": "https://www.bulkpublish.com/integrations/mcp-server/",
+  "icons": [
+    {
+      "src": "https://www.bulkpublish.com/favicon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": [
+        "any"
+      ]
+    }
+  ],
   "packages": [
     {
       "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@bulkpublish/mcp-server",
-      "version": "1.2.0",
+      "version": "1.42.0",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
-          "description": "Your BulkPublish API key (starts with bp_)",
+          "description": "Your BulkPublish API key (starts with bp_). Create one at https://app.bulkpublish.com/developer",
           "isRequired": true,
           "format": "string",
           "isSecret": true,
           "name": "BULKPUBLISH_API_KEY"
+        },
+        {
+          "description": "Tool set to expose: core, inbox, or full (default full)",
+          "format": "string",
+          "default": "full",
+          "choices": [
+            "core",
+            "inbox",
+            "full"
+          ],
+          "name": "BULKPUBLISH_TOOL_PROFILE"
         }
       ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.bulkpublish.com/mcp"
     }
   ]
 }
