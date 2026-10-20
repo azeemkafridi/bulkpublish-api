@@ -3,7 +3,7 @@
   "info": {
     "title": "BulkPublish API",
     "version": "1.0.0",
-    "description": "Publish to 15 social media platforms from a single API.\n\n## Using this API from an AI agent\n\nEverything below is also available as an [MCP](https://modelcontextprotocol.io) server, so Claude, ChatGPT, Cursor and other agents can drive BulkPublish directly.\n\n**Hosted (web-based hosts):** add `https://mcp.bulkpublish.com/mcp` as a custom connector. It supports OAuth 2.1 \u2014 you paste your API key once on the consent screen \u2014 or a key in the URL (`?key=bp_...`) for hosts without OAuth.\n\n**Local (Claude Code, Cursor, Codex, Windsurf):** `npx -y @bulkpublish/mcp-server`, with `BULKPUBLISH_API_KEY` in the environment.\n\nPer-client config and the full tool list: [BulkPublish AI Toolkit](https://github.com/azeemkafridi/bulkpublish-ai-toolkit). Get an API key at [/developer](https://app.bulkpublish.com/developer).\n\n## Team roles and seats\n\nEvery write request runs with the role of the member who owns the API key or authorized the app. A role that does not allow an action gets **403** `FORBIDDEN` (or `APPROVAL_REQUIRED` when the post must go through approval instead). When a workspace has more members than its plan includes (for example after a downgrade), the members who joined most recently beyond the plan's seats are read-only: their write requests get **403** `SEAT_LIMIT` until the owner upgrades or frees a seat. The owner always keeps full access, and removing a member or leaving still work."
+    "description": "Publish to 15 social media platforms from a single API.\n\n## Using this API from an AI agent\n\nBulkPublish is also an [MCP](https://modelcontextprotocol.io) server, so Claude, ChatGPT, Cursor and other agents can drive it directly. The two servers below expose different amounts of what is documented here.\n\n**Hosted (web-based hosts):** add `https://mcp.bulkpublish.com/mcp` as a custom connector. It supports OAuth 2.1 \u2014 you paste your API key once on the consent screen \u2014 or a key in the URL (`?key=bp_...`) for hosts without OAuth. It exposes a focused set of tools \u2014 channels, posts, media, analytics, and the interactive panels \u2014 not one per endpoint below.\n\n**Local (Claude Code, Cursor, Codex, Windsurf):** `npx -y @bulkpublish/mcp-server`, with `BULKPUBLISH_API_KEY` in the environment. This one exposes the full tool set, including schedules, RSS feeds, labels and quotas.\n\nPer-client config and the full tool list: [BulkPublish AI Toolkit](https://github.com/azeemkafridi/bulkpublish-ai-toolkit). Get an API key at [/developer](https://app.bulkpublish.com/developer).\n\n## Team roles and seats\n\nEvery write request runs with the role of the member who owns the API key or authorized the app. A role that does not allow an action gets **403** `FORBIDDEN` (or `APPROVAL_REQUIRED` when the post must go through approval instead). When a workspace has more members than its plan includes (for example after a downgrade), the members who joined most recently beyond the plan's seats are read-only: their write requests get **403** `SEAT_LIMIT` until the owner upgrades or frees a seat. The owner always keeps full access, and removing a member or leaving still work."
   },
   "servers": [
     {
@@ -863,7 +863,7 @@
               },
               "thumbnailTimestamp": {
                 "type": "number",
-                "description": "Thumbnail timestamp in seconds"
+                "description": "Cover frame for the video, in seconds from the start. Must be a number, not a numeric string: a string is ignored and TikTok picks its own frame."
               }
             }
           },
@@ -1788,7 +1788,7 @@
                     "description": "Optional. Required when postFormat is 'thread' (min 2 parts)"
                   },
                   "platformThreadParts": {
-                    "description": "Per-platform thread segments, keyed by platform name. A platform's own list replaces `threadParts` for that platform when it has entries, so its parts are the ones measured against that platform's limit; a platform with no entries here uses `threadParts`. Same 400 VALIDATION_ERROR on an over-long part as `threadParts`.",
+                    "description": "Optional. Per-platform thread overrides, e.g. { \"x\": [{ \"content\": \"Part 1\" }] }. Part content must be a plain string \u2014 non-string shapes are rejected with 400 VALIDATION_ERROR.",
                     "type": "object",
                     "additionalProperties": {
                       "type": "array",
@@ -1806,8 +1806,7 @@
                           }
                         }
                       }
-                    },
-                    "description": "Optional. Per-platform thread overrides, e.g. { \"x\": [{ \"content\": \"Part 1\" }] }. Part content must be a plain string \u2014 non-string shapes are rejected with 400 VALIDATION_ERROR."
+                    }
                   },
                   "repeatSchedule": {
                     "type": "object",
@@ -3725,7 +3724,7 @@
         ],
         "operationId": "moderateComment",
         "summary": "Like, hide or delete a comment on a published post",
-        "description": "Acts on a comment, on the platform, as the channel the post was published to. `like`/`unlike` and `hide`/`unhide` can be undone; **`delete` is permanent on the platform** and needs a role that can publish (owner, admin, approver) — other roles get 403. Hiding or deleting also removes the comment from your Inbox.\n\nWhich actions a channel supports is in `commentActions` on its `GET /api/posts/{id}/engagement` entry; anything else returns 422. Threads supports `hide` and `unhide`; Facebook supports `hide`, `unhide` and `delete`. A comment you hid on Threads or Facebook comes back from `GET /api/posts/{id}/engagement` with `hidden: true`.\n\n`postPlatformId` and `commentId` come from `GET /api/posts/{id}/engagement`: the post's entry for that channel, and the comment's `id`.\n\n**Availability.** Replying to and moderating comments is being rolled out. Until it is available to your account this returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"comments_inbox\"`. Comment replies are part of every plan except Free: on Free the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence. Reading comments through `GET /api/posts/{id}/engagement` is not affected and stays available on every plan.\n\nRequires a role that can edit posts (owner, admin, approver, contributor). Limited to 30 actions per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
+        "description": "Acts on a comment, on the platform, as the channel the post was published to. `like`/`unlike` and `hide`/`unhide` can be undone; **`delete` is permanent on the platform** and needs a role that can publish (owner, admin, approver) \u2014 other roles get 403. Hiding or deleting also removes the comment from your Inbox.\n\nWhich actions a channel supports is in `commentActions` on its `GET /api/posts/{id}/engagement` entry; anything else returns 422. Threads supports `hide` and `unhide`; Facebook supports `hide`, `unhide` and `delete`. A comment you hid on Threads or Facebook comes back from `GET /api/posts/{id}/engagement` with `hidden: true`.\n\n`postPlatformId` and `commentId` come from `GET /api/posts/{id}/engagement`: the post's entry for that channel, and the comment's `id`.\n\n**Availability.** Replying to and moderating comments is being rolled out. Until it is available to your account this returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"comments_inbox\"`. Comment replies are part of every plan except Free: on Free the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence. Reading comments through `GET /api/posts/{id}/engagement` is not affected and stays available on every plan.\n\nRequires a role that can edit posts (owner, admin, approver, contributor). Limited to 30 actions per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
         "parameters": [
           {
             "name": "id",
@@ -4092,10 +4091,6 @@
                           "postPlatformId": {
                             "type": "integer",
                             "description": "This destination's id. Pass it as `postPlatformId` to `POST /api/posts/{id}/comments/reply` and `/moderate`. Absent when the read for this platform failed (see `error`)."
-                          },
-                          "error": {
-                            "type": "string",
-                            "description": "Route-level failure for this platform: the live read threw, or the post is published (`platformPostId` set) but the channel has no stored access token (needs reconnecting). When set alongside `engagement: null` the post IS live on this platform \u2014 the data simply could not be read."
                           },
                           "error": {
                             "type": "string",
@@ -4864,8 +4859,8 @@
               "type": "string",
               "enum": [
                 "image",
-                "video",
-                "document"
+              "video",
+              "document"
               ]
             }
           }
@@ -5992,11 +5987,23 @@
                 "video"
               ]
             }
+          },
+          {
+            "name": "compare",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 set to `1` to also return `previous`: `totalClicks` and `totalLinks` for the equal-length window immediately before this one. Only computed when that window falls entirely inside the 30-day statistics limit, i.e. for ranges of 15 days or fewer; otherwise `previous` is `null` and `previousWindow.available` is `false`.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Link performance"
+            "description": "Link performance\n\nWith `compare=1`, `previous` carries `totalClicks` and `totalLinks` for the preceding window of equal length (null when that window is outside the 30-day retention limit), and `previousWindow` states that window and whether it was available."
           },
           "400": {
             "description": "Invalid `from`/`to` date, or `tz` is not an IANA timezone name"
@@ -6026,7 +6033,7 @@
             "name": "type",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter by label type",
+            "description": "**optional** \u2014 Filter by label type. Omitted: every label the caller may see. Labels are org-wide and one quota counts every type together (see `GET /api/quotas/usage`).",
             "schema": {
               "type": "string",
               "enum": [
@@ -6051,14 +6058,14 @@
               "posts:read"
             ]
           }
-        ]
+        ],
+        "description": "Sorted by name. Response is `Cache-Control: private, no-store`. Each label: `{ id, name, color, type, createdAt }`. Add `?counts=1` to include `usageCount` (posts or media files carrying the label) on each row."
       },
       "post": {
         "tags": [
           "Labels"
         ],
         "summary": "Create label",
-        "description": "Counts against the org's label quota (every type together). Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -6069,11 +6076,15 @@
                 ],
                 "properties": {
                   "name": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "1\u2013100 characters, trimmed. Must be unique within the org for the same `type` (409 DUPLICATE_NAME otherwise).",
+                    "maxLength": 100
                   },
                   "color": {
                     "type": "string",
-                    "default": "#6366f1"
+                    "default": "#6366f1",
+                    "description": "Hex colour, `#RGB` or `#RRGGBB`, e.g. `#3B82F6`. Default `#6366f1`. Any other format is rejected with 400.",
+                    "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                   },
                   "type": {
                     "type": "string",
@@ -6081,7 +6092,8 @@
                       "post",
                       "media"
                     ],
-                    "default": "post"
+                    "default": "post",
+                    "description": "Which surface the label organizes. Default `post`. Any value outside this list is rejected with 400."
                   }
                 }
               }
@@ -6103,7 +6115,8 @@
               "posts:write"
             ]
           }
-        ]
+        ],
+        "description": "Counts against the org's label quota (every type together). Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN."
       }
     },
     "/api/labels/{id}": {
@@ -6112,7 +6125,6 @@
           "Labels"
         ],
         "summary": "Update label",
-        "description": "At least one of `name` or `color` is required. `type` cannot be changed. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "parameters": [
           {
             "name": "id",
@@ -6130,10 +6142,14 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "1\u2013100 characters, trimmed. Renaming to a name already used by another label of the same type returns 409 DUPLICATE_NAME.",
+                    "maxLength": 100
                   },
                   "color": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Hex colour, `#RGB` or `#RRGGBB`, e.g. `#3B82F6`. Any other format is rejected with 400.",
+                    "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                   }
                 }
               }
@@ -6155,14 +6171,14 @@
               "posts:write"
             ]
           }
-        ]
+        ],
+        "description": "At least one of `name` or `color` is required. `type` cannot be changed. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN."
       },
       "delete": {
         "tags": [
           "Labels"
         ],
         "summary": "Delete label",
-        "description": "Detaches the label from every post and media file that carries it; the posts and files themselves are kept. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "parameters": [
           {
             "name": "id",
@@ -6188,7 +6204,8 @@
               "posts:write"
             ]
           }
-        ]
+        ],
+        "description": "Detaches the label from every post and media file that carries it; the posts and files themselves are kept. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN."
       }
     },
     "/api/schedules": {
@@ -8244,143 +8261,6 @@
         ]
       }
     },
-    "/api/api-keys": {
-      "get": {
-        "tags": [
-          "API Keys"
-        ],
-        "summary": "List API keys",
-        "responses": {
-          "200": {
-            "description": "API keys (secrets masked)"
-          }
-        },
-        "operationId": "listApiKeys",
-        "security": [
-          {
-            "apiKey": []
-          }
-        ]
-      },
-      "post": {
-        "tags": [
-          "API Keys"
-        ],
-        "summary": "Create API key",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "name"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "expiresAt": {
-                    "type": "string",
-                    "format": "date-time"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created (full key shown once)"
-          }
-        },
-        "operationId": "createApiKey",
-        "security": [
-          {
-            "apiKey": []
-          }
-        ]
-      }
-    },
-    "/api/api-keys/{id}": {
-      "delete": {
-        "tags": [
-          "API Keys"
-        ],
-        "summary": "Delete API key",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Deleted"
-          }
-        },
-        "operationId": "deleteApiKey",
-        "security": [
-          {
-            "apiKey": []
-          }
-        ]
-      }
-    },
-    "/api/api-keys/usage": {
-      "get": {
-        "tags": [
-          "API Keys"
-        ],
-        "summary": "API usage stats",
-        "description": "Returns today's API call count, daily limit based on plan, and per-key breakdown. Daily limits: Free 30, Lifetime 1,000, Pro 5,000, Business 50,000.",
-        "responses": {
-          "200": {
-            "description": "Usage data with today's count, limit, plan, and per-key breakdown"
-          }
-        },
-        "operationId": "getApiKeyUsage",
-        "security": [
-          {
-            "apiKey": []
-          }
-        ]
-      }
-    },
-    "/api/api-keys/usage/history": {
-      "get": {
-        "tags": [
-          "API Keys"
-        ],
-        "summary": "API usage history",
-        "description": "Returns daily API call counts for the last N days (default 30, max 90). Includes today's count so far alongside the previous days.",
-        "parameters": [
-          {
-            "name": "days",
-            "in": "query",
-            "required": false,
-            "description": "Number of days (default 30, max 90)",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Array of { date, count } entries"
-          }
-        },
-        "operationId": "getApiKeyUsageHistory",
-        "security": [
-          {
-            "apiKey": []
-          }
-        ]
-      }
-    },
     "/api/oauth/token": {
       "post": {
         "tags": [
@@ -8530,6 +8410,143 @@
         "operationId": "revokeOauthToken"
       }
     },
+    "/api/api-keys": {
+      "get": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "List API keys",
+        "responses": {
+          "200": {
+            "description": "API keys (secrets masked)"
+          }
+        },
+        "operationId": "listApiKeys",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "Create API key",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created (full key shown once)"
+          }
+        },
+        "operationId": "createApiKey",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/api/api-keys/usage": {
+      "get": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "API usage stats",
+        "description": "Returns today's API call count, daily limit based on plan, and per-key breakdown. Daily limits: Free 30, Lifetime 1,000, Pro 5,000, Business 50,000.",
+        "responses": {
+          "200": {
+            "description": "Usage data with today's count, limit, plan, and per-key breakdown"
+          }
+        },
+        "operationId": "getApiKeyUsage",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/api/api-keys/usage/history": {
+      "get": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "API usage history",
+        "description": "Returns daily API call counts for the last N days (default 30, max 90). Includes today's count so far alongside the previous days.",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "description": "Number of days (default 30, max 90)",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of { date, count } entries"
+          }
+        },
+        "operationId": "getApiKeyUsageHistory",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/api/api-keys/{id}": {
+      "delete": {
+        "tags": [
+          "API Keys"
+        ],
+        "summary": "Delete API key",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        },
+        "operationId": "deleteApiKey",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
     "/api/hashtag-groups": {
       "get": {
         "tags": [
@@ -8649,14 +8666,14 @@
             ]
           }
         ],
-        "description": "Returns { template }, or 404 when it is not in your organization."
+        "description": "Returns { group }, or 404 when it is not in your organization."
       },
       "put": {
         "tags": [
           "Hashtag Groups"
         ],
         "summary": "Update hashtag group",
-        "description": "At least one of `name` or `hashtags` is required. `hashtags` replaces the whole list. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "At least one of `name` or `hashtags` is required. `hashtags` replaces the whole list. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "parameters": [
           {
             "name": "id",
@@ -8724,7 +8741,7 @@
           "Hashtag Groups"
         ],
         "summary": "Delete hashtag group",
-        "description": "Removes the group. Posts that already contain its hashtags are untouched. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "Removes the group. Posts that already contain its hashtags are untouched. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "parameters": [
           {
             "name": "id",
@@ -8762,7 +8779,7 @@
           "Posts"
         ],
         "summary": "Create or get the post's review link",
-        "description": "Returns a read-only review link (https://app.bulkpublish.com/p/<token>) that anyone holding it can open without signing in. It shows the post's text, media, destinations and timing, always the current version. The first call creates the token (201); later calls return the same one (200). Body `{ \"regenerate\": true }` mints a new token and kills the old link. Posts expose the token as `shareToken` (null when no link exists). Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
+        "description": "Returns a read-only review link (https://app.bulkpublish.com/p/<token>) that anyone holding it can open without signing in. It shows the post's text, media, destinations and timing, always the current version. The first call creates the token (201); later calls return the same one (200). Body `{ \"regenerate\": true }` mints a new token and kills the old link. Posts expose the token as `shareToken` (null when no link exists). Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "parameters": [
           {
             "name": "id",
@@ -8817,7 +8834,7 @@
           "Posts"
         ],
         "summary": "Revoke the post's review link",
-        "description": "Idempotent. Returns { success: true, revoked } where revoked says whether a link existed. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
+        "description": "Idempotent. Returns { success: true, revoked } where revoked says whether a link existed. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "parameters": [
           {
             "name": "id",
@@ -8855,7 +8872,7 @@
           "Review Links"
         ],
         "summary": "List client review links",
-        "description": "Every review link in the organization, newest first, each with how many posts it covers. Returns { reviewLinks: [{ id, name, shareToken, createdAt, postCount, url }] }. Returns { template }, or 404 when it is not in your organization. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
+        "description": "Every review link in the organization, newest first, each with how many posts it covers. Returns { reviewLinks: [{ id, name, shareToken, createdAt, postCount, url }] }. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "responses": {
           "200": {
             "description": "Review links"
@@ -8878,7 +8895,7 @@
           "Review Links"
         ],
         "summary": "Create a client review link for a batch of posts",
-        "description": "Returns a read-only review link (https://app.bulkpublish.com/p/schedule/<token>) covering every post in `postIds` at once — the multi-post counterpart of POST /api/posts/{id}/share. Every id must belong to the caller's organization (404 otherwise). Unlike a single post's link, this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns 201 { reviewLink, url }. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
+        "description": "Returns a read-only review link (https://app.bulkpublish.com/p/schedule/<token>) covering every post in `postIds` at once — the multi-post counterpart of POST /api/posts/{id}/share. Every id must belong to the caller's organization (404 otherwise). Unlike a single post's link, this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns 201 { reviewLink, url }. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -8938,7 +8955,7 @@
           "Review Links"
         ],
         "summary": "Revoke a client review link",
-        "description": "The posts it covered are untouched — only the link stops working. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
+        "description": "The posts it covered are untouched — only the link stops working. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "parameters": [
           {
             "name": "id",
@@ -8976,7 +8993,7 @@
           "Client Connect Links"
         ],
         "summary": "List client connect links",
-        "description": "Every client-connect link in the organization, newest first. Returns { clientConnectLinks: [{ id, name, status, expiresAt, usedAt, connectedChannelId, connectedPlatform, createdAt }] }. `status` is 'pending' | 'used' | 'revoked' | 'expired' — a stale pending row reads as expired on the way out. The raw token is never returned again after creation. Returns { template }, or 404 when it is not in your organization. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
+        "description": "Every client-connect link in the organization, newest first. Returns { clientConnectLinks: [{ id, name, status, expiresAt, usedAt, connectedChannelId, connectedPlatform, createdAt }] }. `status` is 'pending' | 'used' | 'revoked' | 'expired' — a stale pending row reads as expired on the way out. The raw token is never returned again after creation. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "responses": {
           "200": {
             "description": "Client connect links"
@@ -9047,7 +9064,7 @@
           "Client Connect Links"
         ],
         "summary": "Revoke a client connect link",
-        "description": "Idempotent: a link that already used, expired, or was previously revoked just stays that way. A channel the link already connected is untouched. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
+        "description": "Idempotent: a link that already used, expired, or was previously revoked just stays that way. A channel the link already connected is untouched. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "parameters": [
           {
             "name": "id",
@@ -9085,7 +9102,7 @@
           "Templates"
         ],
         "summary": "List post templates",
-        "description": "Every saved template in the organization, sorted by name. Returns { templates: PostTemplate[] }. Templates are text only; media, channels and per-platform options belong to the post. Returns { template }, or 404 when it is not in your organization.",
+        "description": "Every saved template in the organization, sorted by name. Returns { templates: PostTemplate[] }. Templates are text only; media, channels and per-platform options belong to the post.",
         "parameters": [
           {
             "name": "kind",
@@ -9124,7 +9141,7 @@
           "Templates"
         ],
         "summary": "Create post template",
-        "description": "Up to 200 per organization, per kind — captions and first-comment snippets each get their own 200 (400 LIMIT_REACHED beyond that). Returns 201 { template }. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "Up to 200 per organization, per kind — captions and first-comment snippets each get their own 200 (400 LIMIT_REACHED beyond that). Returns 201 { template }. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "requestBody": {
           "required": true,
           "content": {
@@ -9226,7 +9243,7 @@
           "Templates"
         ],
         "summary": "Update post template",
-        "description": "At least one of `name` or `content`. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "At least one of `name` or `content`. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "parameters": [
           {
             "name": "id",
@@ -9319,7 +9336,7 @@
             ]
           }
         ],
-        "description": "Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN."
+        "description": "Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN."
       }
     },
     "/api/calendar-notes": {
@@ -9328,7 +9345,7 @@
           "Calendar Notes"
         ],
         "summary": "List calendar notes",
-        "description": "Notes whose date falls in [from, to] (both inclusive, at most a year apart), ordered by date. Returns { notes: CalendarNote[] }. Notes are free text pinned to a day on the calendar (a campaign, a holiday, \"no posts this week\"); they never publish anywhere. Returns { template }, or 404 when it is not in your organization.",
+        "description": "Notes whose date falls in [from, to] (both inclusive, at most a year apart), ordered by date. Returns { notes: CalendarNote[] }. Notes are free text pinned to a day on the calendar (a campaign, a holiday, \"no posts this week\"); they never publish anywhere.",
         "parameters": [
           {
             "name": "from",
@@ -9423,7 +9440,7 @@
             ]
           }
         ],
-        "description": "Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN."
+        "description": "Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN."
       }
     },
     "/api/calendar-notes/{id}": {
@@ -9432,7 +9449,7 @@
           "Calendar Notes"
         ],
         "summary": "Update calendar note",
-        "description": "At least one of `date`, `body`, `color`. Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "At least one of `date`, `body`, `color`. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "parameters": [
           {
             "name": "id",
@@ -9526,7 +9543,7 @@
             ]
           }
         ],
-        "description": "Returns { template }, or 404 when it is not in your organization. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN."
+        "description": "Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN."
       }
     }
   }
