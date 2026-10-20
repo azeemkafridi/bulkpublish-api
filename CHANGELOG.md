@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-20 — Node SDK: compare on link analytics
+
+Node SDK **1.44.1**
+
+### Fixed
+
+- **Node SDK:** `analytics.links()` now accepts `compare: '1'`, which returns `previous` and `previousWindow` for the equal-length window before `from` (ranges of 15 days or fewer). The Python SDK already took it.
+
 ## 2026-10-12 — X budget renews on the billing date
 
 ### Changed

@@ -111,6 +111,13 @@ export interface LinksParams extends Omit<AnalyticsFilterParams, 'compare'> {
    * `from`..`to` starts and ends. Default `'UTC'`. An unknown zone is a 400.
    */
   tz?: string;
+  /**
+   * Set to `'1'` to also return `previous` (`totalClicks`, `totalLinks`) for
+   * the equal-length window before `from`, plus `previousWindow`. `previous` is
+   * `null` unless that window falls inside the 30-day statistics limit, i.e.
+   * for ranges of 15 days or fewer.
+   */
+  compare?: '1';
 }
 
 /**
