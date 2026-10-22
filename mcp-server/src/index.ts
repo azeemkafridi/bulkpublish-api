@@ -320,7 +320,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
         sendToDrafts: z
           .boolean()
           .optional()
-          .describe("Send a video or photo_slideshow post to the creator's TikTok drafts instead of publishing it (default false). privacyLevel is then not required, and the direct-post settings (privacyLevel, disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, autoAddMusic, thumbnailTimestamp) are ignored. A video draft carries no caption; a photo draft sends it. Once delivered the destination becomes published with no platformUrl, and analytics are not collected."),
+          .describe("Send a video or photo_slideshow post to the creator's TikTok drafts instead of publishing it (default false). privacyLevel is then not required, and the direct-post settings (privacyLevel, disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, autoAddMusic, thumbnailTimestamp) are ignored. A video draft carries no caption; a photo draft sends it. Once delivered the destination becomes published with no platformUrl; if the creator posts it within about a week, platformPostId becomes the video id, platformUrl is filled in and analytics are collected."),
         photoCoverIndex: z.number().optional().describe("photo_slideshow only: which image is the cover, a whole number 0 to 34 counting from 0 in attachment order (default 0). An index past the last image falls back to the first."),
         autoAddMusic: z.boolean().optional().describe("Photo posts published directly only: lets TikTok add a recommended track (default false). Ignored with sendToDrafts."),
       })

@@ -388,8 +388,10 @@ they are direct-post settings, chosen in the TikTok app for a draft. A video
 draft carries **no caption** (the creator writes it in the app); a photo draft
 sends the caption and honours `photoCoverIndex`. Once TikTok has the draft, the
 post's TikTok destination becomes `published` with **no `platformUrl`**, because
-there is no public post until the creator posts it; that later step is not
-tracked, and analytics are not collected for drafts. A non-boolean value is
+there is no public post until the creator posts it. For about a week after that
+we check whether the creator has posted it; once they have, `platformPostId`
+becomes the TikTok video id, `platformUrl` is filled in, and analytics are
+collected from then on. A non-boolean value is
 rejected with `400 VALIDATION_ERROR`, as is a `photoCoverIndex` that is not a
 whole number from 0 to 34.
 

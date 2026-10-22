@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-22 — TikTok drafts get their link once posted
+
+Node SDK **1.44.2** · Python SDK **0.45.1** · MCP **1.47.1**
+
+### Changed
+
+- **TikTok `sendToDrafts`:** a draft's destination still becomes `published` with no `platformUrl` when TikTok delivers it. For about a week afterwards we check whether the creator has posted it from the TikTok app; once they have, `platformPostId` becomes the TikTok video id, `platformUrl` is filled in and analytics are collected. Descriptions updated in the spec, both SDKs and the MCP tool schema; no shape change.
+
 ## 2026-10-20 — Node SDK: compare on link analytics
 
 Node SDK **1.44.1**

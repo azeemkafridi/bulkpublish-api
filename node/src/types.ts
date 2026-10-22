@@ -672,7 +672,8 @@ export interface CreatePostParams {
    *   `sendToDrafts: true` sends a `video` or `photo_slideshow` post to the creator's TikTok drafts instead of publishing it:
    *   `privacyLevel` is then not required and the direct-post settings (`privacyLevel`, `disableDuet`, `disableStitch`, `disableComment`, `isAigc`,
    *   brand toggles, `autoAddMusic`, `thumbnailTimestamp`) are ignored; a video draft carries no caption, a photo draft does. Once delivered the
-   *   destination is `published` with no `platformUrl`, and analytics are not collected. `photoCoverIndex` (whole number 0 to 34, default 0)
+   *   destination is `published` with no `platformUrl`; if the creator posts it within about a week, `platformPostId` becomes the video id,
+   *   `platformUrl` is filled in and analytics are collected. `photoCoverIndex` (whole number 0 to 34, default 0)
    *   picks the cover image of a `photo_slideshow` (past the last image falls back to the first).
    * - **x**: Optional: `replySettings` (single post and first post of a thread), `repostId` (with post type `repost`: status URL or ID to repost),
    *   `poll` (`{ options: 2-4 strings of 1-25 chars, durationMinutes: 5-10080 }`; not with media or `quoteId`), `quoteId` (numeric ID or x.com
