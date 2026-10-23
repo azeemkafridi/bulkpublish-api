@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-24 — Long-running uploads and publishes as tasks
+
+MCP **1.50.0**
+
+### Added
+
+- **MCP tasks:** on protocol 2026-07-28, a client that supports tasks gets `upload_media` and `publish_post` back as a task it can check on, instead of waiting on the call. As a task, `publish_post` also waits for your channels to finish and returns the post's final status (published, partial or failed), not just "queued". Cancelling stops the wait; publishing itself carries on. Every other client, and every other tool, answers exactly as before.
+
 ## 2026-10-24 — MCP server speaks protocol 2026-07-28
 
 MCP **1.49.0**

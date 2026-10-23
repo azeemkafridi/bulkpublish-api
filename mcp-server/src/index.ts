@@ -25,6 +25,7 @@ import {
   RESOURCE_MIME_TYPE,
 } from "@modelcontextprotocol/ext-apps/server";
 import { WIDGET_HTML } from "./ui/widgets.generated.js";
+import { installTasks, MemoryTaskStore, type TaskStore } from "./tasks.js";
 
 const MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
@@ -1030,7 +1031,9 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
 // Build a fully-registered MCP server instance. Called once for stdio (below)
 // and once per request by the hosted HTTP server, so each HTTP caller gets an
 // isolated server whose tool calls use their own API key via requestContext.
-export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } = {}): McpServer {
+export function createServer(
+  opts: { profile?: ToolProfile; hosted?: boolean; tasks?: TaskStore } = {}
+): McpServer {
   const profile: ToolProfile = opts.profile ?? "full";
   // Hosted (src/http.ts): the tools run on OUR machine, not the caller's, so
   // anything that reads the local filesystem must refuse rather than hand a
@@ -4034,6 +4037,11 @@ if (!HIDE_BILLING_TOOLS) {
     }
 );
 
+  // Tasks (protocol 2026-07-28 only): the serving entry passes a store only to
+  // instances it builds for that era, so a 2025-era client's server is
+  // unchanged. See src/tasks.ts.
+  if (opts.tasks) installTasks(server, { store: opts.tasks, caller: activeApiKey });
+
   return server;
 }
 
@@ -4070,7 +4078,9 @@ if (isDirectRun) {
   // with initialize gets the same server as before, one that opens with
   // server/discover gets 2026-07-28. One server per connection either way.
   const profile = resolveToolProfile("full");
-  serveStdio(() => createServer({ profile }), {
+  // One process serves one user over stdio, so tasks can live in memory.
+  const tasks = new MemoryTaskStore();
+  serveStdio((ctx) => createServer({ profile, tasks: ctx.era === "modern" ? tasks : undefined }), {
     onerror: (err) => console.error("MCP server error:", err),
   });
 }

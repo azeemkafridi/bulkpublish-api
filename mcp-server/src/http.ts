@@ -25,7 +25,9 @@
  * Other endpoints: GET /health, GET /.well-known/mcp/server-card.json.
  * Env: PORT (default 8080), PUBLIC_BASE_URL (the external https URL of THIS
  * server, default https://mcp.bulkpublish.com), OAUTH_SIGNING_SECRET,
- * BULKPUBLISH_BASE_URL (the API, inherited by src/index.ts).
+ * BULKPUBLISH_BASE_URL (the API, inherited by src/index.ts), MCP_TASKS_REDIS_URL
+ * (where task state lives, e.g. redis://redis:6379/5; unset = no tasks, every
+ * call answered synchronously — see src/tasks.ts).
  */
 
 import express, { type Request, type Response, type NextFunction } from "express";
@@ -49,6 +51,7 @@ import { createServer, requestContext, resolveToolProfile, type ToolProfile } fr
 // listings are ready for the new tools, not as a side effect of a release.
 const TOOL_PROFILE: ToolProfile = resolveToolProfile("core");
 import { oauthProvider, handleConsent } from "./oauth.js";
+import { hostedTaskStore } from "./tasks.js";
 
 const PORT = Number(process.env.PORT) || 8080;
 const MCP_PATH = "/mcp";
@@ -112,7 +115,12 @@ async function resolveApiKey(req: Request): Promise<string | undefined> {
 // opens a stream on the modern handler's event bus, which is shared by every
 // caller of a profile: nothing is published on it today, but anything added
 // later would reach every open stream, so only signed-in callers may open one.
-const KEYED_METHODS = new Set(["initialize", "server/discover", "subscriptions/listen", "tools/call"]);
+// tasks/* read and steer work started under a caller's key; the task itself
+// also checks that the key matches (src/tasks.ts), this just asks for one.
+const KEYED_METHODS = new Set([
+  "initialize", "server/discover", "subscriptions/listen", "tools/call",
+  "tasks/get", "tasks/update", "tasks/cancel",
+]);
 
 function requiresKey(body: unknown): boolean {
   const msgs = Array.isArray(body) ? body : [body];
@@ -197,7 +205,10 @@ const modernHandlers = new Map<ToolProfile, ReturnType<typeof toNodeHandler>>();
 function modernHandler(profile: ToolProfile): ReturnType<typeof toNodeHandler> {
   let h = modernHandlers.get(profile);
   if (!h) {
-    const mcp: McpHttpHandler = createMcpHandler(() => createServer({ profile, hosted: true }), {
+    // Tasks need a store every request can reach (MCP_TASKS_REDIS_URL); with
+    // none configured the server simply never answers with a task.
+    const tasks = hostedTaskStore() ?? undefined;
+    const mcp: McpHttpHandler = createMcpHandler(() => createServer({ profile, hosted: true, tasks }), {
       legacy: "reject",
       onerror: (err) => console.error("MCP 2026-07-28 handler error:", err),
     });
