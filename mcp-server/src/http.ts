@@ -30,10 +30,14 @@
 
 import express, { type Request, type Response, type NextFunction } from "express";
 import compression from "compression";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { NodeStreamableHTTPServerTransport, toNodeHandler, toWebRequest } from "@modelcontextprotocol/node";
+import { InMemoryTransport, createMcpHandler, isLegacyRequest, type McpHttpHandler } from "@modelcontextprotocol/server";
+import { Client } from "@modelcontextprotocol/client";
+// The 2.x SDK ships the resource-server side of OAuth only (bearer checks and
+// the protected-resource document), not an authorization server. /authorize,
+// /token, /register and /revoke stay on the 1.x package's router until we
+// either port them or move sign-in to a separate authorization server.
 import { mcpAuthRouter } from "@modelcontextprotocol/sdk/server/auth/router.js";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createServer, requestContext, resolveToolProfile, type ToolProfile } from "./index.js";
 
 // The hosted server is the one the directories review, so it defaults to the
@@ -103,7 +107,12 @@ async function resolveApiKey(req: Request): Promise<string | undefined> {
 // ("didn't provide a sign-in link"). Keyed/keyless is decided per request, so
 // ?key= / header / Bearer clients are unaffected. `tools/list` and resources
 // stay anonymous for bare scanners that skip initialize.
-const KEYED_METHODS = new Set(["initialize", "tools/call"]);
+// server/discover is the 2026-07-28 counterpart of initialize: the first thing
+// such a client sends, so it gets the same challenge. subscriptions/listen
+// opens a stream on the modern handler's event bus, which is shared by every
+// caller of a profile: nothing is published on it today, but anything added
+// later would reach every open stream, so only signed-in callers may open one.
+const KEYED_METHODS = new Set(["initialize", "server/discover", "subscriptions/listen", "tools/call"]);
 
 function requiresKey(body: unknown): boolean {
   const msgs = Array.isArray(body) ? body : [body];
@@ -181,6 +190,23 @@ async function buildServerCard(): Promise<string> {
 // MCP request handler (stateless: fresh server + transport per request)
 // ---------------------------------------------------------------------------
 
+// One strict 2026-07-28 handler per profile. `legacy: "reject"` because older
+// requests never reach it (handleMcp routes them to the wiring below); a fresh
+// server is still built per request by the factory, as on the legacy path.
+const modernHandlers = new Map<ToolProfile, ReturnType<typeof toNodeHandler>>();
+function modernHandler(profile: ToolProfile): ReturnType<typeof toNodeHandler> {
+  let h = modernHandlers.get(profile);
+  if (!h) {
+    const mcp: McpHttpHandler = createMcpHandler(() => createServer({ profile, hosted: true }), {
+      legacy: "reject",
+      onerror: (err) => console.error("MCP 2026-07-28 handler error:", err),
+    });
+    h = toNodeHandler(mcp);
+    modernHandlers.set(profile, h);
+  }
+  return h;
+}
+
 function mcpHandler(profile: ToolProfile, resourceMetadataUrl: string) {
   return (req: Request, res: Response) => handleMcp(req, res, profile, resourceMetadataUrl);
 }
@@ -210,8 +236,31 @@ async function handleMcp(
     return;
   }
 
+  // Protocol 2026-07-28 requests carry their version in a per-request
+  // envelope; everything else (every client released before it) is "legacy"
+  // and keeps the exact wiring below that the directories approved. The SDK's
+  // own classifier decides, so this split can never disagree with the modern
+  // handler about which requests are its own.
+  let legacy: boolean;
+  try {
+    legacy = await isLegacyRequest(await toWebRequest(req, body), body);
+  } catch (err) {
+    console.error("MCP request could not be classified:", err);
+    if (!res.headersSent) res.status(400).end();
+    return;
+  }
+  if (!legacy) {
+    try {
+      await requestContext.run({ apiKey }, () => modernHandler(profile)(req, res, body));
+    } catch (err) {
+      console.error("MCP request error (2026-07-28):", err);
+      if (!res.headersSent) res.status(500).end();
+    }
+    return;
+  }
+
   const server = createServer({ profile, hosted: true });
-  const transport = new StreamableHTTPServerTransport({
+  const transport = new NodeStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
     enableJsonResponse: true,
   });

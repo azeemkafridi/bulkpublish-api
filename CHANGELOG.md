@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-24 — MCP server speaks protocol 2026-07-28
+
+MCP **1.49.0**
+
+### Changed
+
+- **MCP server:** answers clients on MCP protocol revision 2026-07-28 as well as every earlier revision (2024-11-05 through 2025-11-25), over both stdio and the hosted server. Clients that connect the older way see exactly the tools, descriptions, schemas and panels they saw before; nothing to change on your side.
+
 ## 2026-10-24 — ChatGPT file attachments in upload_media; a hosted endpoint with every tool
 
 MCP **1.48.0**

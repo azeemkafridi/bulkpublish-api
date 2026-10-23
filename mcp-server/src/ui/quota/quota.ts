@@ -14,7 +14,7 @@ import {
   applyHostStyleVariables,
   applyHostFonts,
   type McpUiHostContext,
-} from "@modelcontextprotocol/ext-apps";
+} from "@modelcontextprotocol/ext-apps-v1";
 
 /* ─── DOM refs ──────────────────────────────────────────────────── */
 

@@ -13,7 +13,7 @@ import {
   applyHostStyleVariables,
   applyHostFonts,
   type McpUiHostContext,
-} from "@modelcontextprotocol/ext-apps";
+} from "@modelcontextprotocol/ext-apps-v1";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 /* ----------------------------- types ----------------------------- */
