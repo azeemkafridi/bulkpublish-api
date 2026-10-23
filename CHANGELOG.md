@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-10-24 — ChatGPT file attachments in upload_media; a hosted endpoint with every tool
+
+MCP **1.48.0**
+
+### Added
+
+- **MCP `upload_media`:** a `file` input for files you attach in ChatGPT, or that ChatGPT creates while working. ChatGPT fills it in; other assistants keep using `url` or `filePath`, unchanged. A file with no type is recognised from its contents (images, videos and PDFs).
+- **Hosted server:** `https://mcp.bulkpublish.com/mcp/full` serves every tool, with the same sign-in as `/mcp`, which keeps the shorter set listed in the ChatGPT and Claude directories. The Claude Code plugin now connects here instead of installing the npm package.
+
+### Fixed
+
+- **Hosted server:** `upload_media` with `filePath` now refuses, explaining that it only works when the server runs on your own computer. On the hosted server that path pointed at our machine rather than yours, so it could never have uploaded your file.
+
 ## 2026-10-22 — TikTok drafts get their link once posted
 
 Node SDK **1.44.2** · Python SDK **0.45.1** · MCP **1.47.1**

@@ -48,11 +48,19 @@ import { oauthProvider, handleConsent } from "./oauth.js";
 
 const PORT = Number(process.env.PORT) || 8080;
 const MCP_PATH = "/mcp";
+// Every tool, for the Claude Code plugin. The plugin used to start the npm
+// package with npx, which gave its users the full set; the plugin directory
+// holds a plugin that runs a downloaded package, so the plugin now connects
+// here instead. Same OAuth server and tokens as /mcp (an access token is not
+// bound to a resource), but its own protected-resource document, because a
+// client checks that the document's `resource` names the URL it connected to.
+const MCP_FULL_PATH = "/mcp/full";
 const PUBLIC_BASE = (
   process.env.PUBLIC_BASE_URL || "https://mcp.bulkpublish.com"
 ).replace(/\/+$/, "");
 // RFC 9728 path-suffixes the resource path onto the well-known metadata URL.
 const RESOURCE_METADATA_URL = `${PUBLIC_BASE}/.well-known/oauth-protected-resource${MCP_PATH}`;
+const FULL_RESOURCE_METADATA_URL = `${PUBLIC_BASE}/.well-known/oauth-protected-resource${MCP_FULL_PATH}`;
 
 // ---------------------------------------------------------------------------
 // Per-request key resolution: OAuth Bearer → bp_ key, else key-in-URL/header
@@ -173,14 +181,23 @@ async function buildServerCard(): Promise<string> {
 // MCP request handler (stateless: fresh server + transport per request)
 // ---------------------------------------------------------------------------
 
-async function handleMcp(req: Request, res: Response): Promise<void> {
+function mcpHandler(profile: ToolProfile, resourceMetadataUrl: string) {
+  return (req: Request, res: Response) => handleMcp(req, res, profile, resourceMetadataUrl);
+}
+
+async function handleMcp(
+  req: Request,
+  res: Response,
+  profile: ToolProfile,
+  resourceMetadataUrl: string
+): Promise<void> {
   const body = req.method === "POST" ? req.body : undefined;
   const apiKey = await resolveApiKey(req);
 
   if (req.method === "POST" && requiresKey(body) && !apiKey) {
     res
       .status(401)
-      .set("WWW-Authenticate", `Bearer resource_metadata="${RESOURCE_METADATA_URL}"`)
+      .set("WWW-Authenticate", `Bearer resource_metadata="${resourceMetadataUrl}"`)
       .json({
         jsonrpc: "2.0",
         error: {
@@ -193,7 +210,7 @@ async function handleMcp(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const server = createServer({ profile: TOOL_PROFILE });
+  const server = createServer({ profile, hosted: true });
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
     enableJsonResponse: true,
@@ -322,6 +339,24 @@ app.get("/.well-known/oauth-protected-resource", (req: Request, _res: Response, 
   next();
 });
 
+// The /mcp/full document is the /mcp one with its own `resource`, rewritten on
+// the way out (the same trick as the iss field above) so the two can never
+// drift apart in anything else. Registered BEFORE mcpAuthRouter.
+app.get(`/.well-known/oauth-protected-resource${MCP_FULL_PATH}`, (req: Request, res: Response, next: NextFunction) => {
+  const json = res.json.bind(res);
+  res.json = (body: unknown) => {
+    // A copy, never an edit: the router builds this document once and hands
+    // the same object to every request, so editing it would make /mcp's own
+    // document name /mcp/full from then on.
+    if (body && typeof body === "object" && "resource" in body) {
+      return json({ ...(body as Record<string, unknown>), resource: `${PUBLIC_BASE}${MCP_FULL_PATH}` });
+    }
+    return json(body);
+  };
+  req.url = `/.well-known/oauth-protected-resource${MCP_PATH}`;
+  next();
+});
+
 // OAuth 2.1 server: /.well-known/oauth-authorization-server, /.well-known/
 // oauth-protected-resource, /authorize, /token, /register, /revoke.
 app.use(
@@ -412,8 +447,9 @@ function normalizeMcpAccept(req: Request, _res: Response, next: NextFunction): v
   next();
 }
 
-app.all(MCP_PATH, normalizeMcpAccept, handleMcp);
-app.post("/", normalizeMcpAccept, handleMcp);
+app.all(MCP_PATH, normalizeMcpAccept, mcpHandler(TOOL_PROFILE, RESOURCE_METADATA_URL));
+app.all(MCP_FULL_PATH, normalizeMcpAccept, mcpHandler("full", FULL_RESOURCE_METADATA_URL));
+app.post("/", normalizeMcpAccept, mcpHandler(TOOL_PROFILE, RESOURCE_METADATA_URL));
 
 buildServerCard()
   .then((json) => {

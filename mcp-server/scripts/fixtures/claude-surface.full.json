@@ -172,7 +172,6 @@
                     "gmb",
                     "linkedin",
                     "mastodon",
-                    "reddit",
                     "discord",
                     "telegram",
                     "tumblr",
@@ -219,7 +218,7 @@
             }
           },
           "platformSpecific": {
-            "description": "Platform-specific settings, e.g. { \"youtube\": { \"title\": \"…\", \"privacyStatus\": \"public\" } }. Reddit, Discord, Telegram, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { \"reddit\": { \"12\": { \"subreddit\": \"webdev\" } } }. Full per-platform option lists (polls, quotes, tags, drafts, settings) are on each platform key; bad values are refused with 400 VALIDATION_ERROR.",
+            "description": "Platform-specific settings, e.g. { \"youtube\": { \"title\": \"…\", \"privacyStatus\": \"public\" } }. Discord, Telegram, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { \"discord\": { \"12\": { \"channelId\": \"1090123456789012345\" } } }. Full per-platform option lists (polls, quotes, tags, drafts, settings) are on each platform key; bad values are refused with 400 VALIDATION_ERROR.",
             "type": "object",
             "properties": {
               "youtube": {
@@ -729,117 +728,6 @@
                   }
                 },
                 "additionalProperties": {}
-              },
-              "reddit": {
-                "description": "Reddit options, nested under the BulkPublish channel id: { \"12\": { \"subreddit\": \"webdev\" } }. A flat object (e.g. { \"subreddit\": \"webdev\" }) applies to every Reddit channel on the post. subreddit is required; a media post accepts exactly one file.",
-                "anyOf": [
-                  {
-                    "type": "object",
-                    "propertyNames": {
-                      "type": "string"
-                    },
-                    "additionalProperties": {
-                      "type": "object",
-                      "properties": {
-                        "subreddit": {
-                          "description": "Required. Target subreddit — 'webdev', 'r/webdev' and '/r/webdev' are all accepted. Falls back to the subreddit stored on the channel.",
-                          "type": "string"
-                        },
-                        "title": {
-                          "description": "Post title. Defaults to the first line of content, truncated to 300 characters.",
-                          "type": "string"
-                        },
-                        "type": {
-                          "description": "Set to 'link' to force a link submission. Otherwise the kind is resolved from media: image -> image, video -> video, url set -> link, else self (text).",
-                          "type": "string"
-                        },
-                        "url": {
-                          "description": "Destination URL for a link post; implies type 'link'.",
-                          "type": "string"
-                        },
-                        "flairId": {
-                          "description": "Link-flair id (list via get_channel_options).",
-                          "type": "string"
-                        },
-                        "thumbnailUrl": {
-                          "description": "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, failing only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file.",
-                          "type": "string"
-                        },
-                        "nsfw": {
-                          "description": "Marks the post NSFW.",
-                          "type": "boolean"
-                        },
-                        "spoiler": {
-                          "description": "Marks the post as a spoiler.",
-                          "type": "boolean"
-                        },
-                        "sendReplies": {
-                          "description": "Send replies to the account's inbox.",
-                          "type": "boolean"
-                        },
-                        "flairText": {
-                          "description": "Custom flair text (up to 64 characters) for a flair the subreddit lets you edit; ignored for flairs that are not editable.",
-                          "type": "string"
-                        },
-                        "crosspostUrl": {
-                          "description": "A Reddit post link (reddit.com/r/<sub>/comments/<id>, redd.it/<id>) or post ID to crosspost, using the post's own title. /r/<sub>/s/<code> share links are not accepted.",
-                          "type": "string"
-                        }
-                      },
-                      "additionalProperties": {}
-                    }
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "subreddit": {
-                        "description": "Required. Target subreddit — 'webdev', 'r/webdev' and '/r/webdev' are all accepted. Falls back to the subreddit stored on the channel.",
-                        "type": "string"
-                      },
-                      "title": {
-                        "description": "Post title. Defaults to the first line of content, truncated to 300 characters.",
-                        "type": "string"
-                      },
-                      "type": {
-                        "description": "Set to 'link' to force a link submission. Otherwise the kind is resolved from media: image -> image, video -> video, url set -> link, else self (text).",
-                        "type": "string"
-                      },
-                      "url": {
-                        "description": "Destination URL for a link post; implies type 'link'.",
-                        "type": "string"
-                      },
-                      "flairId": {
-                        "description": "Link-flair id (list via get_channel_options).",
-                        "type": "string"
-                      },
-                      "thumbnailUrl": {
-                        "description": "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, failing only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file.",
-                        "type": "string"
-                      },
-                      "nsfw": {
-                        "description": "Marks the post NSFW.",
-                        "type": "boolean"
-                      },
-                      "spoiler": {
-                        "description": "Marks the post as a spoiler.",
-                        "type": "boolean"
-                      },
-                      "sendReplies": {
-                        "description": "Send replies to the account's inbox.",
-                        "type": "boolean"
-                      },
-                      "flairText": {
-                        "description": "Custom flair text (up to 64 characters) for a flair the subreddit lets you edit; ignored for flairs that are not editable.",
-                        "type": "string"
-                      },
-                      "crosspostUrl": {
-                        "description": "A Reddit post link (reddit.com/r/<sub>/comments/<id>, redd.it/<id>) or post ID to crosspost, using the post's own title. /r/<sub>/s/<code> share links are not accepted.",
-                        "type": "string"
-                      }
-                    },
-                    "additionalProperties": {}
-                  }
-                ]
               },
               "discord": {
                 "description": "Discord options, nested under the BulkPublish channel id: { \"12\": { \"channelId\": \"1090123456789012345\" } }. A flat object applies to every Discord channel on the post. The inner channelId is the target Discord text channel. Posting uses a global bot token, so failures are permission problems, never a reconnect issue.",
@@ -1466,9 +1354,6 @@
               "gmb": {
                 "type": "string"
               },
-              "reddit": {
-                "type": "string"
-              },
               "discord": {
                 "type": "string"
               },
@@ -1619,12 +1504,6 @@
                   "post",
                   "thread",
                   "repost"
-                ]
-              },
-              "reddit": {
-                "type": "string",
-                "enum": [
-                  "post"
                 ]
               },
               "discord": {
@@ -3130,6 +3009,32 @@
           "filename": {
             "description": "Optional filename. If omitted, derived from the URL or file path.",
             "type": "string"
+          },
+          "file": {
+            "description": "A file provided by the chat host. Leave unset and use url or filePath otherwise.",
+            "type": "object",
+            "properties": {
+              "download_url": {
+                "type": "string",
+                "description": "Temporary download link for the file."
+              },
+              "file_id": {
+                "type": "string",
+                "description": "The file's id."
+              },
+              "mime_type": {
+                "description": "The file's type, when known.",
+                "type": "string"
+              },
+              "file_name": {
+                "description": "The file's name, when known.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "download_url",
+              "file_id"
+            ]
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -3225,7 +3130,8 @@
       },
       "execution": {
         "taskSupport": "forbidden"
-      }
+      },
+      "_meta": {}
     },
     {
       "name": "list_media",
@@ -4272,7 +4178,7 @@
     {
       "name": "create_client_connect_link",
       "title": "Create client connect link",
-      "description": "Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (telegram asks for a bot token instead of a plain sign-in, and stays a manual connect by your own team): bluesky, facebook, instagram, x, tiktok, youtube, threads, pinterest, gmb, linkedin, mastodon, reddit, discord, tumblr, snapchat. For bluesky, the client enters their handle and approves access on Bluesky; they are never asked for a password. For facebook, the client signs in to Facebook and then picks which one of their Pages to connect. For mastodon, they first enter the address of the server their account is on. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user (an agency) wants a client to connect their own platform account without giving the agency their login, and without the client needing a BulkPublish account.",
+      "description": "Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (telegram asks for a bot token instead of a plain sign-in, and stays a manual connect by your own team): bluesky, facebook, instagram, x, tiktok, youtube, threads, pinterest, gmb, linkedin, mastodon, discord, tumblr, snapchat. For bluesky, the client enters their handle and approves access on Bluesky; they are never asked for a password. For facebook, the client signs in to Facebook and then picks which one of their Pages to connect. For mastodon, they first enter the address of the server their account is on. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user (an agency) wants a client to connect their own platform account without giving the agency their login, and without the client needing a BulkPublish account.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -4524,12 +4430,6 @@
                   "repost"
                 ]
               },
-              "reddit": {
-                "type": "string",
-                "enum": [
-                  "post"
-                ]
-              },
               "discord": {
                 "type": "string",
                 "enum": [
@@ -4560,7 +4460,7 @@
             }
           },
           "platformSpecific": {
-            "description": "Platform-specific settings, e.g. { \"youtube\": { \"title\": \"…\", \"privacyStatus\": \"public\" } }. Reddit, Discord, Telegram, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { \"reddit\": { \"12\": { \"subreddit\": \"webdev\" } } }. Full per-platform option lists (polls, quotes, tags, drafts, settings) are on each platform key; bad values are refused with 400 VALIDATION_ERROR.",
+            "description": "Platform-specific settings, e.g. { \"youtube\": { \"title\": \"…\", \"privacyStatus\": \"public\" } }. Discord, Telegram, Tumblr and Snapchat nest their options under the BulkPublish channel id, e.g. { \"discord\": { \"12\": { \"channelId\": \"1090123456789012345\" } } }. Full per-platform option lists (polls, quotes, tags, drafts, settings) are on each platform key; bad values are refused with 400 VALIDATION_ERROR.",
             "type": "object",
             "properties": {
               "youtube": {
@@ -5070,117 +4970,6 @@
                   }
                 },
                 "additionalProperties": {}
-              },
-              "reddit": {
-                "description": "Reddit options, nested under the BulkPublish channel id: { \"12\": { \"subreddit\": \"webdev\" } }. A flat object (e.g. { \"subreddit\": \"webdev\" }) applies to every Reddit channel on the post. subreddit is required; a media post accepts exactly one file.",
-                "anyOf": [
-                  {
-                    "type": "object",
-                    "propertyNames": {
-                      "type": "string"
-                    },
-                    "additionalProperties": {
-                      "type": "object",
-                      "properties": {
-                        "subreddit": {
-                          "description": "Required. Target subreddit — 'webdev', 'r/webdev' and '/r/webdev' are all accepted. Falls back to the subreddit stored on the channel.",
-                          "type": "string"
-                        },
-                        "title": {
-                          "description": "Post title. Defaults to the first line of content, truncated to 300 characters.",
-                          "type": "string"
-                        },
-                        "type": {
-                          "description": "Set to 'link' to force a link submission. Otherwise the kind is resolved from media: image -> image, video -> video, url set -> link, else self (text).",
-                          "type": "string"
-                        },
-                        "url": {
-                          "description": "Destination URL for a link post; implies type 'link'.",
-                          "type": "string"
-                        },
-                        "flairId": {
-                          "description": "Link-flair id (list via get_channel_options).",
-                          "type": "string"
-                        },
-                        "thumbnailUrl": {
-                          "description": "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, failing only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file.",
-                          "type": "string"
-                        },
-                        "nsfw": {
-                          "description": "Marks the post NSFW.",
-                          "type": "boolean"
-                        },
-                        "spoiler": {
-                          "description": "Marks the post as a spoiler.",
-                          "type": "boolean"
-                        },
-                        "sendReplies": {
-                          "description": "Send replies to the account's inbox.",
-                          "type": "boolean"
-                        },
-                        "flairText": {
-                          "description": "Custom flair text (up to 64 characters) for a flair the subreddit lets you edit; ignored for flairs that are not editable.",
-                          "type": "string"
-                        },
-                        "crosspostUrl": {
-                          "description": "A Reddit post link (reddit.com/r/<sub>/comments/<id>, redd.it/<id>) or post ID to crosspost, using the post's own title. /r/<sub>/s/<code> share links are not accepted.",
-                          "type": "string"
-                        }
-                      },
-                      "additionalProperties": {}
-                    }
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "subreddit": {
-                        "description": "Required. Target subreddit — 'webdev', 'r/webdev' and '/r/webdev' are all accepted. Falls back to the subreddit stored on the channel.",
-                        "type": "string"
-                      },
-                      "title": {
-                        "description": "Post title. Defaults to the first line of content, truncated to 300 characters.",
-                        "type": "string"
-                      },
-                      "type": {
-                        "description": "Set to 'link' to force a link submission. Otherwise the kind is resolved from media: image -> image, video -> video, url set -> link, else self (text).",
-                        "type": "string"
-                      },
-                      "url": {
-                        "description": "Destination URL for a link post; implies type 'link'.",
-                        "type": "string"
-                      },
-                      "flairId": {
-                        "description": "Link-flair id (list via get_channel_options).",
-                        "type": "string"
-                      },
-                      "thumbnailUrl": {
-                        "description": "Poster image URL for video posts. Optional — when omitted the server falls back to the video's auto-extracted poster frame, failing only if neither exists. Unlike Pinterest's coverImageUrl there is no attached-image fallback, because a Reddit media post accepts exactly one file.",
-                        "type": "string"
-                      },
-                      "nsfw": {
-                        "description": "Marks the post NSFW.",
-                        "type": "boolean"
-                      },
-                      "spoiler": {
-                        "description": "Marks the post as a spoiler.",
-                        "type": "boolean"
-                      },
-                      "sendReplies": {
-                        "description": "Send replies to the account's inbox.",
-                        "type": "boolean"
-                      },
-                      "flairText": {
-                        "description": "Custom flair text (up to 64 characters) for a flair the subreddit lets you edit; ignored for flairs that are not editable.",
-                        "type": "string"
-                      },
-                      "crosspostUrl": {
-                        "description": "A Reddit post link (reddit.com/r/<sub>/comments/<id>, redd.it/<id>) or post ID to crosspost, using the post's own title. /r/<sub>/s/<code> share links are not accepted.",
-                        "type": "string"
-                      }
-                    },
-                    "additionalProperties": {}
-                  }
-                ]
               },
               "discord": {
                 "description": "Discord options, nested under the BulkPublish channel id: { \"12\": { \"channelId\": \"1090123456789012345\" } }. A flat object applies to every Discord channel on the post. The inner channelId is the target Discord text channel. Posting uses a global bot token, so failures are permission problems, never a reconnect issue.",
@@ -6066,7 +5855,7 @@
     {
       "name": "get_post_metrics",
       "title": "Get post metrics",
-      "description": "Get engagement metrics for a published post. Returns likes, comments, shares, impressions, and other platform-specific metrics. IMPORTANT: every platform entry carries `metricsSupported` and `supportedMetrics` — a metric key NOT in `supportedMetrics` is stored as 0 because that platform's API has no such field, so report it as unavailable rather than as zero. X reports impressions/likes/comments/shares/saves (bookmarks); Bluesky and Mastodon report no impressions; Pinterest reports no reach; YouTube reports no shares or reach; Reddit reports likes (score), comments and shares (crossposts); Discord reports likes (reaction counts) and comments (thread replies); TikTok reports reach, saves and clicks only for accounts that have granted TikTok insights. An Instagram story reports only impressions, reach and comments (story replies). Google Business, Telegram, Tumblr and LinkedIn personal profiles report nothing readable at all, and an X post comes back with `metricsSupported: false` until its channel turns on X metrics sync. Each platform entry also carries `linkClicks` (summed in `totals.linkClicks`): clicks on bulkpubli.sh short links in this post, measured by BulkPublish rather than reported by the platform. It sits OUTSIDE `latest` and is distinct from the platform's own `clicks` — one visit can register in both, so never add them together. It is therefore available even for the platforms that report nothing, and `supportedMetrics` always includes it. Bot and link-preview traffic is excluded; it is 0 for organizations without Link Tracking enabled. Use this when the user asks how a specific post performed (likes, views, engagement).",
+      "description": "Get engagement metrics for a published post. Returns likes, comments, shares, impressions, and other platform-specific metrics. IMPORTANT: every platform entry carries `metricsSupported` and `supportedMetrics` — a metric key NOT in `supportedMetrics` is stored as 0 because that platform's API has no such field, so report it as unavailable rather than as zero. X reports impressions/likes/comments/shares/saves (bookmarks); Bluesky and Mastodon report no impressions; Pinterest reports no reach; YouTube reports no shares or reach; Discord reports likes (reaction counts) and comments (thread replies); TikTok reports reach, saves and clicks only for accounts that have granted TikTok insights. An Instagram story reports only impressions, reach and comments (story replies). Google Business, Telegram, Tumblr and LinkedIn personal profiles report nothing readable at all, and an X post comes back with `metricsSupported: false` until its channel turns on X metrics sync. Each platform entry also carries `linkClicks` (summed in `totals.linkClicks`): clicks on bulkpubli.sh short links in this post, measured by BulkPublish rather than reported by the platform. It sits OUTSIDE `latest` and is distinct from the platform's own `clicks` — one visit can register in both, so never add them together. It is therefore available even for the platforms that report nothing, and `supportedMetrics` always includes it. Bot and link-preview traffic is excluded; it is 0 for organizations without Link Tracking enabled. Use this when the user asks how a specific post performed (likes, views, engagement).",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -6327,7 +6116,7 @@
     {
       "name": "get_channel_options",
       "title": "Get channel post-type options",
-      "description": "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Reddit subreddit search or flairs, Threads location search. Use this when you need a platform's valid post types before creating a post for it.",
+      "description": "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search. Use this when you need a platform's valid post types before creating a post for it.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -6336,11 +6125,7 @@
             "description": "The channel ID to get options for."
           },
           "q": {
-            "description": "Search term. Reddit: subreddit name search. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging).",
-            "type": "string"
-          },
-          "subreddit": {
-            "description": "Reddit only: return that subreddit's post flairs instead of searching.",
+            "description": "Search term. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging).",
             "type": "string"
           },
           "boardId": {

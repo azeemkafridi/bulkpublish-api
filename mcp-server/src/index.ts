@@ -17,6 +17,8 @@ import { z } from "zod";
 import { readFileSync, existsSync } from "node:fs";
 import { basename, resolve } from "node:path";
 import { AsyncLocalStorage } from "node:async_hooks";
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
 import {
   registerAppTool,
   registerAppResource,
@@ -36,6 +38,121 @@ const MIME_TYPES: Record<string, string> = {
 function mimeFromPath(filePath: string): string {
   const ext = filePath.toLowerCase().match(/\.[^.]+$/)?.[0] || "";
   return MIME_TYPES[ext] || "application/octet-stream";
+}
+// For a download that names no type: BulkPublish refuses
+// application/octet-stream, and a ChatGPT file may arrive with no mime_type
+// from a host that serves everything as octet-stream. Only the formats the
+// upload accepts; anything else stays octet-stream and is refused there.
+function sniffMime(head: Uint8Array): string | undefined {
+  const at = (i: number, ...b: number[]) => b.every((v, k) => head[i + k] === v);
+  const ascii = (i: number, t: string) => at(i, ...[...t].map((c) => c.charCodeAt(0)));
+  if (at(0, 0x89, 0x50, 0x4e, 0x47)) return "image/png";
+  if (at(0, 0xff, 0xd8, 0xff)) return "image/jpeg";
+  if (ascii(0, "GIF8")) return "image/gif";
+  if (ascii(0, "RIFF") && ascii(8, "WEBP")) return "image/webp";
+  if (ascii(0, "%PDF")) return "application/pdf";
+  if (at(0, 0x1a, 0x45, 0xdf, 0xa3)) return "video/webm";
+  if (ascii(4, "ftyp")) {
+    if (ascii(8, "qt  ")) return "video/quicktime";
+    // HEIC/AVIF stills share the container; they are not videos.
+    if (["heic", "heix", "heif", "mif1", "msf1", "avif", "avis"].some((b) => ascii(8, b))) return undefined;
+    return "video/mp4";
+  }
+  return undefined;
+}
+// The upload's own limit; checked while downloading so a huge or endless body
+// is cut off instead of buffered whole.
+const MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024;
+
+// Addresses a hosted server must never fetch for a caller: its own machine,
+// the private networks it sits on (the database, the cache, the other
+// containers) and the cloud metadata address.
+function isPrivateAddress(ip: string): boolean {
+  const v = ip.toLowerCase();
+  if (isIP(v) === 6) {
+    // IPv4-mapped, in either spelling: URL parsing turns [::ffff:127.0.0.1]
+    // into [::ffff:7f00:1].
+    const mapped = v.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+    if (mapped) return isPrivateAddress(mapped[1]);
+    const hex = v.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+    if (hex) {
+      const hi = parseInt(hex[1], 16), lo = parseInt(hex[2], 16);
+      return isPrivateAddress(`${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`);
+    }
+    // Other embeddings of an IPv4 address (NAT64, 6to4, IPv4-compatible) are
+    // refused outright rather than decoded; no media host needs them.
+    if (v.startsWith("64:ff9b:") || v.startsWith("2002:") || /^::[0-9a-f]{1,4}:[0-9a-f]{1,4}$/.test(v)) return true;
+    return (
+      v === "::" || v === "::1" ||
+      v.startsWith("fc") || v.startsWith("fd") || // unique local
+      /^fe[89ab]/.test(v) || // link-local
+      v.startsWith("ff") // multicast
+    );
+  }
+  const [a, b] = v.split(".").map(Number);
+  return (
+    a === 0 || a === 10 || a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) || // carrier-grade NAT
+    (a === 169 && b === 254) || // link-local, incl. cloud metadata
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    a >= 224 // multicast and reserved
+  );
+}
+
+// fetch for a caller-supplied link. Hosted, every hop (redirects are followed
+// by hand, at most five) must be http(s) and resolve only to public
+// addresses, so neither a link nor a redirect can reach our internal network.
+// Locally the caller is fetching from their own machine, and may mean to.
+async function fetchCallerUrl(link: string, hosted: boolean): Promise<Response> {
+  if (!hosted) return fetch(link);
+  let current = new URL(link);
+  for (let hop = 0; hop <= 5; hop++) {
+    if (current.protocol !== "https:" && current.protocol !== "http:") {
+      throw new Error("only http and https links can be downloaded");
+    }
+    const host = current.hostname.replace(/^\[|\]$/g, "");
+    const addrs = isIP(host) ? [{ address: host }] : await lookup(host, { all: true });
+    if (addrs.length === 0 || addrs.some((x) => isPrivateAddress(x.address))) {
+      throw new Error("that address is not reachable from here");
+    }
+    const res = await fetch(current, { redirect: "manual" });
+    const next = res.headers.get("location");
+    if (res.status >= 300 && res.status < 400 && next) {
+      current = new URL(next, current);
+      continue;
+    }
+    return res;
+  }
+  throw new Error("too many redirects");
+}
+
+async function readCapped(res: Response): Promise<Uint8Array<ArrayBuffer>> {
+  const declared = Number(res.headers.get("content-length"));
+  if (declared > MAX_DOWNLOAD_BYTES) throw new Error("the file is larger than 100MB");
+  if (!res.body) return new Uint8Array();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  const reader = res.body.getReader();
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_DOWNLOAD_BYTES) {
+      await reader.cancel();
+      throw new Error("the file is larger than 100MB");
+    }
+    chunks.push(value);
+  }
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const c of chunks) { out.set(c, off); off += c.byteLength; }
+  return out;
+}
+
+function extFromMime(mime: string): string {
+  const base = mime.split(";")[0].trim().toLowerCase();
+  return Object.keys(MIME_TYPES).find((ext) => MIME_TYPES[ext] === base) ?? "";
 }
 
 // ---------------------------------------------------------------------------
@@ -913,8 +1030,12 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
 // Build a fully-registered MCP server instance. Called once for stdio (below)
 // and once per request by the hosted HTTP server, so each HTTP caller gets an
 // isolated server whose tool calls use their own API key via requestContext.
-export function createServer(opts: { profile?: ToolProfile } = {}): McpServer {
+export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } = {}): McpServer {
   const profile: ToolProfile = opts.profile ?? "full";
+  // Hosted (src/http.ts): the tools run on OUR machine, not the caller's, so
+  // anything that reads the local filesystem must refuse rather than hand a
+  // remote caller the server's own files.
+  const hosted = opts.hosted ?? false;
   const server = new McpServer({
     name: "bulkpublish",
     version: "1.0.0",
@@ -1605,10 +1726,30 @@ server.tool(
 // Tool: upload_media
 // ---------------------------------------------------------------------------
 
-server.tool(
+// `file` is ChatGPT's file input: listed in _meta["openai/fileParams"], it is
+// filled with a file the user attached or that ChatGPT made in its sandbox,
+// which a remote server could not otherwise reach (filePath names a path on the
+// machine running this server, url needs a public link). OpenAI's scan rejects
+// the field unless all four properties are declared and only download_url and
+// file_id are required. Claude never fills it; to Claude it is one more
+// optional field, and the openai/* key is ignored.
+const CHATGPT_FILE = z
+  .object({
+    download_url: z.string().describe("Temporary download link for the file."),
+    file_id: z.string().describe("The file's id."),
+    mime_type: z.string().optional().describe("The file's type, when known."),
+    file_name: z.string().optional().describe("The file's name, when known."),
+  })
+  .optional()
+  .describe("A file provided by the chat host. Leave unset and use url or filePath otherwise.");
+
+server.registerTool(
   "upload_media",
-  "Upload a media file (image, video or document) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM, and documents (PDF, Word .doc/.docx, PowerPoint .ppt/.pptx). Max 100MB. A document has no thumbnail or preview and can only be published to LinkedIn, as a `document` post. Provide either url OR filePath, not both.",
   {
+    description:
+      "Upload a media file (image, video or document) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM, and documents (PDF, Word .doc/.docx, PowerPoint .ppt/.pptx). Max 100MB. A document has no thumbnail or preview and can only be published to LinkedIn, as a `document` post. Provide either url OR filePath, not both.",
+    _meta: { "openai/fileParams": ["file"] },
+    inputSchema: {
     url: z
       .string()
       .optional()
@@ -1625,17 +1766,27 @@ server.tool(
       .describe(
         "Optional filename. If omitted, derived from the URL or file path."
       ),
+    file: CHATGPT_FILE,
+    },
   },
-  async ({ url: mediaUrl, filePath, filename }) => {
-    if (!mediaUrl && !filePath) {
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: "Error: Provide either url or filePath.",
-          },
-        ],
-      };
+  async ({ url: urlArg, filePath, filename, file }) => {
+    const fail = (text: string) => ({ content: [{ type: "text" as const, text: `Error: ${text}` }] });
+    if (file) {
+      if (urlArg || filePath) return fail("Provide only one of file, url or filePath.");
+      let link: URL;
+      try {
+        link = new URL(file.download_url);
+      } catch {
+        return fail("The file's download link is not a valid URL.");
+      }
+      if (link.protocol !== "https:") return fail("The file's download link must be https.");
+    }
+    const mediaUrl = file ? file.download_url : urlArg;
+    if (!mediaUrl && !filePath) return fail("Provide either url or filePath.");
+    if (filePath && hosted) {
+      return fail(
+        "filePath only works when this server runs on your own computer. Pass a public url instead, or attach the file to the chat."
+      );
     }
 
     let blob: Blob;
@@ -1663,7 +1814,7 @@ server.tool(
       // --- URL upload (existing behavior) ---
       let fileResponse: Response;
       try {
-        fileResponse = await fetch(mediaUrl!);
+        fileResponse = await fetchCallerUrl(mediaUrl!, hosted);
         if (!fileResponse.ok) {
           return {
             content: [
@@ -1684,13 +1835,29 @@ server.tool(
           ],
         };
       }
+      let bytes: Uint8Array<ArrayBuffer>;
+      try {
+        bytes = await readCapped(fileResponse);
+      } catch (err) {
+        return fail(`Failed to download file — ${err instanceof Error ? err.message : String(err)}`);
+      }
+      // The server's own type first; ChatGPT's mime_type and then the bytes
+      // themselves only when the server named none. The upload checks the
+      // bytes against whatever type is sent, so a wrong label is refused there.
+      const served = fileResponse.headers.get("content-type");
       contentType =
-        fileResponse.headers.get("content-type") || "application/octet-stream";
-      blob = await fileResponse.blob();
+        (served && !served.startsWith("application/octet-stream") ? served : undefined) ||
+        file?.mime_type ||
+        sniffMime(bytes.subarray(0, 12)) ||
+        "application/octet-stream";
+      blob = new Blob([bytes], { type: contentType });
+      // A file's download link is an opaque signed URL, so its last segment is
+      // no name to keep; fall back to the name ChatGPT gave, then the type.
       derivedFilename =
         filename ||
-        mediaUrl!.split("/").pop()?.split("?")[0] ||
-        "upload";
+        (file
+          ? file.file_name || `upload${extFromMime(contentType)}`
+          : mediaUrl!.split("/").pop()?.split("?")[0] || "upload");
     }
 
     // Build multipart form data
