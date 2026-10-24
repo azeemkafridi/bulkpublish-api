@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-24 — Ask before a retry that could post twice
+
+MCP **1.51.0**
+
+### Added
+
+- **MCP `retry_post`:** when a retry is refused because a platform never confirmed the original post (it may already be live), assistants that support tasks and confirmation forms now ask you to check the account instead of returning the error. Only "it is not live" retries it; anything else retries nothing. Every other retry answers exactly as before, so automated retries are unchanged, and passing `republish: true` still retries without asking. Publishing never asks.
+
 ## 2026-10-24 — Long-running uploads and publishes as tasks
 
 MCP **1.50.0**
