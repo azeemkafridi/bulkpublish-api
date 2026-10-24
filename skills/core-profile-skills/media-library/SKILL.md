@@ -9,7 +9,7 @@ description: Upload images and video to BulkPublish and browse the media library
 
 | Tool | Use for | Key params |
 |---|---|---|
-| `upload_media` | Add a file from a URL or local path | `url` OR `filePath`, optional `filename` |
+| `upload_media` | Add a file the user attached, or one at a public URL | `file` (an attached file) OR `url`, optional `filename` |
 | `list_media` | Find existing files | `search`, `type`, `page`, `limit` |
 | `view_media` | Browse the library visually | `limit` |
 | `create_media_upload` | Reserve a direct upload (advanced) | `contentType`, `sizeBytes` |
@@ -27,8 +27,11 @@ file that does not exist yet.
 
 ## Before uploading
 
-- Supported: JPEG, PNG, WebP, GIF, MP4, MOV, WebM. Maximum 100MB.
-- Provide either `url` or `filePath`, never both.
+- Supported: JPEG, PNG, WebP, GIF, MP4, MOV, WebM, and documents (PDF, Word,
+  PowerPoint), which publish to LinkedIn only. Maximum 100MB.
+- A file the user attached in the chat goes in `file`; a file on the web goes
+  in `url`. Use one, never both. `filePath` only works when the server runs on
+  the user's own computer, so do not use it here.
 - Check the target platforms' requirements first with `media-preflight`:
   dimensions, aspect ratio and duration limits differ per platform and per post
   type, and a file that is fine for one can be rejected by another.
