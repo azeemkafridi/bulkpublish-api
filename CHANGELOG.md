@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-24 — Tool descriptions match what each server offers
+
+MCP **1.48.1**
+
+### Fixed
+
+- **MCP `create_post` / `update_post`:** on the hosted server's shorter tool set, option descriptions no longer tell the assistant to look values up with tools that set does not include. The full tool set keeps those pointers.
+- **MCP `create_post`:** its usage hint now says plainly that it never publishes; `publish_post` does.
+- **MCP `moderate_comment`:** the plan note now says replying to and moderating comments is on every plan except Free (it previously spoke only of replies).
+
 ## 2026-10-24 — ChatGPT file attachments in upload_media; a hosted endpoint with every tool
 
 MCP **1.48.0**

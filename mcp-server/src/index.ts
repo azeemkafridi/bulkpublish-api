@@ -1091,7 +1091,7 @@ export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } =
     get_channel_health: "the user asks whether a channel's connection/token is healthy.",
     get_channel_options: "you need a platform's valid post types before creating a post for it.",
     search_mentions: "you need @mention suggestions from a connected channel while drafting a post.",
-    create_post: "the user wants to draft or schedule one new post (do not publish immediately unless asked).",
+    create_post: "the user wants to draft or schedule one new post. It never publishes immediately; publish_post does that.",
     update_post: "the user wants to edit an existing post.",
     list_platforms: "the user asks which platforms are supported or available, or a connect/publish attempt failed with PLATFORM_DISABLED.",
     bulk_posts: "the user wants to delete, retry, or reschedule many posts in a single request.",
@@ -3708,6 +3708,11 @@ if (!HIDE_BILLING_TOOLS) {
     " The Inbox is part of the Pro and Business plans; on other plans, or before it is available to the account, the call is refused with a message saying so.";
   const COMMENTS_AVAILABILITY =
     " Comment replies are on every plan except Free; on Free, or before they are available to the account, the call is refused with a message saying so.";
+  // moderate_comment is gated by the same plan entitlement as replies
+  // (commentsAccess → PLAN_LIMITS.commentReplies), but "Comment replies are…"
+  // on a moderation tool reads as a claim about a different feature.
+  const MODERATION_AVAILABILITY =
+    " Replying to and moderating comments is on every plan except Free; on Free, or before it is available to the account, the call is refused with a message saying so.";
   const RECONNECT =
     " If the channel's connection has stopped working, the call is refused and the channel needs reconnecting from the Channels page.";
 
@@ -3841,7 +3846,7 @@ if (!HIDE_BILLING_TOOLS) {
     "moderate_comment",
     "Like, unlike, hide, unhide or delete a comment on one of the workspace's published posts, on the platform, as the channel the post was published to. Likes and hides can be undone; delete is permanent and needs a role that can publish. Hiding or deleting also removes the comment from the Inbox. Which actions a channel supports is in its commentActions from list_post_comments (Threads supports hide and unhide; Facebook supports hide, unhide and delete). A comment hidden on Threads or Facebook comes back with hidden: true." +
       RECONNECT +
-      COMMENTS_AVAILABILITY,
+      MODERATION_AVAILABILITY,
     {
       postId: z.number().describe("The post id."),
       postPlatformId: z.number().describe("The channel's postPlatformId from list_post_comments."),
@@ -3854,7 +3859,50 @@ if (!HIDE_BILLING_TOOLS) {
     }
   );
 
+  // A trimmed profile must not point the model at a tool it does not serve:
+  // the ChatGPT directory scan flags that as claiming a capability the server
+  // lacks (create_post, 2026-10-24). The schemas are shared by every profile,
+  // so the listing is rewritten here instead, phrase by phrase; the full
+  // profile keeps every pointer. check:annotations fails on any reference
+  // left over, so a new one cannot ship unnoticed.
+  if (profile !== "full") {
+    const low = server.server as unknown as { _requestHandlers?: Map<string, (...a: unknown[]) => Promise<unknown>> };
+    const list = low._requestHandlers?.get("tools/list");
+    if (typeof list !== "function") {
+      throw new Error("tools/list handler not found — update the reference rewrite for this SDK version.");
+    }
+    const served = new Set(Object.keys(TOOL_ANNOTATIONS).filter((n) => toolInProfile(n, profile)));
+    low._requestHandlers!.set("tools/list", async (...a: unknown[]) => {
+      const result = (await list(...a)) as { tools: unknown[] };
+      return { ...result, tools: result.tools.map((t) => withoutUnservedRefs(t, served)) };
+    });
+  }
+
   return server;
+}
+
+// Phrases that point at a helper tool, each with what to say when that tool is
+// not served. Exact matches only: anything else is left for the check to catch.
+const UNSERVED_REF_REWRITES: Array<{ tool: string; from: string; to: string }> = [
+  { tool: "get_channel_options", from: " List postable channels via get_channel_options.", to: "" },
+  { tool: "get_channel_options", from: "; IDs come from get_channel_options.", to: "." },
+  { tool: "get_channel_options", from: " (list via get_channel_options)", to: "" },
+  { tool: "get_channel_options", from: " (list with get_channel_options and boardId)", to: "" },
+  { tool: "get_channel_options", from: "Numeric place ID from get_channel_options with a `q` search on a Threads channel.", to: "Numeric Threads place ID." },
+  { tool: "search_mentions", from: " search_mentions on a LinkedIn channel returns ready-made Page tokens.", to: "" },
+];
+
+/** A tool definition with every reference to an unserved helper rewritten. */
+export function withoutUnservedRefs<T>(def: T, served: ReadonlySet<string>): T {
+  const rules = UNSERVED_REF_REWRITES.filter((r) => !served.has(r.tool));
+  if (rules.length === 0) return def;
+  const fix = (v: unknown): unknown => {
+    if (typeof v === "string") return rules.reduce((s, r) => s.split(r.from).join(r.to), v);
+    if (Array.isArray(v)) return v.map(fix);
+    if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, fix(x)]));
+    return v;
+  };
+  return fix(def) as T;
 }
 
 // ---------------------------------------------------------------------------

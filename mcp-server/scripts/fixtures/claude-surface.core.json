@@ -122,12 +122,12 @@
     {
       "name": "create_post",
       "title": "Create post",
-      "description": "Create a new social media post. Can be saved as a draft or scheduled for a specific time. Supports platform-specific content overrides, media attachments, labels, and thread format. IMPORTANT: YouTube and TikTok REQUIRE video — do not include them when posting images only. Instagram defaults to feed_photo — set postTypeOverrides for video content (reel, feed_video). Use this when the user wants to draft or schedule one new post (do not publish immediately unless asked).",
+      "description": "Create a new social media post. Can be saved as a draft or scheduled for a specific time. Supports platform-specific content overrides, media attachments, labels, and thread format. IMPORTANT: YouTube and TikTok REQUIRE video — do not include them when posting images only. Instagram defaults to feed_photo — set postTypeOverrides for video content (reel, feed_video). Use this when the user wants to draft or schedule one new post. It never publishes immediately; publish_post does that.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "content": {
-            "description": "The post text content. Optional — defaults to empty for media-only posts. LinkedIn mentions: write @[Display Name](urn:li:organization:ID) for a Page or @[Display Name](urn:li:person:ID) for a person; search_mentions on a LinkedIn channel returns ready-made Page tokens. The token publishes as a real mention on LinkedIn and as plain @Display Name on other channels.",
+            "description": "The post text content. Optional — defaults to empty for media-only posts. LinkedIn mentions: write @[Display Name](urn:li:organization:ID) for a Page or @[Display Name](urn:li:person:ID) for a person; The token publishes as a real mention on LinkedIn and as plain @Display Name on other channels.",
             "type": "string"
           },
           "channels": {
@@ -288,7 +288,7 @@
                     "type": "string"
                   },
                   "boardSectionId": {
-                    "description": "Numeric ID of a section of the chosen board (list with get_channel_options and boardId). Send it beside its board, per channel or flat. Pin, video_pin and carousel. A flat value is ignored for a channel with its own boardId, and any section is ignored when no board was chosen.",
+                    "description": "Numeric ID of a section of the chosen board. Send it beside its board, per channel or flat. Pin, video_pin and carousel. A flat value is ignored for a channel with its own boardId, and any section is ignored when no board was chosen.",
                     "type": "string"
                   },
                   "coverKeyFrameTime": {
@@ -525,7 +525,7 @@
                     "type": "string"
                   },
                   "locationId": {
-                    "description": "Numeric place ID from get_channel_options with a `q` search on a Threads channel. Only works once the channel has granted location tagging.",
+                    "description": "Numeric Threads place ID. Only works once the channel has granted location tagging.",
                     "type": "string"
                   },
                   "replyControl": {
@@ -722,7 +722,7 @@
                       "type": "object",
                       "properties": {
                         "channelId": {
-                          "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
+                          "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key.",
                           "type": "string"
                         },
                         "silent": {
@@ -812,7 +812,7 @@
                           "type": "boolean"
                         },
                         "tags": {
-                          "description": "Up to 5 forum tag IDs (digits) for a forum channel; IDs come from get_channel_options.",
+                          "description": "Up to 5 forum tag IDs (digits) for a forum channel.",
                           "type": "array",
                           "items": {
                             "type": "string"
@@ -826,7 +826,7 @@
                     "type": "object",
                     "properties": {
                       "channelId": {
-                        "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
+                        "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key.",
                         "type": "string"
                       },
                       "silent": {
@@ -916,7 +916,7 @@
                         "type": "boolean"
                       },
                       "tags": {
-                        "description": "Up to 5 forum tag IDs (digits) for a forum channel; IDs come from get_channel_options.",
+                        "description": "Up to 5 forum tag IDs (digits) for a forum channel.",
                         "type": "array",
                         "items": {
                           "type": "string"
@@ -1140,7 +1140,7 @@
                       "type": "object",
                       "properties": {
                         "blogName": {
-                          "description": "Which blog to publish to. Defaults to the blog the channel was connected as (list via get_channel_options).",
+                          "description": "Which blog to publish to. Defaults to the blog the channel was connected as.",
                           "type": "string"
                         },
                         "title": {
@@ -1196,7 +1196,7 @@
                     "type": "object",
                     "properties": {
                       "blogName": {
-                        "description": "Which blog to publish to. Defaults to the blog the channel was connected as (list via get_channel_options).",
+                        "description": "Which blog to publish to. Defaults to the blog the channel was connected as.",
                         "type": "string"
                       },
                       "title": {
@@ -3728,7 +3728,7 @@
                     "type": "string"
                   },
                   "boardSectionId": {
-                    "description": "Numeric ID of a section of the chosen board (list with get_channel_options and boardId). Send it beside its board, per channel or flat. Pin, video_pin and carousel. A flat value is ignored for a channel with its own boardId, and any section is ignored when no board was chosen.",
+                    "description": "Numeric ID of a section of the chosen board. Send it beside its board, per channel or flat. Pin, video_pin and carousel. A flat value is ignored for a channel with its own boardId, and any section is ignored when no board was chosen.",
                     "type": "string"
                   },
                   "coverKeyFrameTime": {
@@ -3965,7 +3965,7 @@
                     "type": "string"
                   },
                   "locationId": {
-                    "description": "Numeric place ID from get_channel_options with a `q` search on a Threads channel. Only works once the channel has granted location tagging.",
+                    "description": "Numeric Threads place ID. Only works once the channel has granted location tagging.",
                     "type": "string"
                   },
                   "replyControl": {
@@ -4162,7 +4162,7 @@
                       "type": "object",
                       "properties": {
                         "channelId": {
-                          "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
+                          "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key.",
                           "type": "string"
                         },
                         "silent": {
@@ -4252,7 +4252,7 @@
                           "type": "boolean"
                         },
                         "tags": {
-                          "description": "Up to 5 forum tag IDs (digits) for a forum channel; IDs come from get_channel_options.",
+                          "description": "Up to 5 forum tag IDs (digits) for a forum channel.",
                           "type": "array",
                           "items": {
                             "type": "string"
@@ -4266,7 +4266,7 @@
                     "type": "object",
                     "properties": {
                       "channelId": {
-                        "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
+                        "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key.",
                         "type": "string"
                       },
                       "silent": {
@@ -4356,7 +4356,7 @@
                         "type": "boolean"
                       },
                       "tags": {
-                        "description": "Up to 5 forum tag IDs (digits) for a forum channel; IDs come from get_channel_options.",
+                        "description": "Up to 5 forum tag IDs (digits) for a forum channel.",
                         "type": "array",
                         "items": {
                           "type": "string"
@@ -4580,7 +4580,7 @@
                       "type": "object",
                       "properties": {
                         "blogName": {
-                          "description": "Which blog to publish to. Defaults to the blog the channel was connected as (list via get_channel_options).",
+                          "description": "Which blog to publish to. Defaults to the blog the channel was connected as.",
                           "type": "string"
                         },
                         "title": {
@@ -4636,7 +4636,7 @@
                     "type": "object",
                     "properties": {
                       "blogName": {
-                        "description": "Which blog to publish to. Defaults to the blog the channel was connected as (list via get_channel_options).",
+                        "description": "Which blog to publish to. Defaults to the blog the channel was connected as.",
                         "type": "string"
                       },
                       "title": {

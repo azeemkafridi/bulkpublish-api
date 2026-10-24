@@ -141,7 +141,7 @@
     {
       "name": "create_post",
       "title": "Create post",
-      "description": "Create a new social media post. Can be saved as a draft or scheduled for a specific time. Supports platform-specific content overrides, media attachments, labels, and thread format. IMPORTANT: YouTube and TikTok REQUIRE video — do not include them when posting images only. Instagram defaults to feed_photo — set postTypeOverrides for video content (reel, feed_video). Use this when the user wants to draft or schedule one new post (do not publish immediately unless asked).",
+      "description": "Create a new social media post. Can be saved as a draft or scheduled for a specific time. Supports platform-specific content overrides, media attachments, labels, and thread format. IMPORTANT: YouTube and TikTok REQUIRE video — do not include them when posting images only. Instagram defaults to feed_photo — set postTypeOverrides for video content (reel, feed_video). Use this when the user wants to draft or schedule one new post. It never publishes immediately; publish_post does that.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -8950,7 +8950,7 @@
     {
       "name": "moderate_comment",
       "title": "Like, hide or delete comment",
-      "description": "Like, unlike, hide, unhide or delete a comment on one of the workspace's published posts, on the platform, as the channel the post was published to. Likes and hides can be undone; delete is permanent and needs a role that can publish. Hiding or deleting also removes the comment from the Inbox. Which actions a channel supports is in its commentActions from list_post_comments (Threads supports hide and unhide; Facebook supports hide, unhide and delete). A comment hidden on Threads or Facebook comes back with hidden: true. If the channel's connection has stopped working, the call is refused and the channel needs reconnecting from the Channels page. Comment replies are on every plan except Free; on Free, or before they are available to the account, the call is refused with a message saying so. Use this when the user wants to like, hide or delete a comment on one of their published posts.",
+      "description": "Like, unlike, hide, unhide or delete a comment on one of the workspace's published posts, on the platform, as the channel the post was published to. Likes and hides can be undone; delete is permanent and needs a role that can publish. Hiding or deleting also removes the comment from the Inbox. Which actions a channel supports is in its commentActions from list_post_comments (Threads supports hide and unhide; Facebook supports hide, unhide and delete). A comment hidden on Threads or Facebook comes back with hidden: true. If the channel's connection has stopped working, the call is refused and the channel needs reconnecting from the Channels page. Replying to and moderating comments is on every plan except Free; on Free, or before it is available to the account, the call is refused with a message saying so. Use this when the user wants to like, hide or delete a comment on one of their published posts.",
       "inputSchema": {
         "type": "object",
         "properties": {

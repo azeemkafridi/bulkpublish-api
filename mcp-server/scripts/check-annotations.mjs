@@ -9,7 +9,7 @@
 //   npm run build && node scripts/check-annotations.mjs [--table]
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { createServer, CORE_TOOLS, INBOX_TOOLS, TOOL_ANNOTATIONS, TOOL_OUTPUT_SCHEMAS } from "../dist/index.js";
+import { createServer, CORE_TOOLS, INBOX_TOOLS, TOOL_ANNOTATIONS, TOOL_OUTPUT_SCHEMAS, withoutUnservedRefs } from "../dist/index.js";
 import { z } from "zod";
 
 const HINTS = ["readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"];
@@ -77,6 +77,19 @@ for (const profile of ["core", "inbox", "full"]) {
     if (!TOOL_ANNOTATIONS[t.name]?.why) fail(`${profile}/${t.name}: no justification`);
   }
   const names = new Set(tools.map((t) => t.name));
+  // No served definition may point at a tool this profile does not serve:
+  // the ChatGPT directory flags that as claiming a capability the server
+  // lacks (create_post → get_channel_options/search_mentions, 2026-10-24).
+  // Fix by adding a rewrite to UNSERVED_REF_REWRITES in src/index.ts.
+  const known = Object.keys(TOOL_ANNOTATIONS);
+  for (const t of tools) {
+    const text = JSON.stringify(t);
+    for (const other of known) {
+      if (other !== t.name && !names.has(other) && new RegExp(`\\b${other}\\b`).test(text)) {
+        fail(`${profile}/${t.name}: refers to ${other}, which ${profile} does not serve`);
+      }
+    }
+  }
   if (profile === "core" || profile === "inbox") {
     // Every hosted tool declares an outputSchema: OpenAI's review flags the ones
     // that don't. Declaring one obliges the handler to return structuredContent
@@ -92,11 +105,14 @@ for (const profile of ["core", "inbox", "full"]) {
   if (profile === "inbox" || profile === "full") {
     // Core is what both directories approved. Serving it inside a larger
     // profile must not change a byte of any core tool: name, title,
-    // description, input and output schemas, annotations, _meta.
+    // description, input and output schemas, annotations, _meta. The one
+    // allowed difference is a larger profile keeping its pointers to helper
+    // tools core does not serve, so compare with those taken out.
+    const coreServed = new Set(byProfile.core.map((x) => x.name));
     for (const c of byProfile.core) {
       const t = tools.find((x) => x.name === c.name);
       if (!t) fail(`${profile}: core tool ${c.name} missing`);
-      else if (JSON.stringify(t) !== JSON.stringify(c)) fail(`${profile}: core tool ${c.name} differs from the core profile`);
+      else if (JSON.stringify(withoutUnservedRefs(t, coreServed)) !== JSON.stringify(c)) fail(`${profile}: core tool ${c.name} differs from the core profile`);
     }
     for (const n of INBOX_TOOLS) if (!names.has(n)) fail(`${profile}: inbox tool ${n} missing`);
   }
