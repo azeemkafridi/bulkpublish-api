@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-24 — npx starts the server again
+
+MCP **1.48.2**
+
+### Fixed
+
+- **MCP server:** `npx @bulkpublish/mcp-server` (and the `bulkpublish-mcp` command) exited straight away without starting. Running `node dist/index.js` was unaffected.
+- **MCP `upload_media` (hosted):** a link that redirects up to 20 times is followed again, as before 1.48.0.
+
 ## 2026-10-24 — Tool descriptions match what each server offers
 
 MCP **1.48.1**

@@ -14,8 +14,9 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, realpathSync } from "node:fs";
 import { basename, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
@@ -56,6 +57,8 @@ function sniffMime(head: Uint8Array): string | undefined {
     if (ascii(8, "qt  ")) return "video/quicktime";
     // HEIC/AVIF stills share the container; they are not videos.
     if (["heic", "heix", "heif", "mif1", "msf1", "avif", "avis"].some((b) => ascii(8, b))) return undefined;
+    // Same container for audio (.m4a/.m4b), which is not a video either.
+    if (["M4A ", "M4B ", "M4P "].some((b) => ascii(8, b))) return undefined;
     return "video/mp4";
   }
   return undefined;
@@ -101,13 +104,13 @@ function isPrivateAddress(ip: string): boolean {
 }
 
 // fetch for a caller-supplied link. Hosted, every hop (redirects are followed
-// by hand, at most five) must be http(s) and resolve only to public
+// by hand, at most 20 as fetch itself allows) must be http(s) and resolve only to public
 // addresses, so neither a link nor a redirect can reach our internal network.
 // Locally the caller is fetching from their own machine, and may mean to.
 async function fetchCallerUrl(link: string, hosted: boolean): Promise<Response> {
   if (!hosted) return fetch(link);
   let current = new URL(link);
-  for (let hop = 0; hop <= 5; hop++) {
+  for (let hop = 0; hop <= 20; hop++) {
     if (current.protocol !== "https:" && current.protocol !== "http:") {
       throw new Error("only http and https links can be downloaded");
     }
@@ -1741,7 +1744,7 @@ const CHATGPT_FILE = z
     file_name: z.string().optional().describe("The file's name, when known."),
   })
   .optional()
-  .describe("A file provided by the chat host. Leave unset and use url or filePath otherwise.");
+  .describe("A file provided by the chat host. Leave unset and use url otherwise.");
 
 server.registerTool(
   "upload_media",
@@ -3917,11 +3920,20 @@ export function createSandboxServer(): McpServer {
 // Start server (only when run directly, not when imported by Smithery)
 // ---------------------------------------------------------------------------
 
-const isDirectRun =
-  !process.env.SMITHERY_SCAN &&
-  process.argv[1] &&
-  (process.argv[1].endsWith("index.js") ||
-    process.argv[1].endsWith("index.ts"));
+// Started as a program (node dist/index.js, or the `bulkpublish-mcp` bin that
+// npx runs) rather than imported (http.ts, Smithery). Compare real paths: npx
+// launches through node_modules/.bin/bulkpublish-mcp, a symlink whose name
+// does not end in index.js, so a name check never started the server there.
+function launchedDirectly(): boolean {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  try {
+    return realpathSync(entry) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+const isDirectRun = !process.env.SMITHERY_SCAN && launchedDirectly();
 
 if (isDirectRun) {
   if (!API_KEY) {

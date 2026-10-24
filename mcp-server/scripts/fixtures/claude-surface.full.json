@@ -3011,7 +3011,7 @@
             "type": "string"
           },
           "file": {
-            "description": "A file provided by the chat host. Leave unset and use url or filePath otherwise.",
+            "description": "A file provided by the chat host. Leave unset and use url otherwise.",
             "type": "object",
             "properties": {
               "download_url": {
