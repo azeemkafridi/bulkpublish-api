@@ -22,12 +22,6 @@
  * write is a compare-and-set on `version`, so neither can overwrite a write it
  * did not see. tasks/cancel never touches the record: it sets a separate flag
  * the worker reads, so a cancel racing the final result cannot erase it.
- * tasks/update does the same with answers: each goes to its own key (first
- * answer wins) and the worker picks it up.
- *
- * Input (elicitation): a task may pause as `input_required` with
- * `inputRequests` — publish_post asks "publish this now?" — only when the
- * request also declared it can show forms. Only an explicit yes goes ahead.
  */
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
@@ -52,18 +46,6 @@ const STALE_AFTER_MS = 3 * 60_000;
 const STALE_MESSAGE = "The server restarted while this was running. Check the result before trying again.";
 
 type TaskStatus = "working" | "input_required" | "completed" | "failed" | "cancelled";
-const ACTIVE: ReadonlySet<TaskStatus> = new Set(["working", "input_required"]);
-
-/** One server-to-client request carried in inputRequests (MRTR shape). */
-export interface InputRequest {
-  method: "elicitation/create";
-  params: { mode: "form"; message: string; requestedSchema: Record<string, unknown> };
-}
-/** The client's answer to an elicitation: accept (with content), decline or cancel. */
-export interface ElicitAnswer {
-  action: "accept" | "decline" | "cancel";
-  content?: Record<string, unknown>;
-}
 
 export interface TaskRecord {
   taskId: string;
@@ -78,8 +60,6 @@ export interface TaskRecord {
   pollIntervalMs: number;
   result?: Record<string, unknown>;
   error?: { code: number; message: string };
-  /** Outstanding questions while status is input_required (keys never reused). */
-  inputRequests?: Record<string, InputRequest>;
   /** Bumped on every write; the compare-and-set token. */
   version: number;
   /**
@@ -100,9 +80,6 @@ export interface TaskStore {
   replace(next: TaskRecord): Promise<boolean>;
   requestCancel(task: TaskRecord): Promise<void>;
   cancelRequested(taskId: string): Promise<boolean>;
-  /** Records an answer unless one is already recorded for that key (first wins). */
-  putAnswer(task: TaskRecord, key: string, answer: unknown): Promise<void>;
-  getAnswer(taskId: string, key: string): Promise<unknown | undefined>;
 }
 
 const expiresAt = (task: TaskRecord) => Date.parse(task.createdAt) + task.ttlMs;
@@ -110,7 +87,6 @@ const expiresAt = (task: TaskRecord) => Date.parse(task.createdAt) + task.ttlMs;
 export class MemoryTaskStore implements TaskStore {
   private tasks = new Map<string, TaskRecord>();
   private cancels = new Set<string>();
-  private answers = new Map<string, unknown>();
   async create(task: TaskRecord): Promise<void> {
     this.sweep();
     this.tasks.set(task.taskId, structuredClone(task));
@@ -133,20 +109,12 @@ export class MemoryTaskStore implements TaskStore {
   async cancelRequested(taskId: string): Promise<boolean> {
     return this.cancels.has(taskId);
   }
-  async putAnswer(task: TaskRecord, key: string, answer: unknown): Promise<void> {
-    const k = `${task.taskId}\u0000${key}`;
-    if (!this.answers.has(k)) this.answers.set(k, structuredClone(answer));
-  }
-  async getAnswer(taskId: string, key: string): Promise<unknown | undefined> {
-    return structuredClone(this.answers.get(`${taskId}\u0000${key}`));
-  }
   private sweep(): void {
     const now = Date.now();
     for (const [id, t] of this.tasks) {
       if (expiresAt(t) <= now) {
         this.tasks.delete(id);
         this.cancels.delete(id);
-        for (const k of this.answers.keys()) if (k.startsWith(`${id}\u0000`)) this.answers.delete(k);
       }
     }
   }
@@ -208,17 +176,6 @@ export class RedisTaskStore implements TaskStore {
   async cancelRequested(taskId: string): Promise<boolean> {
     return (await this.redis.exists(`${this.key(taskId)}:cancel`)) === 1;
   }
-  private answerKey(taskId: string, key: string): string {
-    // The key is client-supplied text; hash it so it cannot shape our keyspace.
-    return `${this.key(taskId)}:answer:${createHash("sha256").update(key).digest("hex")}`;
-  }
-  async putAnswer(task: TaskRecord, key: string, answer: unknown): Promise<void> {
-    await this.redis.set(this.answerKey(task.taskId, key), JSON.stringify(answer), "PX", this.remaining(task), "NX");
-  }
-  async getAnswer(taskId: string, key: string): Promise<unknown | undefined> {
-    const raw = await this.redis.get(this.answerKey(taskId, key));
-    return raw ? JSON.parse(raw) : undefined;
-  }
 }
 
 /** The hosted server's store, or none (tasks off) when MCP_TASKS_REDIS_URL is unset. */
@@ -239,9 +196,6 @@ type CallToolResult = Record<string, unknown> & { isError?: boolean; structuredC
 /** Runs a tool through the SDK's normal tools/call path (validation, output schema, projection). */
 type CallTool = (name: string, args: Record<string, unknown>) => Promise<CallToolResult>;
 
-/** Asks the client one question and waits: the answer, or "cancelled" / "timeout". */
-type Ask = (key: string, params: InputRequest["params"], timeoutMs: number) => Promise<ElicitAnswer | "cancelled" | "timeout">;
-
 /** What a task's run() returns when it honoured a cancel instead of finishing. */
 export class TaskCancelled {
   constructor(readonly message: string) {}
@@ -260,12 +214,6 @@ export interface TaskToolSpec {
     call: CallTool;
     progress: (message: string) => Promise<void>;
     cancelled: () => Promise<boolean>;
-    /**
-     * Pauses the task as input_required with one question and waits for the
-     * answer. Undefined when the client did not declare it can show forms.
-     * Resolves to the answer, or to "cancelled" / "timeout".
-     */
-    ask?: Ask;
   }): Promise<CallToolResult | TaskCancelled>;
 }
 
@@ -281,51 +229,6 @@ const PUBLISH_WAIT_MS = 15 * 60_000;
 // error would read as "the publish failed" and invite a duplicate.
 const MAX_READ_FAILURES = 5;
 
-const CONFIRM_WAIT_MS = 10 * 60_000;
-const PLATFORM_NAMES: Record<string, string> = {
-  x: "X", instagram: "Instagram", linkedin: "LinkedIn", facebook: "Facebook", tiktok: "TikTok",
-  youtube: "YouTube", pinterest: "Pinterest", threads: "Threads", bluesky: "Bluesky", gmb: "Google Business",
-  mastodon: "Mastodon", snapchat: "Snapchat", discord: "Discord", telegram: "Telegram", tumblr: "Tumblr",
-};
-
-// What the user is shown: the channels and the post text, read through the
-// normal get_post. The fingerprint is checked again after a yes, so what goes
-// out is what was confirmed.
-class PostView {
-  constructor(readonly names: string[], readonly text: string, readonly fingerprint: string) {}
-}
-async function readPost(call: CallTool, postId: unknown): Promise<PostView | CallToolResult> {
-  const post = await call("get_post", { postId });
-  if (post.isError) return post;
-  const sc = (post.structuredContent ?? {}) as { content?: unknown; postPlatforms?: Array<{ platform?: unknown; channelId?: unknown }> };
-  const platforms = (sc.postPlatforms ?? []).map((p) => `${String(p.platform ?? "")}:${String(p.channelId ?? "")}`).sort();
-  const names = [...new Set((sc.postPlatforms ?? []).map((p) => String(p.platform ?? "")).filter(Boolean))].map((p) => PLATFORM_NAMES[p] ?? p);
-  const text = typeof sc.content === "string" ? sc.content : "";
-  const fingerprint = createHash("sha256").update(JSON.stringify([text, platforms])).digest("hex");
-  return new PostView(names, text, fingerprint);
-}
-
-function confirmQuestion(view: PostView): InputRequest["params"] {
-  const { names } = view;
-  const where = names.length ? ` to ${names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0]}` : "";
-  // The post's text is not ours and may have been written by an agent from
-  // untrusted input: label it as the post's, on its own line, and drop the
-  // quote marks and backticks it could use to close our wording and pose as
-  // part of it. Hashtags, @handles and underscores stay: the user must see
-  // the text they are confirming as it will go out.
-  const clean = view.text.replace(/[`"\u201c\u201d]/g, "").replace(/\s+/g, " ").trim();
-  const excerpt = clean ? `\n\nPost text: ${clean.length > 160 ? `${clean.slice(0, 157)}...` : clean}` : "";
-  return {
-    mode: "form",
-    message: `Publish this post now${where}? It goes out immediately and cannot be recalled from here.${excerpt}`,
-    requestedSchema: {
-      type: "object",
-      properties: { confirm: { type: "boolean", title: "Publish now", description: "Tick to publish this post now." } },
-      required: ["confirm"],
-    },
-  };
-}
-
 export const TASK_TOOLS: Record<string, TaskToolSpec> = {
   // Downloading and storing a video can take minutes; nothing to add but time.
   // An upload cannot be called back midway, so a cancel is acknowledged and
@@ -340,34 +243,7 @@ export const TASK_TOOLS: Record<string, TaskToolSpec> = {
   publish_post: {
     pollIntervalMs: 5000,
     statusMessage: "Publishing to your channels.",
-    async run({ args, call, progress, cancelled, ask }) {
-      // Confirm first, when the client can show the question. Only an explicit
-      // yes goes ahead; everything else (no, dismissed, no answer, cancel)
-      // publishes nothing.
-      if (ask) {
-        // Nothing can be confirmed about a post we cannot read, so a failed
-        // read ends the task with that error and publishes nothing.
-        const shown = await readPost(call, args.postId);
-        if (!(shown instanceof PostView)) return shown;
-        const answer = await ask("confirm-publish", confirmQuestion(shown), CONFIRM_WAIT_MS);
-        if (answer === "cancelled") return new TaskCancelled("Cancelled before publishing. Nothing was published.");
-        if (answer === "timeout") return new TaskCancelled("No answer to the confirmation, so nothing was published.");
-        if (answer.action !== "accept" || answer.content?.confirm !== true) {
-          return new TaskCancelled(
-            answer.action === "cancel"
-              ? "The confirmation was dismissed, so nothing was published."
-              : "Not confirmed, so nothing was published."
-          );
-        }
-        // A cancel can land just after the yes; it was acknowledged, so honour it.
-        if (await cancelled()) return new TaskCancelled("Cancelled before publishing. Nothing was published.");
-        const now = await readPost(call, args.postId);
-        if (!(now instanceof PostView)) return now;
-        if (now.fingerprint !== shown.fingerprint) {
-          return new TaskCancelled("The post changed while you were deciding, so nothing was published. Publish again to confirm the new version.");
-        }
-        await progress("Confirmed. Publishing to your channels.");
-      }
+    async run({ args, call, progress, cancelled }) {
       const queued = await call("publish_post", args);
       if (queued.isError) return queued;
       const deadline = Date.now() + PUBLISH_WAIT_MS;
@@ -400,39 +276,23 @@ export const TASK_TOOLS: Record<string, TaskToolSpec> = {
   },
 };
 
-const ElicitAnswerSchema = z.object({
-  action: z.enum(["accept", "decline", "cancel"]),
-  content: z.record(z.string(), z.unknown()).optional(),
-});
-
 function rpcError(code: number, message: string, data?: unknown): Error {
   return Object.assign(new Error(message), { code, ...(data !== undefined && { data }) });
 }
 
 function declaresTasks(ctx: unknown): boolean {
-  const caps = clientCaps(ctx) as { extensions?: Record<string, unknown> } | undefined;
+  const req = (ctx as { mcpReq?: { _meta?: Record<string, unknown>; envelope?: Record<string, unknown> } })?.mcpReq;
+  // On 2026-07-28 the SDK lifts the per-request _meta claims into
+  // mcpReq.envelope, keyed by their full names; _meta is the fallback.
+  const caps = (req?.envelope?.[CLIENT_CAPABILITIES_KEY] ?? req?._meta?.[CLIENT_CAPABILITIES_KEY]) as
+    | { extensions?: Record<string, unknown> }
+    | undefined;
   return !!caps?.extensions && Object.hasOwn(caps.extensions, TASKS_EXTENSION);
 }
 
-// On 2026-07-28 the SDK lifts the per-request _meta claims into
-// mcpReq.envelope, keyed by their full names; _meta is the fallback.
-function clientCaps(ctx: unknown): Record<string, unknown> | undefined {
-  const req = (ctx as { mcpReq?: { _meta?: Record<string, unknown>; envelope?: Record<string, unknown> } })?.mcpReq;
-  return (req?.envelope?.[CLIENT_CAPABILITIES_KEY] ?? req?._meta?.[CLIENT_CAPABILITIES_KEY]) as Record<string, unknown> | undefined;
-}
-
-// Form elicitation, per the capability schema: an empty `elicitation: {}`
-// means form; otherwise `form` must be present.
-function canShowForms(ctx: unknown): boolean {
-  const e = clientCaps(ctx)?.elicitation;
-  if (!e || typeof e !== "object" || Array.isArray(e)) return false;
-  return Object.keys(e).length === 0 || "form" in e;
-}
-
 function wire(task: TaskRecord): Record<string, unknown> {
-  const { owner: _o, tool: _t, version: _v, presumedDead: _p, inputRequests, ...rest } = task;
-  // inputRequests is on the wire only while the task is waiting for input.
-  return task.status === "input_required" && inputRequests ? { ...rest, inputRequests } : rest;
+  const { owner: _o, tool: _t, version: _v, presumedDead: _p, ...rest } = task;
+  return rest;
 }
 
 /**
@@ -513,7 +373,7 @@ export function installTasks(
           if (!cur) return false; // expired
           // A working task takes any update. A task tasks/get gave up for dead
           // takes only the worker's real result, which is truer than the guess.
-          if (!ACTIVE.has(cur.status) && !(terminal && cur.presumedDead)) return false;
+          if (cur.status !== "working" && !(terminal && cur.presumedDead)) return false;
           const next: TaskRecord = {
             ...cur, error: undefined, presumedDead: undefined, ...patch,
             lastUpdatedAt: new Date().toISOString(), version: cur.version + 1,
@@ -536,27 +396,6 @@ export function installTasks(
       }
       console.error(`Task ${task.taskId}: could not record its result.`);
     };
-    const ask: Ask | undefined = canShowForms(ctx)
-        ? async (key, params, timeoutMs) => {
-            if (!(await save({ status: "input_required", statusMessage: "Waiting for your confirmation.", inputRequests: { [key]: { method: "elicitation/create", params } } }))) {
-              return "cancelled"; // the task is no longer active
-            }
-            const until = Date.now() + timeoutMs;
-            let outcome: ElicitAnswer | "cancelled" | "timeout" = "timeout";
-            while (Date.now() < until) {
-              await sleep(1000);
-              if (await store.cancelRequested(task.taskId).catch(() => false)) { outcome = "cancelled"; break; }
-              const a = (await store.getAnswer(task.taskId, key).catch(() => undefined)) as ElicitAnswer | undefined;
-              if (a && typeof a === "object" && ["accept", "decline", "cancel"].includes(a.action)) { outcome = a; break; }
-            }
-            // Back to working, the question withdrawn (its key is never reused).
-            // If that write is refused the task is no longer ours to finish:
-            // tasks/get may already have reported it failed, so going on to
-            // publish would contradict what the client was told.
-            if (!(await save({ status: "working", statusMessage: undefined, inputRequests: undefined }))) return "cancelled";
-            return outcome;
-          }
-        : undefined;
     const heartbeat = setInterval(() => void save({}).catch(() => {}), HEARTBEAT_MS);
     heartbeat.unref?.();
 
@@ -568,7 +407,6 @@ export function installTasks(
         call,
         progress: (m) => save({ statusMessage: m }).then(() => {}, () => {}),
         cancelled: () => store.cancelRequested(task.taskId).catch(() => false),
-        ask,
       })
       .then(
         (out) => {
@@ -576,14 +414,14 @@ export function installTasks(
           // A tool result, isError or not, completes the task (spec: failed
           // is only for JSON-RPC errors).
           return out instanceof TaskCancelled
-            ? finish({ status: "cancelled", statusMessage: out.message, inputRequests: undefined })
-            : finish({ status: "completed", statusMessage: undefined, inputRequests: undefined, result: out });
+            ? finish({ status: "cancelled", statusMessage: out.message })
+            : finish({ status: "completed", statusMessage: undefined, result: out });
         },
         (err: { code?: number; message?: string }) => {
           clearInterval(heartbeat);
           const code = typeof err?.code === "number" ? err.code : INTERNAL_ERROR;
           const message = err?.message || "The task failed.";
-          return finish({ status: "failed", statusMessage: message, inputRequests: undefined, error: { code, message } });
+          return finish({ status: "failed", statusMessage: message, error: { code, message } });
         }
       );
 
@@ -610,9 +448,9 @@ export function installTasks(
 
   low.setRequestHandler("tasks/get", { params: byId }, async ({ taskId }, ctx) => {
     let task = await load(taskId, ctx);
-    if (ACTIVE.has(task.status) && Date.now() - Date.parse(task.lastUpdatedAt) > STALE_AFTER_MS) {
+    if (task.status === "working" && Date.now() - Date.parse(task.lastUpdatedAt) > STALE_AFTER_MS) {
       const dead: TaskRecord = {
-        ...task, status: "failed", inputRequests: undefined, statusMessage: STALE_MESSAGE,
+        ...task, status: "failed", statusMessage: STALE_MESSAGE,
         error: { code: INTERNAL_ERROR, message: STALE_MESSAGE }, presumedDead: true,
         lastUpdatedAt: new Date().toISOString(), version: task.version + 1,
       };
@@ -624,32 +462,15 @@ export function installTasks(
     return { resultType: "complete", ...wire(task) };
   });
 
-  // Answers: only for keys the task is currently asking; the spec says to
-  // ignore anything else (never issued, already answered, withdrawn). Each
-  // answer is stored on its own key, never by rewriting the task record.
+  // No tool here ever asks the client for input, so there is never an
+  // outstanding request to answer; the spec says to ignore such responses.
   low.setRequestHandler(
     "tasks/update",
-    // The SDK lifts inputResponses out of params into ctx.mcpReq before this
-    // runs (dropping entries shaped like a request or a {result} wrapper).
+    // The SDK lifts inputResponses out of params (into ctx) before this runs,
+    // so it is not required here.
     { params: byId.extend({ inputResponses: z.record(z.string(), z.unknown()).optional() }) },
-    async ({ taskId, inputResponses: inParams }, ctx) => {
-      const task = await load(taskId, ctx);
-      const answers =
-        ((ctx as { mcpReq?: { inputResponses?: Record<string, unknown> } })?.mcpReq?.inputResponses ?? inParams ?? {}) as Record<string, unknown>;
-      if (task.status === "input_required" && task.inputRequests) {
-        for (const [key, answer] of Object.entries(answers)) {
-          if (!Object.hasOwn(task.inputRequests, key)) continue;
-          // Only a well-formed elicitation answer takes the slot; anything
-          // else is ignored, so it cannot block a valid answer sent after it.
-          if (!ElicitAnswerSchema.safeParse(answer).success) continue;
-          try {
-            await store.putAnswer(task, key, answer);
-          } catch {
-            // Not stored: say so, so the client sends it again.
-            throw rpcError(INTERNAL_ERROR, "Could not record the answer. Send it again.");
-          }
-        }
-      }
+    async ({ taskId }, ctx) => {
+      await load(taskId, ctx);
       return { resultType: "complete" };
     }
   );
@@ -658,7 +479,7 @@ export function installTasks(
   // never rewrites the task record, so it cannot race the final result.
   low.setRequestHandler("tasks/cancel", { params: byId }, async ({ taskId }, ctx) => {
     const task = await load(taskId, ctx);
-    if (ACTIVE.has(task.status)) await store.requestCancel(task).catch(() => {});
+    if (task.status === "working") await store.requestCancel(task).catch(() => {});
     return { resultType: "complete" };
   });
 }
