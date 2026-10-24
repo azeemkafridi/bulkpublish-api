@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-24 — Confirm before publishing
+
+MCP **1.51.0**
+
+### Added
+
+- **MCP tasks:** when your assistant supports both tasks and confirmation forms, `publish_post` asks first: it names the channels and shows the start of the post, and publishes only if you confirm. Saying no, closing the question, cancelling or not answering within 10 minutes publishes nothing. Assistants that cannot show the question publish as before.
+
 ## 2026-10-24 — Long-running uploads and publishes as tasks
 
 MCP **1.50.0**
