@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-27 — Free plan limits updated
+
+Free plan limits updated: 10 API requests/day, 3 pending scheduled posts, 1 post/day. Lifetime, Pro and Business are unchanged. The API usage description, the authentication and rate-limits guides and the README now state the new Free figure.
+
 ## 2026-10-24 — npx starts the server again
 
 MCP **1.48.2**
