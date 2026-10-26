@@ -398,7 +398,7 @@ curl https://app.bulkpublish.com/api/channels \
 |-------|------|-----|----------|
 | Writes/min | 60 | 60 | 60 |
 | Reads/min | 300 | 300 | 300 |
-| Daily API requests | 100 | 5,000 | 50,000 |
+| Daily API requests | 10 | 5,000 | 50,000 |
 | API keys | 1 | 5 | 10 |
 
 | Recurring schedules | — | 10 | Unlimited |

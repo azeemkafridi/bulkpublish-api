@@ -15535,7 +15535,7 @@
           "request": {
             "name": "API usage stats",
             "description": {
-              "content": "Returns today's API call count, daily limit based on plan, and per-key breakdown. Daily limits: Free 30, Lifetime 1,000, Pro 5,000, Business 50,000.",
+              "content": "Returns today's API call count, daily limit based on plan, and per-key breakdown. Daily limits: Free 10, Lifetime 1,000, Pro 5,000, Business 50,000.",
               "type": "text/plain"
             },
             "url": {

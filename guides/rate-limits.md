@@ -15,7 +15,7 @@ Your daily quota depends on your plan:
 
 | Plan | Daily API Requests |
 |------|-------------------|
-| Free | 30 |
+| Free | 10 |
 | Pro | 5,000 |
 | Business | 50,000 |
 
