@@ -771,7 +771,7 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
   // GET /api/labels answers with a bare array, which attachStructured wraps.
   list_labels: { items: sArr({ id: sNum(), name: sStr(), color: sStr() }) },
   get_channel_options: {
-    type: sStr().describe("boards, sections, playlists, blogs, channels, locations, audio or creator_info."),
+    type: sStr().describe("boards, sections, playlists, blogs, channels, locations or creator_info."),
     items: sArr({ id: sNum(), name: sStr() }),
     info: sObj(),
     unavailable: z.union([z.boolean(), z.string()]).nullish(),
@@ -2447,9 +2447,10 @@ server.tool(
           platform: PLATFORM_ENUM.describe("The channel's platform."),
         })
       )
+      .min(1)
       .optional()
       .describe(
-        "Optional. The FULL list of channels the post should target after this update — not a diff. Channels already on the post that you include keep their state (a published one is not re-published); channels you leave out are removed; new ones are added as pending. Omit to leave the channels unchanged."
+        "Optional. The FULL list of channels the post should target after this update — not a diff, and at least one. Channels already on the post that you include keep their state (a published one is not re-published); channels you leave out are removed; new ones are added as pending. On a partial post, leaving out a channel that already published removes BulkPublish's record of that publish (its link and metrics); the post itself stays live on the platform. Omit to leave the channels unchanged."
       ),
     platformContent: PLATFORM_CONTENT_SCHEMA.describe(
       "Optional per-platform text overrides, keyed by platform. Replaced wholesale, not merged: send every platform's override you want to keep, or omit to leave them unchanged."
@@ -2757,7 +2758,7 @@ server.tool(
 
 server.tool(
   "update_channel",
-  "Change a connected channel's sync settings. Both switches apply to X channels only, where every read is billed, and each is off until turned on: metricsSyncEnabled turns on analytics sync (at most once every 7 days) and the list of people who liked a post; inboxSyncEnabled turns on direct messages and replies to the channel's posts. Send at least one. Needs a role that can manage channels (owner, admin, approver). Does not connect, reconnect or remove a channel.",
+  "Change a connected channel's sync settings. Both switches apply to X channels only, where every read is billed, and each is off until turned on: metricsSyncEnabled turns on analytics sync (at most once every 7 days) and the list of people who liked a post; inboxSyncEnabled turns on direct messages and replies to the channel's posts. Send at least one. On a channel of any other platform the call succeeds but changes nothing. Needs a role that can manage channels (owner, admin, approver). Does not connect, reconnect or remove a channel.",
   {
     channelId: z.number().describe("The channel ID (from list_channels)."),
     metricsSyncEnabled: z.boolean().optional().describe("X only. Turn analytics sync and liker lists on or off. Omit to leave unchanged."),

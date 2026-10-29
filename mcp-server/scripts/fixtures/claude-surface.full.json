@@ -4896,7 +4896,8 @@
             "type": "string"
           },
           "channels": {
-            "description": "Optional. The FULL list of channels the post should target after this update — not a diff. Channels already on the post that you include keep their state (a published one is not re-published); channels you leave out are removed; new ones are added as pending. Omit to leave the channels unchanged.",
+            "description": "Optional. The FULL list of channels the post should target after this update — not a diff, and at least one. Channels already on the post that you include keep their state (a published one is not re-published); channels you leave out are removed; new ones are added as pending. On a partial post, leaving out a channel that already published removes BulkPublish's record of that publish (its link and metrics); the post itself stays live on the platform. Omit to leave the channels unchanged.",
+            "minItems": 1,
             "type": "array",
             "items": {
               "type": "object",
@@ -6882,7 +6883,7 @@
         "type": "object",
         "properties": {
           "type": {
-            "description": "boards, sections, playlists, blogs, channels, locations, audio or creator_info.",
+            "description": "boards, sections, playlists, blogs, channels, locations or creator_info.",
             "anyOf": [
               {
                 "type": "string"
@@ -6981,7 +6982,7 @@
     {
       "name": "update_channel",
       "title": "Update channel sync settings",
-      "description": "Change a connected channel's sync settings. Both switches apply to X channels only, where every read is billed, and each is off until turned on: metricsSyncEnabled turns on analytics sync (at most once every 7 days) and the list of people who liked a post; inboxSyncEnabled turns on direct messages and replies to the channel's posts. Send at least one. Needs a role that can manage channels (owner, admin, approver). Does not connect, reconnect or remove a channel. Use this when the user wants to turn analytics sync or direct-message/reply reading on or off for an X channel.",
+      "description": "Change a connected channel's sync settings. Both switches apply to X channels only, where every read is billed, and each is off until turned on: metricsSyncEnabled turns on analytics sync (at most once every 7 days) and the list of people who liked a post; inboxSyncEnabled turns on direct messages and replies to the channel's posts. Send at least one. On a channel of any other platform the call succeeds but changes nothing. Needs a role that can manage channels (owner, admin, approver). Does not connect, reconnect or remove a channel. Use this when the user wants to turn analytics sync or direct-message/reply reading on or off for an X channel.",
       "inputSchema": {
         "type": "object",
         "properties": {
