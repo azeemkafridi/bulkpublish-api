@@ -4178,7 +4178,7 @@
             "type": "string"
           },
           "channels": {
-            "description": "Optional. The FULL list of channels the post should target after this update — not a diff, and at least one. Channels already on the post that you include keep their state (a published one is not re-published); channels you leave out are removed; new ones are added as pending. On a partial post, leaving out a channel that already published removes BulkPublish's record of that publish (its link and metrics); the post itself stays live on the platform. Omit to leave the channels unchanged.",
+            "description": "Optional. The FULL list of channels the post should target after this update — not a diff, and at least one. Channels already on the post that you include keep their state (a published one is not re-published); channels you leave out are removed; new ones are added as pending. A channel the post has already gone out on must stay in the list: leaving it out is refused with CHANNEL_ALREADY_PUBLISHED and nothing is saved. Omit to leave the channels unchanged.",
             "minItems": 1,
             "type": "array",
             "items": {

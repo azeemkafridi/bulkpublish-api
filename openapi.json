@@ -2075,7 +2075,7 @@
           "Posts"
         ],
         "summary": "Update post",
-        "description": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged \u2014 send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a FAILED post silently resets its status to draft and clears its failed platform results (they revert to pending). Editing a PARTIAL post keeps it partial and leaves every platform row untouched \u2014 it is live on some channels; re-send the failed ones with POST /api/posts/{id}/retry, or send status 'scheduled' with a scheduledAt, which re-queues exactly the failed channels for that time. Platforms in 'published', 'processing', or 'unconfirmed' are never reset by an edit. When `channels` is sent, rows for channels that remain keep their state (a published channel is NOT re-published on the next publish); removed channels are dropped and new ones added as pending. Send the optional status field ('draft' or 'scheduled') to move a post between draft and scheduled; other status values are rejected. To publish immediately, use POST /api/posts/{id}/publish instead. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "Update a draft, scheduled, failed, or partial post. Note: the per-platform object fields (platformSpecific, platformContent, postTypeOverrides, platformThreadParts) are replaced wholesale, not merged \u2014 send the complete object including keys for every platform you want to keep. Sending a partial object (e.g. only one platform's content) removes the stored values for all other platforms. Editing a FAILED post silently resets its status to draft and clears its failed platform results (they revert to pending). Editing a PARTIAL post keeps it partial and leaves every platform row untouched \u2014 it is live on some channels; re-send the failed ones with POST /api/posts/{id}/retry, or send status 'scheduled' with a scheduledAt, which re-queues exactly the failed channels for that time. Platforms in 'published', 'processing', or 'unconfirmed' are never reset by an edit. When `channels` is sent, rows for channels that remain keep their state (a published channel is NOT re-published on the next publish); removed channels are dropped and new ones added as pending. A channel whose destination has already gone out (status `published`, `publishing`, `processing` or `unconfirmed`) cannot be left out: the request is refused with 400 `CHANNEL_ALREADY_PUBLISHED` before anything is saved, and `error.channelIds` lists the channels concerned. The post stays live on those platforms either way; keep them in the list. Send the optional status field ('draft' or 'scheduled') to move a post between draft and scheduled; other status values are rejected. To publish immediately, use POST /api/posts/{id}/publish instead. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "parameters": [
           {
             "name": "id",
@@ -2115,7 +2115,7 @@
                   },
                   "channels": {
                     "type": "array",
-                    "description": "Full target channel list ({ channelId, platform } items). Rows for channels already on the post are kept with their current publish state; removed channels are deleted; new channels are added as pending."
+                    "description": "Full target channel list ({ channelId, platform } items). Rows for channels already on the post are kept with their current publish state; removed channels are deleted; new channels are added as pending. A channel that has already published (or may have: `publishing`, `processing`, `unconfirmed`) must stay in the list, or the request is refused with 400 `CHANNEL_ALREADY_PUBLISHED` and nothing is saved."
                   },
                   "labels": {
                     "type": "array",
@@ -2199,7 +2199,7 @@
             "description": "Updated post"
           },
           "400": {
-            "description": "Validation error"
+            "description": "Validation error, including `CHANNEL_ALREADY_PUBLISHED` when `channels` leaves out a channel the post has already gone out on"
           },
           "409": {
             "description": "Somebody else changed the post after the ifUnmodifiedSince you sent. The error body carries the post's current updatedAt."

@@ -832,6 +832,14 @@ export interface UpdatePostParams {
   status?: 'draft' | 'scheduled';
   scheduledAt?: string | null;
   timezone?: string;
+  /**
+   * The full channel list after the update, not a diff: channels left out are
+   * removed, new ones added as pending, kept ones keep their state. A channel
+   * the post has already gone out on (published, publishing, processing or
+   * unconfirmed) must stay in the list, or the update is refused with 400
+   * CHANNEL_ALREADY_PUBLISHED (`error.channelIds` names them) and nothing is
+   * saved.
+   */
   channels?: PostChannelEntry[];
   labels?: number[];
   postFormat?: PostFormat;

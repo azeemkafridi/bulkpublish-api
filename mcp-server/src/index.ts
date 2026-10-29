@@ -2450,7 +2450,7 @@ server.tool(
       .min(1)
       .optional()
       .describe(
-        "Optional. The FULL list of channels the post should target after this update — not a diff, and at least one. Channels already on the post that you include keep their state (a published one is not re-published); channels you leave out are removed; new ones are added as pending. On a partial post, leaving out a channel that already published removes BulkPublish's record of that publish (its link and metrics); the post itself stays live on the platform. Omit to leave the channels unchanged."
+        "Optional. The FULL list of channels the post should target after this update — not a diff, and at least one. Channels already on the post that you include keep their state (a published one is not re-published); channels you leave out are removed; new ones are added as pending. A channel the post has already gone out on must stay in the list: leaving it out is refused with CHANNEL_ALREADY_PUBLISHED and nothing is saved. Omit to leave the channels unchanged."
       ),
     platformContent: PLATFORM_CONTENT_SCHEMA.describe(
       "Optional per-platform text overrides, keyed by platform. Replaced wholesale, not merged: send every platform's override you want to keep, or omit to leave them unchanged."

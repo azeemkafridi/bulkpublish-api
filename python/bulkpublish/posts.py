@@ -474,6 +474,12 @@ class PostsResource:
                 failed channels.  To publish immediately, use :meth:`publish`
                 instead.
 
+                ``channels`` is the full list after the update, not a diff:
+                channels left out are removed.  A channel the post has already
+                gone out on (published, publishing, processing or
+                unconfirmed) must stay in the list, or the update is refused
+                with 400 ``CHANNEL_ALREADY_PUBLISHED`` and nothing is saved.
+
                 Pass ``if_unmodified_since`` (the post's ``updatedAt`` exactly
                 as your last read returned it) to have the update refused with
                 409 CONFLICT when a teammate changed the post in the meantime,

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-29 — A published channel cannot be dropped from a post
+
+Node SDK **1.44.3** · Python SDK **0.45.2** · MCP **1.49.0**
+
+### Changed
+
+- **`PUT /api/posts/{id}`:** a `channels` list that leaves out a channel the post has already gone out on (destination status `published`, `publishing`, `processing` or `unconfirmed`) is refused with 400 `CHANNEL_ALREADY_PUBLISHED`, and nothing is saved. `error.channelIds` lists the channels concerned. Before, the channel was dropped and with it the record of the live post's link and metrics, while the post stayed up on the platform. Draft and scheduled channels, and failed ones, can still be removed as before.
+- **SDKs and MCP `update_post`:** the `channels` docs say so.
+
 ## 2026-10-29 — Edit a post's channels from the MCP server
 
 MCP **1.49.0**
