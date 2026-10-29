@@ -148,7 +148,7 @@ BulkPublish ships an MCP server so AI assistants can manage your social media di
 }
 ```
 
-79 tools in the local (stdio) server: `create_post`, `list_channels`, `upload_media`, `get_analytics`, the interactive `compose_post` composer (MCP Apps), and more. The hosted server at `https://mcp.bulkpublish.com/mcp` (OAuth 2.1) serves the 20-tool `core` profile: channels, posts, media, analytics and the interactive panels. The 27-tool `inbox` profile adds reading and answering direct messages, reviews and comments. See [mcp-server/README.md](mcp-server/README.md#tool-profiles).
+80 tools in the local (stdio) server: `create_post`, `list_channels`, `upload_media`, `get_analytics`, the interactive `compose_post` composer (MCP Apps), and more. The hosted server at `https://mcp.bulkpublish.com/mcp` (OAuth 2.1) serves the 26-tool `core` profile: channels, posts, media, analytics, labels, approvals, post comments and the interactive panels. The 32-tool `inbox` profile adds reading and answering direct messages, reviews and comments. See [mcp-server/README.md](mcp-server/README.md#tool-profiles).
 
 ### Social Media Content Skills
 

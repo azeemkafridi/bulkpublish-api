@@ -47,6 +47,11 @@ const OUTPUT_FIXTURES = {
   get_queue_slot: { scheduledAt: "2026-09-11T14:11:02.530Z", dayLabel: "Today" },
   upload_media: { file: { id: 3056, fileName: "a.jpg", mimeType: "image/jpeg", sizeBytes: 127085, width: 1200, height: 630 } },
   list_channels: { channels: [{ id: 143, platform: "instagram", accountName: "Acme Studio", isActive: true, needsReconnect: false }] },
+  list_labels: { items: [{ id: 1, name: "Product", color: "#FA8112", organizationId: 10 }, { id: 2, name: "Promo", color: null }] },
+  get_channel_options: { type: "boards", items: [{ id: "1234567890", name: "Recipes" }] },
+  update_channel: { success: true },
+  approve_post: { id: 9, status: "scheduled", approvalStatus: "approved", mediaFiles: [3056], postPlatforms: [] },
+  reject_post: { id: 9, status: "draft", approvalStatus: "rejected", mediaFiles: [], postPlatforms: [] },
   // Inbox profile — shapes from the webapp's openapi.json responses.
   list_conversations: { conversations: [{ id: 7, platform: "instagram", kind: "dm", rating: null, status: "open", snoozedUntil: null, assignee: null, channel: { id: 143, accountName: "Acme", profileImage: null }, participant: { id: "p1", name: "Sam" }, unreadCount: 2, lastMessageAt: "2026-10-05T10:00:00.000Z", lastInboundAt: "2026-10-05T10:00:00.000Z", lastMessagePreview: "Hi", canReply: true, attachments: { max: 1, kinds: ["image"] }, replyNotice: null }], nextCursor: null, offset: 0, total: 1 },
   get_conversation: { conversationId: 7, messages: [{ id: 1, platformMessageId: "m1", direction: "in", text: null, attachments: null, rating: null, sentAt: "2026-10-05T10:00:00.000Z", readAt: null, actor: null, authorUserId: null, author: null, parentId: null, likeCount: null }] },

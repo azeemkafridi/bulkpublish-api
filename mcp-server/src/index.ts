@@ -768,6 +768,17 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
   },
   delete_post: { success: sBool() },
   get_post_metrics: { postId: sNum(), platforms: sArr({ platform: sStr() }), totals: sObj() },
+  // GET /api/labels answers with a bare array, which attachStructured wraps.
+  list_labels: { items: sArr({ id: sNum(), name: sStr(), color: sStr() }) },
+  get_channel_options: {
+    type: sStr().describe("boards, sections, playlists, blogs, channels, locations, audio or creator_info."),
+    items: sArr({ id: sNum(), name: sStr() }),
+    info: sObj(),
+    unavailable: z.union([z.boolean(), z.string()]).nullish(),
+  },
+  update_channel: { success: sBool() },
+  approve_post: POST_SHAPE,
+  reject_post: POST_SHAPE,
   get_queue_slot: {
     scheduledAt: sStr().describe("ISO timestamp of the next free slot."),
     dayLabel: sStr().describe('Human label, e.g. "Today" or "Wed, Feb 14".'),
@@ -848,16 +859,16 @@ function attachStructured(result: unknown, toolName: string): unknown {
 // Tool profiles
 // ---------------------------------------------------------------------------
 // The hosted server (mcp.bulkpublish.com) is what the Anthropic and OpenAI
-// directories review, and 71 tools is more surface than a reviewer can verify
+// directories review, and 80 tools is more surface than a reviewer can verify
 // or a chat model can pick from well. `core` is the publishing workflow only:
-// channels, posts, media, analytics, and the panels — 20 tools. Everything a
+// channels, posts, media, analytics, labels, approvals, post comments and the panels — 26 tools. Everything a
 // panel calls back through the host bridge (create_post, publish_post,
 // retry_post, update_post, delete_post, list_channels, list_media,
 // create_media_upload, finalize_media_upload, get_post) MUST stay in core or
 // the panel's buttons break. `full` is every tool; the npm/stdio server
 // defaults to it so existing local setups lose nothing.
 //
-// `inbox` is core plus the seven Inbox and comment tools (INBOX_TOOLS). Core's
+// `inbox` is core plus the six Inbox and comment-reply tools (INBOX_TOOLS). Core's
 // own tools are byte-identical in both: the parity fixtures pin each profile,
 // and check-annotations fails if a core tool differs between them.
 //
@@ -879,6 +890,12 @@ export const CORE_TOOLS: ReadonlySet<string> = new Set([
   "finalize_media_upload",
   "get_analytics",
   "get_post_metrics",
+  "list_post_comments",
+  "list_labels",
+  "get_channel_options",
+  "update_channel",
+  "approve_post",
+  "reject_post",
   "compose_post",
   "view_posts",
   "view_channels",
@@ -890,7 +907,6 @@ export const INBOX_TOOLS: ReadonlySet<string> = new Set([
   "get_conversation",
   "reply_to_conversation",
   "update_conversation",
-  "list_post_comments",
   "reply_to_comment",
   "moderate_comment",
 ]);
@@ -997,6 +1013,7 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   update_hashtag_group: { title: "Update hashtag group", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH; overwrites the group's name or hashtags." },
   update_template: { title: "Update post template", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH; overwrites the template's text." },
   update_calendar_note: { title: "Update calendar note", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH; overwrites the note." },
+  update_channel: { title: "Update channel sync settings", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "PATCH /api/channels/{id}. Overwrites the channel's X sync switches (previous value not kept, so destructive under the review definition). Turning one on makes BulkPublish read from X on that channel's behalf, which is billed per read, so open world. Same values twice is a no-op. Never connects, disconnects or deletes a channel." },
   update_channel_set: { title: "Update channel set", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH; overwrites the set's name or members." },
   update_schedule: { title: "Update recurring schedule", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "PATCH; overwrites the rule that generates future public posts." },
   update_rss_feed: { title: "Update RSS feed", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "PATCH; overwrites the feed URL or target channels for future auto-publishing." },
@@ -1106,6 +1123,7 @@ export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } =
     abort_multipart_upload: "a chunked upload should be cancelled and its stored parts freed.",
     list_channel_sets: "the user wants their saved channel groups (channel sets).",
     create_channel_set: "the user wants to save a group of channels for one-click targeting.",
+    update_channel: "the user wants to turn analytics sync or direct-message/reply reading on or off for an X channel.",
     update_channel_set: "the user wants to rename a channel set or change its channels.",
     delete_channel_set: "the user wants to remove a saved channel set.",
     list_rss_feeds: "the user wants their RSS autopost feeds.",
@@ -1428,6 +1446,59 @@ server.tool(
       .describe(
         "Optional per-post override for link tracking (bulkpubli.sh). true forces links in this post to be shortened and their clicks counted, false forces them to publish as written, and null/omitted (the default) inherits the organization's Link Tracking setting. Shortening happens at publish time, per channel, so two accounts on the same platform get distinct codes; it is skipped for a channel when the rewrite would push the post past that platform's character limit (a short URL is 28 characters and can be longer than the link it replaces). Short links are part of the Pro and Business plans: on Free, links always publish as written and true has no effect."
       ),
+    platformThreadParts: z
+      .record(
+        z.string(),
+        z.array(
+          z.object({
+            content: z.string().describe("Thread part content."),
+            mediaFileIds: z.array(z.number()).optional().describe("Media files for this thread part."),
+          })
+        )
+      )
+      .optional()
+      .describe(
+        'Optional per-platform thread overrides, keyed by platform, e.g. { "x": [{ "content": "Part 1" }, { "content": "Part 2" }] }. Part content must be a plain string.'
+      ),
+    deleteMediaAfterPublish: z
+      .boolean()
+      .optional()
+      .describe(
+        "Optional (default false: media is kept in the library). Set true to delete the attached media once every channel has published, so it stops counting toward the storage limit. Forced to false when repeatSchedule is set."
+      ),
+    repeatSchedule: z
+      .object({
+        frequency: z.enum(["daily", "weekly", "biweekly", "monthly"]).describe("How often the post repeats."),
+        daysOfWeek: z.array(z.number().int().min(0).max(6)).optional().describe("Weekly/biweekly: days to post on, 0=Sunday … 6=Saturday."),
+        dayOfMonth: z.number().int().min(1).max(31).optional().describe("Monthly: day of the month."),
+        timeOfDay: z.string().optional().describe("Time to post, HH:MM (24-hour)."),
+        timezone: z.string().optional().describe("IANA timezone for timeOfDay. Defaults to the post's timezone, then UTC."),
+      })
+      .optional()
+      .describe(
+        "Optional. Make this a repeating post: it is re-published on this cadence. Media on a repeating post is always kept (deleteMediaAfterPublish is forced to false)."
+      ),
+    autoPlugEnabled: z
+      .boolean()
+      .optional()
+      .describe("Optional (default false). Automatically post a follow-up comment (autoPlugText) once the published post reaches autoPlugThreshold likes."),
+    autoPlugText: z.string().optional().describe("Optional. The follow-up comment text for auto-plug."),
+    autoPlugThreshold: z
+      .number()
+      .int()
+      .min(0)
+      .optional()
+      .describe("Optional (default 50). Likes needed before the auto-plug comment is posted."),
+    autoRepostEnabled: z
+      .boolean()
+      .optional()
+      .describe("Optional (default false). Automatically repost/reshare the post once it reaches autoRepostThreshold likes."),
+    autoRepostThreshold: z
+      .number()
+      .int()
+      .min(0)
+      .optional()
+      .describe("Optional (default 100). Likes needed before the post is reposted."),
   },
   async ({
     content,
@@ -1445,6 +1516,14 @@ server.tool(
     requestApproval,
     publishWhenApproved,
     linkTrackingOverride,
+    platformThreadParts,
+    deleteMediaAfterPublish,
+    repeatSchedule,
+    autoPlugEnabled,
+    autoPlugText,
+    autoPlugThreshold,
+    autoRepostEnabled,
+    autoRepostThreshold,
   }) => {
     // Validate platform requirements before creating
     if (mediaFileIds && mediaFileIds.length > 0) {
@@ -1508,6 +1587,14 @@ server.tool(
     if (publishWhenApproved !== undefined) body.publishWhenApproved = publishWhenApproved;
     if (linkTrackingOverride !== undefined)
       body.linkTrackingOverride = linkTrackingOverride;
+    if (platformThreadParts !== undefined) body.platformThreadParts = platformThreadParts;
+    if (deleteMediaAfterPublish !== undefined) body.deleteMediaAfterPublish = deleteMediaAfterPublish;
+    if (repeatSchedule !== undefined) body.repeatSchedule = repeatSchedule;
+    if (autoPlugEnabled !== undefined) body.autoPlugEnabled = autoPlugEnabled;
+    if (autoPlugText !== undefined) body.autoPlugText = autoPlugText;
+    if (autoPlugThreshold !== undefined) body.autoPlugThreshold = autoPlugThreshold;
+    if (autoRepostEnabled !== undefined) body.autoRepostEnabled = autoRepostEnabled;
+    if (autoRepostThreshold !== undefined) body.autoRepostThreshold = autoRepostThreshold;
 
     const res = await api("POST", "/api/posts", body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -1530,7 +1617,19 @@ server.tool(
     page: z.number().optional().describe("Page number (default 1)."),
     limit: z.number().optional().describe("Results per page (default 20, max 500)."),
     channelId: z.number().optional().describe("Filter by channel ID."),
-    labelId: z.number().optional().describe("Filter by label ID."),
+    labelId: z.number().optional().describe("Filter by a single label ID. Prefer labelIds."),
+    labelIds: z
+      .array(z.number())
+      .optional()
+      .describe("Filter by several label IDs (from list_labels). Combined per labelMode."),
+    labelMode: z
+      .enum(["or", "and"])
+      .optional()
+      .describe("How labelIds combine: 'or' (default) matches posts with any of them, 'and' only posts with all of them."),
+    recurring: z
+      .boolean()
+      .optional()
+      .describe("Set true to return only posts attached to a recurring schedule."),
     from: z.string().optional().describe("Filter posts created on or after this ISO date."),
     to: z.string().optional().describe("Filter posts created on or before this ISO date."),
     scheduledFrom: z
@@ -1572,6 +1671,9 @@ server.tool(
     approvalStatus,
     assignedTo,
     order,
+    labelIds,
+    labelMode,
+    recurring,
   }) => {
     const params = new URLSearchParams();
     if (status) params.set("status", status);
@@ -1580,6 +1682,9 @@ server.tool(
     if (limit) params.set("limit", String(limit));
     if (channelId) params.set("channelId", String(channelId));
     if (labelId) params.set("labelId", String(labelId));
+    if (labelIds && labelIds.length > 0) params.set("labelIds", labelIds.join(","));
+    if (labelMode) params.set("labelMode", labelMode);
+    if (recurring) params.set("recurring", "true");
     if (from) params.set("from", from);
     if (to) params.set("to", to);
     if (scheduledFrom) params.set("scheduledFrom", scheduledFrom);
@@ -2328,12 +2433,56 @@ if (!HIDE_BILLING_TOOLS) {
 
 server.tool(
   "update_post",
-  "Update an existing post. Can change content, schedule, media, labels, status, and platform-specific settings. " +
+  "Update an existing post. Can change content, schedule, media, labels, status, target channels, per-platform text, thread parts, assignee, recurring schedule, and platform-specific settings. " +
     "Only draft, scheduled, failed, or partial posts can be edited; editing a failed post resets it to draft, a partial post stays partial. " +
-    "Set status to 'draft' or 'scheduled' to move the post between those states — scheduling a partial post re-queues only its failed channels; use publish_post to publish immediately.",
+    "Set status to 'draft' or 'scheduled' to move the post between those states — scheduling a partial post re-queues only its failed channels; use publish_post to publish immediately. " +
+    "To add or remove a channel, send `channels` with the COMPLETE list the post should keep (read it from get_post first): channels left out are dropped from the post, new ones are added as pending, and the ones kept keep their publish state.",
   {
     postId: z.number().describe("The post ID to update."),
     content: z.string().optional().describe("New post text content."),
+    channels: z
+      .array(
+        z.object({
+          channelId: z.number().describe("Channel ID."),
+          platform: PLATFORM_ENUM.describe("The channel's platform."),
+        })
+      )
+      .optional()
+      .describe(
+        "Optional. The FULL list of channels the post should target after this update — not a diff. Channels already on the post that you include keep their state (a published one is not re-published); channels you leave out are removed; new ones are added as pending. Omit to leave the channels unchanged."
+      ),
+    platformContent: PLATFORM_CONTENT_SCHEMA.describe(
+      "Optional per-platform text overrides, keyed by platform. Replaced wholesale, not merged: send every platform's override you want to keep, or omit to leave them unchanged."
+    ),
+    postFormat: z
+      .enum(["post", "thread"])
+      .optional()
+      .describe("Optional. 'thread' to turn the post into a multi-part thread (send threadParts too), 'post' for a single post."),
+    threadParts: z
+      .array(
+        z.object({
+          content: z.string().describe("Thread part content."),
+          mediaFileIds: z.array(z.number()).optional().describe("Media files for this thread part."),
+        })
+      )
+      .optional()
+      .describe(
+        "Optional. Replace the thread parts (at least 2 when postFormat is thread). Every part is measured against the character limit of every platform the post targets; an over-long part is rejected naming the part, platform and limit."
+      ),
+    assignedUserId: z
+      .string()
+      .nullable()
+      .optional()
+      .describe(
+        "Optional. The member expected to act on this post next (a user id from the organization), or null to unassign. Omit to leave the assignment unchanged."
+      ),
+    recurringScheduleId: z
+      .number()
+      .nullable()
+      .optional()
+      .describe(
+        "Optional. Attach the post to a recurring schedule by id, or null to detach it. Omit to leave it unchanged."
+      ),
     status: z
       .enum(["draft", "scheduled"])
       .optional()
@@ -2395,9 +2544,19 @@ server.tool(
     publishWhenApproved,
     linkTrackingOverride,
     ifUnmodifiedSince,
+    channels,
+    platformContent,
+    postFormat,
+    threadParts,
+    assignedUserId,
+    recurringScheduleId,
   }) => {
     const body: Record<string, unknown> = {};
     if (content !== undefined) body.content = content;
+    if (channels !== undefined) body.channels = channels;
+    if (platformContent !== undefined) body.platformContent = platformContent;
+    if (postFormat !== undefined) body.postFormat = postFormat;
+    if (threadParts !== undefined) body.threadParts = threadParts;
     if (status !== undefined) body.status = status;
     if (scheduledAt !== undefined) body.scheduledAt = scheduledAt;
     if (timezone !== undefined) body.timezone = timezone;
@@ -2411,7 +2570,32 @@ server.tool(
       body.linkTrackingOverride = linkTrackingOverride;
     if (ifUnmodifiedSince !== undefined) body.ifUnmodifiedSince = ifUnmodifiedSince;
 
-    const res = await api("PUT", `/api/posts/${postId}`, body);
+    // Assignee and recurring schedule are not part of the full-document save
+    // (PUT would clear a teammate's assignment), so they go through PATCH.
+    // Both kinds in one call: PUT first, then PATCH without the precondition,
+    // since the PUT itself just moved updatedAt.
+    const patch: Record<string, unknown> = {};
+    if (assignedUserId !== undefined) patch.assignedUserId = assignedUserId;
+    if (recurringScheduleId !== undefined) patch.recurringScheduleId = recurringScheduleId;
+    const hasPut = Object.keys(body).some((k) => k !== "ifUnmodifiedSince");
+    const hasPatch = Object.keys(patch).length > 0;
+
+    let res;
+    if (hasPut || !hasPatch) {
+      res = await api("PUT", `/api/posts/${postId}`, body);
+      if (hasPatch && res.ok) {
+        const patched = await api("PATCH", `/api/posts/${postId}`, patch);
+        if (!patched.ok) {
+          // The PUT already saved; say so, or a retry would redo it.
+          const text = formatResponse(patched) + " (The other changes in this call were saved; only the assignee / recurring schedule change failed.)";
+          return { content: [{ type: "text" as const, text }] };
+        }
+        res = patched;
+      }
+    } else {
+      if (ifUnmodifiedSince !== undefined) patch.ifUnmodifiedSince = ifUnmodifiedSince;
+      res = await api("PATCH", `/api/posts/${postId}`, patch);
+    }
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );
@@ -2563,6 +2747,30 @@ server.tool(
     if (boardId) params.set("boardId", boardId);
     const qs = params.toString();
     const res = await api("GET", `/api/channels/${channelId}/options${qs ? `?${qs}` : ""}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Tool: update_channel
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "update_channel",
+  "Change a connected channel's sync settings. Both switches apply to X channels only, where every read is billed, and each is off until turned on: metricsSyncEnabled turns on analytics sync (at most once every 7 days) and the list of people who liked a post; inboxSyncEnabled turns on direct messages and replies to the channel's posts. Send at least one. Needs a role that can manage channels (owner, admin, approver). Does not connect, reconnect or remove a channel.",
+  {
+    channelId: z.number().describe("The channel ID (from list_channels)."),
+    metricsSyncEnabled: z.boolean().optional().describe("X only. Turn analytics sync and liker lists on or off. Omit to leave unchanged."),
+    inboxSyncEnabled: z.boolean().optional().describe("X only. Turn reading direct messages and replies on or off. Omit to leave unchanged."),
+  },
+  async ({ channelId, metricsSyncEnabled, inboxSyncEnabled }) => {
+    const body: Record<string, unknown> = {};
+    if (metricsSyncEnabled !== undefined) body.metricsSyncEnabled = metricsSyncEnabled;
+    if (inboxSyncEnabled !== undefined) body.inboxSyncEnabled = inboxSyncEnabled;
+    if (Object.keys(body).length === 0) {
+      return { content: [{ type: "text" as const, text: "Error: send metricsSyncEnabled, inboxSyncEnabled, or both." }] };
+    }
+    const res = await api("PATCH", `/api/channels/${channelId}`, body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );
@@ -3817,9 +4025,13 @@ if (!HIDE_BILLING_TOOLS) {
     {
       postId: z.number().describe("The post id."),
       commentsLimit: z.number().optional().describe("Max comments per channel (default 25, max 100)."),
+      reactionsLimit: z.number().optional().describe("Max reactors (people who liked or reacted) per channel (default 25, max 100)."),
     },
-    async ({ postId, commentsLimit }) => {
-      const qs = commentsLimit !== undefined ? `?commentsLimit=${commentsLimit}` : "";
+    async ({ postId, commentsLimit, reactionsLimit }) => {
+      const params = new URLSearchParams();
+      if (commentsLimit !== undefined) params.set("commentsLimit", String(commentsLimit));
+      if (reactionsLimit !== undefined) params.set("reactionsLimit", String(reactionsLimit));
+      const qs = params.toString() ? `?${params}` : "";
       const res = await api("GET", `/api/posts/${postId}/engagement${qs}`);
       return { content: [{ type: "text" as const, text: formatResponse(res) }] };
     }
@@ -3892,6 +4104,7 @@ const UNSERVED_REF_REWRITES: Array<{ tool: string; from: string; to: string }> =
   { tool: "get_channel_options", from: " (list via get_channel_options)", to: "" },
   { tool: "get_channel_options", from: " (list with get_channel_options and boardId)", to: "" },
   { tool: "get_channel_options", from: "Numeric place ID from get_channel_options with a `q` search on a Threads channel.", to: "Numeric Threads place ID." },
+  { tool: "reply_to_comment", from: "Each channel's entry has its postPlatformId and each comment its id, which reply_to_comment and moderate_comment take, plus commentActions listing the actions that channel supports.", to: "Each channel's entry has its postPlatformId and each comment its id." },
   { tool: "search_mentions", from: " search_mentions on a LinkedIn channel returns ready-made Page tokens.", to: "" },
 ];
 

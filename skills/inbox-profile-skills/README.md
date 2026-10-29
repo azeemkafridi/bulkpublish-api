@@ -1,7 +1,7 @@
 # Inbox-profile skills
 
 Skills that need the Inbox and comment tools, which the hosted connector serves
-only under the 27-tool `inbox` profile (`BULKPUBLISH_TOOL_PROFILE=inbox`). Ship
+only under the 32-tool `inbox` profile (`BULKPUBLISH_TOOL_PROFILE=inbox`). Ship
 them alongside `../core-profile-skills` to a connector running that profile,
 never to one running `core`.
 

@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-10-29 — Edit a post's channels from the MCP server
+
+MCP **1.49.0**
+
+### Added
+
+- **MCP `update_post`:** `channels` (the full list the post should target, so a channel can be dropped from or added to a scheduled post), `platformContent`, `postFormat`, `threadParts`, and `assignedUserId` / `recurringScheduleId` (sent as a separate PATCH, after the save when both kinds are in one call). Every field the update endpoint documents is now reachable.
+- **MCP `create_post`:** `platformThreadParts`, `deleteMediaAfterPublish`, `repeatSchedule`, and the auto-plug / auto-repost options.
+- **MCP `list_posts`:** `labelIds`, `labelMode` and `recurring` filters.
+- **MCP `list_post_comments`:** `reactionsLimit`.
+- **MCP `update_channel`** (new): turn an X channel's analytics sync or direct-message/reply reading on or off. There is deliberately no tool to remove a channel.
+- **Hosted `core` profile** grows from 20 to 26 tools: `list_labels`, `get_channel_options`, `approve_post`, `reject_post`, `list_post_comments` (moved from `inbox`, so `inbox` is now 32) and `update_channel`. `list_labels`, `get_channel_options`, `approve_post` and `reject_post` now declare output schemas.
+
+### Compatibility
+
+Additive only: no tool removed or renamed, no parameter removed, no parameter made required. Existing calls send exactly what they sent before.
+
 ## 2026-10-27 — Free plan limits updated
 
 Free plan limits updated: 10 API requests/day, 3 pending scheduled posts, 1 post/day. Lifetime, Pro and Business are unchanged. The API usage description, the authentication and rate-limits guides and the README now state the new Free figure.

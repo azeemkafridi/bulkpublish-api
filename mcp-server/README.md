@@ -120,9 +120,9 @@ The server ships three tool profiles, chosen with `BULKPUBLISH_TOOL_PROFILE`:
 
 | Profile | Tools | Default for |
 |---|---|---|
-| `core` | 20 — channels, posts, media, analytics, and the interactive panels | The hosted HTTP server (`dist/http.js`), which is what the Claude and ChatGPT directories list |
-| `inbox` | 27 — everything in `core`, plus the Inbox and comment tools: `list_conversations`, `get_conversation`, `reply_to_conversation`, `update_conversation`, `list_post_comments`, `reply_to_comment`, `moderate_comment` | Opt-in on a hosted deployment (`BULKPUBLISH_TOOL_PROFILE=inbox`). The `core` tools in it are identical to the `core` profile's |
-| `full` | Every tool (including the Inbox and comment tools; labels, hashtag groups, templates, calendar notes, review links, client-connect links, recurring schedules, channel sets, RSS feeds, chunked uploads, quota) | The local stdio server (`npx @bulkpublish/mcp-server`) |
+| `core` | 26 — channels, posts, media, analytics, labels, approvals, post comments, channel sync settings, and the interactive panels | The hosted HTTP server (`dist/http.js`), which is what the Claude and ChatGPT directories list |
+| `inbox` | 32 — everything in `core`, plus the Inbox and comment-reply tools: `list_conversations`, `get_conversation`, `reply_to_conversation`, `update_conversation`, `reply_to_comment`, `moderate_comment` | Opt-in on a hosted deployment (`BULKPUBLISH_TOOL_PROFILE=inbox`). The `core` tools in it are identical to the `core` profile's |
+| `full` | Every tool (including the Inbox and comment tools; label management, hashtag groups, templates, calendar notes, review links, client-connect links, recurring schedules, channel sets, RSS feeds, chunked uploads, quota) | The local stdio server (`npx @bulkpublish/mcp-server`) |
 
 Set `BULKPUBLISH_TOOL_PROFILE=full` on a hosted deployment to expose everything, or `core` locally to keep a small tool list. The panels' buttons call back into `create_post`, `publish_post`, `retry_post`, `update_post`, `delete_post`, `list_channels`, `list_media`, `get_post`, `create_media_upload` and `finalize_media_upload`, so all of those are in `core`.
 
@@ -137,14 +137,14 @@ Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles))
 | **Posts** | |
 | `create_post` ★ | Create and optionally schedule a post (supports reels, stories, carousels, threads via `postTypeOverrides`) |
 | `compose_post` ★ | Open an interactive composer UI (MCP Apps) to draft/schedule a post; submits via `create_post` |
-| `update_post` ★ | Update a draft or scheduled post |
+| `update_post` ★ | Update a draft or scheduled post: content, timing, media, labels, the full channel list (add or drop channels), per-platform text, thread parts, assignee and recurring schedule |
 | `get_post` ★ | Get a single post with full details |
-| `list_posts` ★ | List posts with filters (status, search, date range) |
+| `list_posts` ★ | List posts with filters (status, search, date range, labels, recurring) |
 | `delete_post` ★ | Delete a post |
 | `publish_post` ★ | Publish a draft post immediately |
 | `retry_post` ★ | Retry a failed post |
-| `approve_post` | Approve a post awaiting team approval (roles with post:approve) |
-| `reject_post` | Reject a pending post back to draft, with an optional reason |
+| `approve_post` ★ | Approve a post awaiting team approval (roles with post:approve) |
+| `reject_post` ★ | Reject a pending post back to draft, with an optional reason |
 | `get_post_metrics` ★ | Get engagement metrics (impressions, likes, comments, shares). Each platform entry carries `supportedMetrics` — a key not in that list is a stored `0`, not a measurement |
 | `publish_story` | Publish as a story to Facebook or Instagram |
 | `bulk_posts` | Bulk delete or retry multiple posts |
@@ -152,7 +152,8 @@ Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles))
 | **Channels** | |
 | `list_channels` ★ | List all connected social media channels |
 | `get_channel_health` | Check channel token health |
-| `get_channel_options` | Get platform-specific options (boards, playlists) |
+| `get_channel_options` ★ | Get platform-specific options (boards, playlists) |
+| `update_channel` ★ | Turn an X channel's analytics sync or DM/reply reading on or off |
 | `search_mentions` | Search users for @mention (X, Bluesky, Mastodon, LinkedIn Pages — LinkedIn results carry the `vanityName` slug they matched on) |
 | **Channel Sets** | |
 | `list_channel_sets` | List saved channel groups for one-click multi-channel targeting |
@@ -176,7 +177,7 @@ Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles))
 | `abort_multipart_upload` | Cancel an in-progress chunked upload and free its stored parts |
 | **Labels** | |
 | `create_label` | Create a new label |
-| `list_labels` | List all labels |
+| `list_labels` ★ | List all labels |
 | `update_label` | Update a label name or color |
 | `delete_label` | Delete a label |
 | **Analytics** | |
@@ -191,7 +192,7 @@ Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles))
 | `get_conversation` ✉ | Read one conversation's messages, oldest first; does not mark it read |
 | `reply_to_conversation` ✉ | Send a reply to the person on the platform right away; it cannot be unsent |
 | `update_conversation` ✉ | Mark read or unread, archive or reopen, snooze, or assign a conversation; nothing is sent |
-| `list_post_comments` ✉ | List the comments and reactions on a published post, per channel, with the ids the reply and moderate tools take |
+| `list_post_comments` ★ | List the comments and reactions on a published post, per channel, with the ids the reply and moderate tools take |
 | `reply_to_comment` ✉ | Post a public reply to a comment right away, as the channel the post went out on |
 | `moderate_comment` ✉ | Like, unlike, hide, unhide or delete a comment on the platform (delete is permanent) |
 | **Account** | |

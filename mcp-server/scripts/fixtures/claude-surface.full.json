@@ -1553,6 +1553,105 @@
                 "type": "null"
               }
             ]
+          },
+          "platformThreadParts": {
+            "description": "Optional per-platform thread overrides, keyed by platform, e.g. { \"x\": [{ \"content\": \"Part 1\" }, { \"content\": \"Part 2\" }] }. Part content must be a plain string.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "description": "Thread part content."
+                  },
+                  "mediaFileIds": {
+                    "description": "Media files for this thread part.",
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "required": [
+                  "content"
+                ]
+              }
+            }
+          },
+          "deleteMediaAfterPublish": {
+            "description": "Optional (default false: media is kept in the library). Set true to delete the attached media once every channel has published, so it stops counting toward the storage limit. Forced to false when repeatSchedule is set.",
+            "type": "boolean"
+          },
+          "repeatSchedule": {
+            "description": "Optional. Make this a repeating post: it is re-published on this cadence. Media on a repeating post is always kept (deleteMediaAfterPublish is forced to false).",
+            "type": "object",
+            "properties": {
+              "frequency": {
+                "type": "string",
+                "enum": [
+                  "daily",
+                  "weekly",
+                  "biweekly",
+                  "monthly"
+                ],
+                "description": "How often the post repeats."
+              },
+              "daysOfWeek": {
+                "description": "Weekly/biweekly: days to post on, 0=Sunday … 6=Saturday.",
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 6
+                }
+              },
+              "dayOfMonth": {
+                "description": "Monthly: day of the month.",
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 31
+              },
+              "timeOfDay": {
+                "description": "Time to post, HH:MM (24-hour).",
+                "type": "string"
+              },
+              "timezone": {
+                "description": "IANA timezone for timeOfDay. Defaults to the post's timezone, then UTC.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "frequency"
+            ]
+          },
+          "autoPlugEnabled": {
+            "description": "Optional (default false). Automatically post a follow-up comment (autoPlugText) once the published post reaches autoPlugThreshold likes.",
+            "type": "boolean"
+          },
+          "autoPlugText": {
+            "description": "Optional. The follow-up comment text for auto-plug.",
+            "type": "string"
+          },
+          "autoPlugThreshold": {
+            "description": "Optional (default 50). Likes needed before the auto-plug comment is posted.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "autoRepostEnabled": {
+            "description": "Optional (default false). Automatically repost/reshare the post once it reaches autoRepostThreshold likes.",
+            "type": "boolean"
+          },
+          "autoRepostThreshold": {
+            "description": "Optional (default 100). Likes needed before the post is reposted.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
           }
         },
         "required": [
@@ -1817,8 +1916,27 @@
             "type": "number"
           },
           "labelId": {
-            "description": "Filter by label ID.",
+            "description": "Filter by a single label ID. Prefer labelIds.",
             "type": "number"
+          },
+          "labelIds": {
+            "description": "Filter by several label IDs (from list_labels). Combined per labelMode.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "labelMode": {
+            "description": "How labelIds combine: 'or' (default) matches posts with any of them, 'and' only posts with all of them.",
+            "type": "string",
+            "enum": [
+              "or",
+              "and"
+            ]
+          },
+          "recurring": {
+            "description": "Set true to return only posts attached to a recurring schedule.",
+            "type": "boolean"
           },
           "from": {
             "description": "Filter posts created on or after this ISO date.",
@@ -2945,6 +3063,216 @@
         ],
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "description": "draft, scheduled, processing, published, partial or failed.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduledAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "author": {
+            "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approver": {
+            "description": "Who approved it: { id, name, image }. Null unless approvalStatus is approved.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assignee": {
+            "description": "Who is expected to act on it next: { id, name, image }. Null when nobody is.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mediaFiles": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {},
+                      "additionalProperties": {}
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postPlatforms": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "labels": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -2980,6 +3308,216 @@
           "postId"
         ],
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "description": "draft, scheduled, processing, published, partial or failed.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduledAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "author": {
+            "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approver": {
+            "description": "Who approved it: { id, name, image }. Null unless approvalStatus is approved.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assignee": {
+            "description": "Who is expected to act on it next: { id, name, image }. Null when nobody is.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mediaFiles": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {},
+                      "additionalProperties": {}
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postPlatforms": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "labels": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
       },
       "annotations": {
         "readOnlyHint": false,
@@ -3572,6 +4110,66 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "color": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
       },
       "annotations": {
         "readOnlyHint": true,
@@ -4285,7 +4883,7 @@
     {
       "name": "update_post",
       "title": "Update post",
-      "description": "Update an existing post. Can change content, schedule, media, labels, status, and platform-specific settings. Only draft, scheduled, failed, or partial posts can be edited; editing a failed post resets it to draft, a partial post stays partial. Set status to 'draft' or 'scheduled' to move the post between those states — scheduling a partial post re-queues only its failed channels; use publish_post to publish immediately. Use this when the user wants to edit an existing post.",
+      "description": "Update an existing post. Can change content, schedule, media, labels, status, target channels, per-platform text, thread parts, assignee, recurring schedule, and platform-specific settings. Only draft, scheduled, failed, or partial posts can be edited; editing a failed post resets it to draft, a partial post stays partial. Set status to 'draft' or 'scheduled' to move the post between those states — scheduling a partial post re-queues only its failed channels; use publish_post to publish immediately. To add or remove a channel, send `channels` with the COMPLETE list the post should keep (read it from get_post first): channels left out are dropped from the post, new ones are added as pending, and the ones kept keep their publish state. Use this when the user wants to edit an existing post.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -4296,6 +4894,148 @@
           "content": {
             "description": "New post text content.",
             "type": "string"
+          },
+          "channels": {
+            "description": "Optional. The FULL list of channels the post should target after this update — not a diff. Channels already on the post that you include keep their state (a published one is not re-published); channels you leave out are removed; new ones are added as pending. Omit to leave the channels unchanged.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "channelId": {
+                  "type": "number",
+                  "description": "Channel ID."
+                },
+                "platform": {
+                  "type": "string",
+                  "enum": [
+                    "facebook",
+                    "instagram",
+                    "x",
+                    "tiktok",
+                    "youtube",
+                    "threads",
+                    "bluesky",
+                    "pinterest",
+                    "gmb",
+                    "linkedin",
+                    "mastodon",
+                    "discord",
+                    "telegram",
+                    "tumblr",
+                    "snapchat"
+                  ],
+                  "description": "The channel's platform."
+                }
+              },
+              "required": [
+                "channelId",
+                "platform"
+              ]
+            }
+          },
+          "platformContent": {
+            "description": "Optional per-platform text overrides, keyed by platform. Replaced wholesale, not merged: send every platform's override you want to keep, or omit to leave them unchanged.",
+            "type": "object",
+            "properties": {
+              "facebook": {
+                "type": "string"
+              },
+              "instagram": {
+                "type": "string"
+              },
+              "x": {
+                "type": "string"
+              },
+              "tiktok": {
+                "type": "string"
+              },
+              "youtube": {
+                "type": "string"
+              },
+              "threads": {
+                "type": "string"
+              },
+              "bluesky": {
+                "type": "string"
+              },
+              "pinterest": {
+                "type": "string"
+              },
+              "linkedin": {
+                "type": "string"
+              },
+              "mastodon": {
+                "type": "string"
+              },
+              "gmb": {
+                "type": "string"
+              },
+              "discord": {
+                "type": "string"
+              },
+              "telegram": {
+                "type": "string"
+              },
+              "tumblr": {
+                "type": "string"
+              },
+              "snapchat": {
+                "type": "string"
+              }
+            }
+          },
+          "postFormat": {
+            "description": "Optional. 'thread' to turn the post into a multi-part thread (send threadParts too), 'post' for a single post.",
+            "type": "string",
+            "enum": [
+              "post",
+              "thread"
+            ]
+          },
+          "threadParts": {
+            "description": "Optional. Replace the thread parts (at least 2 when postFormat is thread). Every part is measured against the character limit of every platform the post targets; an over-long part is rejected naming the part, platform and limit.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string",
+                  "description": "Thread part content."
+                },
+                "mediaFileIds": {
+                  "description": "Media files for this thread part.",
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              },
+              "required": [
+                "content"
+              ]
+            }
+          },
+          "assignedUserId": {
+            "description": "Optional. The member expected to act on this post next (a user id from the organization), or null to unassign. Omit to leave the assignment unchanged.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recurringScheduleId": {
+            "description": "Optional. Attach the post to a recurring schedule by id, or null to detach it. Omit to leave it unchanged.",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "status": {
             "description": "Move the post between draft and scheduled. 'scheduled' requires a future scheduledAt (in this call or already stored) and at least one channel; 'draft' unschedules it. Any other value is rejected. Omit to leave the status unchanged. To publish immediately, use publish_post instead.",
@@ -6138,11 +6878,153 @@
         ],
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "description": "boards, sections, playlists, blogs, channels, locations, audio or creator_info.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "items": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "info": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unavailable": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "update_channel",
+      "title": "Update channel sync settings",
+      "description": "Change a connected channel's sync settings. Both switches apply to X channels only, where every read is billed, and each is off until turned on: metricsSyncEnabled turns on analytics sync (at most once every 7 days) and the list of people who liked a post; inboxSyncEnabled turns on direct messages and replies to the channel's posts. Send at least one. Needs a role that can manage channels (owner, admin, approver). Does not connect, reconnect or remove a channel. Use this when the user wants to turn analytics sync or direct-message/reply reading on or off for an X channel.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "number",
+            "description": "The channel ID (from list_channels)."
+          },
+          "metricsSyncEnabled": {
+            "description": "X only. Turn analytics sync and liker lists on or off. Omit to leave unchanged.",
+            "type": "boolean"
+          },
+          "inboxSyncEnabled": {
+            "description": "X only. Turn reading direct messages and replies on or off. Omit to leave unchanged.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "channelId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -8746,6 +9628,10 @@
           },
           "commentsLimit": {
             "description": "Max comments per channel (default 25, max 100).",
+            "type": "number"
+          },
+          "reactionsLimit": {
+            "description": "Max reactors (people who liked or reacted) per channel (default 25, max 100).",
             "type": "number"
           }
         },

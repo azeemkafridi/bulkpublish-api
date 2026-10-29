@@ -1,7 +1,7 @@
 # Core-profile skills
 
 The skill set for the **hosted** connector at `mcp.bulkpublish.com`, which serves
-the 20-tool `core` profile. Every skill here is limited to those 20 tools.
+the 26-tool `core` profile. Every skill here is limited to those 26 tools.
 
 `../social-media-content-skills` is the other set: it targets the npm/stdio
 server, which serves the full profile, and is free to use tools like

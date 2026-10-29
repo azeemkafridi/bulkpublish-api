@@ -13,7 +13,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createServer } from "../dist/index.js";
 
-// --profile inbox checks skills/inbox-profile-skills against the 27-tool inbox
+// --profile inbox checks skills/inbox-profile-skills against the 32-tool inbox
 // profile instead; the ABSENT list applies to both, since inbox only adds the
 // Inbox and comment tools.
 const pi = process.argv.indexOf("--profile");

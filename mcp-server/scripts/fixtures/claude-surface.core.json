@@ -288,7 +288,7 @@
                     "type": "string"
                   },
                   "boardSectionId": {
-                    "description": "Numeric ID of a section of the chosen board. Send it beside its board, per channel or flat. Pin, video_pin and carousel. A flat value is ignored for a channel with its own boardId, and any section is ignored when no board was chosen.",
+                    "description": "Numeric ID of a section of the chosen board (list with get_channel_options and boardId). Send it beside its board, per channel or flat. Pin, video_pin and carousel. A flat value is ignored for a channel with its own boardId, and any section is ignored when no board was chosen.",
                     "type": "string"
                   },
                   "coverKeyFrameTime": {
@@ -525,7 +525,7 @@
                     "type": "string"
                   },
                   "locationId": {
-                    "description": "Numeric Threads place ID. Only works once the channel has granted location tagging.",
+                    "description": "Numeric place ID from get_channel_options with a `q` search on a Threads channel. Only works once the channel has granted location tagging.",
                     "type": "string"
                   },
                   "replyControl": {
@@ -722,7 +722,7 @@
                       "type": "object",
                       "properties": {
                         "channelId": {
-                          "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key.",
+                          "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
                           "type": "string"
                         },
                         "silent": {
@@ -812,7 +812,7 @@
                           "type": "boolean"
                         },
                         "tags": {
-                          "description": "Up to 5 forum tag IDs (digits) for a forum channel.",
+                          "description": "Up to 5 forum tag IDs (digits) for a forum channel; IDs come from get_channel_options.",
                           "type": "array",
                           "items": {
                             "type": "string"
@@ -826,7 +826,7 @@
                     "type": "object",
                     "properties": {
                       "channelId": {
-                        "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key.",
+                        "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
                         "type": "string"
                       },
                       "silent": {
@@ -916,7 +916,7 @@
                         "type": "boolean"
                       },
                       "tags": {
-                        "description": "Up to 5 forum tag IDs (digits) for a forum channel.",
+                        "description": "Up to 5 forum tag IDs (digits) for a forum channel; IDs come from get_channel_options.",
                         "type": "array",
                         "items": {
                           "type": "string"
@@ -1140,7 +1140,7 @@
                       "type": "object",
                       "properties": {
                         "blogName": {
-                          "description": "Which blog to publish to. Defaults to the blog the channel was connected as.",
+                          "description": "Which blog to publish to. Defaults to the blog the channel was connected as (list via get_channel_options).",
                           "type": "string"
                         },
                         "title": {
@@ -1196,7 +1196,7 @@
                     "type": "object",
                     "properties": {
                       "blogName": {
-                        "description": "Which blog to publish to. Defaults to the blog the channel was connected as.",
+                        "description": "Which blog to publish to. Defaults to the blog the channel was connected as (list via get_channel_options).",
                         "type": "string"
                       },
                       "title": {
@@ -1534,6 +1534,105 @@
                 "type": "null"
               }
             ]
+          },
+          "platformThreadParts": {
+            "description": "Optional per-platform thread overrides, keyed by platform, e.g. { \"x\": [{ \"content\": \"Part 1\" }, { \"content\": \"Part 2\" }] }. Part content must be a plain string.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "description": "Thread part content."
+                  },
+                  "mediaFileIds": {
+                    "description": "Media files for this thread part.",
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "required": [
+                  "content"
+                ]
+              }
+            }
+          },
+          "deleteMediaAfterPublish": {
+            "description": "Optional (default false: media is kept in the library). Set true to delete the attached media once every channel has published, so it stops counting toward the storage limit. Forced to false when repeatSchedule is set.",
+            "type": "boolean"
+          },
+          "repeatSchedule": {
+            "description": "Optional. Make this a repeating post: it is re-published on this cadence. Media on a repeating post is always kept (deleteMediaAfterPublish is forced to false).",
+            "type": "object",
+            "properties": {
+              "frequency": {
+                "type": "string",
+                "enum": [
+                  "daily",
+                  "weekly",
+                  "biweekly",
+                  "monthly"
+                ],
+                "description": "How often the post repeats."
+              },
+              "daysOfWeek": {
+                "description": "Weekly/biweekly: days to post on, 0=Sunday … 6=Saturday.",
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 6
+                }
+              },
+              "dayOfMonth": {
+                "description": "Monthly: day of the month.",
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 31
+              },
+              "timeOfDay": {
+                "description": "Time to post, HH:MM (24-hour).",
+                "type": "string"
+              },
+              "timezone": {
+                "description": "IANA timezone for timeOfDay. Defaults to the post's timezone, then UTC.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "frequency"
+            ]
+          },
+          "autoPlugEnabled": {
+            "description": "Optional (default false). Automatically post a follow-up comment (autoPlugText) once the published post reaches autoPlugThreshold likes.",
+            "type": "boolean"
+          },
+          "autoPlugText": {
+            "description": "Optional. The follow-up comment text for auto-plug.",
+            "type": "string"
+          },
+          "autoPlugThreshold": {
+            "description": "Optional (default 50). Likes needed before the auto-plug comment is posted.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "autoRepostEnabled": {
+            "description": "Optional (default false). Automatically repost/reshare the post once it reaches autoRepostThreshold likes.",
+            "type": "boolean"
+          },
+          "autoRepostThreshold": {
+            "description": "Optional (default 100). Likes needed before the post is reposted.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
           }
         },
         "required": [
@@ -1798,8 +1897,27 @@
             "type": "number"
           },
           "labelId": {
-            "description": "Filter by label ID.",
+            "description": "Filter by a single label ID. Prefer labelIds.",
             "type": "number"
+          },
+          "labelIds": {
+            "description": "Filter by several label IDs (from list_labels). Combined per labelMode.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "labelMode": {
+            "description": "How labelIds combine: 'or' (default) matches posts with any of them, 'and' only posts with all of them.",
+            "type": "string",
+            "enum": [
+              "or",
+              "and"
+            ]
+          },
+          "recurring": {
+            "description": "Set true to return only posts attached to a recurring schedule.",
+            "type": "boolean"
           },
           "from": {
             "description": "Filter posts created on or after this ISO date.",
@@ -2898,6 +3016,501 @@
       }
     },
     {
+      "name": "approve_post",
+      "title": "Approve pending post",
+      "description": "Approve a post awaiting team approval. Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. If the scheduled time passed more than 15 minutes ago, whenLate decides: 'publish' publishes it immediately (status 'publishing'); 'hold' approves it but returns it with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time — tell the user it needs rescheduling. When whenLate is omitted it follows the post's publishWhenApproved: true means 'publish', false means 'hold'. If a late post's publishWhenApproved is false, ask the user whether to publish now or send it back before approving. The author is notified in-app either way. Approving sets publishWhenApproved to false. Pass the updatedAt of the version you showed the user as ifUnmodifiedSince, so an edit made since then is not approved unseen. Errors: 400 if the post is not awaiting approval, whenLate is not 'publish'/'hold' or ifUnmodifiedSince is not a timestamp, 403 if the role lacks post:approve, 404 if not found, 409 if the post changed since you loaded it (checked when ifUnmodifiedSince is sent) or is no longer awaiting approval — reload it with get_post and review again. Use this when the user (an owner/admin/approver) wants to approve a post awaiting team approval.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "number",
+            "description": "The post ID to approve."
+          },
+          "whenLate": {
+            "description": "Optional. Only matters when the post's scheduled time passed more than 15 minutes ago: 'publish' = publish now, 'hold' = approve and return it to draft for the author to pick a new time. Defaults to 'publish' when the post's publishWhenApproved is true, otherwise 'hold'.",
+            "type": "string",
+            "enum": [
+              "publish",
+              "hold"
+            ]
+          },
+          "ifUnmodifiedSince": {
+            "description": "Optional. The post's updatedAt (ISO 8601) as you last loaded it with get_post. The approval only lands on that version; if the post changed since, nothing is written and the call returns 409.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "postId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "description": "draft, scheduled, processing, published, partial or failed.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduledAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "author": {
+            "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approver": {
+            "description": "Who approved it: { id, name, image }. Null unless approvalStatus is approved.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assignee": {
+            "description": "Who is expected to act on it next: { id, name, image }. Null when nobody is.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mediaFiles": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {},
+                      "additionalProperties": {}
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postPlatforms": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "labels": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "reject_post",
+      "title": "Reject pending post",
+      "description": "Reject a post awaiting team approval. Requires a role with post:approve. The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval. Rejecting sets publishWhenApproved to false. Pass the updatedAt you reviewed as ifUnmodifiedSince to refuse the rejection if the post changed since. Errors: 400 if the post is not awaiting approval or ifUnmodifiedSince is not a timestamp, 403 if the role lacks post:approve, 404 if not found, 409 if the post changed since you loaded it (checked when ifUnmodifiedSince is sent) or is no longer awaiting approval — reload it with get_post and review again. Use this when the user (an owner/admin/approver) wants to reject a post awaiting team approval, optionally with a reason.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "number",
+            "description": "The post ID to reject."
+          },
+          "reason": {
+            "description": "Optional reason (max 2000 chars). Shown to the author (in-app notification + on the post).",
+            "type": "string",
+            "maxLength": 2000
+          },
+          "ifUnmodifiedSince": {
+            "description": "Optional. The post's updatedAt (ISO 8601) as you last loaded it with get_post. If the post changed since, nothing is written and the call returns 409.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "postId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "description": "draft, scheduled, processing, published, partial or failed.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduledAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approvalStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "author": {
+            "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approver": {
+            "description": "Who approved it: { id, name, image }. Null unless approvalStatus is approved.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assignee": {
+            "description": "Who is expected to act on it next: { id, name, image }. Null when nobody is.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mediaFiles": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {},
+                      "additionalProperties": {}
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postPlatforms": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "labels": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
       "name": "upload_media",
       "title": "Upload media",
       "description": "Upload a media file (image, video or document) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM, and documents (PDF, Word .doc/.docx, PowerPoint .ppt/.pptx). Max 100MB. A document has no thumbnail or preview and can only be published to LinkedIn, as a `document` post. Provide either url OR filePath, not both. Use this when the user provides an image, video or document to attach to a post.",
@@ -3462,9 +4075,97 @@
       }
     },
     {
+      "name": "list_labels",
+      "title": "List labels",
+      "description": "List all labels available for tagging posts and media. Use this when the user wants their post labels/tags.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "description": "Filter by label type: \"post\" or \"media\". Returns all if omitted.",
+            "type": "string",
+            "enum": [
+              "post",
+              "media"
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "color": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
       "name": "update_post",
       "title": "Update post",
-      "description": "Update an existing post. Can change content, schedule, media, labels, status, and platform-specific settings. Only draft, scheduled, failed, or partial posts can be edited; editing a failed post resets it to draft, a partial post stays partial. Set status to 'draft' or 'scheduled' to move the post between those states — scheduling a partial post re-queues only its failed channels; use publish_post to publish immediately. Use this when the user wants to edit an existing post.",
+      "description": "Update an existing post. Can change content, schedule, media, labels, status, target channels, per-platform text, thread parts, assignee, recurring schedule, and platform-specific settings. Only draft, scheduled, failed, or partial posts can be edited; editing a failed post resets it to draft, a partial post stays partial. Set status to 'draft' or 'scheduled' to move the post between those states — scheduling a partial post re-queues only its failed channels; use publish_post to publish immediately. To add or remove a channel, send `channels` with the COMPLETE list the post should keep (read it from get_post first): channels left out are dropped from the post, new ones are added as pending, and the ones kept keep their publish state. Use this when the user wants to edit an existing post.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3475,6 +4176,148 @@
           "content": {
             "description": "New post text content.",
             "type": "string"
+          },
+          "channels": {
+            "description": "Optional. The FULL list of channels the post should target after this update — not a diff. Channels already on the post that you include keep their state (a published one is not re-published); channels you leave out are removed; new ones are added as pending. Omit to leave the channels unchanged.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "channelId": {
+                  "type": "number",
+                  "description": "Channel ID."
+                },
+                "platform": {
+                  "type": "string",
+                  "enum": [
+                    "facebook",
+                    "instagram",
+                    "x",
+                    "tiktok",
+                    "youtube",
+                    "threads",
+                    "bluesky",
+                    "pinterest",
+                    "gmb",
+                    "linkedin",
+                    "mastodon",
+                    "discord",
+                    "telegram",
+                    "tumblr",
+                    "snapchat"
+                  ],
+                  "description": "The channel's platform."
+                }
+              },
+              "required": [
+                "channelId",
+                "platform"
+              ]
+            }
+          },
+          "platformContent": {
+            "description": "Optional per-platform text overrides, keyed by platform. Replaced wholesale, not merged: send every platform's override you want to keep, or omit to leave them unchanged.",
+            "type": "object",
+            "properties": {
+              "facebook": {
+                "type": "string"
+              },
+              "instagram": {
+                "type": "string"
+              },
+              "x": {
+                "type": "string"
+              },
+              "tiktok": {
+                "type": "string"
+              },
+              "youtube": {
+                "type": "string"
+              },
+              "threads": {
+                "type": "string"
+              },
+              "bluesky": {
+                "type": "string"
+              },
+              "pinterest": {
+                "type": "string"
+              },
+              "linkedin": {
+                "type": "string"
+              },
+              "mastodon": {
+                "type": "string"
+              },
+              "gmb": {
+                "type": "string"
+              },
+              "discord": {
+                "type": "string"
+              },
+              "telegram": {
+                "type": "string"
+              },
+              "tumblr": {
+                "type": "string"
+              },
+              "snapchat": {
+                "type": "string"
+              }
+            }
+          },
+          "postFormat": {
+            "description": "Optional. 'thread' to turn the post into a multi-part thread (send threadParts too), 'post' for a single post.",
+            "type": "string",
+            "enum": [
+              "post",
+              "thread"
+            ]
+          },
+          "threadParts": {
+            "description": "Optional. Replace the thread parts (at least 2 when postFormat is thread). Every part is measured against the character limit of every platform the post targets; an over-long part is rejected naming the part, platform and limit.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string",
+                  "description": "Thread part content."
+                },
+                "mediaFileIds": {
+                  "description": "Media files for this thread part.",
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              },
+              "required": [
+                "content"
+              ]
+            }
+          },
+          "assignedUserId": {
+            "description": "Optional. The member expected to act on this post next (a user id from the organization), or null to unassign. Omit to leave the assignment unchanged.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recurringScheduleId": {
+            "description": "Optional. Attach the post to a recurring schedule by id, or null to detach it. Omit to leave it unchanged.",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "status": {
             "description": "Move the post between draft and scheduled. 'scheduled' requires a future scheduledAt (in this call or already stored) and at least one channel; 'draft' unschedules it. Any other value is rejected. Omit to leave the status unchanged. To publish immediately, use publish_post instead.",
@@ -3728,7 +4571,7 @@
                     "type": "string"
                   },
                   "boardSectionId": {
-                    "description": "Numeric ID of a section of the chosen board. Send it beside its board, per channel or flat. Pin, video_pin and carousel. A flat value is ignored for a channel with its own boardId, and any section is ignored when no board was chosen.",
+                    "description": "Numeric ID of a section of the chosen board (list with get_channel_options and boardId). Send it beside its board, per channel or flat. Pin, video_pin and carousel. A flat value is ignored for a channel with its own boardId, and any section is ignored when no board was chosen.",
                     "type": "string"
                   },
                   "coverKeyFrameTime": {
@@ -3965,7 +4808,7 @@
                     "type": "string"
                   },
                   "locationId": {
-                    "description": "Numeric Threads place ID. Only works once the channel has granted location tagging.",
+                    "description": "Numeric place ID from get_channel_options with a `q` search on a Threads channel. Only works once the channel has granted location tagging.",
                     "type": "string"
                   },
                   "replyControl": {
@@ -4162,7 +5005,7 @@
                       "type": "object",
                       "properties": {
                         "channelId": {
-                          "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key.",
+                          "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
                           "type": "string"
                         },
                         "silent": {
@@ -4252,7 +5095,7 @@
                           "type": "boolean"
                         },
                         "tags": {
-                          "description": "Up to 5 forum tag IDs (digits) for a forum channel.",
+                          "description": "Up to 5 forum tag IDs (digits) for a forum channel; IDs come from get_channel_options.",
                           "type": "array",
                           "items": {
                             "type": "string"
@@ -4266,7 +5109,7 @@
                     "type": "object",
                     "properties": {
                       "channelId": {
-                        "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key.",
+                        "description": "Required. Target Discord text channel id (a snowflake) inside the connected server. NOT the BulkPublish channel id used as the outer key. List postable channels via get_channel_options.",
                         "type": "string"
                       },
                       "silent": {
@@ -4356,7 +5199,7 @@
                         "type": "boolean"
                       },
                       "tags": {
-                        "description": "Up to 5 forum tag IDs (digits) for a forum channel.",
+                        "description": "Up to 5 forum tag IDs (digits) for a forum channel; IDs come from get_channel_options.",
                         "type": "array",
                         "items": {
                           "type": "string"
@@ -4580,7 +5423,7 @@
                       "type": "object",
                       "properties": {
                         "blogName": {
-                          "description": "Which blog to publish to. Defaults to the blog the channel was connected as.",
+                          "description": "Which blog to publish to. Defaults to the blog the channel was connected as (list via get_channel_options).",
                           "type": "string"
                         },
                         "title": {
@@ -4636,7 +5479,7 @@
                     "type": "object",
                     "properties": {
                       "blogName": {
-                        "description": "Which blog to publish to. Defaults to the blog the channel was connected as.",
+                        "description": "Which blog to publish to. Defaults to the blog the channel was connected as (list via get_channel_options).",
                         "type": "string"
                       },
                       "title": {
@@ -5180,6 +6023,183 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "get_channel_options",
+      "title": "Get channel post-type options",
+      "description": "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search. Use this when you need a platform's valid post types before creating a post for it.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "number",
+            "description": "The channel ID to get options for."
+          },
+          "q": {
+            "description": "Search term. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging).",
+            "type": "string"
+          },
+          "boardId": {
+            "description": "Pinterest only: numeric board ID. Returns that board's sections ({ type: 'sections', items: [{ id, name }] }) for platformSpecific.pinterest.boardSectionId, instead of the boards. Non-numeric values return 400.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "channelId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "description": "boards, sections, playlists, blogs, channels, locations, audio or creator_info.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "items": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "info": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unavailable": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "update_channel",
+      "title": "Update channel sync settings",
+      "description": "Change a connected channel's sync settings. Both switches apply to X channels only, where every read is billed, and each is off until turned on: metricsSyncEnabled turns on analytics sync (at most once every 7 days) and the list of people who liked a post; inboxSyncEnabled turns on direct messages and replies to the channel's posts. Send at least one. Needs a role that can manage channels (owner, admin, approver). Does not connect, reconnect or remove a channel. Use this when the user wants to turn analytics sync or direct-message/reply reading on or off for an X channel.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "number",
+            "description": "The channel ID (from list_channels)."
+          },
+          "metricsSyncEnabled": {
+            "description": "X only. Turn analytics sync and liker lists on or off. Omit to leave unchanged.",
+            "type": "boolean"
+          },
+          "inboxSyncEnabled": {
+            "description": "X only. Turn reading direct messages and replies on or off. Omit to leave unchanged.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "channelId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -6168,6 +7188,140 @@
         "destructiveHint": false,
         "idempotentHint": false,
         "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "list_post_comments",
+      "title": "List post comments",
+      "description": "List the comments and reactions on one published post, per channel, read from each platform. Each channel's entry has its postPlatformId and each comment its id. Some platforms have no comment access (TikTok, Pinterest, Google Business, Telegram, Snapchat) and say so in a notice. Use this when the user asks who commented on one of their published posts, or needs a comment's id to reply to or moderate it.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "number",
+            "description": "The post id."
+          },
+          "commentsLimit": {
+            "description": "Max comments per channel (default 25, max 100).",
+            "type": "number"
+          },
+          "reactionsLimit": {
+            "description": "Max reactors (people who liked or reacted) per channel (default 25, max 100).",
+            "type": "number"
+          }
+        },
+        "required": [
+          "postId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "platforms": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "postPlatformId": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platform": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "accountName": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "engagement": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {},
+                          "additionalProperties": {}
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "error": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
