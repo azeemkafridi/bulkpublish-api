@@ -7068,7 +7068,7 @@
           "Utilities"
         ],
         "summary": "Create X credits checkout",
-        "description": "Create a checkout session to top up X (Twitter) API credits. The user pays the chosen amount; their credit balance increases 1:1 once the payment completes. Requires the workspace owner; other roles get 403 FORBIDDEN.",
+        "description": "Create a checkout session to top up X (Twitter) API credits. `amountCents` is the X usage to buy. Checkout charges that amount plus a processing fee (for example $0.72 on $5, $1.59 on $20), and the credit balance increases by `amountCents` once the payment completes. The response states the fee and the total so a client can show them before redirecting. Requires the workspace owner; other roles get 403 FORBIDDEN.",
         "requestBody": {
           "required": true,
           "content": {
@@ -7081,7 +7081,7 @@
                 "properties": {
                   "amountCents": {
                     "type": "integer",
-                    "description": "Amount to charge in USD cents. Minimum 500 ($5), maximum 100000 ($1000)."
+                    "description": "X usage to buy, in USD cents, before the processing fee. Minimum 500 ($5), maximum 100000 ($1000)."
                   }
                 }
               }
@@ -7090,7 +7090,35 @@
         },
         "responses": {
           "200": {
-            "description": "Checkout URL"
+            "description": "Checkout URL, with the credit bought, the processing fee and the total charged before tax",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "checkoutId": {
+                      "type": "string"
+                    },
+                    "creditCents": {
+                      "type": "integer",
+                      "description": "X usage that will be credited"
+                    },
+                    "feeCents": {
+                      "type": "integer",
+                      "description": "Processing fee added at checkout"
+                    },
+                    "totalCents": {
+                      "type": "integer",
+                      "description": "creditCents + feeCents, before any tax"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "operationId": "createXCreditsCheckout",

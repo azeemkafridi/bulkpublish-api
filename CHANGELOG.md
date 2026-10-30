@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-30 — X credit top-ups state a processing fee
+
+Spec only; no SDK or MCP change.
+
+### Changed
+
+- **`POST /api/quotas/x-credits/checkout`:** `amountCents` is now the X usage to buy. Checkout charges it plus a processing fee (for example $0.72 on $5, $1.59 on $20), and the credit balance grows by `amountCents`. The response adds `creditCents`, `feeCents` and `totalCents`; `url` and `checkoutId` are unchanged.
+
 ## 2026-10-29 — A published channel cannot be dropped from a post
 
 Node SDK **1.44.3** · Python SDK **0.45.2** · MCP **1.49.0**
