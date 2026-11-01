@@ -48,9 +48,13 @@ export const CLIENT_CONNECT_PLATFORMS = [
 export class ClientConnectLinksResource {
   constructor(private readonly http: HttpClient) {}
 
-  /** Every client-connect link in the organization, newest first. */
-  async list(): Promise<{ clientConnectLinks: ClientConnectLink[] }> {
-    return this.http.get('/api/client-connect-links');
+  /**
+   * The organization's client-connect links, newest first. Paged: 50 per page
+   * by default (`limit` up to 100). `total` counts every link, so keep
+   * requesting `page + 1` while `page * limit < total`.
+   */
+  async list(params: { page?: number; limit?: number } = {}): Promise<{ clientConnectLinks: ClientConnectLink[]; page: number; limit: number; total: number }> {
+    return this.http.get('/api/client-connect-links', params);
   }
 
   /** Create a link. Expires in 7 days or on first use, whichever comes first. */

@@ -24,11 +24,15 @@ export interface CalendarNote {
 export class CalendarNotesResource {
   constructor(private readonly http: HttpClient) {}
 
-  /** Notes in [from, to] (inclusive, at most a year apart), ordered by date. */
+  /**
+   * Notes in [from, to] (inclusive, at most a year apart), ordered by date.
+   * At most 1000 are returned, earliest first; narrow the range to see more.
+   */
   async list(params: { from: string; to: string }): Promise<{ notes: CalendarNote[] }> {
     return this.http.get('/api/calendar-notes', params);
   }
 
+  /** A workspace may keep up to 5000 notes; beyond that the API answers 400 LIMIT_REACHED. */
   async create(params: { date: string; body: string; color?: string }): Promise<{ note: CalendarNote }> {
     return this.http.post('/api/calendar-notes', params);
   }

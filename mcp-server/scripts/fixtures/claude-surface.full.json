@@ -4480,7 +4480,7 @@
     {
       "name": "list_calendar_notes",
       "title": "List calendar notes",
-      "description": "List calendar notes (free text pinned to a day — campaigns, holidays, 'no posts this week'; they never publish) in a date range of at most a year. Use this when the user asks what is noted on the content calendar for a period (campaigns, holidays, reminders).",
+      "description": "List calendar notes (free text pinned to a day — campaigns, holidays, 'no posts this week'; they never publish) in a date range of at most a year. Returns at most 1000 notes, earliest first; narrow the range to see more. Use this when the user asks what is noted on the content calendar for a period (campaigns, holidays, reminders).",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -4512,7 +4512,7 @@
     {
       "name": "create_calendar_note",
       "title": "Create calendar note",
-      "description": "Pin a note to a day on the content calendar. Not a post: nothing is published. Use this when the user wants to pin a note, reminder or campaign marker to a calendar day without creating a post.",
+      "description": "Pin a note to a day on the content calendar. Not a post: nothing is published. A workspace may keep up to 5000 notes (400 LIMIT_REACHED beyond that). Use this when the user wants to pin a note, reminder or campaign marker to a calendar day without creating a post.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -4674,10 +4674,19 @@
     {
       "name": "list_review_links",
       "title": "List client review links",
-      "description": "List the organization's client review links (batch review links), newest first, with how many posts each one covers. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user wants to see the client review links they have created for batches of posts.",
+      "description": "List the organization's client review links (batch review links), newest first, with how many posts each one covers. Paged: returns { reviewLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user wants to see the client review links they have created for batches of posts.",
       "inputSchema": {
         "type": "object",
-        "properties": {},
+        "properties": {
+          "page": {
+            "description": "Page number (default 1).",
+            "type": "number"
+          },
+          "limit": {
+            "description": "Links per page (default 50, max 100).",
+            "type": "number"
+          }
+        },
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
       "annotations": {
@@ -4757,10 +4766,19 @@
     {
       "name": "list_client_connect_links",
       "title": "List client connect links",
-      "description": "List the organization's client-connect links, newest first — one-time links a client can open, with no BulkPublish account, to connect their own platform account. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user wants to see the client-connect links they have created and whether each has been used yet.",
+      "description": "List the organization's client-connect links, newest first — one-time links a client can open, with no BulkPublish account, to connect their own platform account. Paged: returns { clientConnectLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user wants to see the client-connect links they have created and whether each has been used yet.",
       "inputSchema": {
         "type": "object",
-        "properties": {},
+        "properties": {
+          "page": {
+            "description": "Page number (default 1).",
+            "type": "number"
+          },
+          "limit": {
+            "description": "Links per page (default 50, max 100).",
+            "type": "number"
+          }
+        },
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
       "annotations": {

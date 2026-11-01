@@ -2228,7 +2228,7 @@ server.tool(
 
 server.tool(
   "list_calendar_notes",
-  "List calendar notes (free text pinned to a day — campaigns, holidays, 'no posts this week'; they never publish) in a date range of at most a year.",
+  "List calendar notes (free text pinned to a day — campaigns, holidays, 'no posts this week'; they never publish) in a date range of at most a year. Returns at most 1000 notes, earliest first; narrow the range to see more.",
   {
     from: z.string().describe("Start date, YYYY-MM-DD (inclusive)."),
     to: z.string().describe("End date, YYYY-MM-DD (inclusive)."),
@@ -2241,7 +2241,7 @@ server.tool(
 
 server.tool(
   "create_calendar_note",
-  "Pin a note to a day on the content calendar. Not a post: nothing is published.",
+  "Pin a note to a day on the content calendar. Not a post: nothing is published. A workspace may keep up to 5000 notes (400 LIMIT_REACHED beyond that).",
   {
     date: z.string().describe("Calendar date, YYYY-MM-DD."),
     body: z.string().max(2000).describe("Note text."),
@@ -2317,10 +2317,17 @@ server.tool(
 
 server.tool(
   "list_review_links",
-  "List the organization's client review links (batch review links), newest first, with how many posts each one covers. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
-  {},
-  async () => {
-    const res = await api("GET", "/api/review-links");
+  "List the organization's client review links (batch review links), newest first, with how many posts each one covers. Paged: returns { reviewLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+  {
+    page: z.number().optional().describe("Page number (default 1)."),
+    limit: z.number().optional().describe("Links per page (default 50, max 100)."),
+  },
+  async ({ page, limit }) => {
+    const params = new URLSearchParams();
+    if (page) params.set("page", String(page));
+    if (limit) params.set("limit", String(limit));
+    const qs = params.toString();
+    const res = await api("GET", `/api/review-links${qs ? `?${qs}` : ""}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );
@@ -2361,10 +2368,17 @@ const CLIENT_CONNECT_PLATFORMS = [
 
 server.tool(
   "list_client_connect_links",
-  "List the organization's client-connect links, newest first — one-time links a client can open, with no BulkPublish account, to connect their own platform account. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
-  {},
-  async () => {
-    const res = await api("GET", "/api/client-connect-links");
+  "List the organization's client-connect links, newest first — one-time links a client can open, with no BulkPublish account, to connect their own platform account. Paged: returns { clientConnectLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+  {
+    page: z.number().optional().describe("Page number (default 1)."),
+    limit: z.number().optional().describe("Links per page (default 50, max 100)."),
+  },
+  async ({ page, limit }) => {
+    const params = new URLSearchParams();
+    if (page) params.set("page", String(page));
+    if (limit) params.set("limit", String(limit));
+    const qs = params.toString();
+    const res = await api("GET", `/api/client-connect-links${qs ? `?${qs}` : ""}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );

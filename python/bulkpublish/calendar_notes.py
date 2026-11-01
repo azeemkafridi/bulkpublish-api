@@ -17,10 +17,14 @@ class CalendarNotesResource:
         self._client = client
 
     def list(self, *, from_date: str, to_date: str) -> List[CalendarNote]:
-        """Notes dated within ``from_date``..``to_date`` (YYYY-MM-DD, inclusive, at most a year)."""
+        """Notes dated within ``from_date``..``to_date`` (YYYY-MM-DD, inclusive, at most a year).
+
+        At most 1000 are returned, earliest first; narrow the range to see more.
+        """
         return self._client._request("GET", "/api/calendar-notes", params={"from": from_date, "to": to_date})["notes"]
 
     def create(self, *, date: str, body: str, color: Optional[str] = None) -> CalendarNote:
+        """Pin a note to a day. A workspace may keep up to 5000 notes; beyond that the API answers 400 ``LIMIT_REACHED``."""
         payload: Dict[str, Any] = {"date": date, "body": body}
         if color is not None:
             payload["color"] = color

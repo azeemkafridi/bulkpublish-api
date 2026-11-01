@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-11-01 — Review links and client connect links are paged
+
+Node SDK **1.44.4** · Python SDK **0.45.3** · MCP **1.49.1** (same release as the calendar-notes entry below)
+
+### Changed
+
+- **`GET /api/review-links` and `GET /api/client-connect-links`:** paged. They return 50 links per page by default (`limit` up to 100, `page` from 1) and now include `page`, `limit` and `total`, where `total` counts every link. Previously each returned every link in one response; a caller that relied on that should keep requesting the next page while `page × limit < total`.
+- **Node SDK:** `reviewLinks.list()` and `clientConnectLinks.list()` take optional `{ page, limit }` and return the response's `page`, `limit` and `total`.
+- **Python SDK:** `review_links.list()` and `client_connect_links.list()` (and their async versions) take optional `page` and `limit`. Called with neither, they still return every link, fetching the pages for you; with either, they return that one page.
+- **MCP:** `list_review_links` and `list_client_connect_links` take optional `page` and `limit`.
+
+## 2026-11-01 — Calendar notes and post history state their limits
+
+Node SDK **1.44.4** · Python SDK **0.45.3** · MCP **1.49.1**
+
+### Changed
+
+- **`GET /api/calendar-notes`:** returns at most 1000 notes, earliest first. A range holding more returns the first 1000; request a narrower range to see the rest.
+- **`POST /api/calendar-notes`:** a workspace may keep up to 5000 calendar notes. Beyond that the request is refused with 400 `LIMIT_REACHED`; delete old notes to add more.
+- **`GET /api/analytics/post-history`:** returns at most one snapshot per destination per hour (the latest in that hour), so a series holds at most about 770 points. Posts that were not refreshed by hand keep every point they had.
+- **SDKs and MCP:** the calendar-note and post-history docs say so.
+
 ## 2026-10-30 — X credit top-ups state a processing fee
 
 Spec only; no SDK or MCP change.

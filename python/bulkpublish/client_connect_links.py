@@ -2,12 +2,25 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     from .client import _BaseClient
 
 from .types import ClientConnectLink
+
+# The list is paged server-side (50 per page by default, at most 100).
+_PAGE_MAX = 100
+
+
+def _page_params(page: Optional[int], limit: Optional[int]) -> Dict[str, Any]:
+    params: Dict[str, Any] = {}
+    if page is not None:
+        params["page"] = page
+    if limit is not None:
+        params["limit"] = limit
+    return params
+
 
 # For "bluesky", the client enters their handle and approves access on Bluesky
 # (never a password). For "facebook", they sign in to Facebook and then pick
@@ -35,9 +48,24 @@ class ClientConnectLinksResource:
     def __init__(self, client: _BaseClient) -> None:
         self._client = client
 
-    def list(self) -> List[ClientConnectLink]:
-        """Every client-connect link in the organization, newest first."""
-        return self._client._request("GET", "/api/client-connect-links")["clientConnectLinks"]
+    def list(self, *, page: Optional[int] = None, limit: Optional[int] = None) -> List[ClientConnectLink]:
+        """Client-connect links in the organization, newest first.
+
+        With neither ``page`` nor ``limit``, every link is returned (the pages
+        are walked for you, 100 at a time). With either, only that page is
+        returned: 50 per page by default, ``limit`` up to 100.
+        """
+        if page is not None or limit is not None:
+            return self._client._request("GET", "/api/client-connect-links", params=_page_params(page, limit))["clientConnectLinks"]
+        out: List[ClientConnectLink] = []
+        current = 1
+        while True:
+            body = self._client._request("GET", "/api/client-connect-links", params={"page": current, "limit": _PAGE_MAX})
+            rows = body["clientConnectLinks"]
+            out.extend(rows)
+            if not rows or current * _PAGE_MAX >= int(body.get("total", 0)):
+                return out
+            current += 1
 
     def create(self, *, name: str) -> Dict[str, Any]:
         """Create a link. Expires in 7 days or on first use, whichever comes first.
@@ -58,8 +86,18 @@ class AsyncClientConnectLinksResource:
     def __init__(self, client: _BaseClient) -> None:
         self._client = client
 
-    async def list(self) -> List[ClientConnectLink]:
-        return (await self._client._request("GET", "/api/client-connect-links"))["clientConnectLinks"]
+    async def list(self, *, page: Optional[int] = None, limit: Optional[int] = None) -> List[ClientConnectLink]:
+        if page is not None or limit is not None:
+            return (await self._client._request("GET", "/api/client-connect-links", params=_page_params(page, limit)))["clientConnectLinks"]
+        out: List[ClientConnectLink] = []
+        current = 1
+        while True:
+            body = await self._client._request("GET", "/api/client-connect-links", params={"page": current, "limit": _PAGE_MAX})
+            rows = body["clientConnectLinks"]
+            out.extend(rows)
+            if not rows or current * _PAGE_MAX >= int(body.get("total", 0)):
+                return out
+            current += 1
 
     async def create(self, *, name: str) -> Dict[str, Any]:
         return await self._client._request("POST", "/api/client-connect-links", json={"name": name})

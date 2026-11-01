@@ -32,9 +32,13 @@ export interface ReviewLink {
 export class ReviewLinksResource {
   constructor(private readonly http: HttpClient) {}
 
-  /** Every review link in the organization, newest first, with each one's post count. */
-  async list(): Promise<{ reviewLinks: ReviewLink[] }> {
-    return this.http.get('/api/review-links');
+  /**
+   * The organization's review links, newest first, with each one's post count.
+   * Paged: 50 per page by default (`limit` up to 100). `total` counts every
+   * link, so keep requesting `page + 1` while `page * limit < total`.
+   */
+  async list(params: { page?: number; limit?: number } = {}): Promise<{ reviewLinks: ReviewLink[]; page: number; limit: number; total: number }> {
+    return this.http.get('/api/review-links', params);
   }
 
   /**

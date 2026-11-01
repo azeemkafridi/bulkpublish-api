@@ -231,11 +231,13 @@ export class AnalyticsResource {
   }
 
   /**
-   * Every metrics snapshot stored for one post, per platform, oldest first —
-   * the series behind a "since publish" trend. `post_metrics` is append-only
-   * (one row per metrics sync), so the points follow the sync cadence: about
-   * every 6 hours for most platforms, at most weekly for X channels that
-   * opted in. Snapshots older than the 30-day retention floor are excluded.
+   * The metrics snapshots stored for one post, per platform, oldest first —
+   * the series behind a "since publish" trend. A snapshot is taken each time
+   * metrics sync: about every 6 hours for most platforms, at most weekly for
+   * X channels that opted in, plus whenever someone refreshes the Analytics
+   * page. At most one snapshot per destination per hour is returned (the
+   * latest in that hour), so a series holds at most about 770 points.
+   * Snapshots older than the 30-day retention floor are excluded.
    *
    * @example
    * ```ts

@@ -9444,7 +9444,7 @@
           "request": {
             "name": "Per-post metric history",
             "description": {
-              "content": "Every metrics snapshot stored for one post, per platform, oldest first — the series behind the \"since publish\" trend sparklines. `post_metrics` is append-only (one row per metrics sync per post_platform), so the history is whatever the sync cadence produced: roughly every 6 hours for most platforms, at most weekly for X channels that opted in. Snapshots older than the 30-day retention floor are excluded. Returns `{postId, publishedAt, series[]}` where each series is `{postPlatformId, platform, channelId, accountName, supportedMetrics, metricsSupported, points[]}` and each point is `{fetchedAt, impressions, reach, likes, comments, shares, saves, clicks, videoViews, engagementRate}`. A platform whose `metricsSupported` is `false` contributes stored zeroes, not measurements.",
+              "content": "The metrics snapshots stored for one post, per platform, oldest first — the series behind the \"since publish\" trend sparklines. A snapshot is taken each time metrics sync: roughly every 6 hours for most platforms, at most weekly for X channels that opted in, plus whenever someone refreshes the Analytics page. At most one snapshot per destination per hour is returned (the latest in that hour), so a series holds at most about 770 points. Snapshots older than the 30-day retention floor are excluded. Returns `{postId, publishedAt, series[]}` where each series is `{postPlatformId, platform, channelId, accountName, supportedMetrics, metricsSupported, points[]}` and each point is `{fetchedAt, impressions, reach, likes, comments, shares, saves, clicks, videoViews, engagementRate}`. A platform whose `metricsSupported` is `false` contributes stored zeroes, not measurements.",
               "type": "text/plain"
             },
             "url": {
@@ -12087,7 +12087,7 @@
           "request": {
             "name": "List client review links",
             "description": {
-              "content": "Every review link in the organization, newest first, each with how many posts it covers. Returns { reviewLinks: [{ id, name, shareToken, createdAt, postCount, url }] }. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
+              "content": "The organization's review links, newest first, each with how many posts it covers. Paged: `limit` (default 50, max 100) and `page`; `total` counts every link across all pages, so keep requesting the next page while page × limit < total. Returns { reviewLinks: [{ id, name, shareToken, createdAt, postCount, url }], page, limit, total }. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
               "type": "text/plain"
             },
             "url": {
@@ -12098,7 +12098,26 @@
               "host": [
                 "{{baseUrl}}"
               ],
-              "query": [],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — Page number, 1-based (default: 1)",
+                    "type": "text/plain"
+                  },
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — Links per page, max 100 (default: 50)",
+                    "type": "text/plain"
+                  },
+                  "key": "limit",
+                  "value": "50"
+                }
+              ],
               "variable": []
             },
             "method": "GET",
@@ -12506,7 +12525,7 @@
           "request": {
             "name": "List client connect links",
             "description": {
-              "content": "Every client-connect link in the organization, newest first. Returns { clientConnectLinks: [{ id, name, status, expiresAt, usedAt, connectedChannelId, connectedPlatform, createdAt }] }. `status` is 'pending' | 'used' | 'revoked' | 'expired' — a stale pending row reads as expired on the way out. The raw token is never returned again after creation. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
+              "content": "The organization's client-connect links, newest first. Paged: `limit` (default 50, max 100) and `page`; `total` counts every link across all pages, so keep requesting the next page while page × limit < total. Returns { clientConnectLinks: [{ id, name, status, expiresAt, usedAt, connectedChannelId, connectedPlatform, createdAt }], page, limit, total }. `status` is 'pending' | 'used' | 'revoked' | 'expired' — a stale pending row reads as expired on the way out. The raw token is never returned again after creation. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
               "type": "text/plain"
             },
             "url": {
@@ -12517,7 +12536,26 @@
               "host": [
                 "{{baseUrl}}"
               ],
-              "query": [],
+              "query": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — Page number, 1-based (default: 1)",
+                    "type": "text/plain"
+                  },
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — Links per page, max 100 (default: 50)",
+                    "type": "text/plain"
+                  },
+                  "key": "limit",
+                  "value": "50"
+                }
+              ],
               "variable": []
             },
             "method": "GET",
@@ -12878,7 +12916,7 @@
           "request": {
             "name": "List calendar notes",
             "description": {
-              "content": "Notes whose date falls in [from, to] (both inclusive, at most a year apart), ordered by date. Returns { notes: CalendarNote[] }. Notes are free text pinned to a day on the calendar (a campaign, a holiday, \"no posts this week\"); they never publish anywhere.",
+              "content": "Notes whose date falls in [from, to] (both inclusive, at most a year apart), ordered by date. At most 1000 notes are returned, earliest first; if a range holds more, request a narrower one to see the rest. Returns { notes: CalendarNote[] }. Notes are free text pinned to a day on the calendar (a campaign, a holiday, \"no posts this week\"); they never publish anywhere.",
               "type": "text/plain"
             },
             "url": {
@@ -13050,7 +13088,7 @@
           "request": {
             "name": "Create calendar note",
             "description": {
-              "content": "Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+              "content": "A workspace may keep up to 5000 calendar notes (400 LIMIT_REACHED beyond that; delete old notes to add more). Returns 201 with { note }. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
               "type": "text/plain"
             },
             "url": {

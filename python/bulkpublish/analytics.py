@@ -355,12 +355,14 @@ class AnalyticsResource:
         return self._client._request("GET", "/api/analytics/account", params=params)
 
     def post_history(self, post_id: int) -> Dict[str, Any]:
-        """Every stored metrics snapshot for one post, per platform, oldest first.
+        """The stored metrics snapshots for one post, per platform, oldest first.
 
-        ``post_metrics`` is append-only (one row per metrics sync), so this is
-        the trend since publish — about one point per 6-hour sync, weekly for
-        opted-in X channels. Snapshots older than the 30-day retention floor
-        are excluded.
+        A snapshot is taken each time metrics sync, so this is the trend since
+        publish — about one point per 6-hour sync, weekly for opted-in X
+        channels, plus one whenever someone refreshes the Analytics page. At
+        most one snapshot per destination per hour is returned (the latest in
+        that hour), so a series holds at most about 770 points. Snapshots
+        older than the 30-day retention floor are excluded.
 
         Returns:
             ``{"postId", "publishedAt", "series": [{"postPlatformId",
