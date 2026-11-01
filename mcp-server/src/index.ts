@@ -1221,7 +1221,7 @@ server.tool(
       .boolean()
       .optional()
       .describe(
-        "Filter by active status. Defaults to true (only active channels)."
+        "Filter by active status. Defaults to true (only active channels). false also includes up to 100 disconnected channels, most recently updated first."
       ),
   },
   async ({ active }) => {
@@ -2061,7 +2061,7 @@ server.tool(
 
 server.tool(
   "list_labels",
-  "List all labels available for tagging posts and media.",
+  "List the labels available for tagging posts and media, sorted by name. Returns at most 500 (the first 500 alphabetically).",
   {
     type: z
       .enum(["post", "media"])
@@ -2672,14 +2672,16 @@ server.tool(
 
 server.tool(
   "bulk_posts",
-  "Perform a bulk action on multiple posts. Supports deleting, retrying, or rescheduling multiple posts at once.",
+  "Perform a bulk action on multiple posts. Supports deleting, retrying, or rescheduling up to 100 posts at once.",
   {
     action: z
       .enum(["delete", "retry", "reschedule"])
       .describe('Bulk action: "delete", "retry", or "reschedule".'),
     postIds: z
       .array(z.number())
-      .describe("Array of post IDs to perform the action on."),
+      .min(1)
+      .max(100)
+      .describe("Array of post IDs to perform the action on, at most 100 per call. Split a larger selection into batches of 100."),
     scheduledAt: z
       .string()
       .optional()
@@ -2886,7 +2888,7 @@ server.tool(
 
 server.tool(
   "list_schedules",
-  "List all recurring post schedules. Returns schedule name, frequency/timeOfDay timing fields, target channels, active status, and nextRunAt. These schedules also appear in the web app: managed on the Repeat Posts page, with upcoming runs shown on the Calendar.",
+  "List recurring post schedules, newest first (at most 500; a workspace with more gets the 500 most recently created). Returns schedule name, frequency/timeOfDay timing fields, target channels, active status, and nextRunAt. These schedules also appear in the web app: managed on the Repeat Posts page, with upcoming runs shown on the Calendar.",
   {},
   async () => {
     const res = await api("GET", "/api/schedules");

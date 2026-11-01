@@ -29,7 +29,10 @@ export interface UpdateLabelParams {
 export class LabelsResource {
   constructor(private readonly http: HttpClient) {}
 
-  /** List all labels in the current organization. */
+  /**
+   * List the labels in the current organization, sorted by name. At most 500
+   * are returned; a workspace with more gets the first 500 alphabetically.
+   */
   async list(): Promise<Label[]> {
     return this.http.get('/api/labels');
   }

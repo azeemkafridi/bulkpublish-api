@@ -181,11 +181,15 @@ class QueueSlot(TypedDict, total=False):
 
 
 class BulkOperationResult(TypedDict, total=False):
-    """Result of a bulk post operation."""
+    """Result of a bulk post operation (``POST /api/posts/bulk``)."""
 
-    success: int
-    failed: int
-    errors: List[Dict[str, Any]]
+    success: bool
+    action: str
+    affected: int
+    #: ``delete`` only: posts left alone because they were mid-publish.
+    skippedInProgress: int
+    #: ``reschedule`` only: the new time, as sent.
+    scheduledAt: str
 
 
 # ---------------------------------------------------------------------------

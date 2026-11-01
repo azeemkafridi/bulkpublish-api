@@ -147,7 +147,7 @@ Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles))
 | `reject_post` ★ | Reject a pending post back to draft, with an optional reason |
 | `get_post_metrics` ★ | Get engagement metrics (impressions, likes, comments, shares). Each platform entry carries `supportedMetrics` — a key not in that list is a stored `0`, not a measurement |
 | `publish_story` | Publish as a story to Facebook or Instagram |
-| `bulk_posts` | Bulk delete or retry multiple posts |
+| `bulk_posts` | Bulk delete, retry or reschedule up to 100 posts |
 | `get_queue_slot` ★ | Get the next optimal time slot for a channel |
 | **Channels** | |
 | `list_channels` ★ | List all connected social media channels |

@@ -34,8 +34,10 @@ class ChannelsResource:
         """List all connected channels.
 
         Args:
-            active: Filter by active status. ``True`` returns only active
-                channels, ``False`` only inactive, ``None`` returns all.
+            active: Filter by active status. ``True`` (or ``None``, the
+                server default) returns only active channels. ``False``
+                returns every active channel plus up to 100 inactive
+                (disconnected) ones, most recently updated first.
 
         Returns:
             The ``GET /api/channels`` envelope, which carries ``channels`` and,

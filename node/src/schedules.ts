@@ -11,6 +11,7 @@ import type {
  * @example
  * ```ts
  * const schedules = await bp.schedules.list();
+ * const one = await bp.schedules.get(schedules[0].id);
  * const schedule = await bp.schedules.create({
  *   name: 'Daily tip',
  *   frequency: 'daily',
@@ -25,9 +26,20 @@ import type {
 export class SchedulesResource {
   constructor(private readonly http: HttpClient) {}
 
-  /** List all recurring schedules. */
+  /**
+   * List recurring schedules, newest first. Capped at 500: a workspace with
+   * more gets the 500 most recently created. Read any one with {@link get}.
+   */
   async list(): Promise<RecurringSchedule[]> {
     return this.http.get('/api/schedules');
+  }
+
+  /**
+   * Get one recurring schedule by ID, in the same shape as a {@link list} item.
+   * A schedule that does not exist or belongs to another workspace is a 404.
+   */
+  async get(id: number): Promise<RecurringSchedule> {
+    return this.http.get(`/api/schedules/${id}`);
   }
 
   /**

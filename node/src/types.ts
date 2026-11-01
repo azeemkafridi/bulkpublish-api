@@ -328,7 +328,11 @@ export interface MemberCapabilities {
 
 /** Parameters for listing channels. */
 export interface ListChannelsParams {
-  /** Set to `false` to include inactive channels. Default: true (active only). */
+  /**
+   * Set to `false` to include inactive (disconnected) channels as well: every
+   * active channel plus at most 100 inactive ones, most recently updated first.
+   * Default: true (active only, all of them).
+   */
   active?: boolean;
 }
 
@@ -955,7 +959,11 @@ export interface PublishStoryResponse {
 export interface BulkPostParams {
   /** The bulk action to perform. */
   action: BulkAction;
-  /** Array of post IDs to act on. */
+  /**
+   * Array of post IDs to act on, at most 100 per request. More than 100 is
+   * refused with 400 `VALIDATION_ERROR` and nothing is changed; send a larger
+   * selection in batches of 100.
+   */
   postIds: number[];
   /** New scheduled time (required for 'reschedule' action). */
   scheduledAt?: string;
@@ -966,6 +974,8 @@ export interface BulkPostResponse {
   success: boolean;
   action: BulkAction;
   affected: number;
+  /** `delete` only: posts left alone because they were mid-publish. */
+  skippedInProgress?: number;
   scheduledAt?: string;
 }
 

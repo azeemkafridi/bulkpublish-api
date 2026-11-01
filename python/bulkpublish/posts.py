@@ -750,20 +750,25 @@ class PostsResource:
 
         Args:
             action: One of ``"delete"``, ``"retry"``, or ``"reschedule"``.
-            post_ids: List of post IDs to operate on.
+            post_ids: List of post IDs to operate on, at most 100 per call.
+                More than 100 raises :class:`ValidationError` (400) and
+                nothing is changed; send a larger selection in batches of 100.
             scheduled_at: Required when ``action`` is ``"reschedule"`` — the
                 new ISO-8601 datetime.
 
         Returns:
-            Result dict with ``success`` and ``failed`` counts.
+            Result dict with ``success``, ``action`` and ``affected`` (the
+            number of posts acted on). A ``delete`` also returns
+            ``skippedInProgress``: posts left alone because they were
+            mid-publish.
 
         Example::
 
-            # Retry all failed posts
+            # Retry failed posts, 100 at a time
             failed = bp.posts.list(status="failed", limit=100)
             ids = [p["id"] for p in failed["posts"]]
             result = bp.posts.bulk(action="retry", post_ids=ids)
-            print(f"Retried {result['success']}, failed {result['failed']}")
+            print(f"Retried {result['affected']}")
 
             # Reschedule posts
             bp.posts.bulk(
@@ -1000,7 +1005,7 @@ class AsyncPostsResource:
         )
 
     async def bulk(self, *, action: str, post_ids: List[str], scheduled_at: Optional[str] = None) -> BulkOperationResult:
-        """Bulk operation — see :meth:`PostsResource.bulk`."""
+        """Bulk operation (at most 100 ``post_ids``) — see :meth:`PostsResource.bulk`."""
         body: Dict[str, Any] = {"action": action, "postIds": post_ids}
         if scheduled_at is not None:
             body["scheduledAt"] = scheduled_at

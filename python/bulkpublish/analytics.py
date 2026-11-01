@@ -400,6 +400,10 @@ class AnalyticsResource:
         15 minutes; referrer and country splits are not stored. Empty for
         organizations without Link Tracking.
 
+        ``links`` holds at most the 2000 most-clicked links; ``totalClicks``
+        and ``totalLinks`` always count every tracked link in the window, so
+        ``totalLinks > len(links)`` means the list was capped.
+
         Returns:
             ``{"from", "to", "totalClicks", "totalLinks", "links": [{"id",
             "shortUrl", "code", "originalUrl", "finalUrl", "destinationHost",

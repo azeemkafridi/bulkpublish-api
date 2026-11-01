@@ -20,7 +20,7 @@
         "type": "object",
         "properties": {
           "active": {
-            "description": "Filter by active status. Defaults to true (only active channels).",
+            "description": "Filter by active status. Defaults to true (only active channels). false also includes up to 100 disconnected channels, most recently updated first.",
             "type": "boolean"
           }
         },
@@ -4077,7 +4077,7 @@
     {
       "name": "list_labels",
       "title": "List labels",
-      "description": "List all labels available for tagging posts and media. Use this when the user wants their post labels/tags.",
+      "description": "List the labels available for tagging posts and media, sorted by name. Returns at most 500 (the first 500 alphabetically). Use this when the user wants their post labels/tags.",
       "inputSchema": {
         "type": "object",
         "properties": {

@@ -343,7 +343,10 @@ export class PostsResource {
    * - `retry` — Retry failed/partial posts.
    * - `reschedule` — Reschedule draft/scheduled posts to a new time.
    *
-   * @param params - The action, post IDs, and optional scheduledAt.
+   * At most 100 `postIds` per call; more is refused with 400
+   * `VALIDATION_ERROR`, so send a larger selection in batches of 100.
+   *
+   * @param params - The action, post IDs (at most 100), and optional scheduledAt.
    * @returns The number of affected posts.
    *
    * @example

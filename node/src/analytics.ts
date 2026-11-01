@@ -256,6 +256,10 @@ export class AnalyticsResource {
    * exist on every network. Totals sync every 15 minutes; referrer and country
    * splits are not stored. Empty for organizations without Link Tracking.
    *
+   * `links` holds at most the 2000 most-clicked links; `totalClicks` and
+   * `totalLinks` always count every tracked link in the window, so
+   * `totalLinks > links.length` means the list was capped.
+   *
    * @example
    * ```ts
    * const { totalClicks, links } = await bp.analytics.links({ from: '2026-08-01', to: '2026-08-31' });

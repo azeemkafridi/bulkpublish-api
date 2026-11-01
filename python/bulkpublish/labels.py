@@ -32,7 +32,10 @@ class LabelsResource:
         self._client = client
 
     def list(self) -> List[Label]:
-        """List all labels.
+        """List the organization's labels, sorted by name.
+
+        At most 500 are returned; a workspace with more gets the first 500
+        alphabetically.
 
         Returns:
             List of label objects.

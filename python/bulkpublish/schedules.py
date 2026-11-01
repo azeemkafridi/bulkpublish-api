@@ -1,7 +1,7 @@
 """
 Schedules resource for the BulkPublish SDK.
 
-Provides methods to create, list, update, and delete recurring publishing
+Provides methods to create, list, get, update, and delete recurring publishing
 schedules.
 """
 
@@ -30,7 +30,10 @@ class SchedulesResource:
         self._client = client
 
     def list(self) -> List[Schedule]:
-        """List all recurring schedules.
+        """List recurring schedules, newest first.
+
+        Capped at 500: a workspace with more gets the 500 most recently
+        created. Read any one by id with :meth:`get`.
 
         Returns:
             List of schedule objects.
@@ -42,6 +45,26 @@ class SchedulesResource:
                 print(f"{s['name']} — {s['frequency']} at {s['timeOfDay']} ({s['timezone']})")
         """
         return self._client._request("GET", "/api/schedules")
+
+    def get(self, schedule_id: int) -> Schedule:
+        """Get one recurring schedule by id.
+
+        Args:
+            schedule_id: The schedule's numeric id.
+
+        Returns:
+            The schedule, in the same shape as an item of :meth:`list`.
+
+        Raises:
+            NotFoundError: If the schedule does not exist or belongs to
+                another workspace.
+
+        Example::
+
+            schedule = bp.schedules.get(123)
+            print(schedule["nextRunAt"])
+        """
+        return self._client._request("GET", f"/api/schedules/{schedule_id}")
 
     def create(self, **fields: Any) -> Schedule:
         """Create a new recurring schedule.
@@ -138,6 +161,10 @@ class AsyncSchedulesResource:
     async def list(self) -> List[Schedule]:
         """List schedules — see :meth:`SchedulesResource.list`."""
         return await self._client._request("GET", "/api/schedules")
+
+    async def get(self, schedule_id: int) -> Schedule:
+        """Get a schedule — see :meth:`SchedulesResource.get`."""
+        return await self._client._request("GET", f"/api/schedules/{schedule_id}")
 
     async def create(self, **fields: Any) -> Schedule:
         """Create a schedule — see :meth:`SchedulesResource.create`."""

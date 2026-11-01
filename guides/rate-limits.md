@@ -46,7 +46,7 @@ When you exceed the limit, you'll receive a `429 Too Many Requests` response:
 
 1. **Check remaining quota** — read the `X-RateLimit-Remaining` header
 2. **Use exponential backoff** — on 429 responses, wait and retry with increasing delays
-3. **Batch operations** — use `POST /api/posts/bulk` instead of individual delete/retry calls
+3. **Batch operations** — use `POST /api/posts/bulk` (up to 100 posts per request) instead of individual delete/retry calls
 4. **Cache channel lists** — channels rarely change, cache `GET /api/channels` for a few minutes
 5. **Use efficient polling** — check post status at reasonable intervals rather than hammering the API
 

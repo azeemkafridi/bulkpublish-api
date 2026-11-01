@@ -2621,7 +2621,7 @@
           "request": {
             "name": "Bulk actions",
             "description": {
-              "content": "`retry` re-sends only platforms in status 'failed' that still have retry budget (retryCount < maxRetries), skips posts already mid-publish, and never touches 'unconfirmed' platforms (use the single retry endpoint with republish: true). `delete` skips posts that are 'publishing' or 'processing' and reports them in `skippedInProgress`. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. `reschedule` applies the same scheduling limits as creating a scheduled post: drafts it moves into the queue count against the pending-scheduled limit, and posts it moves onto a day count against that day's limit (counted in the posts' own timezone; posts already on that day are not counted twice). Over a limit, nothing is changed and it returns 403 QUOTA_EXCEEDED. An unparseable `scheduledAt` returns 400.",
+              "content": "`retry` re-sends only platforms in status 'failed' that still have retry budget (retryCount < maxRetries), skips posts already mid-publish, and never touches 'unconfirmed' platforms (use the single retry endpoint with republish: true). `delete` skips posts that are 'publishing' or 'processing' and reports them in `skippedInProgress`. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. `reschedule` applies the same scheduling limits as creating a scheduled post: drafts it moves into the queue count against the pending-scheduled limit, and posts it moves onto a day count against that day's limit (counted in the posts' own timezone; posts already on that day are not counted twice). Over a limit, nothing is changed and it returns 403 QUOTA_EXCEEDED. An unparseable `scheduledAt` returns 400. `postIds` takes at most 100 posts per request; send more in batches.",
               "type": "text/plain"
             },
             "url": {
@@ -4171,7 +4171,7 @@
           "request": {
             "name": "List channels",
             "description": {
-              "content": "Returns all connected channels including tokenExpiresAt and metadata per channel.",
+              "content": "Returns all connected channels including tokenExpiresAt and metadata per channel. With `active=false`, disconnected channels are included too, at most 100 of them (the most recently updated first); active channels are always all returned.",
               "type": "text/plain"
             },
             "url": {
@@ -4186,7 +4186,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** — Filter by active status (default: true)",
+                    "content": "**optional** — Filter by active status (default: true). `false` returns every active channel plus up to 100 disconnected ones, most recently updated first.",
                     "type": "text/plain"
                   },
                   "key": "active",
@@ -4238,7 +4238,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** — Filter by active status (default: true)",
+                        "content": "**optional** — Filter by active status (default: true). `false` returns every active channel plus up to 100 disconnected ones, most recently updated first.",
                         "type": "text/plain"
                       },
                       "key": "active",
@@ -9637,7 +9637,7 @@
           "request": {
             "name": "Tracked-link performance",
             "description": {
-              "content": "Every bulkpubli.sh short link minted for a post published in the window, with its click count. Clicks are measured by BulkPublish's own redirector (bot and link-preview traffic excluded) rather than reported by the platform, so they exist for every network — including those in `unmeasuredPlatforms`. Totals sync from the redirector every 15 minutes; referrer and country splits are not stored. Ordered by clicks desc, capped at 2000 links. The date window is capped at 30 days like every other analytics endpoint. Returns `{from, to, totalClicks, totalLinks, links[]}`; each link is `{id, shortUrl, code, originalUrl, finalUrl, destinationHost, clicks, lastClickAt, createdAt, platform, channelId, accountName, postId, postContent, publishedAt}`. Empty for organizations that have not enabled Link Tracking.",
+              "content": "Every bulkpubli.sh short link minted for a post published in the window, with its click count. Clicks are measured by BulkPublish's own redirector (bot and link-preview traffic excluded) rather than reported by the platform, so they exist for every network — including those in `unmeasuredPlatforms`. Totals sync from the redirector every 15 minutes; referrer and country splits are not stored. `links` is ordered by clicks desc (newest first among equal counts) and capped at 2000 links; `totalClicks` and `totalLinks` count every tracked link in the window, so when `totalLinks` exceeds the length of `links` the list holds only the 2000 most-clicked. The date window is capped at 30 days like every other analytics endpoint. Returns `{from, to, totalClicks, totalLinks, links[]}`; each link is `{id, shortUrl, code, originalUrl, finalUrl, destinationHost, clicks, lastClickAt, createdAt, platform, channelId, accountName, postId, postContent, publishedAt}`. Empty for organizations that have not enabled Link Tracking.",
               "type": "text/plain"
             },
             "url": {
@@ -10007,7 +10007,7 @@
           "request": {
             "name": "List labels",
             "description": {
-              "content": "Sorted by name. Response is `Cache-Control: private, no-store`. Each label: `{ id, name, color, type, createdAt }`. Add `?counts=1` to include `usageCount` (posts or media files carrying the label) on each row.",
+              "content": "Sorted by name (ties by `id`) and capped at 500 labels; a workspace with more gets the first 500 alphabetically. Response is `Cache-Control: private, no-store`. Each label: `{ id, name, color, type, createdAt }`. Add `?counts=1` to include `usageCount` (posts or media files carrying the label) on each row.",
               "type": "text/plain"
             },
             "url": {
@@ -13597,7 +13597,7 @@
           "request": {
             "name": "List recurring schedules",
             "description": {
-              "content": "Returns every recurring schedule in the organization, newest first. Schedules created here are fully visible in the web app: they are listed and manageable (pause/resume/delete) on the Repeat Posts page, and each active schedule's upcoming runs are projected onto the Calendar. An occurrence materialises as a real post (carrying recurringScheduleId) only at its run time - GET /api/posts?recurring=true returns those generated posts, not the schedules themselves.",
+              "content": "Returns the organization's recurring schedules, newest first, capped at 500 (the 500 most recently created when a workspace has more; read any one by id with GET /api/schedules/{id}). Schedules created here are fully visible in the web app: they are listed and manageable (pause/resume/delete) on the Repeat Posts page, and each active schedule's upcoming runs are projected onto the Calendar. An occurrence materialises as a real post (carrying recurringScheduleId) only at its run time - GET /api/posts?recurring=true returns those generated posts, not the schedules themselves.",
               "type": "text/plain"
             },
             "url": {
@@ -13774,6 +13774,106 @@
               "header": [],
               "cookie": [],
               "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "b7401425-8f51-403f-bc66-f806792ded6a",
+          "name": "Get schedule",
+          "request": {
+            "name": "Get schedule",
+            "description": {
+              "content": "Returns one recurring schedule, in the same shape as an item of GET /api/schedules. A schedule that does not exist or belongs to another organization returns 404. Readable by every role.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "schedules",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) ",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "method": "GET",
+            "body": {},
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "94ef9621-05b6-4b57-b394-846f33999a8f",
+              "name": "Schedule",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "schedules",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": \"<integer>\",\n  \"name\": \"<string>\",\n  \"frequency\": \"weekly\",\n  \"dayOfWeek\": \"<integer>\",\n  \"dayOfMonth\": \"<integer>\",\n  \"timeOfDay\": \"<string>\",\n  \"timezone\": \"<string>\",\n  \"channelIds\": [\n    \"<integer>\"\n  ],\n  \"contentTemplate\": \"<string>\",\n  \"isActive\": \"<boolean>\",\n  \"nextRunAt\": \"<dateTime>\"\n}"
             }
           ],
           "event": [],

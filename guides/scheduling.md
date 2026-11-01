@@ -202,8 +202,19 @@ You can attach a recurring schedule when creating a post by including `repeatSch
 
 **List schedules**
 
+Newest first, at most 500 (a workspace with more gets the 500 most recently created).
+
 ```bash
 curl https://app.bulkpublish.com/api/schedules \
+  -H "Authorization: Bearer bp_your_key_here"
+```
+
+**Get one schedule**
+
+Same shape as a list item; 404 if it does not exist or belongs to another workspace.
+
+```bash
+curl https://app.bulkpublish.com/api/schedules/SCHEDULE_ID \
   -H "Authorization: Bearer bp_your_key_here"
 ```
 

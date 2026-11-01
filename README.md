@@ -310,7 +310,7 @@ Authorization: Bearer bp_your_key_here
 | `POST` | `/api/posts/:id/retry` | Retry failed platforms |
 | `POST` | `/api/posts/:id/approve` | Approve a post awaiting team approval (roles with post:approve) |
 | `POST` | `/api/posts/:id/reject` | Reject a pending post back to draft, with an optional reason |
-| `POST` | `/api/posts/bulk` | Bulk delete or retry |
+| `POST` | `/api/posts/bulk` | Bulk delete, retry or reschedule (up to 100 posts per request) |
 | `GET` | `/api/channels` | List connected social media channels |
 | `GET` | `/api/channels/:id/health` | Check channel token health |
 | `GET` | `/api/channels/:id/options` | Get platform options (Pinterest boards, YouTube playlists, Tumblr blogs, Discord channels, Threads `?q=` place search) |

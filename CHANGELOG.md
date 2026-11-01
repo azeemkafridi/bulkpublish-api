@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-11-01 — Read one schedule by id; the schedule list is capped
+
+Node SDK **1.44.4** · Python SDK **0.45.3** · MCP **1.49.1** (same release as the entries below)
+
+### Added
+
+- **`GET /api/schedules/{id}`:** returns one recurring schedule, in the same shape as a list item. 404 for a schedule that does not exist or belongs to another workspace. Same access as the list (API keys, and OAuth with `posts:read`).
+- **Node SDK:** `schedules.get(id)`.
+- **Python SDK:** `schedules.get(schedule_id)` and its async version.
+
+### Changed
+
+- **`GET /api/schedules`:** returns at most 500 schedules, newest first. A workspace with more gets the 500 most recently created; it used to return every schedule. Read any one with `GET /api/schedules/{id}`.
+- **SDKs and MCP:** the `schedules.list()` / `list_schedules` docs say so.
+
+## 2026-11-01 — Labels list is capped; link totals count every link
+
+Node SDK **1.44.4** · Python SDK **0.45.3** · MCP **1.49.1** (same release as the entries below)
+
+### Changed
+
+- **`GET /api/labels`:** returns at most 500 labels, sorted by name with `id` breaking ties. A workspace with more gets the first 500 alphabetically; it used to return every label.
+- **`GET /api/analytics/links`:** `totalClicks` and `totalLinks` (and `previous` with `compare=1`) now count every tracked link in the window. They used to be summed from `links`, which stops at the 2000 most-clicked, so a period with more than 2000 links reported low totals. `links` itself is unchanged; `totalLinks` greater than its length means it was capped.
+- **SDKs and MCP:** the `labels.list()` / `list_labels` and `analytics.links()` docs say so.
+
+## 2026-11-01 — Bulk post actions take at most 100 posts; disconnected channels are capped
+
+Node SDK **1.44.4** · Python SDK **0.45.3** · MCP **1.49.1** (same release as the entries below)
+
+### Changed
+
+- **`GET /api/channels?active=false`:** returns every active channel plus at most 100 disconnected ones, the most recently updated first. It used to return every disconnected channel the workspace ever had. The default (`active=true`) is unchanged and still returns every active channel.
+- **`POST /api/posts/bulk`:** `postIds` takes at most 100 posts per request. More than 100 is refused with 400 `VALIDATION_ERROR` and nothing is changed; send a larger selection in batches of 100. The spec now states `minItems: 1` and `maxItems: 100`.
+- **MCP `bulk_posts`:** `postIds` is checked for 1 to 100 entries before the request is sent.
+- **Node SDK:** `posts.bulk()` docs state the limit, and `BulkPostResponse` gains `skippedInProgress` (returned by `delete`).
+- **SDKs and MCP:** the `channels.list()` / `list_channels` docs state the disconnected-channel cap. The Python docstring also said `active=False` returned only inactive channels; it returns active ones too, and now says so.
+- **Python SDK:** `posts.bulk()` docs state the limit. `BulkOperationResult` now describes the response the endpoint actually returns (`success`, `action`, `affected`, plus `skippedInProgress` for `delete` and `scheduledAt` for `reschedule`); it used to list `success`/`failed`/`errors` counts the endpoint never sent.
+
 ## 2026-11-01 — Review links and client connect links are paged
 
 Node SDK **1.44.4** · Python SDK **0.45.3** · MCP **1.49.1** (same release as the calendar-notes entry below)

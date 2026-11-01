@@ -45,7 +45,7 @@ export class ChannelsResource {
    * // Get only active channels (default)
    * const { channels } = await bp.channels.list();
    *
-   * // Include inactive/disconnected channels
+   * // Include inactive/disconnected channels (up to 100 of them, newest first)
    * const { channels } = await bp.channels.list({ active: false });
    * ```
    */
