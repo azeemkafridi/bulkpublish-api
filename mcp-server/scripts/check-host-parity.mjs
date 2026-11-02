@@ -3,7 +3,7 @@
 // `openai/*` keys, which Claude ignores — so if the surface with every
 // `openai/*` key removed is byte-identical to the committed snapshot, Claude
 // sees exactly what it saw before. Covers initialize, tools/list,
-// resources/list and each ui:// resource's metadata, for every profile
+// resources/list, prompts/list and each ui:// resource's metadata, for every profile
 // (core, inbox, full). The core snapshot is the surface both directories
 // approved: any change to it — a name, a schema, a description, an
 // annotation — fails here.
@@ -40,6 +40,7 @@ async function surface(profile) {
   await Promise.all([client.connect(ct), server.connect(st)]);
   const { tools } = await client.listTools();
   const { resources } = await client.listResources();
+  const { prompts } = await client.listPrompts();
   const contents = [];
   for (const r of resources) {
     const res = await client.readResource({ uri: r.uri });
@@ -53,6 +54,7 @@ async function surface(profile) {
     capabilities: client.getServerCapabilities(),
     tools,
     resources,
+    prompts,
     contents,
   };
   await client.close();

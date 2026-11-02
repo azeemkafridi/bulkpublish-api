@@ -26,6 +26,7 @@ import {
   RESOURCE_MIME_TYPE,
 } from "@modelcontextprotocol/ext-apps/server";
 import { WIDGET_HTML } from "./ui/widgets.generated.js";
+import { registerPrompts } from "./prompts.js";
 
 const MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
@@ -1060,6 +1061,9 @@ export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } =
     name: "bulkpublish",
     version: "1.0.0",
   });
+  // Names of the tools this instance actually registers (profile and
+  // HIDE_BILLING applied), so prompts are listed only when they can run.
+  const servedTools = new Set<string>();
 
   // --- Tool annotations (MCP Connectors Directory requirement) -------------
   // Directory review requires every tool to expose a human-readable `title`
@@ -1182,6 +1186,7 @@ export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } =
         // ignore the returned handle, so a disabled stub is enough.
         return { enabled: false, disable() {}, enable() {}, update() {}, remove() {} };
       }
+      servedTools.add(name);
       if (!args[1]) args[1] = ann.title; // tool title (regular tools have none)
       // Output schema + structuredContent for the plain tools. The widgets set
       // both themselves, so only fill an empty slot. Both halves must land
@@ -4090,6 +4095,9 @@ if (!HIDE_BILLING_TOOLS) {
       return { content: [{ type: "text" as const, text: formatResponse(res) }] };
     }
   );
+
+  // Prompts: each is listed only when every tool it needs is served here.
+  registerPrompts(server, { has: (t) => servedTools.has(t), hosted });
 
   // A trimmed profile must not point the model at a tool it does not serve:
   // the ChatGPT directory scan flags that as claiming a capability the server

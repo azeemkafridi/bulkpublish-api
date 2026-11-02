@@ -4,6 +4,9 @@
     "version": "1.0.0"
   },
   "capabilities": {
+    "prompts": {
+      "listChanged": true
+    },
     "resources": {
       "listChanged": true
     },
@@ -7419,6 +7422,932 @@
           }
         }
       }
+    }
+  ],
+  "prompts": [
+    {
+      "name": "getting_started",
+      "title": "Get started with BulkPublish",
+      "description": "A quick tour: which accounts are connected, what is scheduled next, and what was published recently.",
+      "arguments": []
+    },
+    {
+      "name": "check_channel_connections",
+      "title": "Check channel connections",
+      "description": "Find accounts that are disconnected, need reconnecting, or have expiring access.",
+      "arguments": []
+    },
+    {
+      "name": "draft_post",
+      "title": "Draft a post",
+      "description": "Write a post from an idea and save it as a draft on the accounts you choose. Nothing is published.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What the post is about, or the text to use.",
+          "required": true
+        },
+        {
+          "name": "channels",
+          "description": "Which accounts or platforms to target (optional).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "schedule_post",
+      "title": "Schedule a post",
+      "description": "Write and schedule a post for a specific time, or the next free slot in your queue.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What the post is about, or the text to use.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish, e.g. 'tomorrow 9am' (optional: defaults to the next queue slot).",
+          "required": false
+        },
+        {
+          "name": "channels",
+          "description": "Which accounts or platforms to target (optional).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "publish_now",
+      "title": "Publish a post now",
+      "description": "Write a post and publish it immediately, after you confirm.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post, or the text to use.",
+          "required": true
+        },
+        {
+          "name": "channels",
+          "description": "Which accounts or platforms (optional).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "add_to_queue",
+      "title": "Add a post to the queue",
+      "description": "Schedule a post into your next free queue slot, or at the very end of the queue.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "position",
+          "description": "'next' (default) for the next free slot, or 'end' for the bottom of the queue.",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "compose_in_editor",
+      "title": "Open the post composer",
+      "description": "Open the interactive composer, pre-filled with your text, to pick accounts and media yourself.",
+      "arguments": [
+        {
+          "name": "text",
+          "description": "Text to pre-fill (optional).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "cross_post_adapted",
+      "title": "Cross-post, adapted per platform",
+      "description": "One message rewritten to fit each platform's length, tone and format, in a single post.",
+      "arguments": [
+        {
+          "name": "message",
+          "description": "The core message or source text.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "write_thread",
+      "title": "Write a thread",
+      "description": "Turn an idea or article into a multi-part thread for X, Threads, Bluesky or Mastodon.",
+      "arguments": [
+        {
+          "name": "source",
+          "description": "The idea, notes or article text.",
+          "required": true
+        },
+        {
+          "name": "parts",
+          "description": "Roughly how many parts (optional).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_with_media",
+      "title": "Post with images or video",
+      "description": "Upload images or a video and attach them to a new post.",
+      "arguments": [
+        {
+          "name": "media",
+          "description": "Links to the files, or a description of what is attached.",
+          "required": true
+        },
+        {
+          "name": "caption",
+          "description": "Caption or topic (optional).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "reuse_library_media",
+      "title": "Post from the media library",
+      "description": "Find a file already in your media library and build a post around it.",
+      "arguments": [
+        {
+          "name": "search",
+          "description": "File name to search for, or the kind of media (image, video, document).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "video_post",
+      "title": "Publish a video everywhere",
+      "description": "Post one video as a YouTube video or Short, TikTok, Instagram Reel, Facebook Reel and more, with the right settings for each.",
+      "arguments": [
+        {
+          "name": "video",
+          "description": "Link to the video, or say it is attached.",
+          "required": true
+        },
+        {
+          "name": "topic",
+          "description": "What the video is about (optional).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "carousel_post",
+      "title": "Create a carousel",
+      "description": "A multi-image post: Instagram, Facebook or Threads carousel, Pinterest carousel, LinkedIn multi-image.",
+      "arguments": [
+        {
+          "name": "images",
+          "description": "Links to the images, or say they are attached.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "poll_post",
+      "title": "Run a poll",
+      "description": "Post a native poll on X, LinkedIn, Threads, Mastodon, Discord or Telegram.",
+      "arguments": [
+        {
+          "name": "question",
+          "description": "The poll question.",
+          "required": true
+        },
+        {
+          "name": "options",
+          "description": "The answers, comma-separated.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "repost_or_quote",
+      "title": "Repost, quote or reshare",
+      "description": "Repost or quote an existing post on X, Bluesky, Threads or Mastodon, reshare on LinkedIn, or reblog on Tumblr.",
+      "arguments": [
+        {
+          "name": "link",
+          "description": "Link or ID of the post to repost or quote.",
+          "required": true
+        },
+        {
+          "name": "comment",
+          "description": "Your own text, for a quote (optional).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "story_post",
+      "title": "Post a story",
+      "description": "Post an image or short video as an Instagram, Facebook or Snapchat story.",
+      "arguments": [
+        {
+          "name": "media",
+          "description": "Link to the image or video, or say it is attached.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "repeating_post",
+      "title": "Make a post repeat",
+      "description": "A post that re-publishes daily, weekly, every two weeks or monthly (evergreen content, reminders).",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What the repeating post says.",
+          "required": true
+        },
+        {
+          "name": "cadence",
+          "description": "How often and when, e.g. 'every Monday 9am'.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "auto_engagement_boost",
+      "title": "Auto follow-up comment or repost",
+      "description": "Post a follow-up comment, or repost automatically, once a post reaches a number of likes.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "The post itself.",
+          "required": true
+        },
+        {
+          "name": "followUp",
+          "description": "The follow-up comment text (optional).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "tracked_links_post",
+      "title": "Post with tracked links",
+      "description": "Shorten the links in a post and count their clicks, or force links to publish as written.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "The post, including its link.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "submit_for_approval",
+      "title": "Submit a post for approval",
+      "description": "Schedule a post that waits for a teammate to approve it before publishing.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "The post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When it should go out (optional; 'now' publishes as soon as approved).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "upcoming_posts",
+      "title": "What's scheduled next?",
+      "description": "Everything going out in a date range, soonest first, with gaps and clashes flagged.",
+      "arguments": [
+        {
+          "name": "from",
+          "description": "Start date (optional; defaults to today).",
+          "required": false
+        },
+        {
+          "name": "to",
+          "description": "End date (optional; defaults to 7 days from now).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "find_post",
+      "title": "Find a post",
+      "description": "Search posts by text, status, account, label or date.",
+      "arguments": [
+        {
+          "name": "query",
+          "description": "Words from the post, or a description of it.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "edit_post",
+      "title": "Edit a post",
+      "description": "Change a draft, scheduled, failed or partial post: text, time, media, accounts or labels.",
+      "arguments": [
+        {
+          "name": "postId",
+          "description": "The post ID (or describe the post).",
+          "required": true
+        },
+        {
+          "name": "changes",
+          "description": "What to change.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "reschedule_post",
+      "title": "Reschedule a post",
+      "description": "Move a post to a new time, or to the top or bottom of the queue.",
+      "arguments": [
+        {
+          "name": "postId",
+          "description": "The post ID.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "New time, or 'top' / 'bottom' of the queue.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "change_post_accounts",
+      "title": "Add or remove accounts on a post",
+      "description": "Add accounts to a post or drop some, keeping the rest as they are.",
+      "arguments": [
+        {
+          "name": "postId",
+          "description": "The post ID.",
+          "required": true
+        },
+        {
+          "name": "change",
+          "description": "Which accounts to add or remove.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "unschedule_post",
+      "title": "Unschedule a post",
+      "description": "Take a scheduled post off the calendar and keep it as a draft.",
+      "arguments": [
+        {
+          "name": "postId",
+          "description": "The post ID.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "delete_posts",
+      "title": "Delete draft or failed posts",
+      "description": "Clean up drafts and failed posts you no longer need.",
+      "arguments": [
+        {
+          "name": "which",
+          "description": "Which posts (e.g. 'old drafts', 'failed posts from last month', or IDs).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "fix_failed_posts",
+      "title": "Fix failed posts",
+      "description": "Find posts that failed or partly failed, explain why, and retry the right ones safely.",
+      "arguments": []
+    },
+    {
+      "name": "posts_dashboard",
+      "title": "Open the posts dashboard",
+      "description": "An interactive list of posts with status, schedule and accounts.",
+      "arguments": [
+        {
+          "name": "status",
+          "description": "draft, scheduled, publishing, published, failed or partial (optional).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "my_assigned_posts",
+      "title": "Posts assigned to me",
+      "description": "Posts a teammate has handed to you, and what each one needs.",
+      "arguments": []
+    },
+    {
+      "name": "posts_by_label",
+      "title": "Posts by label or campaign",
+      "description": "List posts carrying one or more labels, e.g. one campaign.",
+      "arguments": [
+        {
+          "name": "labels",
+          "description": "Label names.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "approval_queue",
+      "title": "Review the approval queue",
+      "description": "Go through posts waiting for approval and approve or reject each one.",
+      "arguments": []
+    },
+    {
+      "name": "resubmit_rejected",
+      "title": "Fix and resubmit rejected posts",
+      "description": "Read why posts were rejected, revise them, and send them back for approval.",
+      "arguments": []
+    },
+    {
+      "name": "performance_report",
+      "title": "Performance report",
+      "description": "Posting activity and results over a date range, optionally compared with the period before.",
+      "arguments": [
+        {
+          "name": "from",
+          "description": "Start date (YYYY-MM-DD).",
+          "required": true
+        },
+        {
+          "name": "to",
+          "description": "End date (YYYY-MM-DD).",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "weekly_report",
+      "title": "Weekly report",
+      "description": "The last 7 days compared with the 7 before, with highlights.",
+      "arguments": []
+    },
+    {
+      "name": "post_performance",
+      "title": "How did this post do?",
+      "description": "Likes, comments, shares, views and link clicks for one post, per platform.",
+      "arguments": [
+        {
+          "name": "postId",
+          "description": "The post ID (or describe it).",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "top_posts",
+      "title": "Top posts",
+      "description": "Rank recent published posts by engagement.",
+      "arguments": [
+        {
+          "name": "from",
+          "description": "Start date (optional; defaults to 30 days ago).",
+          "required": false
+        },
+        {
+          "name": "to",
+          "description": "End date (optional).",
+          "required": false
+        },
+        {
+          "name": "metric",
+          "description": "What to rank by, e.g. likes, comments, impressions (optional).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "platform_comparison",
+      "title": "Compare platforms",
+      "description": "Which networks get the most out of your posting.",
+      "arguments": [
+        {
+          "name": "from",
+          "description": "Start date.",
+          "required": true
+        },
+        {
+          "name": "to",
+          "description": "End date.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "content_type_analysis",
+      "title": "What content works best?",
+      "description": "Compare text-only, image and video posts, and single posts against threads.",
+      "arguments": [
+        {
+          "name": "from",
+          "description": "Start date.",
+          "required": true
+        },
+        {
+          "name": "to",
+          "description": "End date.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "campaign_report",
+      "title": "Campaign report by label",
+      "description": "Results for the posts carrying a campaign label.",
+      "arguments": [
+        {
+          "name": "label",
+          "description": "The campaign label.",
+          "required": true
+        },
+        {
+          "name": "from",
+          "description": "Start date.",
+          "required": true
+        },
+        {
+          "name": "to",
+          "description": "End date.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "link_click_report",
+      "title": "Link click report",
+      "description": "Clicks on the tracked short links in your recent posts.",
+      "arguments": [
+        {
+          "name": "from",
+          "description": "Start date (optional; defaults to 30 days ago).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "analytics_dashboard",
+      "title": "Open the analytics dashboard",
+      "description": "Interactive charts for a date range.",
+      "arguments": [
+        {
+          "name": "from",
+          "description": "Start date (optional; defaults to 30 days ago).",
+          "required": false
+        },
+        {
+          "name": "to",
+          "description": "End date (optional; defaults to today).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "x_sync_settings",
+      "title": "Turn X analytics or Inbox sync on or off",
+      "description": "Choose whether BulkPublish reads analytics, likers, messages and replies for an X account.",
+      "arguments": []
+    },
+    {
+      "name": "read_post_comments",
+      "title": "Read comments on a post",
+      "description": "Who commented and reacted on one of your published posts, per platform.",
+      "arguments": [
+        {
+          "name": "postId",
+          "description": "The post ID (or describe it).",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "upload_files",
+      "title": "Upload media",
+      "description": "Add images, videos or documents to your media library for later posts.",
+      "arguments": [
+        {
+          "name": "files",
+          "description": "Links to the files, or say they are attached.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "media_library_browse",
+      "title": "Browse the media library",
+      "description": "Open an interactive gallery of your uploaded media.",
+      "arguments": []
+    },
+    {
+      "name": "plan_content_week",
+      "title": "Plan a week of content",
+      "description": "A full week of posts across your accounts, saved as drafts or scheduled.",
+      "arguments": [
+        {
+          "name": "theme",
+          "description": "Goals, themes or products to cover.",
+          "required": true
+        },
+        {
+          "name": "start",
+          "description": "First day of the week (optional; defaults to next Monday).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "plan_campaign",
+      "title": "Plan a launch or campaign",
+      "description": "A multi-week campaign: teaser, launch and follow-up posts, labelled so you can report on it.",
+      "arguments": [
+        {
+          "name": "campaign",
+          "description": "What is launching, and the key date.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "repurpose_content",
+      "title": "Repurpose long content",
+      "description": "Turn an article, video script or newsletter into a set of posts and threads.",
+      "arguments": [
+        {
+          "name": "source",
+          "description": "The article text, script or a summary of it.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "post_to_facebook",
+      "title": "Post to Facebook",
+      "description": "Write and schedule a post for Facebook, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_to_instagram",
+      "title": "Post to Instagram",
+      "description": "Write and schedule a post for Instagram, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_to_x",
+      "title": "Post to X",
+      "description": "Write and schedule a post for X, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_to_tiktok",
+      "title": "Post to TikTok",
+      "description": "Write and schedule a post for TikTok, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_to_youtube",
+      "title": "Post to YouTube",
+      "description": "Write and schedule a post for YouTube, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_to_threads",
+      "title": "Post to Threads",
+      "description": "Write and schedule a post for Threads, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_to_bluesky",
+      "title": "Post to Bluesky",
+      "description": "Write and schedule a post for Bluesky, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_to_pinterest",
+      "title": "Post to Pinterest",
+      "description": "Write and schedule a post for Pinterest, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_to_gmb",
+      "title": "Post to Google Business Profile",
+      "description": "Write and schedule a post for Google Business Profile, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_to_linkedin",
+      "title": "Post to LinkedIn",
+      "description": "Write and schedule a post for LinkedIn, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_to_mastodon",
+      "title": "Post to Mastodon",
+      "description": "Write and schedule a post for Mastodon, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_to_discord",
+      "title": "Post to Discord",
+      "description": "Write and schedule a post for Discord, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_to_telegram",
+      "title": "Post to Telegram",
+      "description": "Write and schedule a post for Telegram, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_to_tumblr",
+      "title": "Post to Tumblr",
+      "description": "Write and schedule a post for Tumblr, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "post_to_snapchat",
+      "title": "Post to Snapchat",
+      "description": "Write and schedule a post for Snapchat, with its post types, settings and limits.",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "What to post.",
+          "required": true
+        },
+        {
+          "name": "when",
+          "description": "When to publish (optional; saved as a draft if empty).",
+          "required": false
+        }
+      ]
     }
   ],
   "contents": [

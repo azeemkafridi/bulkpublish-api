@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-11-03 — MCP prompts
+
+MCP **1.50.0**
+
+### Added
+
+- **MCP server:** 88 prompts, listed in an MCP client's prompt or slash menu: drafting, scheduling, publishing, threads, carousels, polls, reposts and stories; a guide per platform for all 15 platforms; editing, rescheduling and fixing failed posts; the approval queue; reports; comments and the Inbox; media; labels, templates, hashtag groups and calendar notes; recurring schedules and RSS feeds; client review and connect links. Each prompt is listed only when the server serves every tool it needs, so the hosted server lists 64, the `inbox` profile 70 and `full` 88. The full list is in the MCP server README.
+- **MCP server:** the hosted server card lists the prompts.
+
+### Unchanged
+
+- Tools, their schemas and descriptions, resources and the interactive panels are byte-identical to 1.49.1 in every profile (`check:parity`). The server now also declares the `prompts` capability. Listing and reading prompts needs no sign-in, like listing tools; calling a tool still does.
+
 ## 2026-11-01 — Read one schedule by id; the schedule list is capped
 
 Node SDK **1.44.4** · Python SDK **0.45.3** · MCP **1.49.1** (same release as the entries below)

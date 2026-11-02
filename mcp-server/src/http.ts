@@ -156,6 +156,7 @@ async function buildServerCard(): Promise<string> {
     } catch {
       /* host may not list resources */
     }
+    const { prompts } = await client.listPrompts();
     return JSON.stringify(
       {
         name: info.name,
@@ -166,7 +167,7 @@ async function buildServerCard(): Promise<string> {
         authentication: { required: true, type: "oauth2" },
         tools: tools.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema })),
         resources,
-        prompts: [],
+        prompts: prompts.map((p) => ({ name: p.name, title: p.title, description: p.description, arguments: p.arguments })),
       },
       null,
       2

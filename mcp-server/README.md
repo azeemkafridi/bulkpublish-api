@@ -211,6 +211,103 @@ In hosts that support [MCP Apps](https://blog.modelcontextprotocol.io/posts/2025
 
 Several tools render UIs — `compose_post` (composer), `view_analytics`, `view_posts`, `view_channels`, `view_media`, and `view_quota`. Each is a self-contained widget under `src/ui/<name>/`, bundled into a single HTML file with Vite (one single-input pass per widget — see `scripts/build-ui.mjs`) and inlined into the server via `src/ui/widgets.generated.ts`. They share the BulkPublish web app's design tokens (`src/ui/tokens.css`), so the look matches. A View receives its data from the triggering tool's `structuredContent` and can call other tools back through the host bridge — so the sandboxed iframe never holds your API key. Hosts without MCP Apps support simply receive a plain-text summary.
 
+## Prompts
+
+The server also lists ready-made prompts: starting points your MCP client shows in its prompt or slash menu (for example `/schedule_post` or `/weekly_report`). Each one tells the assistant which tools to call, the limits that apply, and to ask before anything is published, sent or deleted.
+
+A prompt is listed only when every tool it needs is available, so what you see depends on the tool profile: **all** means every profile, including the hosted `core` server; **inbox, full** needs the `inbox` or `full` profile; **full** needs the `full` profile (the npm server's default). `plan_usage` is also left out when `BULKPUBLISH_HIDE_BILLING=1`. Prompts read nothing from your account until the assistant follows them.
+
+| Prompt | What it does | Profiles |
+|---|---|---|
+| `getting_started` | A quick tour: which accounts are connected, what is scheduled next, and what was published recently. | all |
+| `check_channel_connections` | Find accounts that are disconnected, need reconnecting, or have expiring access. | all |
+| `platform_availability` | List every supported platform and whether it can be connected and posted to right now. | full |
+| `plan_usage` | How much of the plan's posts, channels and storage are used. | full |
+| `draft_post` | Write a post from an idea and save it as a draft on the accounts you choose. Nothing is published. | all |
+| `schedule_post` | Write and schedule a post for a specific time, or the next free slot in your queue. | all |
+| `publish_now` | Write a post and publish it immediately, after you confirm. | all |
+| `add_to_queue` | Schedule a post into your next free queue slot, or at the very end of the queue. | all |
+| `compose_in_editor` | Open the interactive composer, pre-filled with your text, to pick accounts and media yourself. | all |
+| `cross_post_adapted` | One message rewritten to fit each platform's length, tone and format, in a single post. | all |
+| `write_thread` | Turn an idea or article into a multi-part thread for X, Threads, Bluesky or Mastodon. | all |
+| `post_with_media` | Upload images or a video and attach them to a new post. | all |
+| `reuse_library_media` | Find a file already in your media library and build a post around it. | all |
+| `video_post` | Post one video as a YouTube video or Short, TikTok, Instagram Reel, Facebook Reel and more, with the right settings for each. | all |
+| `carousel_post` | A multi-image post: Instagram, Facebook or Threads carousel, Pinterest carousel, LinkedIn multi-image. | all |
+| `poll_post` | Post a native poll on X, LinkedIn, Threads, Mastodon, Discord or Telegram. | all |
+| `repost_or_quote` | Repost or quote an existing post on X, Bluesky, Threads or Mastodon, reshare on LinkedIn, or reblog on Tumblr. | all |
+| `story_post` | Post an image or short video as an Instagram, Facebook or Snapchat story. | all |
+| `repeating_post` | A post that re-publishes daily, weekly, every two weeks or monthly (evergreen content, reminders). | all |
+| `auto_engagement_boost` | Post a follow-up comment, or repost automatically, once a post reaches a number of likes. | all |
+| `tracked_links_post` | Shorten the links in a post and count their clicks, or force links to publish as written. | all |
+| `submit_for_approval` | Schedule a post that waits for a teammate to approve it before publishing. | all |
+| `upcoming_posts` | Everything going out in a date range, soonest first, with gaps and clashes flagged. | all |
+| `find_post` | Search posts by text, status, account, label or date. | all |
+| `edit_post` | Change a draft, scheduled, failed or partial post: text, time, media, accounts or labels. | all |
+| `reschedule_post` | Move a post to a new time, or to the top or bottom of the queue. | all |
+| `change_post_accounts` | Add accounts to a post or drop some, keeping the rest as they are. | all |
+| `unschedule_post` | Take a scheduled post off the calendar and keep it as a draft. | all |
+| `delete_posts` | Clean up drafts and failed posts you no longer need. | all |
+| `fix_failed_posts` | Find posts that failed or partly failed, explain why, and retry the right ones safely. | all |
+| `posts_dashboard` | An interactive list of posts with status, schedule and accounts. | all |
+| `my_assigned_posts` | Posts a teammate has handed to you, and what each one needs. | all |
+| `posts_by_label` | List posts carrying one or more labels, e.g. one campaign. | all |
+| `approval_queue` | Go through posts waiting for approval and approve or reject each one. | all |
+| `resubmit_rejected` | Read why posts were rejected, revise them, and send them back for approval. | all |
+| `performance_report` | Posting activity and results over a date range, optionally compared with the period before. | all |
+| `weekly_report` | The last 7 days compared with the 7 before, with highlights. | all |
+| `post_performance` | Likes, comments, shares, views and link clicks for one post, per platform. | all |
+| `top_posts` | Rank recent published posts by engagement. | all |
+| `platform_comparison` | Which networks get the most out of your posting. | all |
+| `content_type_analysis` | Compare text-only, image and video posts, and single posts against threads. | all |
+| `campaign_report` | Results for the posts carrying a campaign label. | all |
+| `link_click_report` | Clicks on the tracked short links in your recent posts. | all |
+| `analytics_dashboard` | Interactive charts for a date range. | all |
+| `x_sync_settings` | Choose whether BulkPublish reads analytics, likers, messages and replies for an X account. | all |
+| `read_post_comments` | Who commented and reacted on one of your published posts, per platform. | all |
+| `reply_to_comments` | Draft replies to comments on a published post and post the ones you approve. | inbox, full |
+| `moderate_comments` | Find spam or abusive comments on a post and hide, delete or like them. | inbox, full |
+| `inbox_triage` | Sort unread messages, reviews and comment threads by urgency, and tidy them up. | inbox, full |
+| `reply_to_messages` | Draft replies to unanswered direct messages and send the ones you approve. | inbox, full |
+| `respond_to_reviews` | Draft thoughtful responses to customer reviews and post the ones you approve. | inbox, full |
+| `inbox_search` | Find conversations by a person's name, handle or words in the messages. | inbox, full |
+| `upload_files` | Add images, videos or documents to your media library for later posts. | all |
+| `large_video_upload` | Upload a video over 100MB (up to 1GB) in 10MB chunks. Needs a client that can send HTTP requests itself. | full |
+| `media_library_browse` | Open an interactive gallery of your uploaded media. | all |
+| `alt_text_audit` | Find images without alt text and write descriptions for them. | full |
+| `media_cleanup` | Find files you no longer need and delete them, without breaking scheduled posts. | full |
+| `manage_labels` | Create, rename, recolour or delete the labels you tag posts and media with. | full |
+| `hashtag_groups` | Research and save reusable hashtag sets, or add a saved set to a post. | full |
+| `caption_templates` | Save reusable caption and first-comment text, or start a post from a saved template. | full |
+| `calendar_notes` | Pin campaigns, holidays and blackout days to the calendar. Notes never publish. | full |
+| `channel_sets` | Save named groups of accounts (e.g. 'All brand accounts', 'Client A') for quick targeting. | full |
+| `plan_content_week` | A full week of posts across your accounts, saved as drafts or scheduled. | all |
+| `plan_campaign` | A multi-week campaign: teaser, launch and follow-up posts, labelled so you can report on it. | all |
+| `repurpose_content` | Turn an article, video script or newsletter into a set of posts and threads. | all |
+| `recurring_schedule` | A rule that creates and publishes a post on a fixed cadence (tips, weekly roundups). | full |
+| `manage_schedules` | See every recurring schedule, then pause, change or delete them. | full |
+| `rss_autopost` | Turn new blog or news items into posts automatically, as drafts or published. | full |
+| `rss_feed_troubleshoot` | Check every RSS feed for errors, and pause, re-point or remove them. | full |
+| `client_review_link` | A link a client can open without an account to review one post or a whole batch. | full |
+| `revoke_review_links` | Stop old review links from working. | full |
+| `client_connect_link` | A one-time link a client opens to connect their own social account, without sharing a password or needing a BulkPublish account. | full |
+| `client_onboarding` | Connect link, account group, label and a first batch of draft posts for a new client. | full |
+| `post_to_facebook` | Write and schedule a post for Facebook, with its post types, settings and limits. | all |
+| `post_to_instagram` | Write and schedule a post for Instagram, with its post types, settings and limits. | all |
+| `post_to_x` | Write and schedule a post for X, with its post types, settings and limits. | all |
+| `post_to_tiktok` | Write and schedule a post for TikTok, with its post types, settings and limits. | all |
+| `post_to_youtube` | Write and schedule a post for YouTube, with its post types, settings and limits. | all |
+| `post_to_threads` | Write and schedule a post for Threads, with its post types, settings and limits. | all |
+| `post_to_bluesky` | Write and schedule a post for Bluesky, with its post types, settings and limits. | all |
+| `post_to_pinterest` | Write and schedule a post for Pinterest, with its post types, settings and limits. | all |
+| `post_to_gmb` | Write and schedule a post for Google Business Profile, with its post types, settings and limits. | all |
+| `post_to_linkedin` | Write and schedule a post for LinkedIn, with its post types, settings and limits. | all |
+| `post_to_mastodon` | Write and schedule a post for Mastodon, with its post types, settings and limits. | all |
+| `post_to_discord` | Write and schedule a post for Discord, with its post types, settings and limits. | all |
+| `post_to_telegram` | Write and schedule a post for Telegram, with its post types, settings and limits. | all |
+| `post_to_tumblr` | Write and schedule a post for Tumblr, with its post types, settings and limits. | all |
+| `post_to_snapchat` | Write and schedule a post for Snapchat, with its post types, settings and limits. | all |
+
 ## Example Conversation
 
 Here is an example of using the BulkPublish tools in Claude:
