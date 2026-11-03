@@ -2,6 +2,7 @@
 name: social-media-calendar
 description: Plan, organize, and schedule a cross-platform social media calendar through BulkPublish. Use when the user wants a posting schedule, queue, or recurring cadence.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Social Media Calendar
 

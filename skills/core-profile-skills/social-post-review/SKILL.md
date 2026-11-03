@@ -2,6 +2,7 @@
 name: social-post-review
 description: Review social media drafts for clarity, tone, platform fit, compliance risks, character limits, metadata, and publishing readiness before BulkPublish execution.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Social Post Review
 

@@ -2,6 +2,7 @@
 name: inbox-triage
 description: Read, sort and answer the BulkPublish Inbox (direct messages, reviews and comment threads) with a confirmation before every reply. Use when the user asks about messages, DMs, reviews, what is waiting for a reply, or wants to clear, snooze, archive or assign conversations.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Inbox Triage
 

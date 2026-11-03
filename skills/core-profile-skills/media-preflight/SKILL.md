@@ -2,6 +2,7 @@
 name: media-preflight
 description: Preflight social media images and videos against BulkPublish platform, post-type, size, format, aspect-ratio, and duration requirements before publishing.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Media Preflight
 

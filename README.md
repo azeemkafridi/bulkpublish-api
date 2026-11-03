@@ -152,7 +152,7 @@ BulkPublish ships an MCP server so AI assistants can manage your social media di
 
 ### Social Media Content Skills
 
-BulkPublish includes a 24-skill library for AI agents to plan, adapt, review, schedule, and publish social media content: [Social Media Content Skills](skills/social-media-content-skills/README.md).
+BulkPublish includes a skill library for AI agents to plan, adapt, review, schedule, publish and fix social media content: [Social Media Content Skills](skills/social-media-content-skills/README.md) for the full tool set, and [core-profile skills](skills/core-profile-skills/README.md) for the hosted connector. Both are generated from [`skills/src`](skills/src/README.md).
 
 
 ### LLM Tool Use / Function Calling

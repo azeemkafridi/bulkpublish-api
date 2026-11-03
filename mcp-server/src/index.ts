@@ -3141,7 +3141,7 @@ server.tool(
 
 server.tool(
   "list_rss_feeds",
-  "List RSS autopost feeds — RSS/Atom feeds polled every 15 minutes whose new items automatically become posts. Returns name, feedUrl, channelIds, mode, fieldMapping (how items are rendered into posts; null = default), enabled, lastCheckedAt, and lastError for each feed.",
+  "List RSS autopost feeds — RSS/Atom feeds, checked on a schedule set by the plan (every 60 minutes on Free and Lifetime, 30 on Pro, 15 on Business), whose new items automatically become posts. Returns name, feedUrl, channelIds, mode, fieldMapping (how items are rendered into posts; null = default), enabled, lastCheckedAt, and lastError for each feed.",
   {},
   async () => {
     const res = await api("GET", "/api/rss-feeds");
@@ -3206,7 +3206,7 @@ const rssFieldMappingSchema = z
 
 server.tool(
   "create_rss_feed",
-  "Add an RSS autopost feed. The feed is polled every 15 minutes and new items become posts on the chosen channels. The server validates that feedUrl is a reachable public RSS 2.0 or Atom feed. An organization can have up to 20 feeds.",
+  "Add an RSS autopost feed. The feed is checked on a schedule set by the plan (every 60 minutes on Free and Lifetime, 30 on Pro, 15 on Business) and new items become posts on the chosen channels. The server validates that feedUrl is a reachable public RSS 2.0 or Atom feed. The number of feeds is capped by plan (Free 1, Lifetime 3, Pro 10, Business 50); one more is refused with 403 QUOTA_EXCEEDED. mode 'publish' needs a paid plan or Lifetime (403 FEATURE_DISABLED on Free).",
   {
     name: z.string().max(100).describe("Feed name (max 100 chars)."),
     feedUrl: z.string().describe("Public RSS 2.0 or Atom feed URL."),

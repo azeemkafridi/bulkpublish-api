@@ -2,6 +2,7 @@
 name: hashtag-keyword-research
 description: Research social media keywords and hashtag sets for campaign content, then prepare BulkPublish-ready platform variants.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Hashtag and Keyword Research
 

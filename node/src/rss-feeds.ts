@@ -2,10 +2,11 @@ import type { HttpClient } from './client.js';
 import type { RssFeed, CreateRssFeedParams, UpdateRssFeedParams } from './types.js';
 
 /**
- * Manage RSS autopost feeds — RSS/Atom feeds polled every 15 minutes whose new
- * items automatically become posts on the chosen channels.
+ * Manage RSS autopost feeds — RSS/Atom feeds, checked on a schedule set by the plan
+ * (every 60 minutes on Free and Lifetime, 30 on Pro, 15 on Business),
+ * whose new items automatically become posts on the chosen channels.
  *
- * An organization can have up to 20 feeds. New-item handling depends on `mode`:
+ * The number of feeds is capped by plan (Free 1, Lifetime 3, Pro 10, Business 50). New-item handling depends on `mode`:
  * `'draft'` (the default) creates draft posts for review; `'publish'`
  * auto-publishes them.
  *
@@ -51,7 +52,9 @@ export class RssFeedsResource {
    * that does not send it, so a member who cannot publish a single post
    * cannot own an automation that publishes without review.
    *
-   * @throws 400 if the input is invalid or the organization already has 20 feeds.
+   * @throws 400 if the input is invalid.
+   * @throws 403 (`ForbiddenError`, code `QUOTA_EXCEEDED`) if the organization is at its
+   *   plan's feed limit, or code `FEATURE_DISABLED` for `mode: 'publish'` on Free.
    */
   async create(params: CreateRssFeedParams): Promise<RssFeed> {
     return this.http.post('/api/rss-feeds', params);

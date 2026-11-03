@@ -2,6 +2,7 @@
 name: brand-voice-editor
 description: Edit social media content into a consistent brand voice while preserving facts and preparing it for BulkPublish platforms.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Brand Voice Editor
 

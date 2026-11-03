@@ -1,8 +1,10 @@
 """
 RSS Autopost resource for the BulkPublish SDK.
 
-RSS/Atom feeds are polled every 15 minutes; new items automatically become
-posts on the chosen channels. An organization can have up to 20 feeds.
+RSS/Atom feeds are checked on a schedule set by the plan (every 60 minutes on
+Free and Lifetime, 30 on Pro, 15 on Business); new items automatically become
+posts on the chosen channels. The number of feeds is capped by plan (Free 1,
+Lifetime 3, Pro 10, Business 50).
 """
 
 from __future__ import annotations
@@ -75,8 +77,10 @@ class RssFeedsResource:
             The newly created feed.
 
         Raises:
-            ValidationError: If the input is invalid or the organization
-                already has 20 feeds.
+            ValidationError: If the input is invalid.
+            PermissionError: (403) code ``QUOTA_EXCEEDED`` if the organization
+                is at its plan's feed limit, or ``FEATURE_DISABLED`` for
+                ``mode="publish"`` on Free.
 
         Example::
 

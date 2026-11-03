@@ -2,6 +2,7 @@
 name: social-trend-research
 description: Research timely social media themes and translate them into safe, relevant BulkPublish content opportunities.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Social Trend Research
 

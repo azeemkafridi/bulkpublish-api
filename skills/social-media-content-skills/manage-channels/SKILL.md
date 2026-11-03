@@ -1,55 +1,89 @@
 ---
 name: manage-channels
-description: List connected social media channels and check their health via BulkPublish. Use when the user asks about their connected accounts.
+description: List connected social media channels, check what the caller may do with them, and look up platform options such as boards and playlists in BulkPublish. Use when the user asks about their connected accounts.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
-# BulkPublish — Channels Reference
+# BulkPublish — Connected Channels
 
 ## Tools
 
 | Tool | Use for | Key params |
 |---|---|---|
-| `list_channels` | All connected accounts with IDs and status | none |
-| `get_channel_health` | Token validity and connection issues | `channelId` |
-| `get_channel_options` | Platform-specific options | `channelId` |
-| `search_mentions` | Find @mention usernames | `channelId`, `query` |
+| `list_channels` | Connected accounts with IDs, status and the caller's capabilities | `active` (default true) |
+| `view_channels` | The same list as an interactive view | none |
+| `get_channel_options` | Destinations inside an account (see below) | `channelId`, plus `boardId` or `q` |
+| `update_channel` | X sync switches (`metricsSyncEnabled`, `inboxSyncEnabled`) | `channelId` |
+| `get_channel_health` | Token validity and connection issues for one channel | `channelId` |
+| `search_mentions` | Find the handle or token to @mention someone | `channelId`, `query` |
+| `list_platforms` | Which networks can be connected right now | none |
 
-## list_channels response shape
+Prefer `view_channels` when the user wants to look at their accounts, and
+`list_channels` when you need the IDs to build a post. Use the channel ID in
+`create_post`, never the account name.
 
-Each channel: `id`, `platform`, `accountName`, `accountId`, `accountType`, `isActive`, `tokenStatus` ("valid"/"expired"/"error"), `tokenExpiresAt`.
+## What list_channels returns
 
-## Platform names (used in channels and create_post)
+Each channel: `id`, `platform`, `accountName`, `accountId`, `accountType`,
+`isActive`, `tokenStatus` (`"valid"`, `"expiring_soon"` or `"expired"`),
+`tokenExpiresAt`.
 
-`facebook`, `instagram`, `x`, `linkedin`, `tiktok`, `youtube`, `pinterest`, `threads`, `bluesky`, `gmb`, `mastodon`, `discord`, `telegram`, `tumblr`, `snapchat`
+The response also carries a `capabilities` object saying whether this caller may
+create, publish or approve posts. Check it before attempting a write, rather
+than discovering the limit from a 403.
 
-## Channel options by platform
+Platform keys: `facebook`, `instagram`, `x`, `linkedin`, `tiktok`, `youtube`,
+`pinterest`, `threads`, `bluesky`, `gmb`, `mastodon`, `discord`, `telegram`,
+`tumblr`, `snapchat`.
 
-| Platform | get_channel_options returns |
+## get_channel_options
+
+| Platform | Returns |
 |---|---|
-| Pinterest | Available boards |
-| YouTube | Playlists, categories |
-| Instagram | Eligible collaborators |
+| Pinterest | Boards; with `boardId`, that board's sections |
+| YouTube | Playlists |
+| Tumblr | Blogs |
+| Discord | Text channels in the connected server |
+| Threads | Places matching `q`, for `locationId` |
 
-## Channel Sets (REST API)
+## Reconnecting
 
-Saved channel groups for one-click targeting. No MCP tool yet — call the REST API directly (`Authorization: Bearer bp_your_key`, base `https://app.bulkpublish.com`).
+A channel can be connected but no longer usable, because the account's
+authorization expired or was revoked on the platform's side (`tokenStatus:
+"expired"`). A publish to one fails, so surface it before scheduling: tell the
+user which account needs reconnecting and that it is done in BulkPublish under
+Channels. Accounts are connected and reconnected only there, never from here.
 
-| Endpoint | Use for |
-|---|---|
-| `GET /api/channel-sets` | List sets (ordered by name) |
-| `POST /api/channel-sets` | Create — body `{name, channelIds}` |
-| `PUT /api/channel-sets/{id}` | Rename or change channels — body `{name?, channelIds?}` (send at least one) |
-| `DELETE /api/channel-sets/{id}` | Delete → `{success: true}` |
+## X sync switches
 
-- Set object: `id`, `name`, `channelIds` (number[]), `createdAt`, `updatedAt`
-- `name` is trimmed, max 100 chars, unique per organization — a duplicate name returns **409** with `error.code: "DUPLICATE_NAME"`
-- `channelIds` needs at least 1 id; every id must belong to your org (get them from `list_channels`)
-- Max **50 sets per org** — creating beyond that returns 400
-- To target a set when creating a post, fetch it and pass its `channelIds` — sets are expanded client-side; `create_post` still takes `channels` pairs
+On X every read is billed, so both switches are off until turned on.
+`metricsSyncEnabled` turns on analytics (at most once every 7 days);
+`inboxSyncEnabled` turns on direct messages and replies. On any other platform
+`update_channel` succeeds and changes nothing. It needs the owner, admin or
+approver role.
 
+## LinkedIn
+
+A LinkedIn channel is either a personal profile or a company page
+(`accountType`: `personal` / `organization`). Both are posted to the same way,
+but they are gated separately, so one can be unavailable while the other works.
+When that is what blocks a write, the 403 `PLATFORM_DISABLED` error names the
+`accountType`. `list_platforms` reports pages under `variants.organization`, so check that before telling a user they can connect a company page.
+
+## Mentions
+
+`search_mentions` works on X, Bluesky, Mastodon and LinkedIn. On LinkedIn the
+query is a Page's URL slug (exact match). On Mastodon each handle is
+`@username` for the same server or `@username@domain` for another, and a full
+`username@domain` query finds accounts the server has not seen yet.
+
+## Groups of accounts
+
+Saved groups (channel sets) are in the **content-organisation** skill. To post
+to one, read its `channelIds` and build `channels` pairs from `list_channels`;
+`create_post` does not take a set ID.
 ## Notes
 
-- Channels can only be connected/reconnected via the web UI (OAuth) — not via API
-- LinkedIn channels are either a personal profile or a company page (`accountType`: `personal` / `organization`); both are connected in the dashboard and posted to like any other channel. They run on separate LinkedIn apps and are gated separately — `list_platforms` reports pages under `variants.organization`, so check that (not the platform-level state) before telling a user they can connect a company page
-- `search_mentions` works on X/Twitter and Bluesky only
-- Token "expired" means the user needs to reconnect at app.bulkpublish.com/channels
+- `active: false` includes channels the user has switched off.
+- If the user has no channels, say so plainly and point them to connecting one
+  in BulkPublish; do not invent channel IDs.

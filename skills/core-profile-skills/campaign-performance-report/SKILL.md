@@ -2,6 +2,7 @@
 name: campaign-performance-report
 description: Produce campaign performance reports from BulkPublish analytics with platform-aware metrics, caveats, and recommendations.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Campaign Performance Report
 

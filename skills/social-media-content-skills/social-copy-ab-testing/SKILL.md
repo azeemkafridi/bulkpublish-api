@@ -2,6 +2,7 @@
 name: social-copy-ab-testing
 description: Design controlled social copy experiments and publish or schedule test variants through BulkPublish with measurable hypotheses.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Social Copy A/B Testing
 

@@ -2,6 +2,7 @@
 name: ugc-content-planner
 description: Plan user-generated-content campaigns and convert approved UGC into compliant, platform-ready BulkPublish posts.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # UGC Content Planner
 

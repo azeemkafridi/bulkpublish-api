@@ -2,6 +2,7 @@
 name: influencer-campaign-planner
 description: Plan influencer and creator social campaigns with deliverables, usage guidance, disclosure needs, and BulkPublish execution steps.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Influencer Campaign Planner
 

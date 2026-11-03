@@ -1,0 +1,62 @@
+---
+name: manage-scheduled-posts
+description: Edit, reschedule, unschedule or delete BulkPublish posts, and add or remove the accounts a post goes to, without overwriting a teammate's changes. Use when the user wants to change a post that already exists.
+---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
+
+# BulkPublish — Changing Existing Posts
+
+Always `get_post` first, show the user the change, and wait for a yes. Pass
+`ifUnmodifiedSince` = the `updatedAt` you read on every `update_post`: if a
+teammate changed the post since, the call is refused with **409** instead of
+overwriting their version. On a 409, reload, show the user what is there now,
+and ask again.
+
+## What can be edited
+
+Only `draft`, `scheduled`, `failed` and `partial` posts. Editing a failed post
+returns it to `draft`; a partial post stays partial.
+
+## Replace, not merge
+
+These fields replace the stored value as a whole, so send everything to keep:
+
+| Field | Note |
+|---|---|
+| `platformContent` | Every platform's text you want to keep |
+| `mediaFileIds` | The full list, in order |
+| `labelIds` | The full list |
+| `channels` | The COMPLETE list of accounts the post should keep (below) |
+
+## Changing accounts
+
+Send `channels` with every account the post should go to after the edit, not a
+difference. Accounts left out are dropped, new ones are added as pending, and
+kept ones keep their state. An account the post has already gone out on cannot
+be removed. Check the media rules for any platform you add.
+
+## Rescheduling
+
+- `update_post` with `scheduledAt`, `timezone` and `status: "scheduled"`. The
+  time must be in the future: `update_post` refuses a past one with
+  `VALIDATION_ERROR` (unlike `create_post`, where a past time publishes at once).
+- Top of the queue: `get_queue_slot` with `position: "next"` and
+  `excludePostId` set to this post. Bottom: `position: "end"`.
+- Rescheduling a post that waits for approval clears its `publishWhenApproved`
+  unless you send it again.
+
+## Unscheduling
+
+`update_post` with `status: "draft"`. Nothing is deleted, and it can be
+scheduled again later.
+
+## Deleting
+
+`delete_post` takes only `draft` and `failed` posts and is permanent. A
+published post stays on the platforms and cannot be removed from here. List
+what will be deleted (ID and first line) and get an explicit yes.
+
+## Publishing now
+
+`publish_post` sends a draft or scheduled post immediately. A role that cannot
+publish gets **403** `APPROVAL_REQUIRED`: submit it for approval instead.

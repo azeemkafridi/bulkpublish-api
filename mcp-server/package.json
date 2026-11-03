@@ -26,7 +26,8 @@
     "prepublishOnly": "npm run build && npm run check:annotations && npm run check:parity && npm run check:skills && npm run check:prompts",
     "check:parity": "node scripts/check-host-parity.mjs",
     "check:prompts": "node scripts/check-prompts.mjs && BULKPUBLISH_HIDE_BILLING=1 node scripts/check-prompts.mjs",
-    "check:skills": "node scripts/check-core-skills.mjs && node scripts/check-core-skills.mjs --profile inbox"
+    "check:skills": "node scripts/build-skills.mjs --check && node scripts/check-core-skills.mjs && node scripts/check-core-skills.mjs --profile inbox && node scripts/check-core-skills.mjs --profile full",
+    "build:skills": "node scripts/build-skills.mjs"
   },
   "keywords": [
     "mcp",

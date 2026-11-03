@@ -1878,7 +1878,7 @@ export interface RssFieldMapping {
   channelOverrides?: Record<string, RssMappingChannelOverride>;
 }
 
-/** An RSS/Atom feed polled every 15 minutes; new items become posts. */
+/** An RSS/Atom feed, checked on a schedule set by the plan (every 60 minutes on Free and Lifetime, 30 on Pro, 15 on Business); new items become posts. */
 export interface RssFeed {
   id: number;
   userId: string;

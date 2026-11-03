@@ -2,6 +2,7 @@
 name: social-content-strategy
 description: Create practical social media content strategies from a business goal, audience, offer, or campaign brief. Use before drafting a sustained cross-platform content plan.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Social Content Strategy
 

@@ -2,6 +2,7 @@
 name: comment-replies
 description: Read the comments on a published BulkPublish post and reply to, like, hide or delete them, with a confirmation before anything is posted or removed. Use when the user asks who commented on a post, wants to answer comments, or wants to clear spam from a post.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Comment Replies
 

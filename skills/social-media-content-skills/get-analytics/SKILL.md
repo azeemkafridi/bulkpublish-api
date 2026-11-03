@@ -2,6 +2,7 @@
 name: get-analytics
 description: Pull analytics, engagement metrics, and performance data from BulkPublish. Use when the user asks about post performance or engagement.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # BulkPublish — Analytics Reference
 
@@ -9,8 +10,9 @@ description: Pull analytics, engagement metrics, and performance data from BulkP
 
 | Tool | Use for | Key params |
 |---|---|---|
-| `get_analytics` | Overall summary for a date range | `startDate`, `endDate` (ISO dates) |
+| `get_analytics` | Overall summary for a date range | `from`, `to` (ISO dates); optional `channelIds`, `platforms`, `labelIds`, `postFormat`, `mediaType`, `compare` |
 | `get_post_metrics` | Single post engagement | `postId` |
+| `view_analytics` | The same summary as an interactive dashboard | `from`, `to` |
 | `get_quota_usage` | Plan limits and current usage | none |
 | `list_posts` | Find posts to analyze | `status`, `approvalStatus`, `from`, `to`, `channelId`, `search` |
 
@@ -50,7 +52,8 @@ always contains it. Two rules when reporting it:
 - **Never add it to `clicks`/`totalClicks`.** Those are the platform's own click
   figures. One visit can register in both, so summing them double-counts.
 - **A 0 here is ambiguous in a specific way**: it means no tracked clicks, which
-  also happens when the organization has link tracking switched off, when the
+  also happens when the organization has link tracking switched off or is on
+  the Free plan (no short links there), when the
   post contained no links, or when shortening was skipped on that channel for
   exceeding its character limit. Bot and link-preview traffic is excluded by
   design. Say "no tracked link clicks" rather than "nobody clicked".
@@ -68,6 +71,7 @@ always contains it. Two rules when reporting it:
 | Bluesky | likes, comments, shares, saves (bookmarks) | impressions, reach, clicks, video views |
 | Mastodon | likes, comments, shares | everything else |
 | Discord | likes (reaction counts), comments (thread replies) | everything else |
+| Snapchat | impressions, reach, likes, comments, shares, clicks, video views | saves |
 | Google Business, Telegram, Tumblr | *nothing* | — |
 | LinkedIn personal profiles | *nothing* | — |
 
@@ -90,7 +94,6 @@ impressions do — it is always `0` for Bluesky and Mastodon.
 ## get_quota_usage response shape
 
 Returns: plan name, limits (channels, posts/day, storage, API calls), current usage for each, subscription status.
-
 ## Patterns
 
 - "How did my posts do this week?" → `get_analytics` with last 7 days

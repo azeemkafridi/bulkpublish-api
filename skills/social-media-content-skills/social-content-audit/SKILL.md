@@ -2,6 +2,7 @@
 name: social-content-audit
 description: Audit a social media library, calendar, or BulkPublish account for content quality, platform coverage, metadata, and operational risks.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Social Content Audit
 

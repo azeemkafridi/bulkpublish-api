@@ -821,7 +821,8 @@ class RssFieldMapping(TypedDict, total=False):
 
 
 class RssFeed(TypedDict, total=False):
-    """An RSS/Atom feed polled every 15 minutes; new items become posts.
+    """An RSS/Atom feed, checked every 15 to 60 minutes depending on the plan;
+    new items become posts.
 
     ``mode`` is ``"draft"`` (new items become draft posts for review) or
     ``"publish"`` (auto-published). ``fieldMapping`` controls item → post

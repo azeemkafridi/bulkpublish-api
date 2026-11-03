@@ -59,7 +59,7 @@ function mediaSources(ctx: PromptCtx): string {
   );
 }
 
-const MEDIA_RULES =
+export const MEDIA_RULES =
   "Media rules the server enforces: YouTube needs a video. TikTok needs a video, or 1 to 35 images with postTypeOverrides.tiktok 'photo_slideshow' (images only, no video); neither goes on a text-only post. " +
   "Instagram defaults to a feed photo, so a video needs postTypeOverrides.instagram 'reel' or 'feed_video', and a carousel needs at least 2 files. " +
   "A Pinterest carousel takes 2 to 5 images. Every Snapchat post needs exactly one image or video. " +
@@ -606,7 +606,7 @@ const PROMPTS: PromptDef[] = [
       given("Post", a.postId) +
       given("When", a.when) +
       "\n" + TZ +
-      "\nCall get_post. For the top of the queue call get_queue_slot with position 'next' and excludePostId set to this post; for the bottom use position 'end'. Otherwise convert my time to ISO 8601 (it must be in the future). " +
+      "\nCall get_post. For the top of the queue call get_queue_slot with position 'next' and excludePostId set to this post; for the bottom use position 'end'. Otherwise convert my time to ISO 8601. It must be in the future: update_post refuses a time that has passed (VALIDATION_ERROR). " +
       "Confirm the new time with me, then update_post with scheduledAt, timezone, status 'scheduled' and ifUnmodifiedSince. Rescheduling a post that waits for approval clears its publish-when-approved flag.",
   },
   {
@@ -1164,10 +1164,10 @@ const PROMPTS: PromptDef[] = [
     text: (a) =>
       "Set up RSS auto-posting." +
       given("Feed", a.feedUrl) +
-      "\nCall list_rss_feeds (up to 20 per workspace) and list_channels. Explain the choices, then create_rss_feed with name, feedUrl, channelIds and:\n" +
-      "- mode 'draft' (new items wait for review; the default) or 'publish' (posted automatically; requireApproval true holds each for a teammate).\n" +
+      "\nCall list_rss_feeds and list_channels. The number of feeds is capped by plan (Free 1, Lifetime 3, Pro 10, Business 50; one more is refused with QUOTA_EXCEEDED). Explain the choices, then create_rss_feed with name, feedUrl, channelIds and:\n" +
+      "- mode 'draft' (new items wait for review; the default) or 'publish' (posted automatically; requireApproval true holds each for a teammate). 'publish' is not available on Free (FEATURE_DISABLED).\n" +
       "- fieldMapping: template (default '{title}\\n\\n{link}'; tokens {title} {link} {description} {content} {author} {categories} {feedName}), mediaField (none, image, video, auto), articleImage (when_needed, always, never) to borrow the article's picture for image-only platforms, stripHtml, truncate (smart, hard, skip), hashtags, and channelOverrides per account.\n" +
-      "The feed is checked every 15 minutes; the server refuses a URL that is not a reachable public feed. Video-only platforms (TikTok, YouTube) are skipped for items with no video. Confirm the setup with me before creating it.",
+      "The feed is checked every 60 minutes on Free and Lifetime, 30 on Pro and 15 on Business; the server refuses a URL that is not a reachable public feed. Video-only platforms (TikTok, YouTube) are skipped for items with no video. Confirm the setup with me before creating it.",
   },
   {
     name: "rss_feed_troubleshoot",

@@ -2,6 +2,7 @@
 name: link-tracking-review
 description: Review social links, BulkPublish link-tracking settings, and tracked-click results without confusing them with platform click metrics.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Link Tracking Review
 

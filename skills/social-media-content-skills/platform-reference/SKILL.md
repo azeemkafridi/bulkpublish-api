@@ -1,17 +1,40 @@
 ---
 name: platform-reference
-description: Complete reference for all 15 BulkPublish platforms — post types, media requirements, required fields, character limits, and platformSpecific options. ALWAYS consult before creating posts.
+description: Complete reference for the 15 BulkPublish platforms — post types, media requirements, required fields, character limits, and platformSpecific options. ALWAYS consult before creating posts.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # BulkPublish — Platform Reference
 
 ## Quick Rules
 
-- **YouTube & TikTok** require video — NEVER include them for image-only posts
+- **YouTube** requires a video. **TikTok** requires a video, or 1-35 images with `postTypeOverrides.tiktok: "photo_slideshow"` — never put either on a text-only post
 - **Pinterest** requires a title — set `platformSpecific.pinterest.title`
 - **YouTube** requires a title — set `platformSpecific.youtube.title`
 - **Instagram** defaults to `feed_photo` — set `postTypeOverrides.instagram` for video content
 - Use `platformContent` for shorter text on platforms with low char limits (Bluesky 300, Pinterest/Threads/Mastodon 500)
+
+## Post types at a glance
+
+Every value `postTypeOverrides` accepts; the first is the default.
+
+| Platform | Key | `postTypeOverrides` values |
+|---|---|---|
+| Instagram | `instagram` | `feed_photo`, `feed_video`, `reel`, `story`, `carousel` |
+| Facebook | `facebook` | `post`, `video`, `reel`, `story`, `carousel` |
+| X | `x` | `tweet`, `video`, `thread`, `repost` |
+| TikTok | `tiktok` | `video`, `photo_slideshow` |
+| YouTube | `youtube` | `video`, `short` |
+| Threads | `threads` | `text`, `image`, `video`, `carousel`, `repost` |
+| Bluesky | `bluesky` | `post`, `video`, `thread`, `repost` |
+| LinkedIn | `linkedin` | `post`, `multi_image`, `pdf_carousel`, `article`, `document`, `poll`, `reshare` |
+| Pinterest | `pinterest` | `pin`, `video_pin`, `carousel` |
+| Google Business | `gmb` | `standard`, `event`, `offer` |
+| Mastodon | `mastodon` | `post`, `thread`, `repost` |
+| Discord | `discord` | `post` |
+| Telegram | `telegram` | `post` |
+| Tumblr | `tumblr` | `post` |
+| Snapchat | `snapchat` | `story`, `saved_story`, `spotlight` |
 
 ---
 
@@ -33,7 +56,15 @@ description: Complete reference for all 15 BulkPublish platforms — post types,
 
 **Media specs:** Image max 10MB (jpg/png/gif/webp). Video max 2GB (mp4/mov). Reel video 3–90s, Story video 3–60s; a plain video post has no length limit.
 
-**platformSpecific options:** `linkPreview.url`; `textFormatPresetId` — digits only (a Facebook background ID): shows a short text post on a coloured background, used only on a Page feed post with no photo, video or link card and at most 130 characters (otherwise left out; dropped if Facebook refuses it)
+**platformSpecific options:**
+- `linkPreview.url`
+- `textFormatPresetId` — digits only (a Facebook background ID): shows a short text post on a coloured background. Used only on a Page feed post with no photo, video or link card and at most 130 characters; otherwise left out, and dropped (published as plain text) if Facebook refuses it
+- `shareToStory` — boolean, also post it as a story
+- `thumbnailUrl` — string, cover image URL for a video or Reel. Facebook only
+  accepts a cover once the video exists, so it is applied after the video
+  publishes and lands a moment after the post; a cover that cannot be fetched or
+  that Facebook rejects leaves the video published with Facebook's own chosen
+  frame rather than failing the post. Omit to let Facebook choose
 
 ---
 
@@ -60,11 +91,14 @@ description: Complete reference for all 15 BulkPublish platforms — post types,
 
 **platformSpecific options:**
 - `collaborators` — string (comma-separated) or array of usernames, without a leading `@`. Tagged as co-authors. Post types `feed_photo`, `feed_video`, `reel` and `carousel`; ignored on `story`
-- `trialReel` — boolean, trial reel (graduates based on performance)
-- `thumbnailTimestamp` — number (seconds), video thumbnail offset
+- `trialReel` — boolean, trial reel shown to non-followers first. Only takes effect with `postTypeOverrides.instagram: "reel"`; ignored on `feed_video`
+- `graduationStrategy` — `"manual"` (default) or `"auto"`; ignored unless `trialReel` is true
+- `shareToStory` — boolean, also post it as a story
+- `thumbnailTimestamp` — number (seconds into the video) for the cover frame. Applies to `reel` AND `feed_video`. Ignored when `coverUrl` is also set
 - `userTags` — array of `{ username, x?, y?, mediaIndex? }`, up to 20 per photo or video. On a photo (and each carousel photo) a tag needs `x` and `y` (0 to 1 from the top left, given together) or it is left out; on a Reel or video people are tagged by username only. `mediaIndex` counts from 0 in attachment order
-- `shareToFeed` — boolean, Reels only: `false` = Reels tab only, `true` = also the main feed
+- `shareToFeed` — boolean, Reels only: `false` shows the Reel only in the Reels tab, `true` also in the main feed
 - `locationId` — digits only: the numeric ID of a Facebook Page that has a location (not for Stories)
+- `coverUrl` — string, cover image URL for a video or Reel. Instagram accepts a cover image or a cover moment, never both, so this wins over `thumbnailTimestamp`
 
 **IMPORTANT:** If you have video and don't set `postTypeOverrides.instagram`, it defaults to `feed_photo` and FAILS. Always set to `reel` or `feed_video` for video.
 
@@ -75,7 +109,7 @@ description: Complete reference for all 15 BulkPublish platforms — post types,
 | Field | Value |
 |---|---|
 | Platform key | `x` |
-| Char limit | 280 (25,000 for long posts) |
+| Char limit | 280 (a link counts as 23) |
 | Title required | No |
 
 **Post types:**
@@ -83,8 +117,9 @@ description: Complete reference for all 15 BulkPublish platforms — post types,
 | Type | Media | Notes |
 |---|---|---|
 | `tweet` (default) | 0-4 images OR 0-1 video | Text-only OK. No mixing images+video |
+| `video` | 1 video required | Video post |
 | `thread` | Per-part media | Use `postFormat: "thread"` + `threadParts` |
-| `repost` | None | Reposts (retweets) an existing post; `platformSpecific.repostId` = status URL or ID; own text/media ignored |
+| `repost` | None | Reposts (retweets) an existing post; `platformSpecific.x.repostId` = status URL or ID; own text/media ignored |
 
 **platformSpecific options:**
 - `replySettings` — who can reply (single post and first post of a thread)
@@ -138,29 +173,29 @@ description: Complete reference for all 15 BulkPublish platforms — post types,
 | Platform key | `tiktok` |
 | Char limit | 2,200 |
 | Title required | No (uses content) |
-| Video required | **YES** (or images for slideshow) |
+| Video required | A video, or 1-35 images as a `photo_slideshow` |
 
 **Post types:**
 
 | Type | Media | Notes |
 |---|---|---|
 | `video` (default) | 1 video required | Standard video upload |
-| `photo_slideshow` | 1-35 images required | Auto-creates slideshow with music |
+| `photo_slideshow` | 1-35 images, no video | Must be set explicitly: with no type, TikTok images are refused. PNG is converted to JPEG when it publishes. No music unless `autoAddMusic` is true |
 
 **Media specs:** Video max 4GB (mp4/mov), max 1. Image max 20MB (jpg/jpeg/webp), max 35 for slideshow.
 
 **platformSpecific options:**
-- `privacyLevel` — `SELF_ONLY` (default), `PUBLIC`, `FRIENDS`
+- `privacyLevel` — `PUBLIC_TO_EVERYONE` (default when omitted), `MUTUAL_FOLLOW_FRIENDS`, `FOLLOWER_OF_CREATOR`, `SELF_ONLY`; any other value is rejected with 400, and TikTok accepts only the levels the connected account offers
 - `disableDuet` — boolean
 - `disableStitch` — boolean
 - `disableComment` — boolean
 - `isAigc` — boolean (AI-generated content disclosure)
-- `thumbnailTimestamp` — number (seconds)
+- `thumbnailTimestamp` — number (seconds into the video) for the cover frame
 - `sendToDrafts` — boolean (default false): send a video or photo slideshow to the creator's TikTok drafts instead of publishing; `privacyLevel` is then not required and the direct-post settings are ignored. A video draft carries no caption; the destination ends up `published` with no `platformUrl`
-- `photoCoverIndex` — slideshow cover image, whole number 0-34 (default 0)
-- `autoAddMusic` — boolean, photo posts only
+- `photoCoverIndex` — slideshow cover image, whole number 0-34 counting from 0 in attachment order (default 0; an index past the last image falls back to the first)
+- `autoAddMusic` — boolean (default false), slideshows published directly only: lets TikTok add a recommended track
 
-**IMPORTANT:** TikTok ONLY accepts video (or images for slideshow). Default privacy is `SELF_ONLY` — set to `PUBLIC` for visibility.
+**IMPORTANT:** TikTok takes a video, or images only with `postTypeOverrides.tiktok: "photo_slideshow"`. Omitted privacy publishes as `PUBLIC_TO_EVERYONE` — ask the user and set `privacyLevel` explicitly.
 
 ---
 
@@ -252,8 +287,9 @@ The two run on separate LinkedIn apps (company pages use the Community Managemen
 | `image` | 1 image required | Photo post |
 | `video` | 1 video required | Video post |
 | `carousel` | 2-20 images/videos | Mixed media OK |
-| `thread` | Per-part | Use `postFormat: "thread"` + `threadParts` |
-| `repost` | None | Reposts an existing post; `platformSpecific.repostId` = numeric post ID; own text/media ignored |
+| `repost` | None | Reposts an existing post; `platformSpecific.threads.repostId` = numeric post ID; own text/media ignored |
+
+A chain of posts is not a post type here: send `postFormat: "thread"` with `threadParts`.
 
 **Media specs:** Image max 8MB (jpg/png), max 20. Video max 500MB (mp4/mov), max 20, each up to 5 min.
 
@@ -274,8 +310,9 @@ The two run on separate LinkedIn apps (company pages use the Community Managemen
 | Type | Media | Notes |
 |---|---|---|
 | `post` (default) | 0-4 images OR 0-1 video | Text-only OK. No mixing. |
+| `video` | 1 video required | Video post |
 | `thread` | Per-part | Use `postFormat: "thread"` + `threadParts` |
-| `repost` | None | Reposts an existing post; `platformSpecific.repostId` = post URL or ID; own text/media ignored |
+| `repost` | None | Reposts an existing post; `platformSpecific.bluesky.repostId` = bsky.app post URL or `at://` URI; own text/media ignored |
 
 **platformSpecific options:** `replyAllow` — omitted or `[]` = everyone, else `["nobody"]` or any mix of `mention`, `following`, `follower`; `allowQuotes` — boolean (default true); `quoteId` — bsky.app post link or `at://` URI to quote; `langs` — up to 3 language codes; `contentLabel` — `sexual`, `nudity`, `porn` or `graphic-media`
 
@@ -327,7 +364,7 @@ The two run on separate LinkedIn apps (company pages use the Community Managemen
 |---|---|---|
 | `post` (default) | 0-4 images OR 0-1 video | Text-only OK. No mixing. |
 | `thread` | Per-part | Use `postFormat: "thread"` + `threadParts` |
-| `repost` | None | Reposts an existing post; `platformSpecific.repostId` = post URL or ID; own text/media ignored |
+| `repost` | None | Boosts an existing post; `platformSpecific.mastodon.repostId` = status URL or ID; own text/media ignored |
 
 **Media specs:** Image max 16MB (jpg/png/webp/avif/gif), max 4. Video max 99MB (mp4 only), max 1 (Mastodon sets no length limit).
 
@@ -362,8 +399,8 @@ The two run on separate LinkedIn apps (company pages use the Community Managemen
 
 | Option | Notes |
 |---|---|
+| `channelId` | **REQUIRED.** The target Discord *text channel* snowflake — **not** the BulkPublish channel id used as the outer key. List postable channels with `get_channel_options`. |
 | `silent`, `pin`, `startThread`, `threadName`, `buttons`, `embed`, `poll`, `tags` | Optional: notification suppression, pinning, a thread from the message, up to 5 link buttons, a rich embed, a native poll (2-10 answers), up to 5 forum tag IDs. Pins and polls need the bot's Pin Messages and Send Polls permissions. |
-| `channelId` | **REQUIRED.** The target Discord *text channel* snowflake — **not** the BulkPublish channel id used as the outer key. List postable channels via `GET /api/channels/{id}/options`. |
 
 **Gotchas:** publishing uses a **global bot token**, not the per-user OAuth token. A failure is therefore never a re-authentication problem — reconnecting will not fix it and the channel is never flagged `needs_reconnect`. The real causes are permissions: the bot lacks access to the channel, cannot send messages there, or the channel was deleted.
 
@@ -412,6 +449,10 @@ The two run on separate LinkedIn apps (company pages use the Community Managemen
 | `tags` | Array of strings, no leading `#`. Tags drive discovery on Tumblr more than on other networks. |
 | `link` | Appended as a link block. |
 | `sourceUrl` | Attribution URL stored as the post's source. |
+| `state` | `published` (default), `queue`, `draft` or `private`. `draft` and `private` override scheduling: the post is never made public by BulkPublish. |
+| `slug` | Up to 200 characters, hyphenated into the permalink. |
+| `reblogInteraction` | `everyone` or `noone`: who can reblog. |
+| `reblogUrl` | A Tumblr post link: publishes a reblog of that post with your text as the comment. |
 
 ---
 

@@ -2,6 +2,7 @@
 name: bulk-publish
 description: Upload media files (local or URL), manage media library, and batch-create posts via BulkPublish. Use when the user wants to upload files or publish content in bulk.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # BulkPublish — Media & Bulk Publishing Reference
 
@@ -13,7 +14,12 @@ filePath  (string, optional) — absolute local file path (e.g. /Users/me/photo.
 filename  (string, optional) — override filename, otherwise derived from url/path
 ```
 
-Provide either `url` OR `filePath`, not both.
+Provide either `url` OR `filePath`, not both. `filePath` works only when the
+MCP server runs locally; the hosted server (including the Claude Code plugin)
+refuses it. For a local file on a hosted server: `create_media_upload`
+(`contentType`, `sizeBytes`) → PUT the bytes to `uploadUrl` with the same
+`Content-Type` → `finalize_media_upload` (`r2Key`, `fileName`, `mimeType`,
+`sizeBytes`).
 
 ## Supported formats
 
@@ -48,14 +54,14 @@ Returns: `id` (use this in `mediaFileIds` when creating posts), `fileName`, `mim
 
 ## Large files — multipart upload (REST API)
 
-For videos over 100MB (up to **1GB**), use the chunked multipart flow. No MCP tool yet — call the REST API directly (`Authorization: Bearer bp_your_key`, base `https://app.bulkpublish.com`):
+For videos over 100MB (up to **1GB**), use the chunked multipart flow: MCP tools `create_multipart_upload`, `complete_multipart_upload`, `abort_multipart_upload`, or the REST API (`Authorization: Bearer bp_your_key`, base `https://app.bulkpublish.com`):
 
 1. `POST /api/media/multipart/create` — body `{contentType, sizeBytes}` (exact size) → `{r2Key, uploadId, partSize, partUrls, expiresIn}`. `partSize` is fixed at 10MB (10485760); `partUrls` is one presigned PUT URL per part, in order; URLs expire in 3600s.
 2. `PUT` each 10MB slice of the file to its `partUrl` and save the `ETag` response header per part. A failed part can be retried alone — a network drop never restarts the whole file.
 3. `POST /api/media/multipart/complete` — body `{r2Key, uploadId, parts: [{partNumber, etag}], fileName, mimeType, sizeBytes, width?, height?, duration?}` → `{file}` (same media object as a normal upload; its `id` goes in `mediaFileIds`). Failed assembly auto-aborts the upload.
 
 - To cancel mid-flight: `POST /api/media/multipart/abort` — body `{r2Key, uploadId}` (frees stored parts)
-- 400 = disallowed type or too large; 429 = storage quota exceeded
+- 400 = disallowed type or too large; 403 with `error.code: "QUOTA_EXCEEDED"` = storage quota exceeded
 
 ## Bulk actions and approval
 
@@ -64,7 +70,13 @@ A bulk `retry` on posts whose role lacks `post:publish` fails with **403
 `APPROVAL_REQUIRED`** — those posts must be submitted for team approval instead
 (create/update with `requestApproval: true`, then a teammate calls
 `approve_post`). Posts with `approvalStatus` `"pending"` or `"rejected"` do
-not publish, even after a `reschedule`, until they are approved. See
+not publish, even after a `reschedule`, until they are approved.
+
+A bulk `reschedule` counts against the same scheduling limits as creating a
+post: moving drafts past the pending-scheduled cap, or more posts onto one day
+than the per-day cap allows, returns **403** `QUOTA_EXCEEDED` and changes
+nothing. It returns **400** when `scheduledAt` is missing or not an ISO 8601
+date-time, or when none of the posts is a draft or scheduled. See
 the `schedule-post` skill for the full approval flow.
 
 ## Bulk pattern

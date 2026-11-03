@@ -7540,7 +7540,7 @@
     {
       "name": "list_rss_feeds",
       "title": "List RSS feeds",
-      "description": "List RSS autopost feeds — RSS/Atom feeds polled every 15 minutes whose new items automatically become posts. Returns name, feedUrl, channelIds, mode, fieldMapping (how items are rendered into posts; null = default), enabled, lastCheckedAt, and lastError for each feed. Use this when the user wants their RSS autopost feeds.",
+      "description": "List RSS autopost feeds — RSS/Atom feeds, checked on a schedule set by the plan (every 60 minutes on Free and Lifetime, 30 on Pro, 15 on Business), whose new items automatically become posts. Returns name, feedUrl, channelIds, mode, fieldMapping (how items are rendered into posts; null = default), enabled, lastCheckedAt, and lastError for each feed. Use this when the user wants their RSS autopost feeds.",
       "inputSchema": {
         "type": "object",
         "properties": {},
@@ -7559,7 +7559,7 @@
     {
       "name": "create_rss_feed",
       "title": "Add RSS feed",
-      "description": "Add an RSS autopost feed. The feed is polled every 15 minutes and new items become posts on the chosen channels. The server validates that feedUrl is a reachable public RSS 2.0 or Atom feed. An organization can have up to 20 feeds. Use this when the user wants new items from an RSS/Atom feed to become posts automatically.",
+      "description": "Add an RSS autopost feed. The feed is checked on a schedule set by the plan (every 60 minutes on Free and Lifetime, 30 on Pro, 15 on Business) and new items become posts on the chosen channels. The server validates that feedUrl is a reachable public RSS 2.0 or Atom feed. The number of feeds is capped by plan (Free 1, Lifetime 3, Pro 10, Business 50); one more is refused with 403 QUOTA_EXCEEDED. mode 'publish' needs a paid plan or Lifetime (403 FEATURE_DISABLED on Free). Use this when the user wants new items from an RSS/Atom feed to become posts automatically.",
       "inputSchema": {
         "type": "object",
         "properties": {

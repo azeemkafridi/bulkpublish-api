@@ -2,6 +2,7 @@
 name: media-library
 description: Upload images and video to BulkPublish and browse the media library, so files can be attached to posts. Use when the user wants to add or find media.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # BulkPublish — Media
 

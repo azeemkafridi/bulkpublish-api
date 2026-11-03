@@ -2,6 +2,7 @@
 name: content-repurposing
 description: Repurpose a source article, newsletter, transcript, or announcement into a coordinated BulkPublish social content package.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Content Repurposing
 

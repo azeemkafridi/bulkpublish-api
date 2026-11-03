@@ -1,53 +1,57 @@
 #!/usr/bin/env node
-// Validates skills/core-profile-skills against the hosted `core` tool profile.
+// Validates a generated skill set against the tool profile it ships with:
+// skills/core-profile-skills (core), skills/inbox-profile-skills (inbox) and
+// skills/social-media-content-skills (full). The sets are generated from
+// skills/src by build-skills.mjs; this checks what they say.
 //
 // Why prose matters as much as tool names: rss-to-social named no tool at all —
 // it said "use BulkPublish RSS tools" — so a tool-name scan passed it while its
 // entire purpose was impossible on the core server. Both checks below exist
 // because that one shipped into a submission zip before it was caught.
 //
-//   cd mcp-server && node scripts/check-core-skills.mjs [dir]
+//   cd mcp-server && node scripts/check-core-skills.mjs [--profile core|inbox|full] [dir]
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import path from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createServer } from "../dist/index.js";
+import { factProblems } from "./lib/facts.mjs";
 
-// --profile inbox checks skills/inbox-profile-skills against the 32-tool inbox
-// profile instead; the ABSENT list applies to both, since inbox only adds the
-// Inbox and comment tools.
 const pi = process.argv.indexOf("--profile");
 const PROFILE = pi > -1 ? process.argv[pi + 1] : "core";
+const DIRS = { core: "core-profile-skills", inbox: "inbox-profile-skills", full: "social-media-content-skills" };
 const positional = process.argv.slice(2).filter((a, i, all) => a !== "--profile" && all[i - 1] !== "--profile");
 const DIR = positional[0]
   ? path.resolve(positional[0])
-  : path.resolve(import.meta.dirname, `../../skills/${PROFILE}-profile-skills`);
+  : path.resolve(import.meta.dirname, `../../skills/${DIRS[PROFILE]}`);
 
-async function names(profile) {
+async function toolList(profile) {
   const s = createServer({ profile });
   const [a, b] = InMemoryTransport.createLinkedPair();
   const c = new Client({ name: "check", version: "1" });
   await Promise.all([s.connect(a), c.connect(b)]);
-  const t = (await c.listTools()).tools.map((x) => x.name);
+  const t = (await c.listTools()).tools;
   await c.close();
   return t;
 }
-const core = new Set(await names(PROFILE));
-const all = await names("full");
+const tools = await toolList(PROFILE);
+const core = new Set(tools.map((t) => t.name));
+const all = (await toolList("full")).map((t) => t.name);
 
-// Capabilities the core profile cannot perform at all. Prose promising these
-// sends the model looking for a tool that is not there.
+// Capabilities some profiles cannot perform at all, by the words that promise
+// them and the tool that delivers them. Prose promising one sends the model
+// looking for a tool that is not there.
 const ABSENT = [
-  [/\brss\b|autopost|feed item/i, "RSS automation"],
-  [/\bquota\b|plan limits|remaining usage/i, "quota lookup"],
-  [/recurring schedule|repeat post/i, "recurring schedules"],
-  [/channel sets\b|saved channel set/i, "channel sets"],  // plural: "a channel set" of posts is ordinary English
-  [/hashtag group/i, "hashtag groups"],
-  [/saved template|post template/i, "templates"],
-  [/calendar note/i, "calendar notes"],
-  [/review link|client connect/i, "review / connect links"],
-  [/\bsearch_mentions\b|mention lookup/i, "mention lookup"],
-  [/channel health/i, "channel health"],
+  [/\brss\b|autopost|feed item/i, "RSS automation", "create_rss_feed"],
+  [/\bquota\b|plan limits|remaining usage/i, "quota lookup", "get_quota_usage"],
+  [/recurring schedule|create_schedule/i, "recurring schedules", "create_schedule"],
+  [/channel sets\b|saved channel set/i, "channel sets", "create_channel_set"],  // plural: "a channel set" of posts is ordinary English
+  [/hashtag group/i, "hashtag groups", "create_hashtag_group"],
+  [/saved template|post template/i, "templates", "create_template"],
+  [/calendar note/i, "calendar notes", "create_calendar_note"],
+  [/review link|client connect/i, "review / connect links", "create_review_link"],
+  [/\bsearch_mentions\b|mention lookup/i, "mention lookup", "search_mentions"],
+  [/channel health/i, "channel health", "get_channel_health"],
 ];
 // Vendors and internals must never appear in copy a user or reviewer reads.
 const STACK = /\b(r2|cloudflare|bullmq|redis|postgres|drizzle|astro|resend|polar|dokploy|ghcr|express)\b/i;
@@ -71,7 +75,8 @@ for (const d of dirs) {
     if (new RegExp("\\b" + t + "\\b").test(txt) && !core.has(t)) fail(`${d}: names ${t}, absent from the ${PROFILE} profile`);
   }
   const body = txt.slice(fm[0].length);
-  for (const [re, label] of ABSENT) if (re.test(body)) fail(`${d}: promises ${label}, absent from ${PROFILE}`);
+  for (const [re, label, tool] of ABSENT) if (!core.has(tool) && re.test(body)) fail(`${d}: promises ${label}, absent from ${PROFILE}`);
+  for (const p of factProblems(body, tools)) fail(`${d}: ${p}`);
   const stack = body.replace(/`r2Key`/g, "").match(STACK);
   if (stack) fail(`${d}: names "${stack[0]}" (stack disclosure)`);
 }

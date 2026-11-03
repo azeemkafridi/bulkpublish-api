@@ -2,6 +2,7 @@
 name: platform-content-adapter
 description: Adapt social media content for multiple platforms while preserving the message, voice, and call to action. Use when one source idea needs platform-specific versions.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Platform Content Adapter
 

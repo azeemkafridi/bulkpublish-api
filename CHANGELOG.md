@@ -1,21 +1,29 @@
 # Changelog
 
-## 2026-11-03 — MCP prompts
+## 2026-11-03 — MCP prompts; skills from one source
 
-MCP **1.50.0**
+MCP **1.50.0** · Node **1.44.5** · Python **0.45.4**
 
 ### Added
 
 - **MCP server:** 88 prompts, listed in an MCP client's prompt or slash menu: drafting, scheduling, publishing, threads, carousels, polls, reposts and stories; a guide per platform for all 15 platforms; editing, rescheduling and fixing failed posts; the approval queue; reports; comments and the Inbox; media; labels, templates, hashtag groups and calendar notes; recurring schedules and RSS feeds; client review and connect links. Each prompt is listed only when the server serves every tool it needs, so the hosted server lists 64, the `inbox` profile 70 and `full` 88. The full list is in the MCP server README.
 - **MCP server:** the hosted server card lists the prompts.
+- **Skills:** one source, `skills/src`, now generates every published skill set: `core-profile-skills` (the ChatGPT plugin), `inbox-profile-skills`, `social-media-content-skills`, and the AI toolkit's `skills/` folder (the Claude Code, Cursor and Gemini plugins). The copies had drifted apart, each with fixes the others lacked. `npm run build:skills` writes them; `npm run check:skills` fails on a copy that differs from the source.
+- **Skills:** eight new ones. On every profile: `fix-failed-posts`, `manage-scheduled-posts`, `post-approvals`, `video-publishing` and `recurring-posts`. On the full profile: `content-organisation` (labels, templates, hashtag groups, calendar notes, channel sets) and `client-review-and-connect`. `rss-to-social` now carries the full feed reference. The core set grows from 22 to 27 skills and the full set from 24 to 33.
+- **Skills check:** it now runs on all three profiles and compares skill text with the server's schema. It fails on a post type `postTypeOverrides` does not accept (in prose, JSON or a table), on a parameter a tool does not take, and on claims that were once true and are not any more. The prompt check runs the same rules on every rendered prompt.
 
 ### Fixed
 
+- **Skills:** the TikTok post type is `photo_slideshow` (one table said `slideshow`, so a post built from it was refused); TikTok privacy defaults to `PUBLIC_TO_EVERYONE`, not `SELF_ONLY`; TikTok takes images as a slideshow, so it is no longer described as video-only. Post-type tables are generated from `create_post`'s schema, which adds the types several platforms were missing (X `video` and `repost`, Bluesky `video` and `repost`, Threads and Mastodon `repost`) and drops a Threads `thread` type that does not exist (a chain is `postFormat: "thread"`).
+- **Skills:** the core set was written when the hosted server had 20 tools. It now uses `approve_post`, `reject_post`, `get_channel_options` and `update_channel`, which core serves, instead of saying approvals and board lookups cannot be done from there.
+- **Skills:** `check-quota` no longer quotes a table of plan limits (it was two plan changes old and had no Lifetime column); it reads the live figures from `get_quota_usage`. X is no longer said to allow 25,000-character posts.
+- **RSS feeds, everywhere:** a feed is checked every 60 minutes on Free and Lifetime, 30 on Pro and 15 on Business, and the number of feeds is capped by plan (1, 3, 10, 50; one more is 403 `QUOTA_EXCEEDED`). The OpenAPI tag, the Postman collection, the Node and Python SDK docs, the `list_rss_feeds` / `create_rss_feed` tool descriptions and the prompts said every 15 minutes and 20 feeds, with a 400.
+- **Prompts:** `reschedule_post` says a new time must be in the future: `update_post` refuses a past one, unlike `create_post`, where a past time publishes at once.
 - **MCP server:** `create_post` no longer refuses TikTok photo slideshows. It used to demand a video for every TikTok destination, although the API publishes 1 to 35 images as a slideshow. It now accepts images with `postTypeOverrides.tiktok = "photo_slideshow"` and refuses a slideshow that includes a video or more than 35 images. Images with no TikTok post type are still refused, because the API treats a TikTok post with no type as a video; the error now says to set `photo_slideshow`. The `create_post` description says the same.
 
 ### Unchanged
 
-- Apart from the `create_post` description above, tools, their schemas and descriptions, resources and the interactive panels are byte-identical to 1.49.1 in every profile (`check:parity`). The server now also declares the `prompts` capability. Listing and reading prompts needs no sign-in, like listing tools; calling a tool still does.
+- Apart from the `create_post`, `list_rss_feeds` and `create_rss_feed` descriptions above, tools, their schemas and descriptions, resources and the interactive panels are byte-identical to 1.49.1 in every profile (`check:parity`). The server now also declares the `prompts` capability. Listing and reading prompts needs no sign-in, like listing tools; calling a tool still does.
 
 ## 2026-11-01 — Read one schedule by id; the schedule list is capped
 

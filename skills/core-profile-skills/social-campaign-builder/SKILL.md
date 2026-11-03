@@ -2,6 +2,7 @@
 name: social-campaign-builder
 description: Build a coordinated social media campaign with post ideas, platform variants, CTAs, media requirements, and an execution-ready BulkPublish plan.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Social Campaign Builder
 

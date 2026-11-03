@@ -5902,7 +5902,7 @@
           "request": {
             "name": "List RSS feeds",
             "description": {
-              "content": "RSS/Atom feeds polled every 15 minutes; new items become posts. Polling uses conditional GET (ETag/Last-Modified) and exponential backoff on errors (15 minutes doubling to 24 hours); a feed is automatically disabled after 20 consecutive failed polls (`enabled` becomes false and `lastError` explains why). The first successful poll baselines the feed's existing backlog without posting it.",
+              "content": "RSS/Atom feeds checked on a schedule set by the plan (every 60 minutes on Free and Lifetime, 30 on Pro, 15 on Business); new items become posts. Polling uses conditional GET (ETag/Last-Modified) and exponential backoff on errors (15 minutes doubling to 24 hours); a feed is automatically disabled after 20 consecutive failed polls (`enabled` becomes false and `lastError` explains why). The first successful poll baselines the feed's existing backlog without posting it.",
               "type": "text/plain"
             },
             "url": {

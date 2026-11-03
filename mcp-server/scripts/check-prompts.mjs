@@ -13,6 +13,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 delete process.env.R2_UPLOAD_ORIGIN;
 const { createServer, TOOL_ANNOTATIONS } = await import("../dist/index.js");
 const { allPrompts } = await import("../dist/prompts.js");
+const { factProblems } = await import("./lib/facts.mjs");
 
 const ALL_TOOLS = Object.keys(TOOL_ANNOTATIONS);
 // Features absent from the trimmed profiles, by the words that promise them.
@@ -50,7 +51,8 @@ for (const profile of ["core", "inbox", "full"]) {
     const [a, b] = InMemoryTransport.createLinkedPair();
     const client = new Client({ name: "check-prompts", version: "1" });
     await Promise.all([server.connect(a), client.connect(b)]);
-    const served = new Set((await client.listTools()).tools.map((t) => t.name));
+    const toolDefs = (await client.listTools()).tools;
+    const served = new Set(toolDefs.map((t) => t.name));
     const { prompts } = await client.listPrompts();
     const tag = `${profile}${hosted ? "/hosted" : ""}${hideBilling ? "/no-billing" : ""}`;
 
@@ -72,6 +74,7 @@ for (const profile of ["core", "inbox", "full"]) {
         const stack = text.replace(/`r2Key`/g, "").match(STACK);
         if (stack) fail(`${tag} ${p.name}: names "${stack[0]}" (stack disclosure)`);
         if (text.includes("undefined")) fail(`${tag} ${p.name}: renders "undefined"`);
+        for (const f of factProblems(text, toolDefs)) fail(`${tag} ${p.name}: ${f}`);
       }
     }
     // A prompt left out must be one whose tools are not all served.

@@ -2,6 +2,7 @@
 name: social-localization
 description: Localize social media content for language, region, culture, and platform while preparing safe BulkPublish variants.
 ---
+<!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Social Localization
 
