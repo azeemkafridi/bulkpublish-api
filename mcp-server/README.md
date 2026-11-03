@@ -233,7 +233,7 @@ A prompt is listed only when every tool it needs is available, so what you see d
 | `post_with_media` | Upload images or a video and attach them to a new post. | all |
 | `reuse_library_media` | Find a file already in your media library and build a post around it. | all |
 | `video_post` | Post one video as a YouTube video or Short, TikTok, Instagram Reel, Facebook Reel and more, with the right settings for each. | all |
-| `carousel_post` | A multi-image post: Instagram, Facebook or Threads carousel, Pinterest carousel, LinkedIn multi-image. | all |
+| `carousel_post` | A multi-image post: Instagram, Facebook or Threads carousel, Pinterest carousel, LinkedIn multi-image, TikTok photo slideshow. | all |
 | `poll_post` | Post a native poll on X, LinkedIn, Threads, Mastodon, Discord or Telegram. | all |
 | `repost_or_quote` | Repost or quote an existing post on X, Bluesky, Threads or Mastodon, reshare on LinkedIn, or reblog on Tumblr. | all |
 | `story_post` | Post an image or short video as an Instagram, Facebook or Snapchat story. | all |

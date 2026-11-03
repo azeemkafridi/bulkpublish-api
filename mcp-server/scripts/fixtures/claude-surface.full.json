@@ -144,7 +144,7 @@
     {
       "name": "create_post",
       "title": "Create post",
-      "description": "Create a new social media post. Can be saved as a draft or scheduled for a specific time. Supports platform-specific content overrides, media attachments, labels, and thread format. IMPORTANT: YouTube and TikTok REQUIRE video — do not include them when posting images only. Instagram defaults to feed_photo — set postTypeOverrides for video content (reel, feed_video). Use this when the user wants to draft or schedule one new post. It never publishes immediately; publish_post does that.",
+      "description": "Create a new social media post. Can be saved as a draft or scheduled for a specific time. Supports platform-specific content overrides, media attachments, labels, and thread format. IMPORTANT: YouTube requires a video. TikTok requires a video, or 1 to 35 images with postTypeOverrides.tiktok = \"photo_slideshow\". Do not include either on a text-only post. Instagram defaults to feed_photo — set postTypeOverrides for video content (reel, feed_video). Use this when the user wants to draft or schedule one new post. It never publishes immediately; publish_post does that.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -10237,7 +10237,7 @@
     {
       "name": "carousel_post",
       "title": "Create a carousel",
-      "description": "A multi-image post: Instagram, Facebook or Threads carousel, Pinterest carousel, LinkedIn multi-image.",
+      "description": "A multi-image post: Instagram, Facebook or Threads carousel, Pinterest carousel, LinkedIn multi-image, TikTok photo slideshow.",
       "arguments": [
         {
           "name": "images",

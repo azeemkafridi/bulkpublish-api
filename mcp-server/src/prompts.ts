@@ -60,7 +60,7 @@ function mediaSources(ctx: PromptCtx): string {
 }
 
 const MEDIA_RULES =
-  "Media rules the server enforces: YouTube and TikTok need a video (do not put them on an image-only or text-only post). " +
+  "Media rules the server enforces: YouTube needs a video. TikTok needs a video, or 1 to 35 images with postTypeOverrides.tiktok 'photo_slideshow' (images only, no video); neither goes on a text-only post. " +
   "Instagram defaults to a feed photo, so a video needs postTypeOverrides.instagram 'reel' or 'feed_video', and a carousel needs at least 2 files. " +
   "A Pinterest carousel takes 2 to 5 images. Every Snapchat post needs exactly one image or video. " +
   "Video lengths are checked when the post is scheduled or published: Instagram reel/feed_video 3s to 15min, story 3s to 60s; Facebook reel 3s to 90s, story 3s to 60s; Threads video up to 5min; LinkedIn 3s to 30min; Pinterest video pin at least 4s; Snapchat story 5s to 60s, spotlight 6s to 60s.";
@@ -99,8 +99,8 @@ const PLATFORM_GUIDES: Record<string, PlatformGuide> = {
   tiktok: {
     label: "TikTok",
     guide: () =>
-      "A TikTok post needs a video. platformSpecific.tiktok: `privacyLevel` (PUBLIC_TO_EVERYONE by default, or MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR, SELF_ONLY), `disableDuet`, `disableStitch`, `disableComment`, `isAigc` for AI-generated content, " +
-      "`brandContentToggle` / `brandOrganicToggle` for paid or own-brand promotion, `thumbnailTimestamp` (cover frame, seconds). `sendToDrafts: true` delivers it to the creator's TikTok drafts instead of publishing (a video draft carries no caption).",
+      "A TikTok post is a video, or a photo slideshow of 1 to 35 images with postTypeOverrides.tiktok 'photo_slideshow' (images only; without that type, images are refused). platformSpecific.tiktok: `privacyLevel` (PUBLIC_TO_EVERYONE by default, or MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR, SELF_ONLY), `disableDuet`, `disableStitch`, `disableComment`, `isAigc` for AI-generated content, " +
+      "`brandContentToggle` / `brandOrganicToggle` for paid or own-brand promotion, `thumbnailTimestamp` (video cover frame, seconds); for a slideshow, `photoCoverIndex` (cover image, counting from 0) and `autoAddMusic: true` to let TikTok add a track (off by default). `sendToDrafts: true` delivers it to the creator's TikTok drafts instead of publishing (a video draft carries no caption, a photo draft does).",
   },
   youtube: {
     label: "YouTube",
@@ -412,14 +412,14 @@ const PROMPTS: PromptDef[] = [
   {
     name: "carousel_post",
     title: "Create a carousel",
-    description: "A multi-image post: Instagram, Facebook or Threads carousel, Pinterest carousel, LinkedIn multi-image.",
+    description: "A multi-image post: Instagram, Facebook or Threads carousel, Pinterest carousel, LinkedIn multi-image, TikTok photo slideshow.",
     requires: ["list_channels", "upload_media", "create_post"],
     args: { images: { description: "Links to the images, or say they are attached.", required: true } },
     text: (a, ctx) =>
       "Create a carousel post." +
       given("Images", a.images) +
       "\n" + mediaSources(ctx) +
-      "\nUpload in the order they should appear. Set postTypeOverrides: instagram 'carousel' (2 or more files), facebook 'carousel', threads 'carousel', pinterest 'carousel' (2 to 5 images), linkedin 'multi_image'. On Instagram, `collaborators` co-author the whole carousel.\n" +
+      "\nUpload in the order they should appear. Set postTypeOverrides: instagram 'carousel' (2 or more files), facebook 'carousel', threads 'carousel', pinterest 'carousel' (2 to 5 images), linkedin 'multi_image', tiktok 'photo_slideshow' (1 to 35 images, the first is the cover unless platformSpecific.tiktok.photoCoverIndex says otherwise). On Instagram, `collaborators` co-author the whole carousel.\n" +
       "Write a caption, show me the order and text, and on my OK call create_post with mediaFileIds.",
   },
   {

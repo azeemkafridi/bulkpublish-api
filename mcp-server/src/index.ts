@@ -1330,9 +1330,19 @@ function validatePlatformRequirements(
         }
         break;
       case "tiktok":
-        if (!hasVideo) {
+        // The API validates a typeless TikTok post as a video, so a slideshow
+        // must be asked for by name.
+        if (postType === "photo_slideshow") {
+          const images = medias.filter((m) => IMAGE_MIMES.has(m.mimeType)).length;
+          if (hasVideo || images !== medias.length)
+            errors.push(`TikTok photo_slideshow takes images only, no video.`);
+          else if (images > 35)
+            errors.push(`TikTok photo_slideshow takes at most 35 images.`);
+        } else if (!hasVideo) {
           errors.push(
-            `TikTok requires a video file (or images for photo_slideshow). Either remove TikTok or attach a video.`
+            hasImage
+              ? `TikTok needs a video, or postTypeOverrides.tiktok set to "photo_slideshow" to post these images as a slideshow (1 to 35 images).`
+              : `TikTok requires a video file. Either remove TikTok or attach a video.`
           );
         }
         break;
@@ -1364,7 +1374,7 @@ function validatePlatformRequirements(
 server.tool(
   "create_post",
   "Create a new social media post. Can be saved as a draft or scheduled for a specific time. Supports platform-specific content overrides, media attachments, labels, and thread format. " +
-    "IMPORTANT: YouTube and TikTok REQUIRE video — do not include them when posting images only. " +
+    "IMPORTANT: YouTube requires a video. TikTok requires a video, or 1 to 35 images with postTypeOverrides.tiktok = \"photo_slideshow\". Do not include either on a text-only post. " +
     "Instagram defaults to feed_photo — set postTypeOverrides for video content (reel, feed_video).",
   {
     content: z
@@ -1566,7 +1576,7 @@ server.tool(
           content: [
             {
               type: "text" as const,
-              text: `Validation error: ${names} requires a video file. Either remove these platforms or attach a video via mediaFileIds.`,
+              text: `Validation error: ${names} requires media (YouTube a video; TikTok a video, or images with postTypeOverrides.tiktok = "photo_slideshow"). Either remove these platforms or attach media via mediaFileIds.`,
             },
           ],
         };
