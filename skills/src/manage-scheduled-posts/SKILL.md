@@ -57,9 +57,13 @@ scheduled again later.
 
 ## Deleting
 
-`delete_post` takes only `draft` and `failed` posts and is permanent. A
-published post stays on the platforms and cannot be removed from here. List
-what will be deleted (ID and first line) and get an explicit yes. <<<full: For many, `bulk_posts` with `action: "delete"` (up to 100 IDs).>>>
+`delete_post` is permanent. It takes any post except one that is publishing
+right now (**409** `PUBLISH_IN_PROGRESS`; wait for it to finish). It removes the
+post from BulkPublish only: a published post stays live on the platforms, and
+its stats here go with it. Deleting a post made by a repeat schedule
+(`recurringScheduleId` set) also switches that schedule off; to skip one
+occurrence, unschedule it instead. List what will be deleted (ID and first
+line) and get an explicit yes. <<<full: For many, `bulk_posts` with `action: "delete"` (up to 100 IDs).>>>
 
 ## Publishing now
 

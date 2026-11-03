@@ -646,7 +646,7 @@ const PROMPTS: PromptDef[] = [
     text: (a, ctx) =>
       "Clean up posts." +
       given("Which", a.which) +
-      "\nOnly draft and failed posts can be deleted; published posts stay on the platforms and cannot be removed from here. " +
+      "\nDeleting removes a post from BulkPublish only: a published post stays live on the platforms, so do not offer it as a way to take one down. Deleting a post made by a repeat schedule also switches that schedule off, so leave those out unless I name them. " +
       "Find candidates with list_posts (status 'draft' or 'failed'), show me the list with IDs and first lines, and wait for an explicit yes. Deleting is permanent. Then call delete_post for each" +
       (ctx.has("bulk_posts") ? " (or bulk_posts with action 'delete' for up to 100 at a time)." : "."),
   },

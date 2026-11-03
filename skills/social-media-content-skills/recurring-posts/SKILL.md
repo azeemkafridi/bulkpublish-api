@@ -46,5 +46,8 @@ fires; it carries `recurringScheduleId`.
 - `delete_schedule` stops it for good; posts it already made stay.
 - `list_posts` with `recurring` lists the posts schedules made.
 
+Deleting any post a schedule made (`delete_post`) also switches that schedule
+off. To skip one occurrence, set that post to `draft` with `update_post`.
+
 Media on a repeating post is always kept in the library, even when
 `deleteMediaAfterPublish` is set.

@@ -2636,7 +2636,7 @@ server.tool(
 
 server.tool(
   "delete_post",
-  "Delete a post by ID. Only draft and failed posts can be deleted.",
+  "Delete a post by ID. Any post can be deleted except one that is publishing right now (409 PUBLISH_IN_PROGRESS; wait for it to finish). Deleting removes the post from BulkPublish only: a published post stays live on the platforms, and its stats here are removed with it. Deleting a post made by a repeat schedule also switches that schedule off.",
   {
     postId: z.number().describe("The post ID to delete."),
   },

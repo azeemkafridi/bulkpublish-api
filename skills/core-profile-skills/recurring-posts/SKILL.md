@@ -22,5 +22,8 @@ Sunday … 6 = Saturday) for weekly and biweekly; `dayOfMonth` for monthly;
 `timeOfDay` as `"HH:MM"`. Send it with `status: "scheduled"` and the first
 `scheduledAt`.
 
+Deleting any post a schedule made (`delete_post`) also switches that schedule
+off. To skip one occurrence, set that post to `draft` with `update_post`.
+
 Media on a repeating post is always kept in the library, even when
 `deleteMediaAfterPublish` is set.

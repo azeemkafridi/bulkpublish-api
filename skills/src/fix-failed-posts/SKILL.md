@@ -50,5 +50,5 @@ earlier can publish the post twice.
   yes before retrying or editing anything.
 - Report what actually happened from the response, per destination; do not
   say a post "went out" until its destination shows it.
-- Published posts cannot be deleted from here; `delete_post` takes only draft
-  and failed posts.
+- `delete_post` removes a post from BulkPublish only. A published destination
+  stays live on its platform, so deleting is never a way to take one down.
