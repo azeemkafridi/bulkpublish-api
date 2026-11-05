@@ -263,7 +263,7 @@ describe("POST /token jwt-bearer", () => {
 
   test("rate limited per address", async () => {
     let last: Captured | undefined;
-    for (let i = 0; i < 61; i++) last = await run(grant(), {}, "198.18.0.77");
+    for (let i = 0; i < 1201; i++) last = await run(grant(), {}, "198.18.0.77");
     assert.equal(last!.status, 429);
   });
 });

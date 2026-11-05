@@ -32,10 +32,14 @@ const BASE_URL = (process.env.BULKPUBLISH_BASE_URL || "https://app.bulkpublish.c
 /** Claude waits 10 seconds on the token endpoint; answer well inside it. */
 const UPSTREAM_TIMEOUT_MS = 7000;
 
-// A small per-IP limiter: this handler runs before the SDK's token router, so
-// that router's own limiter never sees these requests.
+// A per-IP limiter: this handler runs before the SDK's token router, so that
+// router's own limiter never sees these requests. Deliberately generous: every
+// Claude organization's renewals come from Anthropic's shared egress range
+// (160.79.104.0/21), one per member per hour, so a tight per-IP cap would
+// throttle all customers at once. It only stops a single address hammering us;
+// the assertion checks are what keep anyone out.
 const WINDOW_MS = 60 * 1000;
-const MAX_PER_WINDOW = 60;
+const MAX_PER_WINDOW = 1200;
 const hits = new Map<string, { count: number; resetAt: number }>();
 function rateLimited(ip: string): boolean {
   const now = Date.now();
