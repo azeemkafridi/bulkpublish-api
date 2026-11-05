@@ -1,7 +1,7 @@
 {
   "name": "@bulkpublish/mcp-server",
-  "version": "1.50.0",
-  "description": "Model Context Protocol server for BulkPublish — lets AI assistants manage social media posts, channels, media, and analytics.",
+  "version": "1.51.0",
+  "description": "Model Context Protocol server for BulkPublish \u2014 lets AI assistants manage social media posts, channels, media, and analytics.",
   "homepage": "https://www.bulkpublish.com",
   "mcpName": "io.github.azeemkafridi/bulkpublish",
   "repository": {
@@ -27,7 +27,8 @@
     "check:parity": "node scripts/check-host-parity.mjs",
     "check:prompts": "node scripts/check-prompts.mjs && BULKPUBLISH_HIDE_BILLING=1 node scripts/check-prompts.mjs",
     "check:skills": "node scripts/build-skills.mjs --check && node scripts/check-core-skills.mjs && node scripts/check-core-skills.mjs --profile inbox && node scripts/check-core-skills.mjs --profile full",
-    "build:skills": "node scripts/build-skills.mjs"
+    "build:skills": "node scripts/build-skills.mjs",
+    "test": "node --import tsx --test test/*.test.ts"
   },
   "keywords": [
     "mcp",

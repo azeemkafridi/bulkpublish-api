@@ -45,6 +45,7 @@ import { createServer, requestContext, resolveToolProfile, type ToolProfile } fr
 // listings are ready for the new tools, not as a side effect of a release.
 const TOOL_PROFILE: ToolProfile = resolveToolProfile("core");
 import { oauthProvider, handleConsent } from "./oauth.js";
+import { managedAuthMetadata, managedAuthTokenHandler } from "./managed-auth.js";
 
 const PORT = Number(process.env.PORT) || 8080;
 const MCP_PATH = "/mcp";
@@ -312,14 +313,22 @@ app.get(
 // set it — see handleConsent). The SDK's router builds the metadata document
 // itself and has no hook for extra fields, so augment its JSON on the way out.
 // Registered BEFORE mcpAuthRouter because Express runs matching handlers in
-// registration order.
+// registration order. With MANAGED_AUTH on, managedAuthMetadata also lists the
+// jwt-bearer grant and Client ID Metadata Document support (src/managed-auth.ts);
+// with it off the document is exactly what it was. Always a copy: the router
+// hands the same object to every request.
 app.get(
   ["/.well-known/oauth-authorization-server", "/.well-known/oauth-authorization-server/*splat"],
   (_req: Request, res: Response, next: NextFunction) => {
     const json = res.json.bind(res);
     res.json = (body: unknown) => {
       if (body && typeof body === "object" && "issuer" in body) {
-        (body as Record<string, unknown>).authorization_response_iss_parameter_supported = true;
+        return json(
+          managedAuthMetadata({
+            ...(body as Record<string, unknown>),
+            authorization_response_iss_parameter_supported: true,
+          })
+        );
       }
       return json(body);
     };
@@ -357,6 +366,11 @@ app.get(`/.well-known/oauth-protected-resource${MCP_FULL_PATH}`, (req: Request, 
   req.url = `/.well-known/oauth-protected-resource${MCP_PATH}`;
   next();
 });
+
+// Enterprise-managed authorization: the jwt-bearer grant on /token. Every other
+// grant falls through to the SDK's token handler below, and so does this one
+// while MANAGED_AUTH is off. Registered BEFORE mcpAuthRouter.
+app.post("/token", managedAuthTokenHandler(PUBLIC_BASE));
 
 // OAuth 2.1 server: /.well-known/oauth-authorization-server, /.well-known/
 // oauth-protected-resource, /authorize, /token, /register, /revoke.

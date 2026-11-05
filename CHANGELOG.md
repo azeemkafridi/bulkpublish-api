@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-11-05 — Auto-connect (enterprise-managed authorization) on the hosted server
+
+MCP **1.51.0**
+
+### Added
+
+- **Hosted MCP server:** organizations can connect their members without each person signing in. The server accepts an identity assertion from the customer's Claude organization or identity provider at its token endpoint (`grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer`, the MCP `io.modelcontextprotocol/enterprise-managed-authorization` extension) and returns an access token for that member of the BulkPublish workspace that trusts the issuer. The workspace owner sets this up under Settings → MCP Auto-connect in BulkPublish. Access tokens from this grant last up to an hour and come with no refresh token; the client renews them with a new assertion. Off unless the server runs with `MANAGED_AUTH=on`.
+- **Hosted MCP server:** Client ID Metadata Documents. A client whose `client_id` is an https URL (Claude's is `https://claude.ai/oauth/mcp-oauth-client-metadata`) is described by the document at that URL instead of registering. Only public clients are accepted. While auto-connect is on, the authorization-server metadata lists `client_id_metadata_document_supported: true` and the jwt-bearer grant; everything else in it is unchanged.
+- **MCP server:** `npm test` (Node's test runner): the token-endpoint handler, the metadata additions and metadata-document parsing.
+
+### Fixed
+
+- **Hosted MCP server:** the sign-in form now accepts a loopback redirect on any port (RFC 8252), as the authorize step already did. A native client that registers `http://localhost/callback` and listens on a random port reached the form and was then refused.
+
+### Unchanged
+
+- Dynamic client registration, the authorization-code and refresh grants, and tokens already issued work exactly as before, with the feature on or off. Tools, prompts, resources and their schemas are unchanged.
+
 ## 2026-11-03 — MCP prompts; skills from one source
 
 MCP **1.50.0** · Node **1.44.5** · Python **0.45.4**

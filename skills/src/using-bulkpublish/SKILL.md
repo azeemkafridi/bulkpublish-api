@@ -14,7 +14,11 @@ a rejected request.
 Connect the hosted server at `mcp.bulkpublish.com/mcp` over Streamable HTTP
 (the Claude Code plugin uses `mcp.bulkpublish.com/mcp/full`, which serves every
 tool). Sign-in is OAuth: a BulkPublish page asks for an API key once, from
-Settings then Developer.
+Settings then Developer. In an organization whose BulkPublish workspace owner
+has turned on auto-connect, there is no page at all: the organization signs its
+members in. If someone in such an organization is still asked for a key, their
+verified email address in the BulkPublish workspace is probably not the one
+their organization uses, which the workspace owner can fix.
 
 ## How to behave
 

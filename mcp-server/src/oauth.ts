@@ -26,11 +26,13 @@ import type {
   AuthorizationParams,
 } from "@modelcontextprotocol/sdk/server/auth/provider.js";
 import type { OAuthRegisteredClientsStore } from "@modelcontextprotocol/sdk/server/auth/clients.js";
+import { redirectUriMatches } from "@modelcontextprotocol/sdk/server/auth/handlers/authorize.js";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import type {
   OAuthClientInformationFull,
   OAuthTokens,
 } from "@modelcontextprotocol/sdk/shared/auth.js";
+import { getMetadataDocumentClient } from "./cimd.js";
 
 const BASE_URL = (
   process.env.BULKPUBLISH_BASE_URL || "https://app.bulkpublish.com"
@@ -61,6 +63,23 @@ if (!process.env.OAUTH_SIGNING_SECRET) {
 const KEY = scryptSync(SECRET, "bulkpublish-oauth-v1", 32);
 
 const ACCESS_TTL = 3600; // 1h
+
+/**
+ * Enterprise-managed authorization ("auto-connect", src/managed-auth.ts) and
+ * the Client ID Metadata Documents it needs (src/cimd.ts). Off unless
+ * MANAGED_AUTH=on AND MANAGED_AUTH_SECRET is set: with it off, the metadata,
+ * the token endpoint and client lookup behave exactly as before, so DCR
+ * clients (ChatGPT, existing Claude connections) see no change at all.
+ */
+export function managedAuthEnabled(): boolean {
+  return (
+    (process.env.MANAGED_AUTH ?? "").trim().toLowerCase() === "on" &&
+    !!process.env.MANAGED_AUTH_SECRET
+  );
+}
+if ((process.env.MANAGED_AUTH ?? "").trim().toLowerCase() === "on" && !process.env.MANAGED_AUTH_SECRET) {
+  console.error("Warning: MANAGED_AUTH=on but MANAGED_AUTH_SECRET is not set — auto-connect stays off.");
+}
 const REFRESH_TTL = 60 * 60 * 24 * 30; // 30d
 const CODE_TTL = 600; // 10m
 
@@ -162,8 +181,13 @@ export function isAllowedRedirectUri(raw: string): boolean {
 }
 
 // --- stateless clients store (client_id IS a sealed blob) -------------------
-const clientsStore: OAuthRegisteredClientsStore = {
+export const clientsStore: OAuthRegisteredClientsStore = {
   async getClient(clientId) {
+    // A URL is a Client ID Metadata Document, never one of our sealed ids
+    // (base64url segments joined by dots cannot contain "://").
+    if (clientId.startsWith("https://")) {
+      return managedAuthEnabled() ? getMetadataDocumentClient(clientId, isAllowedRedirectUri) : undefined;
+    }
     const c = open<
       Sealed & {
         redirect_uris?: string[];
@@ -454,6 +478,17 @@ export const oauthProvider: OAuthServerProvider = {
   },
 };
 
+/**
+ * An access token with no refresh token, for the jwt-bearer grant: the client
+ * renews it with a fresh identity assertion, and Claude's docs say not to
+ * issue one. `credential` is the short-lived bpat_ token the webapp minted.
+ */
+export function sealAccessToken(credential: string, ttlSec: number): string {
+  return seal({ t: "at", k: credential }, ttlSec);
+}
+
+export { ACCESS_TTL };
+
 function issueTokens(bpKey: string, clientId: string): OAuthTokens {
   return {
     access_token: seal({ t: "at", k: bpKey }, ACCESS_TTL),
@@ -482,7 +517,15 @@ export async function handleConsent(req: Request, res: Response): Promise<void> 
   // Prevent open redirects: redirect_uri must belong to the registered client.
   // Also re-checks the scheme: client ids are sealed blobs that outlive a
   // deploy, so one registered before the https rule would otherwise still work.
-  if (!client || !client.redirect_uris.includes(redirectUri) || !isAllowedRedirectUri(redirectUri)) {
+  // RFC 8252 §7.3: a loopback redirect matches on any port. Claude Code's
+  // metadata document registers http://localhost/callback and connects on an
+  // ephemeral port; the SDK's authorize handler already matches this way, so
+  // the consent POST must agree with it or that flow dead-ends here.
+  if (
+    !client ||
+    !client.redirect_uris.some((registered) => redirectUriMatches(redirectUri, registered)) ||
+    !isAllowedRedirectUri(redirectUri)
+  ) {
     res.status(400).send("Invalid client or redirect_uri.");
     return;
   }

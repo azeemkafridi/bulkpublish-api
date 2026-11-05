@@ -114,6 +114,12 @@ docker build -t bulkpublish-mcp . && docker run -p 8080:8080 bulkpublish-mcp
 
 Once deployed, add it to **claude.ai → Settings → Connectors → Add custom connector** as `https://<host>/mcp?key=bp_…`, or publish the `https://<host>/mcp` URL to Smithery.
 
+### Auto-connect for organizations
+
+The hosted server at `https://mcp.bulkpublish.com/mcp` supports enterprise-managed authorization (the MCP `io.modelcontextprotocol/enterprise-managed-authorization` extension). An organization on Claude Team or Enterprise can connect every member to BulkPublish at once, with no sign-in screen and no pasted API key: the workspace owner trusts the organization's issuer (its Claude organization, or its identity provider) under **Settings → MCP Auto-connect** in BulkPublish, and members are matched to the workspace by their verified email address. In Claude, an organization Owner sets it up under **Organization settings → Connectors → Set up auto-connect**.
+
+For client developers: the token endpoint accepts `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer` with an identity assertion, from a public client identified by a Client ID Metadata Document (an https `client_id`). Access tokens from this grant last up to an hour and carry no refresh token. Dynamic client registration and the authorization-code flow are unchanged.
+
 ### Tool profiles
 
 The server ships three tool profiles, chosen with `BULKPUBLISH_TOOL_PROFILE`:
