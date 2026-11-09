@@ -353,11 +353,39 @@ const SNAPCHAT_OPTIONS = z
       .string()
       .optional()
       .describe("Spotlight locale, e.g. 'en_US'. Defaults to 'en_US'."),
+    link: z
+      .string()
+      .optional()
+      .describe(
+        "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story."
+      ),
+    linkStickerText: z
+      .string()
+      .optional()
+      .describe("Text on the link sticker: one line, up to 40 characters, no emoji. Needs link."),
+    linkStickerPosition: z
+      .enum(["top", "middle", "bottom"])
+      .optional()
+      .describe("Where the link sticker sits. Needs link. Snapchat centres it when omitted."),
+    overlayText: z
+      .string()
+      .optional()
+      .describe(
+        "Story and Spotlight. On-screen text shown on the snap, up to 250 characters, no emoji. Separate from the caption."
+      ),
+    overlayPosition: z
+      .enum(["top", "middle", "bottom"])
+      .optional()
+      .describe("Where the on-screen text sits. Snapchat's default when omitted."),
+    storyDurationDays: z
+      .union([z.literal(1), z.literal(2), z.literal(3), z.literal(7)])
+      .optional()
+      .describe("Story only. Days the story stays up: 1 (24 hours, the default), 2, 3 or 7."),
     saveToProfile: z
       .boolean()
       .optional()
       .describe(
-        "Spotlight only. Default true; false sends skip_save_to_profile to Snap."
+        "Deprecated: accepted but has no effect. Snapchat no longer lets an app choose whether a Spotlight is saved to the profile."
       ),
   })
   .passthrough();

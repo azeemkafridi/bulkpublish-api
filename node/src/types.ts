@@ -709,8 +709,12 @@ export interface CreatePostParams {
    * - **tumblr**: Optional: `state` (`'published'|'queue'|'draft'|'private'`; `draft` and `private` override scheduling), `slug` (up to 200 chars), `reblogInteraction` (`'everyone'|'noone'`), `reblogUrl` (a Tumblr post link: publishes a reblog with your text as the comment), `blogName` (defaults to the blog the channel was connected as), `title`, `tags` (array of strings, or one comma-separated string; leading '#' and blank entries are dropped)
    *   (string[], no leading `#`), `link`, `sourceUrl`
    * - **snapchat**: Optional: `title` (Saved Story title, max 45 chars — defaults to the caption's first
-   *   line, truncated), `locale` (Spotlight locale, default `'en_US'`), `saveToProfile` (Spotlight only,
-   *   default `true`; `false` sends skip_save_to_profile). Every Snapchat post requires exactly ONE image or
+   *   line, truncated), `locale` (Spotlight locale, default `'en_US'`). Story and Spotlight also take
+   *   `link` (full http(s) URL, opened from a link sticker), `linkStickerText` (up to 40 chars, one line, no emoji),
+   *   `linkStickerPosition` and `overlayPosition` (`'top'|'middle'|'bottom'`), `overlayText` (on-screen text,
+   *   up to 250 chars, no emoji) and, Story only, `storyDurationDays` (`1|2|3|7`, default 1). A video with a link
+   *   or on-screen text must be vertical (9:16). `saveToProfile` is still accepted but has no effect: Snapchat
+   *   no longer lets an app choose it. Every Snapchat post requires exactly ONE image or
    *   video (vertical; images jpg/png, videos mp4/mov, max 1GB; story video 5–60s). The caption is NOT sent for plain
    *   stories — it is used only as the Spotlight description (max 160 chars, truncated) and as the Saved
    *   Story title fallback. Spotlight is video-only (6–60s). A video outside its range is rejected with a 400

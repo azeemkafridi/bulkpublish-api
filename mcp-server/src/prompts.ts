@@ -187,7 +187,7 @@ const PLATFORM_GUIDES: Record<string, PlatformGuide> = {
     label: "Snapchat",
     guide: () =>
       "Every Snapchat post needs exactly one image or video. Post types (postTypeOverrides.snapchat): story (default; the caption is NOT sent; videos 5s to 60s), saved_story (has a title, up to 45 characters), spotlight (video only, 6s to 60s; the caption becomes its description, up to 160 characters). " +
-      "Options go under the BulkPublish channel id: platformSpecific.snapchat = { \"<channelId>\": { title, locale, saveToProfile } }.",
+      "Options go under the BulkPublish channel id: platformSpecific.snapchat = { \"<channelId>\": { title, locale, link, linkStickerText, linkStickerPosition, overlayText, overlayPosition, storyDurationDays } }. link and overlayText work on story and spotlight (a video with either must be vertical 9:16, no emoji in the text); storyDurationDays (1, 2, 3 or 7) is story only.",
   },
 };
 

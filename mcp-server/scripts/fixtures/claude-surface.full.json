@@ -1290,8 +1290,59 @@
                           "description": "Spotlight locale, e.g. 'en_US'. Defaults to 'en_US'.",
                           "type": "string"
                         },
+                        "link": {
+                          "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story.",
+                          "type": "string"
+                        },
+                        "linkStickerText": {
+                          "description": "Text on the link sticker: one line, up to 40 characters, no emoji. Needs link.",
+                          "type": "string"
+                        },
+                        "linkStickerPosition": {
+                          "description": "Where the link sticker sits. Needs link. Snapchat centres it when omitted.",
+                          "type": "string",
+                          "enum": [
+                            "top",
+                            "middle",
+                            "bottom"
+                          ]
+                        },
+                        "overlayText": {
+                          "description": "Story and Spotlight. On-screen text shown on the snap, up to 250 characters, no emoji. Separate from the caption.",
+                          "type": "string"
+                        },
+                        "overlayPosition": {
+                          "description": "Where the on-screen text sits. Snapchat's default when omitted.",
+                          "type": "string",
+                          "enum": [
+                            "top",
+                            "middle",
+                            "bottom"
+                          ]
+                        },
+                        "storyDurationDays": {
+                          "description": "Story only. Days the story stays up: 1 (24 hours, the default), 2, 3 or 7.",
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "const": 1
+                            },
+                            {
+                              "type": "number",
+                              "const": 2
+                            },
+                            {
+                              "type": "number",
+                              "const": 3
+                            },
+                            {
+                              "type": "number",
+                              "const": 7
+                            }
+                          ]
+                        },
                         "saveToProfile": {
-                          "description": "Spotlight only. Default true; false sends skip_save_to_profile to Snap.",
+                          "description": "Deprecated: accepted but has no effect. Snapchat no longer lets an app choose whether a Spotlight is saved to the profile.",
                           "type": "boolean"
                         }
                       },
@@ -1309,8 +1360,59 @@
                         "description": "Spotlight locale, e.g. 'en_US'. Defaults to 'en_US'.",
                         "type": "string"
                       },
+                      "link": {
+                        "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story.",
+                        "type": "string"
+                      },
+                      "linkStickerText": {
+                        "description": "Text on the link sticker: one line, up to 40 characters, no emoji. Needs link.",
+                        "type": "string"
+                      },
+                      "linkStickerPosition": {
+                        "description": "Where the link sticker sits. Needs link. Snapchat centres it when omitted.",
+                        "type": "string",
+                        "enum": [
+                          "top",
+                          "middle",
+                          "bottom"
+                        ]
+                      },
+                      "overlayText": {
+                        "description": "Story and Spotlight. On-screen text shown on the snap, up to 250 characters, no emoji. Separate from the caption.",
+                        "type": "string"
+                      },
+                      "overlayPosition": {
+                        "description": "Where the on-screen text sits. Snapchat's default when omitted.",
+                        "type": "string",
+                        "enum": [
+                          "top",
+                          "middle",
+                          "bottom"
+                        ]
+                      },
+                      "storyDurationDays": {
+                        "description": "Story only. Days the story stays up: 1 (24 hours, the default), 2, 3 or 7.",
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "const": 1
+                          },
+                          {
+                            "type": "number",
+                            "const": 2
+                          },
+                          {
+                            "type": "number",
+                            "const": 3
+                          },
+                          {
+                            "type": "number",
+                            "const": 7
+                          }
+                        ]
+                      },
                       "saveToProfile": {
-                        "description": "Spotlight only. Default true; false sends skip_save_to_profile to Snap.",
+                        "description": "Deprecated: accepted but has no effect. Snapchat no longer lets an app choose whether a Spotlight is saved to the profile.",
                         "type": "boolean"
                       }
                     },
@@ -6291,8 +6393,59 @@
                           "description": "Spotlight locale, e.g. 'en_US'. Defaults to 'en_US'.",
                           "type": "string"
                         },
+                        "link": {
+                          "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story.",
+                          "type": "string"
+                        },
+                        "linkStickerText": {
+                          "description": "Text on the link sticker: one line, up to 40 characters, no emoji. Needs link.",
+                          "type": "string"
+                        },
+                        "linkStickerPosition": {
+                          "description": "Where the link sticker sits. Needs link. Snapchat centres it when omitted.",
+                          "type": "string",
+                          "enum": [
+                            "top",
+                            "middle",
+                            "bottom"
+                          ]
+                        },
+                        "overlayText": {
+                          "description": "Story and Spotlight. On-screen text shown on the snap, up to 250 characters, no emoji. Separate from the caption.",
+                          "type": "string"
+                        },
+                        "overlayPosition": {
+                          "description": "Where the on-screen text sits. Snapchat's default when omitted.",
+                          "type": "string",
+                          "enum": [
+                            "top",
+                            "middle",
+                            "bottom"
+                          ]
+                        },
+                        "storyDurationDays": {
+                          "description": "Story only. Days the story stays up: 1 (24 hours, the default), 2, 3 or 7.",
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "const": 1
+                            },
+                            {
+                              "type": "number",
+                              "const": 2
+                            },
+                            {
+                              "type": "number",
+                              "const": 3
+                            },
+                            {
+                              "type": "number",
+                              "const": 7
+                            }
+                          ]
+                        },
                         "saveToProfile": {
-                          "description": "Spotlight only. Default true; false sends skip_save_to_profile to Snap.",
+                          "description": "Deprecated: accepted but has no effect. Snapchat no longer lets an app choose whether a Spotlight is saved to the profile.",
                           "type": "boolean"
                         }
                       },
@@ -6310,8 +6463,59 @@
                         "description": "Spotlight locale, e.g. 'en_US'. Defaults to 'en_US'.",
                         "type": "string"
                       },
+                      "link": {
+                        "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story.",
+                        "type": "string"
+                      },
+                      "linkStickerText": {
+                        "description": "Text on the link sticker: one line, up to 40 characters, no emoji. Needs link.",
+                        "type": "string"
+                      },
+                      "linkStickerPosition": {
+                        "description": "Where the link sticker sits. Needs link. Snapchat centres it when omitted.",
+                        "type": "string",
+                        "enum": [
+                          "top",
+                          "middle",
+                          "bottom"
+                        ]
+                      },
+                      "overlayText": {
+                        "description": "Story and Spotlight. On-screen text shown on the snap, up to 250 characters, no emoji. Separate from the caption.",
+                        "type": "string"
+                      },
+                      "overlayPosition": {
+                        "description": "Where the on-screen text sits. Snapchat's default when omitted.",
+                        "type": "string",
+                        "enum": [
+                          "top",
+                          "middle",
+                          "bottom"
+                        ]
+                      },
+                      "storyDurationDays": {
+                        "description": "Story only. Days the story stays up: 1 (24 hours, the default), 2, 3 or 7.",
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "const": 1
+                          },
+                          {
+                            "type": "number",
+                            "const": 2
+                          },
+                          {
+                            "type": "number",
+                            "const": 3
+                          },
+                          {
+                            "type": "number",
+                            "const": 7
+                          }
+                        ]
+                      },
                       "saveToProfile": {
-                        "description": "Spotlight only. Default true; false sends skip_save_to_profile to Snap.",
+                        "description": "Deprecated: accepted but has no effect. Snapchat no longer lets an app choose whether a Spotlight is saved to the profile.",
                         "type": "boolean"
                       }
                     },

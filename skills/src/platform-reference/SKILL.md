@@ -461,13 +461,20 @@ A chain of posts is not a post type here: send `postFormat: "thread"` with `thre
 **platformSpecific** — keyed by **channel ID** (a flat object applies to every Snapchat channel):
 
 ```json
-{"platformSpecific": {"snapchat": {"12": {"title": "Behind the scenes", "locale": "en_US", "saveToProfile": true}}}}
+{"platformSpecific": {"snapchat": {"12": {"link": "https://example.com/drop", "linkStickerText": "Shop now", "overlayText": "Spring drop is live", "storyDurationDays": 3}}}}
 ```
 
 | Option | Notes |
 |---|---|
 | `title` | Saved Story title, max 45 chars. Defaults to the caption's first line, truncated. |
 | `locale` | Spotlight locale. Default `en_US`. |
-| `saveToProfile` | Spotlight only. Default `true`; `false` sends `skip_save_to_profile`. |
+| `link` | Story and Spotlight. Full http(s) URL, opened from a link sticker on the snap. |
+| `linkStickerText` | Up to 40 characters, one line, no emoji. Needs `link`. |
+| `linkStickerPosition` | `top`, `middle` or `bottom`. Needs `link`. Centred when omitted. |
+| `overlayText` | Story and Spotlight. On-screen text, up to 250 characters, no emoji. Not the caption. |
+| `overlayPosition` | `top`, `middle` or `bottom`. |
+| `storyDurationDays` | Story only. `1` (24 hours, default), `2`, `3` or `7`. |
+
+A video with `link` or `overlayText` must be vertical (9:16); photos of any shape work. `saveToProfile` is still accepted but does nothing: Snapchat no longer lets an app choose it.
 
 **Gotchas:** `_firstComment` is NOT supported. Engagement (individual comments/reactions) is not readable. Metrics ARE reported: impressions, reach, likes, comments, shares, clicks, video views.

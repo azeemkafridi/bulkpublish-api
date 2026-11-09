@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-11-09 — Snapchat: link sticker, on-screen text and Story length
+
+MCP **1.52.0** · Node SDK **1.44.6** · Python SDK **0.45.5**
+
+### Added
+
+- **Snapchat Story and Spotlight options** under `platformSpecific.snapchat.<channelId>`: `link` (a full http(s) URL, opened from a link sticker on the snap), `linkStickerText` (up to 40 characters, one line, no emoji), `linkStickerPosition` and `overlayPosition` (`top`, `middle` or `bottom`), and `overlayText` (on-screen text, up to 250 characters, no emoji). A video carrying a link or on-screen text must be vertical (9:16); photos of any shape work. Saved Stories ignore all of them.
+- **Snapchat `storyDurationDays`** (Story only): `1` (24 hours, the default), `2`, `3` or `7`.
+- Invalid values are refused with `400 VALIDATION_ERROR` when the post is saved, whatever its post type. The MCP `create_post` / `update_post` schemas, the OpenAPI spec, the Postman collection, the SDK docs and the platform-reference skill describe all six.
+
+### Changed
+
+- **Snapchat `saveToProfile` is deprecated.** It is still accepted but has no effect: Snapchat no longer lets an app choose whether a Spotlight is saved to the profile, so nothing is sent for it.
+
 ## 2026-11-05 — Auto-connect (enterprise-managed authorization) on the hosted server
 
 MCP **1.51.0**
