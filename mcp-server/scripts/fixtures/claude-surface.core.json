@@ -1272,7 +1272,7 @@
                           "type": "string"
                         },
                         "link": {
-                          "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story.",
+                          "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links.",
                           "type": "string"
                         },
                         "linkStickerText": {
@@ -1342,7 +1342,7 @@
                         "type": "string"
                       },
                       "link": {
-                        "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story.",
+                        "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links.",
                         "type": "string"
                       },
                       "linkStickerText": {
@@ -5658,7 +5658,7 @@
                           "type": "string"
                         },
                         "link": {
-                          "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story.",
+                          "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links.",
                           "type": "string"
                         },
                         "linkStickerText": {
@@ -5728,7 +5728,7 @@
                         "type": "string"
                       },
                       "link": {
-                        "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story.",
+                        "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links.",
                         "type": "string"
                       },
                       "linkStickerText": {

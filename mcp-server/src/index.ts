@@ -357,7 +357,7 @@ const SNAPCHAT_OPTIONS = z
       .string()
       .optional()
       .describe(
-        "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story."
+        "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links."
       ),
     linkStickerText: z
       .string()
