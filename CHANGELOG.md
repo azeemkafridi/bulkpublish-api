@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-11-10 — MCP server: handshake metadata and complete input descriptions
+
+MCP **1.53.0**
+
+### Added
+
+- **Server metadata in the handshake:** a display title (`BulkPublish`), a one-line description, the website link and a scalable icon, so clients and directories can show the server properly. The identifier `bulkpublish` is unchanged.
+- **Server instructions:** a short note sent on connection that tells an assistant where to start (`list_channels`), the order to create a post in, and to confirm before `publish_post`.
+- **Descriptions for every `create_post` / `update_post` input** that had none: each platform under `platformContent` and `postTypeOverrides`, and the YouTube, Pinterest, Google Business Profile and TikTok options, `shareToStory`, Threads `quotePostId`, and the Discord embed colour and poll `multiselect`.
+
+### Changed
+
+- The handshake now reports the package version instead of a fixed `1.0.0`.
+- ID inputs say which tool supplies them (`list_channels`, `list_posts`, `list_labels`).
+- The post `status` output description lists `publishing`, which `approve_post` and `publish_post` can return.
+
+No tool, input, output shape, annotation or capability changed: only descriptions and handshake metadata.
+
 ## 2026-11-09 — Snapchat: link sticker, on-screen text and Story length
 
 MCP **1.52.0** · Node SDK **1.44.6** · Python SDK **0.45.5**

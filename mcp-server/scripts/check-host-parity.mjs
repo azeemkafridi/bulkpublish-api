@@ -50,7 +50,10 @@ async function surface(profile) {
     }
   }
   const out = {
-    serverInfo: client.getServerVersion(),
+    // The announced version follows package.json, so pin its presence, not its
+    // value: a release bump is not a change to the surface.
+    serverInfo: { ...client.getServerVersion(), version: "<package version>" },
+    instructions: client.getInstructions() ?? null,
     capabilities: client.getServerCapabilities(),
     tools,
     resources,

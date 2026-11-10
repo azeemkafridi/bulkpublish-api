@@ -223,23 +223,24 @@ const POST_TYPE_OVERRIDES_SCHEMA = z
   .object({
     instagram: z
       .enum(["feed_photo", "feed_video", "reel", "story", "carousel"])
-      .optional(),
-    facebook: z.enum(["post", "video", "reel", "story", "carousel"]).optional(),
-    x: z.enum(["tweet", "video", "thread", "repost"]).optional(),
-    tiktok: z.enum(["video", "photo_slideshow"]).optional(),
-    youtube: z.enum(["video", "short"]).optional(),
-    threads: z.enum(["text", "image", "video", "carousel", "repost"]).optional(),
-    bluesky: z.enum(["post", "video", "thread", "repost"]).optional(),
+      .optional()
+      .describe("Post type for the post's Instagram destinations."),
+    facebook: z.enum(["post", "video", "reel", "story", "carousel"]).optional().describe("Post type for the post's Facebook destinations."),
+    x: z.enum(["tweet", "video", "thread", "repost"]).optional().describe("Post type for the post's X destinations."),
+    tiktok: z.enum(["video", "photo_slideshow"]).optional().describe("Post type for the post's TikTok destinations."),
+    youtube: z.enum(["video", "short"]).optional().describe("Post type for the post's YouTube destinations."),
+    threads: z.enum(["text", "image", "video", "carousel", "repost"]).optional().describe("Post type for the post's Threads destinations."),
+    bluesky: z.enum(["post", "video", "thread", "repost"]).optional().describe("Post type for the post's Bluesky destinations."),
     linkedin: z
       .enum(["post", "multi_image", "pdf_carousel", "article", "document", "poll", "reshare"])
       .optional()
       .describe("document: one PDF, Word or PowerPoint file from the media library (exactly one document, no images or videos; title from platformSpecific.linkedin.documentTitle). poll: a question with 2-4 answers from platformSpecific.linkedin.poll (needs post text, no media). reshare: shares an existing LinkedIn post from platformSpecific.linkedin.reshareId (post text optional, no media)."),
-    pinterest: z.enum(["pin", "video_pin", "carousel"]).optional(),
-    gmb: z.enum(["standard", "event", "offer"]).optional(),
-    mastodon: z.enum(["post", "thread", "repost"]).optional(),
-    discord: z.enum(["post"]).optional(),
-    telegram: z.enum(["post"]).optional(),
-    tumblr: z.enum(["post"]).optional(),
+    pinterest: z.enum(["pin", "video_pin", "carousel"]).optional().describe("Post type for the post's Pinterest destinations."),
+    gmb: z.enum(["standard", "event", "offer"]).optional().describe("Post type for the post's Google Business Profile destinations."),
+    mastodon: z.enum(["post", "thread", "repost"]).optional().describe("Post type for the post's Mastodon destinations."),
+    discord: z.enum(["post"]).optional().describe("Post type for the post's Discord destinations."),
+    telegram: z.enum(["post"]).optional().describe("Post type for the post's Telegram destinations."),
+    tumblr: z.enum(["post"]).optional().describe("Post type for the post's Tumblr destinations."),
     snapchat: z
       .enum(["story", "saved_story", "spotlight"])
       .optional()
@@ -272,7 +273,7 @@ const DISCORD_OPTIONS = z
     embed: z
       .object({
         title: z.string().optional().describe("Up to 256 characters."),
-        color: z.enum(["orange", "blue", "green", "red", "purple", "gray"]).optional(),
+        color: z.enum(["orange", "blue", "green", "red", "purple", "gray"]).optional().describe("Accent colour of the embed (default orange)."),
       })
       .optional()
       .describe("Send the text as a rich embed with the first image inside."),
@@ -281,7 +282,7 @@ const DISCORD_OPTIONS = z
         question: z.string().describe("Up to 300 characters."),
         answers: z.array(z.string()).describe("2 to 10 answers, each up to 55 characters."),
         durationHours: z.number().optional().describe("Whole hours 1 to 768 (default 24)."),
-        multiselect: z.boolean().optional(),
+        multiselect: z.boolean().optional().describe("true lets voters pick more than one answer."),
       })
       .optional()
       .describe("A native poll. The bot needs the Send Polls permission."),
@@ -398,12 +399,12 @@ const PLATFORM_SPECIFIC_SCHEMA = z
   .object({
     youtube: z
       .object({
-        title: z.string().optional(),
-        privacyStatus: z.enum(["public", "private", "unlisted"]).optional(),
-        categoryId: z.string().optional(),
-        madeForKids: z.boolean().optional(),
-        playlistId: z.string().optional(),
-        thumbnailUrl: z.string().optional(),
+        title: z.string().optional().describe("Video title, up to 100 characters. When omitted, the first line of the post text is used."),
+        privacyStatus: z.enum(["public", "private", "unlisted"]).optional().describe("Who can watch the video (default public)."),
+        categoryId: z.string().optional().describe("YouTube's numeric video category ID, as a string (default \"22\", People & Blogs)."),
+        madeForKids: z.boolean().optional().describe("true declares the video as made for kids (default false)."),
+        playlistId: z.string().optional().describe("Adds the video to this playlist once it is uploaded. Playlist IDs come from get_channel_options. If the playlist cannot be updated, the video still publishes."),
+        thumbnailUrl: z.string().optional().describe("Public URL of a custom thumbnail image, applied after the video uploads."),
         containsSyntheticMedia: z.boolean().optional().describe("true discloses realistic altered or synthetic content. Video and short posts."),
         notifySubscribers: z.boolean().optional().describe("Only an explicit false changes anything: publishes without notifying subscribers."),
         license: z.enum(["youtube", "creativeCommon"]).optional().describe("Default youtube; creativeCommon publishes under Creative Commons Attribution."),
@@ -414,12 +415,13 @@ const PLATFORM_SPECIFIC_SCHEMA = z
         recordingDate: z.string().optional().describe("YYYY-MM-DD or an ISO 8601 date-time; a plain date is stored as midnight UTC."),
       })
       .passthrough()
-      .optional(),
+      .optional()
+      .describe("Options for the post's YouTube destinations."),
     pinterest: z
       .object({
-        title: z.string().optional(),
-        description: z.string().optional(),
-        link: z.string().optional(),
+        title: z.string().optional().describe("Pin title, up to 100 characters. When omitted, the start of the post text is used."),
+        description: z.string().optional().describe("Pin description, up to 500 characters. When omitted, the post text is used."),
+        link: z.string().optional().describe("Destination URL the pin opens."),
         dominantColor: z.string().optional().describe("Hex color e.g. #FF5733"),
         coverImageUrl: z
           .string()
@@ -437,31 +439,33 @@ const PLATFORM_SPECIFIC_SCHEMA = z
           .describe("video_pin only: use the frame at this many seconds (whole number, 0 or more) as the cover. A time past the end uses the last frame; coverImageUrl wins when both are sent."),
       })
       .passthrough()
-      .optional(),
+      .optional()
+      .describe("Options for the post's Pinterest destinations."),
     gmb: z
       .object({
-        ctaType: z.string().optional(),
-        ctaUrl: z.string().optional(),
-        eventTitle: z.string().optional(),
-        startDate: z.string().optional(),
-        startTime: z.string().optional(),
-        endDate: z.string().optional(),
-        endTime: z.string().optional(),
-        couponCode: z.string().optional(),
-        redeemOnlineUrl: z.string().optional(),
-        termsConditions: z.string().optional(),
+        ctaType: z.string().optional().describe("Adds a call-to-action button: LEARN_MORE, BOOK, ORDER, SHOP, SIGN_UP or CALL. Every type except CALL also needs ctaUrl; CALL uses the phone number on the business listing."),
+        ctaUrl: z.string().optional().describe("Link the call-to-action button opens. Not used with CALL."),
+        eventTitle: z.string().optional().describe("Title of the event or offer. Used with postTypeOverrides.gmb of 'event' or 'offer'."),
+        startDate: z.string().optional().describe("Start date, YYYY-MM-DD. Event and offer posts."),
+        startTime: z.string().optional().describe("Start time, HH:MM in 24-hour time. Event and offer posts."),
+        endDate: z.string().optional().describe("End date, YYYY-MM-DD. Event and offer posts."),
+        endTime: z.string().optional().describe("End time, HH:MM in 24-hour time. Event and offer posts."),
+        couponCode: z.string().optional().describe("Offer posts only: the coupon code shown to customers."),
+        redeemOnlineUrl: z.string().optional().describe("Offer posts only: link where the offer is redeemed."),
+        termsConditions: z.string().optional().describe("Offer posts only: the offer's terms and conditions."),
       })
       .passthrough()
-      .optional(),
+      .optional()
+      .describe("Options for the post's Google Business Profile destinations."),
     tiktok: z
       .object({
-        privacyLevel: z.string().optional(),
-        disableDuet: z.boolean().optional(),
-        disableStitch: z.boolean().optional(),
-        disableComment: z.boolean().optional(),
-        isAigc: z.boolean().optional(),
-        brandContentToggle: z.boolean().optional(),
-        brandOrganicToggle: z.boolean().optional(),
+        privacyLevel: z.string().optional().describe("Who can see the post: PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR or SELF_ONLY. Not needed with sendToDrafts."),
+        disableDuet: z.boolean().optional().describe("true turns off Duet for the post."),
+        disableStitch: z.boolean().optional().describe("true turns off Stitch for the post."),
+        disableComment: z.boolean().optional().describe("true turns off comments on the post."),
+        isAigc: z.boolean().optional().describe("true labels the post as AI-generated content."),
+        brandContentToggle: z.boolean().optional().describe("true discloses a paid partnership."),
+        brandOrganicToggle: z.boolean().optional().describe("true discloses that the post promotes your own brand or business."),
         thumbnailTimestamp: z
           .number()
           .optional()
@@ -474,7 +478,8 @@ const PLATFORM_SPECIFIC_SCHEMA = z
         autoAddMusic: z.boolean().optional().describe("Photo posts published directly only: lets TikTok add a recommended track (default false). Ignored with sendToDrafts."),
       })
       .passthrough()
-      .optional(),
+      .optional()
+      .describe("Options for the post's TikTok destinations."),
     x: z
       .object({
         replySettings: z.string().optional().describe("Who can reply: everyone, following, verified, subscribers or mentionedUsers. Applies to a single post and to the first post of a thread."),
@@ -491,10 +496,11 @@ const PLATFORM_SPECIFIC_SCHEMA = z
         shareWithFollowers: z.boolean().optional().describe("With communityId, also shows the post to your followers (default false). Ignored without communityId."),
       })
       .passthrough()
-      .optional(),
+      .optional()
+      .describe("Options for the post's X destinations."),
     facebook: z
       .object({
-        shareToStory: z.boolean().optional(),
+        shareToStory: z.boolean().optional().describe("true also shares the post's first image or video to the Page's Story once the post has published. No effect on a post without media."),
         textFormatPresetId: z
           .string()
           .optional()
@@ -507,7 +513,8 @@ const PLATFORM_SPECIFIC_SCHEMA = z
           ),
       })
       .passthrough()
-      .optional(),
+      .optional()
+      .describe("Options for the post's Facebook destinations."),
     instagram: z
       .object({
         collaborators: z
@@ -516,7 +523,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
           .describe(
             "Comma-separated Instagram usernames (no leading @) tagged as co-authors. Applies with postTypeOverrides.instagram of 'feed_photo', 'feed_video', 'reel' or 'carousel' \u2014 on a carousel the co-authors are set on the carousel itself, not on its individual items. Ignored on 'story', which has no co-author concept."
           ),
-        shareToStory: z.boolean().optional(),
+        shareToStory: z.boolean().optional().describe("true also shares the post's first image or video to the account's Story once the post has published. No effect on a post without media."),
         userTags: z
           .array(
             z.object({
@@ -556,10 +563,11 @@ const PLATFORM_SPECIFIC_SCHEMA = z
           ),
       })
       .passthrough()
-      .optional(),
+      .optional()
+      .describe("Options for the post's Instagram destinations."),
     threads: z
       .object({
-        quotePostId: z.string().optional(),
+        quotePostId: z.string().optional().describe("Numeric ID of the Threads post to quote."),
         repostId: z.string().optional().describe("With postTypeOverrides.threads = 'repost': the numeric ID of the Threads post to repost (Threads links cannot be used; the ID of a post published through BulkPublish is in get_post's platforms[].platformPostId)."),
         topicTag: z
           .string()
@@ -583,7 +591,8 @@ const PLATFORM_SPECIFIC_SCHEMA = z
           .describe("An http(s) URL on a public host shown as the preview card on a text post; left out on other post types. Threads refuses a post with more than 5 links in total, and a link here that differs from every link in the text counts as one more."),
       })
       .passthrough()
-      .optional(),
+      .optional()
+      .describe("Options for the post's Threads destinations."),
     linkedin: z
       .object({
         documentTitle: z.string().optional().describe("`document` posts only: the title shown above the document in the feed. Defaults to the file's name."),
@@ -601,7 +610,8 @@ const PLATFORM_SPECIFIC_SCHEMA = z
         disableReshare: z.boolean().optional().describe("true stops other members resharing the post (default false)."),
       })
       .passthrough()
-      .optional(),
+      .optional()
+      .describe("Options for the post's LinkedIn destinations."),
     bluesky: z
       .object({
         repostId: z.string().optional().describe("With postTypeOverrides.bluesky = 'repost': the bsky.app post URL (or at:// URI) to repost."),
@@ -615,7 +625,8 @@ const PLATFORM_SPECIFIC_SCHEMA = z
         contentLabel: z.enum(["sexual", "nudity", "porn", "graphic-media"]).optional().describe("Adds a content warning. Applies to every part of a thread."),
       })
       .passthrough()
-      .optional(),
+      .optional()
+      .describe("Options for the post's Bluesky destinations."),
     mastodon: z
       .object({
         repostId: z.string().optional().describe("With postTypeOverrides.mastodon = 'repost': the status URL or ID to boost."),
@@ -632,7 +643,8 @@ const PLATFORM_SPECIFIC_SCHEMA = z
         quoteId: z.string().optional().describe("The post to quote: its URL, or its status ID on your own server. Needs a server running Mastodon 4.5 or later, otherwise publishing fails and nothing is posted."),
       })
       .passthrough()
-      .optional(),
+      .optional()
+      .describe("Options for the post's Mastodon destinations."),
     discord: channelKeyedOrFlat(DISCORD_OPTIONS)
       .optional()
       .describe(
@@ -661,21 +673,21 @@ const PLATFORM_SPECIFIC_SCHEMA = z
 
 const PLATFORM_CONTENT_SCHEMA = z
   .object({
-    facebook: z.string().optional(),
-    instagram: z.string().optional(),
-    x: z.string().optional(),
-    tiktok: z.string().optional(),
-    youtube: z.string().optional(),
-    threads: z.string().optional(),
-    bluesky: z.string().optional(),
-    pinterest: z.string().optional(),
-    linkedin: z.string().optional(),
-    mastodon: z.string().optional(),
-    gmb: z.string().optional(),
-    discord: z.string().optional(),
-    telegram: z.string().optional(),
-    tumblr: z.string().optional(),
-    snapchat: z.string().optional(),
+    facebook: z.string().optional().describe("Text published on Facebook in place of content."),
+    instagram: z.string().optional().describe("Text published on Instagram in place of content."),
+    x: z.string().optional().describe("Text published on X in place of content."),
+    tiktok: z.string().optional().describe("Text published on TikTok in place of content."),
+    youtube: z.string().optional().describe("Text published on YouTube in place of content."),
+    threads: z.string().optional().describe("Text published on Threads in place of content."),
+    bluesky: z.string().optional().describe("Text published on Bluesky in place of content."),
+    pinterest: z.string().optional().describe("Text published on Pinterest in place of content."),
+    linkedin: z.string().optional().describe("Text published on LinkedIn in place of content."),
+    mastodon: z.string().optional().describe("Text published on Mastodon in place of content."),
+    gmb: z.string().optional().describe("Text published on Google Business Profile in place of content."),
+    discord: z.string().optional().describe("Text published on Discord in place of content."),
+    telegram: z.string().optional().describe("Text published on Telegram in place of content."),
+    tumblr: z.string().optional().describe("Text published on Tumblr in place of content."),
+    snapchat: z.string().optional().describe("Text published on Snapchat in place of content."),
   })
   .optional()
   .describe(
@@ -758,7 +770,7 @@ const sArr = (shape: Record<string, z.ZodTypeAny> = {}) =>
 const POST_SHAPE: Record<string, z.ZodTypeAny> = {
   id: sNum(),
   content: sStr(),
-  status: sStr().describe("draft, scheduled, processing, published, partial or failed."),
+  status: sStr().describe("draft, scheduled, publishing, processing, published, partial or failed."),
   scheduledAt: sStr(),
   timezone: sStr(),
   publishedAt: sStr(),
@@ -1076,6 +1088,28 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   delete_client_connect_link: { title: "Revoke client connect link", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/client-connect-links/{id}; revokes an unused link. An account it already connected stays connected." },
 };
 
+// The version announced in the handshake is the package's own. The file sits
+// one level above both src/ and dist/; a bundled build that has no
+// package.json beside it falls back rather than failing to start.
+const SERVER_VERSION: string = (() => {
+  try {
+    const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+    return typeof pkg.version === "string" ? pkg.version : "1.0.0";
+  } catch {
+    return "1.0.0";
+  }
+})();
+
+// Sent to the model on every connection, so it stays short and names only
+// tools every profile serves (the core set).
+const SERVER_INSTRUCTIONS =
+  "BulkPublish schedules and publishes social media posts to the user's connected accounts. " +
+  "Start with list_channels: it returns the channel IDs every post needs, plus a capabilities object saying whether the caller may create, publish or approve posts. " +
+  "To post: upload_media for any attachment, then create_post with those channel IDs. A post is saved as a draft unless status is \"scheduled\" with a scheduledAt time. " +
+  "publish_post sends a post to public platforms immediately and cannot be undone, so confirm with the user before calling it. " +
+  "YouTube needs a video; TikTok needs a video or images. Use get_channel_options for per-channel choices such as Pinterest boards or YouTube playlists. " +
+  "For results, use get_post, get_post_metrics and get_analytics.";
+
 // Build a fully-registered MCP server instance. Called once for stdio (below)
 // and once per request by the hosted HTTP server, so each HTTP caller gets an
 // isolated server whose tool calls use their own API key via requestContext.
@@ -1085,10 +1119,25 @@ export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } =
   // anything that reads the local filesystem must refuse rather than hand a
   // remote caller the server's own files.
   const hosted = opts.hosted ?? false;
-  const server = new McpServer({
-    name: "bulkpublish",
-    version: "1.0.0",
-  });
+  const server = new McpServer(
+    {
+      // `name` is the stable identifier clients key on; never change it.
+      name: "bulkpublish",
+      title: "BulkPublish",
+      version: SERVER_VERSION,
+      description:
+        "Schedule and publish social media posts to your connected accounts, manage media, and read post analytics and comments.",
+      websiteUrl: "https://www.bulkpublish.com",
+      icons: [
+        {
+          src: "https://www.bulkpublish.com/favicon.svg",
+          mimeType: "image/svg+xml",
+          sizes: ["any"],
+        },
+      ],
+    },
+    { instructions: SERVER_INSTRUCTIONS }
+  );
   // Names of the tools this instance actually registers (profile and
   // HIDE_BILLING applied), so prompts are listed only when they can run.
   const servedTools = new Set<string>();
@@ -1416,7 +1465,7 @@ server.tool(
     channels: z
       .array(
         z.object({
-          channelId: z.number().describe("Channel ID to post to."),
+          channelId: z.number().describe("Channel ID to post to, from list_channels."),
           platform: PLATFORM_ENUM.describe(
             "Platform name. One of the supported BulkPublish platforms."
           ),
@@ -1448,7 +1497,7 @@ server.tool(
     labels: z
       .array(z.number())
       .optional()
-      .describe("Array of label IDs to tag the post with."),
+      .describe("Array of label IDs to tag the post with. Label IDs come from list_labels."),
     platformSpecific: PLATFORM_SPECIFIC_SCHEMA,
     platformContent: PLATFORM_CONTENT_SCHEMA,
     postFormat: z
@@ -1659,7 +1708,7 @@ server.tool(
     search: z.string().optional().describe("Search post content (case-insensitive)."),
     page: z.number().optional().describe("Page number (default 1)."),
     limit: z.number().optional().describe("Results per page (default 20, max 500)."),
-    channelId: z.number().optional().describe("Filter by channel ID."),
+    channelId: z.number().optional().describe("Only posts on this channel. Channel IDs come from list_channels."),
     labelId: z.number().optional().describe("Filter by a single label ID. Prefer labelIds."),
     labelIds: z
       .array(z.number())
@@ -1768,7 +1817,7 @@ server.tool(
     "Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). To 'publish now' with approval, create_post with status 'scheduled', scheduledAt = now, requestApproval true and publishWhenApproved true, so it goes out the moment it is approved. " +
     "Publishing a pending/rejected post as an approver implicitly approves it.",
   {
-    postId: z.number().describe("The post ID to publish."),
+    postId: z.number().describe("The post ID to publish, from create_post or list_posts."),
   },
   async ({ postId }) => {
     const res = await api("POST", `/api/posts/${postId}/publish`);
@@ -1887,8 +1936,8 @@ server.tool(
 const CHATGPT_FILE = z
   .object({
     download_url: z.string().describe("Temporary download link for the file."),
-    file_id: z.string().describe("The file's id."),
-    mime_type: z.string().optional().describe("The file's type, when known."),
+    file_id: z.string().describe("The chat host's own identifier for the attached file. Not a BulkPublish media ID."),
+    mime_type: z.string().optional().describe("The file's MIME type, e.g. image/png, when the host knows it."),
     file_name: z.string().optional().describe("The file's name, when known."),
   })
   .optional()
@@ -2076,9 +2125,9 @@ server.tool(
   {
     from: z.string().describe("Start date in ISO format (e.g. 2025-01-01)."),
     to: z.string().describe("End date in ISO format (e.g. 2025-01-31)."),
-    channelIds: z.string().optional().describe("Comma-separated channel ids to include, e.g. \"12,15\"."),
+    channelIds: z.string().optional().describe("Comma-separated channel ids to include, e.g. \"12,15\". Ids come from list_channels."),
     platforms: z.string().optional().describe("Comma-separated platform keys to include, e.g. \"x,linkedin\"."),
-    labelIds: z.string().optional().describe("Comma-separated label ids; a post matches when it carries ANY of them."),
+    labelIds: z.string().optional().describe("Comma-separated label ids (from list_labels); a post matches when it carries ANY of them."),
     postFormat: z.enum(["post", "thread"]).optional().describe("Only single posts or only threads."),
     mediaType: z.enum(["text", "image", "video"]).optional().describe("By the post's first media file: text (no media), image or video."),
     compare: z.boolean().optional().describe("Also return the previous equal-length window as `previous` / `previousWindow`."),
@@ -2500,7 +2549,7 @@ server.tool(
     channels: z
       .array(
         z.object({
-          channelId: z.number().describe("Channel ID."),
+          channelId: z.number().describe("Channel ID, from list_channels."),
           platform: PLATFORM_ENUM.describe("The channel's platform."),
         })
       )
@@ -2666,7 +2715,7 @@ server.tool(
   "delete_post",
   "Delete a post by ID. Any post can be deleted except one that is publishing right now (409 PUBLISH_IN_PROGRESS; wait for it to finish). Deleting removes the post from BulkPublish only: a published post stays live on the platforms, and its stats here are removed with it. Deleting a post made by a repeat schedule also switches that schedule off.",
   {
-    postId: z.number().describe("The post ID to delete."),
+    postId: z.number().describe("The post ID to delete, from list_posts."),
   },
   async ({ postId }) => {
     const res = await api("DELETE", `/api/posts/${postId}`);
@@ -2794,7 +2843,7 @@ server.tool(
   "get_channel_options",
   "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search.",
   {
-    channelId: z.number().describe("The channel ID to get options for."),
+    channelId: z.number().describe("The channel ID to get options for, from list_channels."),
     q: z
       .string()
       .optional()
@@ -3995,7 +4044,7 @@ if (!HIDE_BILLING_TOOLS) {
       status: z.enum(["open", "archived", "snoozed"]).optional().describe("open (default), archived or snoozed."),
       kind: z.enum(["dm", "review", "comment"]).optional().describe("Only direct messages, reviews or comment threads. Omit for all."),
       platforms: z.array(z.string()).optional().describe("Only these platforms, e.g. [\"instagram\", \"facebook\"]."),
-      channelId: z.number().optional().describe("Only this channel."),
+      channelId: z.number().optional().describe("Only conversations on this connected account. Channel IDs come from list_channels."),
       assigned: z.string().optional().describe("me, unassigned, or a teammate's user id."),
       q: z.string().optional().describe("Search the person's name and handle and the message text (2 to 100 characters)."),
       cursor: z.string().optional().describe("nextCursor from the previous page."),
@@ -4107,7 +4156,7 @@ if (!HIDE_BILLING_TOOLS) {
       postPlatformId: z.number().describe("The channel's postPlatformId from list_post_comments."),
       commentId: z.string().describe("The comment's id from list_post_comments."),
       text: z.string().max(2000).describe("The reply text."),
-      rootCommentId: z.string().optional().describe("When replying to a reply: the thread's top-level comment id (Instagram and YouTube)."),
+      rootCommentId: z.string().optional().describe("When replying to a reply: the thread's top-level comment id (Instagram and YouTube). Leave it out when replying to a top-level comment."),
     },
     async ({ postId, postPlatformId, commentId, text, rootCommentId }) => {
       const body: Record<string, unknown> = { postPlatformId, commentId, text };

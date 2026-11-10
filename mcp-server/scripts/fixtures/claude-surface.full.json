@@ -1,8 +1,21 @@
 {
   "serverInfo": {
     "name": "bulkpublish",
-    "version": "1.0.0"
+    "title": "BulkPublish",
+    "icons": [
+      {
+        "src": "https://www.bulkpublish.com/favicon.svg",
+        "mimeType": "image/svg+xml",
+        "sizes": [
+          "any"
+        ]
+      }
+    ],
+    "version": "<package version>",
+    "websiteUrl": "https://www.bulkpublish.com",
+    "description": "Schedule and publish social media posts to your connected accounts, manage media, and read post analytics and comments."
   },
+  "instructions": "BulkPublish schedules and publishes social media posts to the user's connected accounts. Start with list_channels: it returns the channel IDs every post needs, plus a capabilities object saying whether the caller may create, publish or approve posts. To post: upload_media for any attachment, then create_post with those channel IDs. A post is saved as a draft unless status is \"scheduled\" with a scheduledAt time. publish_post sends a post to public platforms immediately and cannot be undone, so confirm with the user before calling it. YouTube needs a video; TikTok needs a video or images. Use get_channel_options for per-channel choices such as Pinterest boards or YouTube playlists. For results, use get_post, get_post_metrics and get_analytics.",
   "capabilities": {
     "prompts": {
       "listChanged": true
@@ -159,7 +172,7 @@
               "properties": {
                 "channelId": {
                   "type": "number",
-                  "description": "Channel ID to post to."
+                  "description": "Channel ID to post to, from list_channels."
                 },
                 "platform": {
                   "type": "string",
@@ -214,7 +227,7 @@
             }
           },
           "labels": {
-            "description": "Array of label IDs to tag the post with.",
+            "description": "Array of label IDs to tag the post with. Label IDs come from list_labels.",
             "type": "array",
             "items": {
               "type": "number"
@@ -225,12 +238,15 @@
             "type": "object",
             "properties": {
               "youtube": {
+                "description": "Options for the post's YouTube destinations.",
                 "type": "object",
                 "properties": {
                   "title": {
+                    "description": "Video title, up to 100 characters. When omitted, the first line of the post text is used.",
                     "type": "string"
                   },
                   "privacyStatus": {
+                    "description": "Who can watch the video (default public).",
                     "type": "string",
                     "enum": [
                       "public",
@@ -239,15 +255,19 @@
                     ]
                   },
                   "categoryId": {
+                    "description": "YouTube's numeric video category ID, as a string (default \"22\", People & Blogs).",
                     "type": "string"
                   },
                   "madeForKids": {
+                    "description": "true declares the video as made for kids (default false).",
                     "type": "boolean"
                   },
                   "playlistId": {
+                    "description": "Adds the video to this playlist once it is uploaded. Playlist IDs come from get_channel_options. If the playlist cannot be updated, the video still publishes.",
                     "type": "string"
                   },
                   "thumbnailUrl": {
+                    "description": "Public URL of a custom thumbnail image, applied after the video uploads.",
                     "type": "string"
                   },
                   "containsSyntheticMedia": {
@@ -290,15 +310,19 @@
                 "additionalProperties": {}
               },
               "pinterest": {
+                "description": "Options for the post's Pinterest destinations.",
                 "type": "object",
                 "properties": {
                   "title": {
+                    "description": "Pin title, up to 100 characters. When omitted, the start of the post text is used.",
                     "type": "string"
                   },
                   "description": {
+                    "description": "Pin description, up to 500 characters. When omitted, the post text is used.",
                     "type": "string"
                   },
                   "link": {
+                    "description": "Destination URL the pin opens.",
                     "type": "string"
                   },
                   "dominantColor": {
@@ -321,63 +345,82 @@
                 "additionalProperties": {}
               },
               "gmb": {
+                "description": "Options for the post's Google Business Profile destinations.",
                 "type": "object",
                 "properties": {
                   "ctaType": {
+                    "description": "Adds a call-to-action button: LEARN_MORE, BOOK, ORDER, SHOP, SIGN_UP or CALL. Every type except CALL also needs ctaUrl; CALL uses the phone number on the business listing.",
                     "type": "string"
                   },
                   "ctaUrl": {
+                    "description": "Link the call-to-action button opens. Not used with CALL.",
                     "type": "string"
                   },
                   "eventTitle": {
+                    "description": "Title of the event or offer. Used with postTypeOverrides.gmb of 'event' or 'offer'.",
                     "type": "string"
                   },
                   "startDate": {
+                    "description": "Start date, YYYY-MM-DD. Event and offer posts.",
                     "type": "string"
                   },
                   "startTime": {
+                    "description": "Start time, HH:MM in 24-hour time. Event and offer posts.",
                     "type": "string"
                   },
                   "endDate": {
+                    "description": "End date, YYYY-MM-DD. Event and offer posts.",
                     "type": "string"
                   },
                   "endTime": {
+                    "description": "End time, HH:MM in 24-hour time. Event and offer posts.",
                     "type": "string"
                   },
                   "couponCode": {
+                    "description": "Offer posts only: the coupon code shown to customers.",
                     "type": "string"
                   },
                   "redeemOnlineUrl": {
+                    "description": "Offer posts only: link where the offer is redeemed.",
                     "type": "string"
                   },
                   "termsConditions": {
+                    "description": "Offer posts only: the offer's terms and conditions.",
                     "type": "string"
                   }
                 },
                 "additionalProperties": {}
               },
               "tiktok": {
+                "description": "Options for the post's TikTok destinations.",
                 "type": "object",
                 "properties": {
                   "privacyLevel": {
+                    "description": "Who can see the post: PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR or SELF_ONLY. Not needed with sendToDrafts.",
                     "type": "string"
                   },
                   "disableDuet": {
+                    "description": "true turns off Duet for the post.",
                     "type": "boolean"
                   },
                   "disableStitch": {
+                    "description": "true turns off Stitch for the post.",
                     "type": "boolean"
                   },
                   "disableComment": {
+                    "description": "true turns off comments on the post.",
                     "type": "boolean"
                   },
                   "isAigc": {
+                    "description": "true labels the post as AI-generated content.",
                     "type": "boolean"
                   },
                   "brandContentToggle": {
+                    "description": "true discloses a paid partnership.",
                     "type": "boolean"
                   },
                   "brandOrganicToggle": {
+                    "description": "true discloses that the post promotes your own brand or business.",
                     "type": "boolean"
                   },
                   "thumbnailTimestamp": {
@@ -400,6 +443,7 @@
                 "additionalProperties": {}
               },
               "x": {
+                "description": "Options for the post's X destinations.",
                 "type": "object",
                 "properties": {
                   "replySettings": {
@@ -447,9 +491,11 @@
                 "additionalProperties": {}
               },
               "facebook": {
+                "description": "Options for the post's Facebook destinations.",
                 "type": "object",
                 "properties": {
                   "shareToStory": {
+                    "description": "true also shares the post's first image or video to the Page's Story once the post has published. No effect on a post without media.",
                     "type": "boolean"
                   },
                   "textFormatPresetId": {
@@ -464,6 +510,7 @@
                 "additionalProperties": {}
               },
               "instagram": {
+                "description": "Options for the post's Instagram destinations.",
                 "type": "object",
                 "properties": {
                   "collaborators": {
@@ -471,6 +518,7 @@
                     "type": "string"
                   },
                   "shareToStory": {
+                    "description": "true also shares the post's first image or video to the account's Story once the post has published. No effect on a post without media.",
                     "type": "boolean"
                   },
                   "userTags": {
@@ -533,9 +581,11 @@
                 "additionalProperties": {}
               },
               "threads": {
+                "description": "Options for the post's Threads destinations.",
                 "type": "object",
                 "properties": {
                   "quotePostId": {
+                    "description": "Numeric ID of the Threads post to quote.",
                     "type": "string"
                   },
                   "repostId": {
@@ -576,6 +626,7 @@
                 "additionalProperties": {}
               },
               "linkedin": {
+                "description": "Options for the post's LinkedIn destinations.",
                 "type": "object",
                 "properties": {
                   "documentTitle": {
@@ -638,6 +689,7 @@
                 "additionalProperties": {}
               },
               "bluesky": {
+                "description": "Options for the post's Bluesky destinations.",
                 "type": "object",
                 "properties": {
                   "repostId": {
@@ -686,6 +738,7 @@
                 "additionalProperties": {}
               },
               "mastodon": {
+                "description": "Options for the post's Mastodon destinations.",
                 "type": "object",
                 "properties": {
                   "repostId": {
@@ -789,6 +842,7 @@
                               "type": "string"
                             },
                             "color": {
+                              "description": "Accent colour of the embed (default orange).",
                               "type": "string",
                               "enum": [
                                 "orange",
@@ -821,6 +875,7 @@
                               "type": "number"
                             },
                             "multiselect": {
+                              "description": "true lets voters pick more than one answer.",
                               "type": "boolean"
                             }
                           },
@@ -893,6 +948,7 @@
                             "type": "string"
                           },
                           "color": {
+                            "description": "Accent colour of the embed (default orange).",
                             "type": "string",
                             "enum": [
                               "orange",
@@ -925,6 +981,7 @@
                             "type": "number"
                           },
                           "multiselect": {
+                            "description": "true lets voters pick more than one answer.",
                             "type": "boolean"
                           }
                         },
@@ -1427,48 +1484,63 @@
             "type": "object",
             "properties": {
               "facebook": {
+                "description": "Text published on Facebook in place of content.",
                 "type": "string"
               },
               "instagram": {
+                "description": "Text published on Instagram in place of content.",
                 "type": "string"
               },
               "x": {
+                "description": "Text published on X in place of content.",
                 "type": "string"
               },
               "tiktok": {
+                "description": "Text published on TikTok in place of content.",
                 "type": "string"
               },
               "youtube": {
+                "description": "Text published on YouTube in place of content.",
                 "type": "string"
               },
               "threads": {
+                "description": "Text published on Threads in place of content.",
                 "type": "string"
               },
               "bluesky": {
+                "description": "Text published on Bluesky in place of content.",
                 "type": "string"
               },
               "pinterest": {
+                "description": "Text published on Pinterest in place of content.",
                 "type": "string"
               },
               "linkedin": {
+                "description": "Text published on LinkedIn in place of content.",
                 "type": "string"
               },
               "mastodon": {
+                "description": "Text published on Mastodon in place of content.",
                 "type": "string"
               },
               "gmb": {
+                "description": "Text published on Google Business Profile in place of content.",
                 "type": "string"
               },
               "discord": {
+                "description": "Text published on Discord in place of content.",
                 "type": "string"
               },
               "telegram": {
+                "description": "Text published on Telegram in place of content.",
                 "type": "string"
               },
               "tumblr": {
+                "description": "Text published on Tumblr in place of content.",
                 "type": "string"
               },
               "snapchat": {
+                "description": "Text published on Snapchat in place of content.",
                 "type": "string"
               }
             }
@@ -1513,6 +1585,7 @@
             "type": "object",
             "properties": {
               "instagram": {
+                "description": "Post type for the post's Instagram destinations.",
                 "type": "string",
                 "enum": [
                   "feed_photo",
@@ -1523,6 +1596,7 @@
                 ]
               },
               "facebook": {
+                "description": "Post type for the post's Facebook destinations.",
                 "type": "string",
                 "enum": [
                   "post",
@@ -1533,6 +1607,7 @@
                 ]
               },
               "x": {
+                "description": "Post type for the post's X destinations.",
                 "type": "string",
                 "enum": [
                   "tweet",
@@ -1542,6 +1617,7 @@
                 ]
               },
               "tiktok": {
+                "description": "Post type for the post's TikTok destinations.",
                 "type": "string",
                 "enum": [
                   "video",
@@ -1549,6 +1625,7 @@
                 ]
               },
               "youtube": {
+                "description": "Post type for the post's YouTube destinations.",
                 "type": "string",
                 "enum": [
                   "video",
@@ -1556,6 +1633,7 @@
                 ]
               },
               "threads": {
+                "description": "Post type for the post's Threads destinations.",
                 "type": "string",
                 "enum": [
                   "text",
@@ -1566,6 +1644,7 @@
                 ]
               },
               "bluesky": {
+                "description": "Post type for the post's Bluesky destinations.",
                 "type": "string",
                 "enum": [
                   "post",
@@ -1588,6 +1667,7 @@
                 ]
               },
               "pinterest": {
+                "description": "Post type for the post's Pinterest destinations.",
                 "type": "string",
                 "enum": [
                   "pin",
@@ -1596,6 +1676,7 @@
                 ]
               },
               "gmb": {
+                "description": "Post type for the post's Google Business Profile destinations.",
                 "type": "string",
                 "enum": [
                   "standard",
@@ -1604,6 +1685,7 @@
                 ]
               },
               "mastodon": {
+                "description": "Post type for the post's Mastodon destinations.",
                 "type": "string",
                 "enum": [
                   "post",
@@ -1612,18 +1694,21 @@
                 ]
               },
               "discord": {
+                "description": "Post type for the post's Discord destinations.",
                 "type": "string",
                 "enum": [
                   "post"
                 ]
               },
               "telegram": {
+                "description": "Post type for the post's Telegram destinations.",
                 "type": "string",
                 "enum": [
                   "post"
                 ]
               },
               "tumblr": {
+                "description": "Post type for the post's Tumblr destinations.",
                 "type": "string",
                 "enum": [
                   "post"
@@ -1795,7 +1880,7 @@
             ]
           },
           "status": {
-            "description": "draft, scheduled, processing, published, partial or failed.",
+            "description": "draft, scheduled, publishing, processing, published, partial or failed.",
             "anyOf": [
               {
                 "type": "string"
@@ -2017,7 +2102,7 @@
             "type": "number"
           },
           "channelId": {
-            "description": "Filter by channel ID.",
+            "description": "Only posts on this channel. Channel IDs come from list_channels.",
             "type": "number"
           },
           "labelId": {
@@ -2122,7 +2207,7 @@
                       ]
                     },
                     "status": {
-                      "description": "draft, scheduled, processing, published, partial or failed.",
+                      "description": "draft, scheduled, publishing, processing, published, partial or failed.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -2436,7 +2521,7 @@
             ]
           },
           "status": {
-            "description": "draft, scheduled, processing, published, partial or failed.",
+            "description": "draft, scheduled, publishing, processing, published, partial or failed.",
             "anyOf": [
               {
                 "type": "string"
@@ -2634,7 +2719,7 @@
         "properties": {
           "postId": {
             "type": "number",
-            "description": "The post ID to publish."
+            "description": "The post ID to publish, from create_post or list_posts."
           }
         },
         "required": [
@@ -2673,7 +2758,7 @@
             ]
           },
           "status": {
-            "description": "draft, scheduled, processing, published, partial or failed.",
+            "description": "draft, scheduled, publishing, processing, published, partial or failed.",
             "anyOf": [
               {
                 "type": "string"
@@ -2914,7 +2999,7 @@
             ]
           },
           "status": {
-            "description": "draft, scheduled, processing, published, partial or failed.",
+            "description": "draft, scheduled, publishing, processing, published, partial or failed.",
             "anyOf": [
               {
                 "type": "string"
@@ -3199,7 +3284,7 @@
             ]
           },
           "status": {
-            "description": "draft, scheduled, processing, published, partial or failed.",
+            "description": "draft, scheduled, publishing, processing, published, partial or failed.",
             "anyOf": [
               {
                 "type": "string"
@@ -3445,7 +3530,7 @@
             ]
           },
           "status": {
-            "description": "draft, scheduled, processing, published, partial or failed.",
+            "description": "draft, scheduled, publishing, processing, published, partial or failed.",
             "anyOf": [
               {
                 "type": "string"
@@ -3663,10 +3748,10 @@
               },
               "file_id": {
                 "type": "string",
-                "description": "The file's id."
+                "description": "The chat host's own identifier for the attached file. Not a BulkPublish media ID."
               },
               "mime_type": {
-                "description": "The file's type, when known.",
+                "description": "The file's MIME type, e.g. image/png, when the host knows it.",
                 "type": "string"
               },
               "file_name": {
@@ -3971,7 +4056,7 @@
             "description": "End date in ISO format (e.g. 2025-01-31)."
           },
           "channelIds": {
-            "description": "Comma-separated channel ids to include, e.g. \"12,15\".",
+            "description": "Comma-separated channel ids to include, e.g. \"12,15\". Ids come from list_channels.",
             "type": "string"
           },
           "platforms": {
@@ -3979,7 +4064,7 @@
             "type": "string"
           },
           "labelIds": {
-            "description": "Comma-separated label ids; a post matches when it carries ANY of them.",
+            "description": "Comma-separated label ids (from list_labels); a post matches when it carries ANY of them.",
             "type": "string"
           },
           "postFormat": {
@@ -5027,7 +5112,7 @@
               "properties": {
                 "channelId": {
                   "type": "number",
-                  "description": "Channel ID."
+                  "description": "Channel ID, from list_channels."
                 },
                 "platform": {
                   "type": "string",
@@ -5062,48 +5147,63 @@
             "type": "object",
             "properties": {
               "facebook": {
+                "description": "Text published on Facebook in place of content.",
                 "type": "string"
               },
               "instagram": {
+                "description": "Text published on Instagram in place of content.",
                 "type": "string"
               },
               "x": {
+                "description": "Text published on X in place of content.",
                 "type": "string"
               },
               "tiktok": {
+                "description": "Text published on TikTok in place of content.",
                 "type": "string"
               },
               "youtube": {
+                "description": "Text published on YouTube in place of content.",
                 "type": "string"
               },
               "threads": {
+                "description": "Text published on Threads in place of content.",
                 "type": "string"
               },
               "bluesky": {
+                "description": "Text published on Bluesky in place of content.",
                 "type": "string"
               },
               "pinterest": {
+                "description": "Text published on Pinterest in place of content.",
                 "type": "string"
               },
               "linkedin": {
+                "description": "Text published on LinkedIn in place of content.",
                 "type": "string"
               },
               "mastodon": {
+                "description": "Text published on Mastodon in place of content.",
                 "type": "string"
               },
               "gmb": {
+                "description": "Text published on Google Business Profile in place of content.",
                 "type": "string"
               },
               "discord": {
+                "description": "Text published on Discord in place of content.",
                 "type": "string"
               },
               "telegram": {
+                "description": "Text published on Telegram in place of content.",
                 "type": "string"
               },
               "tumblr": {
+                "description": "Text published on Tumblr in place of content.",
                 "type": "string"
               },
               "snapchat": {
+                "description": "Text published on Snapchat in place of content.",
                 "type": "string"
               }
             }
@@ -5196,6 +5296,7 @@
             "type": "object",
             "properties": {
               "instagram": {
+                "description": "Post type for the post's Instagram destinations.",
                 "type": "string",
                 "enum": [
                   "feed_photo",
@@ -5206,6 +5307,7 @@
                 ]
               },
               "facebook": {
+                "description": "Post type for the post's Facebook destinations.",
                 "type": "string",
                 "enum": [
                   "post",
@@ -5216,6 +5318,7 @@
                 ]
               },
               "x": {
+                "description": "Post type for the post's X destinations.",
                 "type": "string",
                 "enum": [
                   "tweet",
@@ -5225,6 +5328,7 @@
                 ]
               },
               "tiktok": {
+                "description": "Post type for the post's TikTok destinations.",
                 "type": "string",
                 "enum": [
                   "video",
@@ -5232,6 +5336,7 @@
                 ]
               },
               "youtube": {
+                "description": "Post type for the post's YouTube destinations.",
                 "type": "string",
                 "enum": [
                   "video",
@@ -5239,6 +5344,7 @@
                 ]
               },
               "threads": {
+                "description": "Post type for the post's Threads destinations.",
                 "type": "string",
                 "enum": [
                   "text",
@@ -5249,6 +5355,7 @@
                 ]
               },
               "bluesky": {
+                "description": "Post type for the post's Bluesky destinations.",
                 "type": "string",
                 "enum": [
                   "post",
@@ -5271,6 +5378,7 @@
                 ]
               },
               "pinterest": {
+                "description": "Post type for the post's Pinterest destinations.",
                 "type": "string",
                 "enum": [
                   "pin",
@@ -5279,6 +5387,7 @@
                 ]
               },
               "gmb": {
+                "description": "Post type for the post's Google Business Profile destinations.",
                 "type": "string",
                 "enum": [
                   "standard",
@@ -5287,6 +5396,7 @@
                 ]
               },
               "mastodon": {
+                "description": "Post type for the post's Mastodon destinations.",
                 "type": "string",
                 "enum": [
                   "post",
@@ -5295,18 +5405,21 @@
                 ]
               },
               "discord": {
+                "description": "Post type for the post's Discord destinations.",
                 "type": "string",
                 "enum": [
                   "post"
                 ]
               },
               "telegram": {
+                "description": "Post type for the post's Telegram destinations.",
                 "type": "string",
                 "enum": [
                   "post"
                 ]
               },
               "tumblr": {
+                "description": "Post type for the post's Tumblr destinations.",
                 "type": "string",
                 "enum": [
                   "post"
@@ -5328,12 +5441,15 @@
             "type": "object",
             "properties": {
               "youtube": {
+                "description": "Options for the post's YouTube destinations.",
                 "type": "object",
                 "properties": {
                   "title": {
+                    "description": "Video title, up to 100 characters. When omitted, the first line of the post text is used.",
                     "type": "string"
                   },
                   "privacyStatus": {
+                    "description": "Who can watch the video (default public).",
                     "type": "string",
                     "enum": [
                       "public",
@@ -5342,15 +5458,19 @@
                     ]
                   },
                   "categoryId": {
+                    "description": "YouTube's numeric video category ID, as a string (default \"22\", People & Blogs).",
                     "type": "string"
                   },
                   "madeForKids": {
+                    "description": "true declares the video as made for kids (default false).",
                     "type": "boolean"
                   },
                   "playlistId": {
+                    "description": "Adds the video to this playlist once it is uploaded. Playlist IDs come from get_channel_options. If the playlist cannot be updated, the video still publishes.",
                     "type": "string"
                   },
                   "thumbnailUrl": {
+                    "description": "Public URL of a custom thumbnail image, applied after the video uploads.",
                     "type": "string"
                   },
                   "containsSyntheticMedia": {
@@ -5393,15 +5513,19 @@
                 "additionalProperties": {}
               },
               "pinterest": {
+                "description": "Options for the post's Pinterest destinations.",
                 "type": "object",
                 "properties": {
                   "title": {
+                    "description": "Pin title, up to 100 characters. When omitted, the start of the post text is used.",
                     "type": "string"
                   },
                   "description": {
+                    "description": "Pin description, up to 500 characters. When omitted, the post text is used.",
                     "type": "string"
                   },
                   "link": {
+                    "description": "Destination URL the pin opens.",
                     "type": "string"
                   },
                   "dominantColor": {
@@ -5424,63 +5548,82 @@
                 "additionalProperties": {}
               },
               "gmb": {
+                "description": "Options for the post's Google Business Profile destinations.",
                 "type": "object",
                 "properties": {
                   "ctaType": {
+                    "description": "Adds a call-to-action button: LEARN_MORE, BOOK, ORDER, SHOP, SIGN_UP or CALL. Every type except CALL also needs ctaUrl; CALL uses the phone number on the business listing.",
                     "type": "string"
                   },
                   "ctaUrl": {
+                    "description": "Link the call-to-action button opens. Not used with CALL.",
                     "type": "string"
                   },
                   "eventTitle": {
+                    "description": "Title of the event or offer. Used with postTypeOverrides.gmb of 'event' or 'offer'.",
                     "type": "string"
                   },
                   "startDate": {
+                    "description": "Start date, YYYY-MM-DD. Event and offer posts.",
                     "type": "string"
                   },
                   "startTime": {
+                    "description": "Start time, HH:MM in 24-hour time. Event and offer posts.",
                     "type": "string"
                   },
                   "endDate": {
+                    "description": "End date, YYYY-MM-DD. Event and offer posts.",
                     "type": "string"
                   },
                   "endTime": {
+                    "description": "End time, HH:MM in 24-hour time. Event and offer posts.",
                     "type": "string"
                   },
                   "couponCode": {
+                    "description": "Offer posts only: the coupon code shown to customers.",
                     "type": "string"
                   },
                   "redeemOnlineUrl": {
+                    "description": "Offer posts only: link where the offer is redeemed.",
                     "type": "string"
                   },
                   "termsConditions": {
+                    "description": "Offer posts only: the offer's terms and conditions.",
                     "type": "string"
                   }
                 },
                 "additionalProperties": {}
               },
               "tiktok": {
+                "description": "Options for the post's TikTok destinations.",
                 "type": "object",
                 "properties": {
                   "privacyLevel": {
+                    "description": "Who can see the post: PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR or SELF_ONLY. Not needed with sendToDrafts.",
                     "type": "string"
                   },
                   "disableDuet": {
+                    "description": "true turns off Duet for the post.",
                     "type": "boolean"
                   },
                   "disableStitch": {
+                    "description": "true turns off Stitch for the post.",
                     "type": "boolean"
                   },
                   "disableComment": {
+                    "description": "true turns off comments on the post.",
                     "type": "boolean"
                   },
                   "isAigc": {
+                    "description": "true labels the post as AI-generated content.",
                     "type": "boolean"
                   },
                   "brandContentToggle": {
+                    "description": "true discloses a paid partnership.",
                     "type": "boolean"
                   },
                   "brandOrganicToggle": {
+                    "description": "true discloses that the post promotes your own brand or business.",
                     "type": "boolean"
                   },
                   "thumbnailTimestamp": {
@@ -5503,6 +5646,7 @@
                 "additionalProperties": {}
               },
               "x": {
+                "description": "Options for the post's X destinations.",
                 "type": "object",
                 "properties": {
                   "replySettings": {
@@ -5550,9 +5694,11 @@
                 "additionalProperties": {}
               },
               "facebook": {
+                "description": "Options for the post's Facebook destinations.",
                 "type": "object",
                 "properties": {
                   "shareToStory": {
+                    "description": "true also shares the post's first image or video to the Page's Story once the post has published. No effect on a post without media.",
                     "type": "boolean"
                   },
                   "textFormatPresetId": {
@@ -5567,6 +5713,7 @@
                 "additionalProperties": {}
               },
               "instagram": {
+                "description": "Options for the post's Instagram destinations.",
                 "type": "object",
                 "properties": {
                   "collaborators": {
@@ -5574,6 +5721,7 @@
                     "type": "string"
                   },
                   "shareToStory": {
+                    "description": "true also shares the post's first image or video to the account's Story once the post has published. No effect on a post without media.",
                     "type": "boolean"
                   },
                   "userTags": {
@@ -5636,9 +5784,11 @@
                 "additionalProperties": {}
               },
               "threads": {
+                "description": "Options for the post's Threads destinations.",
                 "type": "object",
                 "properties": {
                   "quotePostId": {
+                    "description": "Numeric ID of the Threads post to quote.",
                     "type": "string"
                   },
                   "repostId": {
@@ -5679,6 +5829,7 @@
                 "additionalProperties": {}
               },
               "linkedin": {
+                "description": "Options for the post's LinkedIn destinations.",
                 "type": "object",
                 "properties": {
                   "documentTitle": {
@@ -5741,6 +5892,7 @@
                 "additionalProperties": {}
               },
               "bluesky": {
+                "description": "Options for the post's Bluesky destinations.",
                 "type": "object",
                 "properties": {
                   "repostId": {
@@ -5789,6 +5941,7 @@
                 "additionalProperties": {}
               },
               "mastodon": {
+                "description": "Options for the post's Mastodon destinations.",
                 "type": "object",
                 "properties": {
                   "repostId": {
@@ -5892,6 +6045,7 @@
                               "type": "string"
                             },
                             "color": {
+                              "description": "Accent colour of the embed (default orange).",
                               "type": "string",
                               "enum": [
                                 "orange",
@@ -5924,6 +6078,7 @@
                               "type": "number"
                             },
                             "multiselect": {
+                              "description": "true lets voters pick more than one answer.",
                               "type": "boolean"
                             }
                           },
@@ -5996,6 +6151,7 @@
                             "type": "string"
                           },
                           "color": {
+                            "description": "Accent colour of the embed (default orange).",
                             "type": "string",
                             "enum": [
                               "orange",
@@ -6028,6 +6184,7 @@
                             "type": "number"
                           },
                           "multiselect": {
+                            "description": "true lets voters pick more than one answer.",
                             "type": "boolean"
                           }
                         },
@@ -6585,7 +6742,7 @@
             ]
           },
           "status": {
-            "description": "draft, scheduled, processing, published, partial or failed.",
+            "description": "draft, scheduled, publishing, processing, published, partial or failed.",
             "anyOf": [
               {
                 "type": "string"
@@ -6783,7 +6940,7 @@
         "properties": {
           "postId": {
             "type": "number",
-            "description": "The post ID to delete."
+            "description": "The post ID to delete, from list_posts."
           }
         },
         "required": [
@@ -7090,7 +7247,7 @@
         "properties": {
           "channelId": {
             "type": "number",
-            "description": "The channel ID to get options for."
+            "description": "The channel ID to get options for, from list_channels."
           },
           "q": {
             "description": "Search term. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging).",
@@ -9333,7 +9490,7 @@
             }
           },
           "channelId": {
-            "description": "Only this channel.",
+            "description": "Only conversations on this connected account. Channel IDs come from list_channels.",
             "type": "number"
           },
           "assigned": {
@@ -10002,7 +10159,7 @@
             "description": "The reply text."
           },
           "rootCommentId": {
-            "description": "When replying to a reply: the thread's top-level comment id (Instagram and YouTube).",
+            "description": "When replying to a reply: the thread's top-level comment id (Instagram and YouTube). Leave it out when replying to a top-level comment.",
             "type": "string"
           }
         },
