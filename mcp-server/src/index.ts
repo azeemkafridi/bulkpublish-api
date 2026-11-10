@@ -798,7 +798,7 @@ const POST_SHAPE: Record<string, z.ZodTypeAny> = {
 
 export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> = {
   list_channels: {
-    channels: sArr({ channelId: sNum(), platform: sStr(), accountName: sStr(), active: sBool() }).describe("Connected accounts. Each one's id is the channelId that create_post and update_post take."),
+    channels: sArr({ id: sNum(), platform: sStr(), accountName: sStr(), isActive: sBool(), needsReconnect: sBool() }).describe("Connected accounts. Each one's id is the channelId that create_post and update_post take."),
     capabilities: sObj().describe("Whether the caller may create, publish or approve posts."),
   },
   list_posts: {
@@ -836,11 +836,14 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
     dayLabel: sStr().describe('Human label, e.g. "Today" or "Wed, Feb 14".'),
   },
   list_media: {
-    files: sArr({ id: sNum(), url: sStr(), filename: sStr(), mimeType: sStr(), sizeBytes: sNum() }).describe("Media files on this page. id is what mediaFileIds takes."),
+    files: sArr({ id: sNum(), fileName: sStr(), mimeType: sStr(), sizeBytes: sNum(), originalUrl: sStr(), thumbnailUrl: sStr() }).describe("Media files on this page. id is what mediaFileIds takes."),
     page: sNum().describe("This page's number."), limit: sNum().describe("Page size used."), total: sNum().describe("Files matching the filters, across every page."),
   },
   upload_media: {
-    file: sObj().describe("The stored media file. file.id is what mediaFileIds takes; it also carries fileName, mimeType, sizeBytes and originalUrl."),
+    file: sObj({ id: sNum(), fileName: sStr(), mimeType: sStr(), sizeBytes: sNum(), originalUrl: sStr() }).describe("The stored media file. file.id is what mediaFileIds takes."),
+    // The result is { file } only. These five top-level keys have never been
+    // sent; they stay declared (optional) because dropping a top-level key is
+    // the one schema edit a strictly-validating host could object to.
     id: sNum(), url: sStr(), filename: sStr(), mimeType: sStr(), sizeBytes: sNum(),
   },
   create_media_upload: {
@@ -848,7 +851,7 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
     r2Key: sStr().describe("Reference for this upload; pass it to finalize_media_upload."),
     expiresIn: sNum().describe("Seconds until uploadUrl stops working."),
   },
-  finalize_media_upload: { file: sObj({ id: sNum(), url: sStr(), filename: sStr() }).describe("The new media file. Its id is what mediaFileIds takes.") },
+  finalize_media_upload: { file: sObj({ id: sNum(), fileName: sStr(), mimeType: sStr(), sizeBytes: sNum(), originalUrl: sStr() }).describe("The new media file. Its id is what mediaFileIds takes.") },
   get_analytics: {
     totalPosts: sNum().describe("Posts in the date range."), published: sNum().describe("How many of them published."), failed: sNum().describe("How many failed."), scheduled: sNum().describe("Posts currently waiting to publish, whatever the date range."), partial: sNum().describe("How many published to only some destinations."),
     from: sStr().describe("Start of the date range."), to: sStr().describe("End of the date range."),
@@ -1215,8 +1218,8 @@ export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } =
     list_platforms: "the user asks which platforms are supported or available, or a connect/publish attempt failed with PLATFORM_DISABLED.",
     bulk_posts: "the user wants to delete, retry, or reschedule many posts in a single request.",
     upload_media: "the user provides an image, video or document to attach to a post.",
-    create_media_upload: "you need a presigned URL for a large direct upload (advanced; prefer upload_media for normal files).",
-    finalize_media_upload: "a presigned direct upload finished and the file must be registered (advanced).",
+    create_media_upload: "you need an upload link for a large direct upload (advanced; prefer upload_media for normal files).",
+    finalize_media_upload: "a direct upload finished and the file must be registered (advanced).",
     create_multipart_upload: "a file is too large for a single upload (e.g. a video over 100MB, up to 1GB) and must be sent in 10MB chunks.",
     complete_multipart_upload: "all parts of a chunked upload are PUT and their ETags collected.",
     abort_multipart_upload: "a chunked upload should be cancelled and its stored parts freed.",
@@ -3413,7 +3416,7 @@ server.tool(
 
 server.tool(
   "create_multipart_upload",
-  "Start a chunked (multipart) direct-to-storage upload for large media — videos up to 1GB, images up to 100MB. Returns r2Key, uploadId, the fixed partSize (10485760 bytes = 10MB), and one presigned PUT URL per part (valid 3600s). PUT each 10MB slice to its URL, collect each response's ETag header, then call complete_multipart_upload. For ordinary files prefer upload_media.",
+  "Start a chunked (multipart) direct-to-storage upload for large media — videos up to 1GB, images up to 100MB. Returns r2Key, uploadId, the fixed partSize (10485760 bytes = 10MB), and one PUT URL per part (valid 3600s). PUT each 10MB slice to its URL, collect each response's ETag header, then call complete_multipart_upload. For ordinary files prefer upload_media.",
   {
     contentType: z
       .string()
@@ -3586,7 +3589,7 @@ function registerWidget(config: {
     server,
     config.title,
     uri,
-    { mimeType: RESOURCE_MIME_TYPE, _meta: meta },
+    { description: config.widgetDescription, mimeType: RESOURCE_MIME_TYPE, _meta: meta },
     async () => ({
       contents: [
         {
@@ -4035,7 +4038,7 @@ if (!HIDE_BILLING_TOOLS) {
 
   server.tool(
     "create_media_upload",
-    "Reserve a presigned upload URL for a direct browser upload (used by the composer UI). For scripted uploads use upload_media instead.",
+    "Reserve a one-time upload link for a direct browser upload (used by the composer UI). For scripted uploads use upload_media instead.",
     {
       contentType: z
         .string()

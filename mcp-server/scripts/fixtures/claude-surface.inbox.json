@@ -53,7 +53,7 @@
                 "items": {
                   "type": "object",
                   "properties": {
-                    "channelId": {
+                    "id": {
                       "anyOf": [
                         {
                           "anyOf": [
@@ -90,7 +90,17 @@
                         }
                       ]
                     },
-                    "active": {
+                    "isActive": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "needsReconnect": {
                       "anyOf": [
                         {
                           "type": "boolean"
@@ -3891,11 +3901,76 @@
         "type": "object",
         "properties": {
           "file": {
-            "description": "The stored media file. file.id is what mediaFileIds takes; it also carries fileName, mimeType, sizeBytes and originalUrl.",
+            "description": "The stored media file. file.id is what mediaFileIds takes.",
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "fileName": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "mimeType": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "sizeBytes": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "originalUrl": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -4041,17 +4116,7 @@
                         }
                       ]
                     },
-                    "url": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "filename": {
+                    "fileName": {
                       "anyOf": [
                         {
                           "type": "string"
@@ -4082,6 +4147,26 @@
                               "type": "string"
                             }
                           ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "originalUrl": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "thumbnailUrl": {
+                      "anyOf": [
+                        {
+                          "type": "string"
                         },
                         {
                           "type": "null"
@@ -7567,7 +7652,7 @@
     {
       "name": "create_media_upload",
       "title": "Start media upload",
-      "description": "Reserve a presigned upload URL for a direct browser upload (used by the composer UI). For scripted uploads use upload_media instead. Use this when you need a presigned URL for a large direct upload (advanced; prefer upload_media for normal files).",
+      "description": "Reserve a one-time upload link for a direct browser upload (used by the composer UI). For scripted uploads use upload_media instead. Use this when you need an upload link for a large direct upload (advanced; prefer upload_media for normal files).",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -7646,7 +7731,7 @@
     {
       "name": "finalize_media_upload",
       "title": "Finalize media upload",
-      "description": "Record an uploaded file as a media file after the browser PUT (pairs with create_media_upload; used by the composer UI). Returns the new media file, including the id to pass in mediaFileIds. Use this when a presigned direct upload finished and the file must be registered (advanced).",
+      "description": "Record an uploaded file as a media file after the browser PUT (pairs with create_media_upload; used by the composer UI). Returns the new media file, including the id to pass in mediaFileIds. Use this when a direct upload finished and the file must be registered (advanced).",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -7713,7 +7798,7 @@
                       }
                     ]
                   },
-                  "url": {
+                  "fileName": {
                     "anyOf": [
                       {
                         "type": "string"
@@ -7723,7 +7808,34 @@
                       }
                     ]
                   },
-                  "filename": {
+                  "mimeType": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "sizeBytes": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "originalUrl": {
                     "anyOf": [
                       {
                         "type": "string"
@@ -8606,6 +8718,7 @@
     {
       "name": "Compose a post",
       "uri": "ui://bulkpublish/composer",
+      "description": "A post composer: pick connected channels, write the text, attach media, then save a draft, schedule it or publish it now.",
       "mimeType": "text/html;profile=mcp-app",
       "_meta": {
         "ui": {
@@ -8624,6 +8737,7 @@
     {
       "name": "Analytics dashboard",
       "uri": "ui://bulkpublish/analytics",
+      "description": "An analytics dashboard for the chosen dates: post totals, status breakdown, per-platform counts and posts per day.",
       "mimeType": "text/html;profile=mcp-app",
       "_meta": {
         "ui": {
@@ -8642,6 +8756,7 @@
     {
       "name": "Posts",
       "uri": "ui://bulkpublish/posts",
+      "description": "A list of the user's posts with status, schedule and channels, with buttons to publish now, retry, schedule or delete a post, depending on its status.",
       "mimeType": "text/html;profile=mcp-app",
       "_meta": {
         "ui": {
@@ -8660,6 +8775,7 @@
     {
       "name": "Channels",
       "uri": "ui://bulkpublish/channels",
+      "description": "The user's connected social accounts with platform, account name and connection status.",
       "mimeType": "text/html;profile=mcp-app",
       "_meta": {
         "ui": {
@@ -8678,6 +8794,7 @@
     {
       "name": "Media library",
       "uri": "ui://bulkpublish/media",
+      "description": "A gallery of the user's uploaded media files with thumbnails, file names and types.",
       "mimeType": "text/html;profile=mcp-app",
       "_meta": {
         "ui": {

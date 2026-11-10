@@ -20,6 +20,8 @@ MCP **1.53.0**
 
 ### Fixed
 
+- **Output schemas name the fields actually returned:** `list_channels` rows carry `id`, `isActive` and `needsReconnect` (not `channelId` / `active`); `list_media`, `upload_media` and `finalize_media_upload` files carry `fileName` and `originalUrl` (not `filename` / `url`). The responses themselves are unchanged.
+- Each panel resource now has a standard description.
 - **ChatGPT panel domain** is sent as a full origin (`https://bulkpublish.com`) instead of a bare hostname, the form OpenAI's reference and submission scan expect. The host is unchanged.
 
 No tool, input, annotation or capability changed, and no output field became required: only descriptions, handshake metadata and ChatGPT-only panel metadata.
