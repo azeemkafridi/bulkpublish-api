@@ -1292,7 +1292,13 @@ export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } =
       // structuredContent to validate.
       const outShape = TOOL_OUTPUT_SCHEMAS[name];
       if (outShape && !args[4]) {
-        args[4] = outShape; // outputSchema slot
+        // An OPEN object, not the raw shape. From a raw shape the SDK publishes
+        // "additionalProperties": false, while structuredContent is the API
+        // response as it came, which carries fields the shape does not list
+        // (get_post returns the whole post). A client that validates results
+        // against the published schema, as the MCP SDK's own Client does, then
+        // refuses a call that succeeded. The shape documents; it must not forbid.
+        args[4] = z.object(outShape).passthrough(); // outputSchema slot
         const handler = args[8]; // _createRegisteredTool(..., execution, _meta, handler)
         if (typeof handler === "function") {
           const inner = handler as (...a: unknown[]) => unknown;

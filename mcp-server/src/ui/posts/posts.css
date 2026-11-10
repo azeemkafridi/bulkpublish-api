@@ -217,7 +217,7 @@ body {
 .posts__toast {
   position: fixed;
   left: 50%;
-  bottom: 20px;
+  bottom: calc(20px + var(--bp-safe-bottom, 0px));
   transform: translate(-50%, 16px);
   max-width: 92%;
   padding: 10px 16px;

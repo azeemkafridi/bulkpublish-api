@@ -53,7 +53,7 @@ async function surface(profile) {
   const out = {
     // The announced version follows package.json, so pin its presence, not its
     // value: a release bump is not a change to the surface.
-    serverInfo: { ...client.getServerVersion(), version: "<package version>" },
+    serverInfo: { ...versionChecked(client.getServerVersion()), version: "<package version>" },
     instructions: client.getInstructions() ?? null,
     capabilities: client.getServerCapabilities(),
     tools,
@@ -75,6 +75,17 @@ function stripOpenAi(value) {
     return out;
   }
   return value;
+}
+
+// The snapshot pins a placeholder for the version, so check the real value
+// here: a build that cannot find package.json announces the fallback instead.
+const PKG_VERSION = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "package.json"), "utf8")).version;
+function versionChecked(info) {
+  if (info?.version !== PKG_VERSION) {
+    console.error(`serverInfo.version is ${JSON.stringify(info?.version)}, package.json says ${PKG_VERSION}`);
+    process.exit(1);
+  }
+  return info;
 }
 
 function checkOpenAiKeys(s, profile) {

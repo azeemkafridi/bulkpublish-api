@@ -134,7 +134,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": true,
@@ -2068,7 +2068,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -2496,7 +2496,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": true,
@@ -2752,7 +2752,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": true,
@@ -3008,7 +3008,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -3304,7 +3304,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -3572,7 +3572,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -3837,7 +3837,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -4044,7 +4044,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -4238,7 +4238,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": true,
@@ -4493,7 +4493,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": true,
@@ -4582,7 +4582,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": true,
@@ -6444,7 +6444,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -6489,7 +6489,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -6581,7 +6581,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": true,
@@ -6646,7 +6646,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": true,
@@ -6774,7 +6774,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": true,
@@ -6827,7 +6827,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -7716,7 +7716,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -7855,7 +7855,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -7991,7 +7991,7 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "additionalProperties": false
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": true,
