@@ -46,6 +46,7 @@
         "type": "object",
         "properties": {
           "channels": {
+            "description": "Connected accounts. channelId is what create_post and update_post take.",
             "anyOf": [
               {
                 "type": "array",
@@ -1834,6 +1835,7 @@
         "type": "object",
         "properties": {
           "id": {
+            "description": "The post's ID, used by get_post, update_post, publish_post and delete_post.",
             "anyOf": [
               {
                 "anyOf": [
@@ -1851,6 +1853,7 @@
             ]
           },
           "content": {
+            "description": "The post's main text.",
             "anyOf": [
               {
                 "type": "string"
@@ -1872,6 +1875,7 @@
             ]
           },
           "scheduledAt": {
+            "description": "ISO 8601 time the post is scheduled for.",
             "anyOf": [
               {
                 "type": "string"
@@ -1882,6 +1886,7 @@
             ]
           },
           "timezone": {
+            "description": "Time zone the schedule was set in.",
             "anyOf": [
               {
                 "type": "string"
@@ -1892,6 +1897,7 @@
             ]
           },
           "publishedAt": {
+            "description": "ISO 8601 time the post was published.",
             "anyOf": [
               {
                 "type": "string"
@@ -1902,6 +1908,7 @@
             ]
           },
           "createdAt": {
+            "description": "ISO 8601 time the post was created.",
             "anyOf": [
               {
                 "type": "string"
@@ -1912,6 +1919,7 @@
             ]
           },
           "approvalStatus": {
+            "description": "Team approval state: none, pending, approved or rejected.",
             "anyOf": [
               {
                 "type": "string"
@@ -1961,6 +1969,7 @@
             ]
           },
           "mediaFiles": {
+            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
             "anyOf": [
               {
                 "type": "array",
@@ -1986,6 +1995,7 @@
             ]
           },
           "postPlatforms": {
+            "description": "One entry per destination, with its platform and its own publish status.",
             "anyOf": [
               {
                 "type": "array",
@@ -2022,6 +2032,7 @@
             ]
           },
           "labels": {
+            "description": "Labels on the post.",
             "anyOf": [
               {
                 "type": "array",
@@ -2035,6 +2046,15 @@
                 "type": "null"
               }
             ]
+          },
+          "threadParts": {
+            "description": "For a thread post: its parts, in order."
+          },
+          "threadMediaFiles": {
+            "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+          },
+          "recurringSchedule": {
+            "description": "get_post only: the repeat schedule the post belongs to, or null."
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -2154,6 +2174,7 @@
         "type": "object",
         "properties": {
           "posts": {
+            "description": "The posts on this page.",
             "anyOf": [
               {
                 "type": "array",
@@ -2161,6 +2182,7 @@
                   "type": "object",
                   "properties": {
                     "id": {
+                      "description": "The post's ID, used by get_post, update_post, publish_post and delete_post.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -2178,6 +2200,7 @@
                       ]
                     },
                     "content": {
+                      "description": "The post's main text.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -2199,6 +2222,7 @@
                       ]
                     },
                     "scheduledAt": {
+                      "description": "ISO 8601 time the post is scheduled for.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -2209,6 +2233,7 @@
                       ]
                     },
                     "timezone": {
+                      "description": "Time zone the schedule was set in.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -2219,6 +2244,7 @@
                       ]
                     },
                     "publishedAt": {
+                      "description": "ISO 8601 time the post was published.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -2229,6 +2255,7 @@
                       ]
                     },
                     "createdAt": {
+                      "description": "ISO 8601 time the post was created.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -2239,6 +2266,7 @@
                       ]
                     },
                     "approvalStatus": {
+                      "description": "Team approval state: none, pending, approved or rejected.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -2288,6 +2316,7 @@
                       ]
                     },
                     "mediaFiles": {
+                      "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
                       "anyOf": [
                         {
                           "type": "array",
@@ -2313,6 +2342,7 @@
                       ]
                     },
                     "postPlatforms": {
+                      "description": "One entry per destination, with its platform and its own publish status.",
                       "anyOf": [
                         {
                           "type": "array",
@@ -2349,6 +2379,7 @@
                       ]
                     },
                     "labels": {
+                      "description": "Labels on the post.",
                       "anyOf": [
                         {
                           "type": "array",
@@ -2362,6 +2393,15 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "threadParts": {
+                      "description": "For a thread post: its parts, in order."
+                    },
+                    "threadMediaFiles": {
+                      "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+                    },
+                    "recurringSchedule": {
+                      "description": "get_post only: the repeat schedule the post belongs to, or null."
                     }
                   },
                   "additionalProperties": {}
@@ -2373,6 +2413,7 @@
             ]
           },
           "total": {
+            "description": "Posts matching the filters, across every page.",
             "anyOf": [
               {
                 "anyOf": [
@@ -2390,6 +2431,7 @@
             ]
           },
           "page": {
+            "description": "This page's number.",
             "anyOf": [
               {
                 "anyOf": [
@@ -2407,6 +2449,7 @@
             ]
           },
           "limit": {
+            "description": "Page size used.",
             "anyOf": [
               {
                 "anyOf": [
@@ -2424,6 +2467,7 @@
             ]
           },
           "totalPages": {
+            "description": "How many pages there are.",
             "anyOf": [
               {
                 "anyOf": [
@@ -2475,6 +2519,7 @@
         "type": "object",
         "properties": {
           "id": {
+            "description": "The post's ID, used by get_post, update_post, publish_post and delete_post.",
             "anyOf": [
               {
                 "anyOf": [
@@ -2492,6 +2537,7 @@
             ]
           },
           "content": {
+            "description": "The post's main text.",
             "anyOf": [
               {
                 "type": "string"
@@ -2513,6 +2559,7 @@
             ]
           },
           "scheduledAt": {
+            "description": "ISO 8601 time the post is scheduled for.",
             "anyOf": [
               {
                 "type": "string"
@@ -2523,6 +2570,7 @@
             ]
           },
           "timezone": {
+            "description": "Time zone the schedule was set in.",
             "anyOf": [
               {
                 "type": "string"
@@ -2533,6 +2581,7 @@
             ]
           },
           "publishedAt": {
+            "description": "ISO 8601 time the post was published.",
             "anyOf": [
               {
                 "type": "string"
@@ -2543,6 +2592,7 @@
             ]
           },
           "createdAt": {
+            "description": "ISO 8601 time the post was created.",
             "anyOf": [
               {
                 "type": "string"
@@ -2553,6 +2603,7 @@
             ]
           },
           "approvalStatus": {
+            "description": "Team approval state: none, pending, approved or rejected.",
             "anyOf": [
               {
                 "type": "string"
@@ -2602,6 +2653,7 @@
             ]
           },
           "mediaFiles": {
+            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
             "anyOf": [
               {
                 "type": "array",
@@ -2627,6 +2679,7 @@
             ]
           },
           "postPlatforms": {
+            "description": "One entry per destination, with its platform and its own publish status.",
             "anyOf": [
               {
                 "type": "array",
@@ -2663,6 +2716,7 @@
             ]
           },
           "labels": {
+            "description": "Labels on the post.",
             "anyOf": [
               {
                 "type": "array",
@@ -2676,6 +2730,15 @@
                 "type": "null"
               }
             ]
+          },
+          "threadParts": {
+            "description": "For a thread post: its parts, in order."
+          },
+          "threadMediaFiles": {
+            "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+          },
+          "recurringSchedule": {
+            "description": "get_post only: the repeat schedule the post belongs to, or null."
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -2712,6 +2775,7 @@
         "type": "object",
         "properties": {
           "id": {
+            "description": "The post's ID, used by get_post, update_post, publish_post and delete_post.",
             "anyOf": [
               {
                 "anyOf": [
@@ -2729,6 +2793,7 @@
             ]
           },
           "content": {
+            "description": "The post's main text.",
             "anyOf": [
               {
                 "type": "string"
@@ -2750,6 +2815,7 @@
             ]
           },
           "scheduledAt": {
+            "description": "ISO 8601 time the post is scheduled for.",
             "anyOf": [
               {
                 "type": "string"
@@ -2760,6 +2826,7 @@
             ]
           },
           "timezone": {
+            "description": "Time zone the schedule was set in.",
             "anyOf": [
               {
                 "type": "string"
@@ -2770,6 +2837,7 @@
             ]
           },
           "publishedAt": {
+            "description": "ISO 8601 time the post was published.",
             "anyOf": [
               {
                 "type": "string"
@@ -2780,6 +2848,7 @@
             ]
           },
           "createdAt": {
+            "description": "ISO 8601 time the post was created.",
             "anyOf": [
               {
                 "type": "string"
@@ -2790,6 +2859,7 @@
             ]
           },
           "approvalStatus": {
+            "description": "Team approval state: none, pending, approved or rejected.",
             "anyOf": [
               {
                 "type": "string"
@@ -2839,6 +2909,7 @@
             ]
           },
           "mediaFiles": {
+            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
             "anyOf": [
               {
                 "type": "array",
@@ -2864,6 +2935,7 @@
             ]
           },
           "postPlatforms": {
+            "description": "One entry per destination, with its platform and its own publish status.",
             "anyOf": [
               {
                 "type": "array",
@@ -2900,6 +2972,7 @@
             ]
           },
           "labels": {
+            "description": "Labels on the post.",
             "anyOf": [
               {
                 "type": "array",
@@ -2913,6 +2986,15 @@
                 "type": "null"
               }
             ]
+          },
+          "threadParts": {
+            "description": "For a thread post: its parts, in order."
+          },
+          "threadMediaFiles": {
+            "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+          },
+          "recurringSchedule": {
+            "description": "get_post only: the repeat schedule the post belongs to, or null."
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -2953,6 +3035,7 @@
         "type": "object",
         "properties": {
           "id": {
+            "description": "The post's ID, used by get_post, update_post, publish_post and delete_post.",
             "anyOf": [
               {
                 "anyOf": [
@@ -2970,6 +3053,7 @@
             ]
           },
           "content": {
+            "description": "The post's main text.",
             "anyOf": [
               {
                 "type": "string"
@@ -2991,6 +3075,7 @@
             ]
           },
           "scheduledAt": {
+            "description": "ISO 8601 time the post is scheduled for.",
             "anyOf": [
               {
                 "type": "string"
@@ -3001,6 +3086,7 @@
             ]
           },
           "timezone": {
+            "description": "Time zone the schedule was set in.",
             "anyOf": [
               {
                 "type": "string"
@@ -3011,6 +3097,7 @@
             ]
           },
           "publishedAt": {
+            "description": "ISO 8601 time the post was published.",
             "anyOf": [
               {
                 "type": "string"
@@ -3021,6 +3108,7 @@
             ]
           },
           "createdAt": {
+            "description": "ISO 8601 time the post was created.",
             "anyOf": [
               {
                 "type": "string"
@@ -3031,6 +3119,7 @@
             ]
           },
           "approvalStatus": {
+            "description": "Team approval state: none, pending, approved or rejected.",
             "anyOf": [
               {
                 "type": "string"
@@ -3080,6 +3169,7 @@
             ]
           },
           "mediaFiles": {
+            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
             "anyOf": [
               {
                 "type": "array",
@@ -3105,6 +3195,7 @@
             ]
           },
           "postPlatforms": {
+            "description": "One entry per destination, with its platform and its own publish status.",
             "anyOf": [
               {
                 "type": "array",
@@ -3141,6 +3232,7 @@
             ]
           },
           "labels": {
+            "description": "Labels on the post.",
             "anyOf": [
               {
                 "type": "array",
@@ -3154,6 +3246,15 @@
                 "type": "null"
               }
             ]
+          },
+          "threadParts": {
+            "description": "For a thread post: its parts, in order."
+          },
+          "threadMediaFiles": {
+            "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+          },
+          "recurringSchedule": {
+            "description": "get_post only: the repeat schedule the post belongs to, or null."
           },
           "retriedCount": {
             "description": "How many destinations were retried.",
@@ -3238,6 +3339,7 @@
         "type": "object",
         "properties": {
           "id": {
+            "description": "The post's ID, used by get_post, update_post, publish_post and delete_post.",
             "anyOf": [
               {
                 "anyOf": [
@@ -3255,6 +3357,7 @@
             ]
           },
           "content": {
+            "description": "The post's main text.",
             "anyOf": [
               {
                 "type": "string"
@@ -3276,6 +3379,7 @@
             ]
           },
           "scheduledAt": {
+            "description": "ISO 8601 time the post is scheduled for.",
             "anyOf": [
               {
                 "type": "string"
@@ -3286,6 +3390,7 @@
             ]
           },
           "timezone": {
+            "description": "Time zone the schedule was set in.",
             "anyOf": [
               {
                 "type": "string"
@@ -3296,6 +3401,7 @@
             ]
           },
           "publishedAt": {
+            "description": "ISO 8601 time the post was published.",
             "anyOf": [
               {
                 "type": "string"
@@ -3306,6 +3412,7 @@
             ]
           },
           "createdAt": {
+            "description": "ISO 8601 time the post was created.",
             "anyOf": [
               {
                 "type": "string"
@@ -3316,6 +3423,7 @@
             ]
           },
           "approvalStatus": {
+            "description": "Team approval state: none, pending, approved or rejected.",
             "anyOf": [
               {
                 "type": "string"
@@ -3365,6 +3473,7 @@
             ]
           },
           "mediaFiles": {
+            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
             "anyOf": [
               {
                 "type": "array",
@@ -3390,6 +3499,7 @@
             ]
           },
           "postPlatforms": {
+            "description": "One entry per destination, with its platform and its own publish status.",
             "anyOf": [
               {
                 "type": "array",
@@ -3426,6 +3536,7 @@
             ]
           },
           "labels": {
+            "description": "Labels on the post.",
             "anyOf": [
               {
                 "type": "array",
@@ -3439,6 +3550,15 @@
                 "type": "null"
               }
             ]
+          },
+          "threadParts": {
+            "description": "For a thread post: its parts, in order."
+          },
+          "threadMediaFiles": {
+            "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+          },
+          "recurringSchedule": {
+            "description": "get_post only: the repeat schedule the post belongs to, or null."
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -3484,6 +3604,7 @@
         "type": "object",
         "properties": {
           "id": {
+            "description": "The post's ID, used by get_post, update_post, publish_post and delete_post.",
             "anyOf": [
               {
                 "anyOf": [
@@ -3501,6 +3622,7 @@
             ]
           },
           "content": {
+            "description": "The post's main text.",
             "anyOf": [
               {
                 "type": "string"
@@ -3522,6 +3644,7 @@
             ]
           },
           "scheduledAt": {
+            "description": "ISO 8601 time the post is scheduled for.",
             "anyOf": [
               {
                 "type": "string"
@@ -3532,6 +3655,7 @@
             ]
           },
           "timezone": {
+            "description": "Time zone the schedule was set in.",
             "anyOf": [
               {
                 "type": "string"
@@ -3542,6 +3666,7 @@
             ]
           },
           "publishedAt": {
+            "description": "ISO 8601 time the post was published.",
             "anyOf": [
               {
                 "type": "string"
@@ -3552,6 +3677,7 @@
             ]
           },
           "createdAt": {
+            "description": "ISO 8601 time the post was created.",
             "anyOf": [
               {
                 "type": "string"
@@ -3562,6 +3688,7 @@
             ]
           },
           "approvalStatus": {
+            "description": "Team approval state: none, pending, approved or rejected.",
             "anyOf": [
               {
                 "type": "string"
@@ -3611,6 +3738,7 @@
             ]
           },
           "mediaFiles": {
+            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
             "anyOf": [
               {
                 "type": "array",
@@ -3636,6 +3764,7 @@
             ]
           },
           "postPlatforms": {
+            "description": "One entry per destination, with its platform and its own publish status.",
             "anyOf": [
               {
                 "type": "array",
@@ -3672,6 +3801,7 @@
             ]
           },
           "labels": {
+            "description": "Labels on the post.",
             "anyOf": [
               {
                 "type": "array",
@@ -3685,6 +3815,15 @@
                 "type": "null"
               }
             ]
+          },
+          "threadParts": {
+            "description": "For a thread post: its parts, in order."
+          },
+          "threadMediaFiles": {
+            "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+          },
+          "recurringSchedule": {
+            "description": "get_post only: the repeat schedule the post belongs to, or null."
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -3703,7 +3842,7 @@
     {
       "name": "upload_media",
       "title": "Upload media",
-      "description": "Upload a media file (image, video or document) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM, and documents (PDF, Word .doc/.docx, PowerPoint .ppt/.pptx). Max 100MB. A document has no thumbnail or preview and can only be published to LinkedIn, as a `document` post. Provide either url OR filePath, not both. Use this when the user provides an image, video or document to attach to a post.",
+      "description": "Upload a media file (image, video or document) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM, and documents (PDF, Word .doc/.docx, PowerPoint .ppt/.pptx). Max 100MB. A document has no thumbnail or preview and can only be published to LinkedIn, as a `document` post. Provide either url OR filePath, not both. Returns the stored file, including the id to pass in mediaFileIds on create_post. Use this when the user provides an image, video or document to attach to a post.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3752,6 +3891,7 @@
         "type": "object",
         "properties": {
           "file": {
+            "description": "The stored media file.",
             "anyOf": [
               {
                 "type": "object",
@@ -3764,6 +3904,7 @@
             ]
           },
           "id": {
+            "description": "The media file's ID, for mediaFileIds on create_post.",
             "anyOf": [
               {
                 "anyOf": [
@@ -3781,6 +3922,7 @@
             ]
           },
           "url": {
+            "description": "Where the file can be viewed.",
             "anyOf": [
               {
                 "type": "string"
@@ -3791,6 +3933,7 @@
             ]
           },
           "filename": {
+            "description": "The file's name.",
             "anyOf": [
               {
                 "type": "string"
@@ -3801,6 +3944,7 @@
             ]
           },
           "mimeType": {
+            "description": "The file's MIME type.",
             "anyOf": [
               {
                 "type": "string"
@@ -3811,6 +3955,7 @@
             ]
           },
           "sizeBytes": {
+            "description": "The file's size in bytes.",
             "anyOf": [
               {
                 "anyOf": [
@@ -3877,6 +4022,7 @@
         "type": "object",
         "properties": {
           "files": {
+            "description": "Media files on this page. id is what mediaFileIds takes.",
             "anyOf": [
               {
                 "type": "array",
@@ -3957,6 +4103,7 @@
             ]
           },
           "page": {
+            "description": "This page's number.",
             "anyOf": [
               {
                 "anyOf": [
@@ -3974,6 +4121,7 @@
             ]
           },
           "limit": {
+            "description": "Page size used.",
             "anyOf": [
               {
                 "anyOf": [
@@ -3991,6 +4139,7 @@
             ]
           },
           "total": {
+            "description": "Files matching the filters, across every page.",
             "anyOf": [
               {
                 "anyOf": [
@@ -4084,6 +4233,7 @@
         "type": "object",
         "properties": {
           "totalPosts": {
+            "description": "Posts in the date range.",
             "anyOf": [
               {
                 "anyOf": [
@@ -4101,6 +4251,7 @@
             ]
           },
           "published": {
+            "description": "How many of them published.",
             "anyOf": [
               {
                 "anyOf": [
@@ -4118,6 +4269,7 @@
             ]
           },
           "failed": {
+            "description": "How many failed.",
             "anyOf": [
               {
                 "anyOf": [
@@ -4135,6 +4287,7 @@
             ]
           },
           "scheduled": {
+            "description": "How many are still scheduled.",
             "anyOf": [
               {
                 "anyOf": [
@@ -4152,6 +4305,7 @@
             ]
           },
           "partial": {
+            "description": "How many published to only some destinations.",
             "anyOf": [
               {
                 "anyOf": [
@@ -4169,6 +4323,7 @@
             ]
           },
           "from": {
+            "description": "Start of the date range.",
             "anyOf": [
               {
                 "type": "string"
@@ -4179,6 +4334,7 @@
             ]
           },
           "to": {
+            "description": "End of the date range.",
             "anyOf": [
               {
                 "type": "string"
@@ -4189,6 +4345,7 @@
             ]
           },
           "byPlatform": {
+            "description": "The same counts split by platform.",
             "anyOf": [
               {
                 "type": "object",
@@ -4201,6 +4358,7 @@
             ]
           },
           "byDay": {
+            "description": "Post counts per day.",
             "anyOf": [
               {
                 "type": "array",
@@ -4216,6 +4374,7 @@
             ]
           },
           "publishedTimes": {
+            "description": "When posts in the range were published.",
             "anyOf": [
               {
                 "type": "array",
@@ -4227,6 +4386,7 @@
             ]
           },
           "previous": {
+            "description": "The same figures for the comparison period, when one was requested.",
             "anyOf": [
               {
                 "type": "object",
@@ -4239,6 +4399,7 @@
             ]
           },
           "previousWindow": {
+            "description": "The dates of that comparison period.",
             "anyOf": [
               {
                 "type": "object",
@@ -4286,6 +4447,7 @@
         "type": "object",
         "properties": {
           "items": {
+            "description": "The workspace's labels. id is what the labels input of create_post takes.",
             "anyOf": [
               {
                 "type": "array",
@@ -5979,6 +6141,7 @@
         "type": "object",
         "properties": {
           "id": {
+            "description": "The post's ID, used by get_post, update_post, publish_post and delete_post.",
             "anyOf": [
               {
                 "anyOf": [
@@ -5996,6 +6159,7 @@
             ]
           },
           "content": {
+            "description": "The post's main text.",
             "anyOf": [
               {
                 "type": "string"
@@ -6017,6 +6181,7 @@
             ]
           },
           "scheduledAt": {
+            "description": "ISO 8601 time the post is scheduled for.",
             "anyOf": [
               {
                 "type": "string"
@@ -6027,6 +6192,7 @@
             ]
           },
           "timezone": {
+            "description": "Time zone the schedule was set in.",
             "anyOf": [
               {
                 "type": "string"
@@ -6037,6 +6203,7 @@
             ]
           },
           "publishedAt": {
+            "description": "ISO 8601 time the post was published.",
             "anyOf": [
               {
                 "type": "string"
@@ -6047,6 +6214,7 @@
             ]
           },
           "createdAt": {
+            "description": "ISO 8601 time the post was created.",
             "anyOf": [
               {
                 "type": "string"
@@ -6057,6 +6225,7 @@
             ]
           },
           "approvalStatus": {
+            "description": "Team approval state: none, pending, approved or rejected.",
             "anyOf": [
               {
                 "type": "string"
@@ -6106,6 +6275,7 @@
             ]
           },
           "mediaFiles": {
+            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
             "anyOf": [
               {
                 "type": "array",
@@ -6131,6 +6301,7 @@
             ]
           },
           "postPlatforms": {
+            "description": "One entry per destination, with its platform and its own publish status.",
             "anyOf": [
               {
                 "type": "array",
@@ -6167,6 +6338,7 @@
             ]
           },
           "labels": {
+            "description": "Labels on the post.",
             "anyOf": [
               {
                 "type": "array",
@@ -6180,6 +6352,15 @@
                 "type": "null"
               }
             ]
+          },
+          "threadParts": {
+            "description": "For a thread post: its parts, in order."
+          },
+          "threadMediaFiles": {
+            "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+          },
+          "recurringSchedule": {
+            "description": "get_post only: the repeat schedule the post belongs to, or null."
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -6216,6 +6397,7 @@
         "type": "object",
         "properties": {
           "success": {
+            "description": "true when the post was deleted.",
             "anyOf": [
               {
                 "type": "boolean"
@@ -6260,6 +6442,7 @@
         "type": "object",
         "properties": {
           "postId": {
+            "description": "The post these metrics belong to.",
             "anyOf": [
               {
                 "anyOf": [
@@ -6277,6 +6460,7 @@
             ]
           },
           "platforms": {
+            "description": "One entry per destination with its own figures, plus metricsSupported and supportedMetrics.",
             "anyOf": [
               {
                 "type": "array",
@@ -6303,6 +6487,7 @@
             ]
           },
           "totals": {
+            "description": "Sums across destinations: impressions, likes, comments, shares, clicks, videoViews and linkClicks.",
             "anyOf": [
               {
                 "type": "object",
@@ -6331,7 +6516,7 @@
     {
       "name": "get_queue_slot",
       "title": "Get next queue slot",
-      "description": "Get the organization's next available queue slot. Useful for finding the next optimal scheduling time. Use this when the user asks when the next available scheduling slot is, or wants a post moved to the top or bottom of the queue (then update_post with the returned scheduledAt).",
+      "description": "Get the organization's next available queue slot. Useful for finding the next optimal scheduling time. Returns scheduledAt (an ISO timestamp) and dayLabel (a readable day). Use this when the user asks when the next available scheduling slot is, or wants a post moved to the top or bottom of the queue (then update_post with the returned scheduledAt).",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -6396,7 +6581,7 @@
     {
       "name": "get_channel_options",
       "title": "Get channel post-type options",
-      "description": "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search. Use this when you need a platform's valid post types before creating a post for it.",
+      "description": "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search. Returns type (which kind of option came back) and items, each with an id and a name. Use this when you need a platform's valid post types before creating a post for it.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -6409,7 +6594,7 @@
             "type": "string"
           },
           "boardId": {
-            "description": "Pinterest only: numeric board ID. Returns that board's sections ({ type: 'sections', items: [{ id, name }] }) for platformSpecific.pinterest.boardSectionId, instead of the boards. Non-numeric values return 400.",
+            "description": "Pinterest only: the board's ID, digits only, sent as a string (from this tool's boards list). Returns that board's sections ({ type: 'sections', items: [{ id, name }] }) for platformSpecific.pinterest.boardSectionId, instead of the boards. Non-numeric values return 400.",
             "type": "string"
           }
         },
@@ -6433,6 +6618,7 @@
             ]
           },
           "items": {
+            "description": "The options of that type. Use an item's id in the matching platformSpecific field.",
             "anyOf": [
               {
                 "type": "array",
@@ -6476,6 +6662,7 @@
             ]
           },
           "info": {
+            "description": "Extra details for types that are not a list, such as creator_info.",
             "anyOf": [
               {
                 "type": "object",
@@ -6488,6 +6675,7 @@
             ]
           },
           "unavailable": {
+            "description": "Set when the options cannot be offered for this channel.",
             "anyOf": [
               {
                 "anyOf": [
@@ -6547,6 +6735,7 @@
         "type": "object",
         "properties": {
           "success": {
+            "description": "true when the settings were saved.",
             "anyOf": [
               {
                 "type": "boolean"
@@ -6588,6 +6777,7 @@
         "type": "object",
         "properties": {
           "channels": {
+            "description": "The active connected accounts offered in the composer.",
             "anyOf": [
               {
                 "type": "array",
@@ -6641,6 +6831,7 @@
             ]
           },
           "media": {
+            "description": "Recent media files offered for attaching.",
             "anyOf": [
               {
                 "type": "array",
@@ -6745,6 +6936,7 @@
         "type": "object",
         "properties": {
           "from": {
+            "description": "Start of the date range shown.",
             "anyOf": [
               {
                 "type": "string"
@@ -6755,6 +6947,7 @@
             ]
           },
           "to": {
+            "description": "End of the date range shown.",
             "anyOf": [
               {
                 "type": "string"
@@ -6765,6 +6958,7 @@
             ]
           },
           "summary": {
+            "description": "Post totals for the range, by status, by platform and by day.",
             "anyOf": [
               {
                 "type": "object",
@@ -7000,6 +7194,7 @@
         "type": "object",
         "properties": {
           "posts": {
+            "description": "The posts shown, each with its status, times and platforms.",
             "anyOf": [
               {
                 "type": "array",
@@ -7096,6 +7291,7 @@
             ]
           },
           "total": {
+            "description": "Posts matching the filter.",
             "anyOf": [
               {
                 "anyOf": [
@@ -7135,7 +7331,7 @@
     {
       "name": "view_channels",
       "title": "Channels",
-      "description": "Open an interactive view of connected social channels with platform, account, and connection/token status. Use this when the user wants an interactive view of their connected channels.",
+      "description": "Open an interactive view of connected social channels with platform, account, and connection/token status. Returns the same list: channelId, platform, accountName, active and status. Use this when the user wants an interactive view of their connected channels.",
       "inputSchema": {
         "type": "object",
         "properties": {},
@@ -7145,6 +7341,7 @@
         "type": "object",
         "properties": {
           "channels": {
+            "description": "The connected accounts shown, each with its connection status.",
             "anyOf": [
               {
                 "type": "array",
@@ -7255,6 +7452,7 @@
         "type": "object",
         "properties": {
           "media": {
+            "description": "The media files shown.",
             "anyOf": [
               {
                 "type": "array",
@@ -7397,6 +7595,7 @@
         "type": "object",
         "properties": {
           "uploadUrl": {
+            "description": "Address to send the file's bytes to with an HTTP PUT.",
             "anyOf": [
               {
                 "type": "string"
@@ -7407,6 +7606,7 @@
             ]
           },
           "r2Key": {
+            "description": "Reference for this upload; pass it to finalize_media_upload.",
             "anyOf": [
               {
                 "type": "string"
@@ -7417,6 +7617,7 @@
             ]
           },
           "expiresIn": {
+            "description": "Seconds until uploadUrl stops working.",
             "anyOf": [
               {
                 "anyOf": [
@@ -7450,7 +7651,7 @@
     {
       "name": "finalize_media_upload",
       "title": "Finalize media upload",
-      "description": "Record an uploaded file as a media file after the browser PUT (pairs with create_media_upload; used by the composer UI). Use this when a presigned direct upload finished and the file must be registered (advanced).",
+      "description": "Record an uploaded file as a media file after the browser PUT (pairs with create_media_upload; used by the composer UI). Returns the new media file, including the id to pass in mediaFileIds. Use this when a presigned direct upload finished and the file must be registered (advanced).",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -7495,6 +7696,7 @@
         "type": "object",
         "properties": {
           "file": {
+            "description": "The new media file. Its id is what mediaFileIds takes.",
             "anyOf": [
               {
                 "type": "object",
@@ -7587,6 +7789,7 @@
         "type": "object",
         "properties": {
           "postId": {
+            "description": "The post these comments belong to.",
             "anyOf": [
               {
                 "anyOf": [
@@ -7604,6 +7807,7 @@
             ]
           },
           "platforms": {
+            "description": "One entry per destination: its comments and reactions under engagement, or error when they could not be read. postPlatformId identifies the destination when replying to or moderating a comment.",
             "anyOf": [
               {
                 "type": "array",

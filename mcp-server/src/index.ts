@@ -768,14 +768,14 @@ const sArr = (shape: Record<string, z.ZodTypeAny> = {}) =>
 
 // One post, as returned by GET/POST/PATCH /api/posts[/{id}] and the publish route.
 const POST_SHAPE: Record<string, z.ZodTypeAny> = {
-  id: sNum(),
-  content: sStr(),
+  id: sNum().describe("The post's ID, used by get_post, update_post, publish_post and delete_post."),
+  content: sStr().describe("The post's main text."),
   status: sStr().describe("draft, scheduled, publishing, processing, published, partial or failed."),
-  scheduledAt: sStr(),
-  timezone: sStr(),
-  publishedAt: sStr(),
-  createdAt: sStr(),
-  approvalStatus: sStr(),
+  scheduledAt: sStr().describe("ISO 8601 time the post is scheduled for."),
+  timezone: sStr().describe("Time zone the schedule was set in."),
+  publishedAt: sStr().describe("ISO 8601 time the post was published."),
+  createdAt: sStr().describe("ISO 8601 time the post was created."),
+  approvalStatus: sStr().describe("Team approval state: none, pending, approved or rejected."),
   author: sObj().describe("Who wrote the post: { id, name, image }. Null when that account is gone."),
   approver: sObj().describe("Who approved it: { id, name, image }. Null unless approvalStatus is approved."),
   assignee: sObj().describe("Who is expected to act on it next: { id, name, image }. Null when nobody is."),
@@ -784,19 +784,26 @@ const POST_SHAPE: Record<string, z.ZodTypeAny> = {
   // made every create_post/update_post WITH media fail output validation after
   // the post had already been saved (2026-09-11) — the host then reported an
   // error for a post that existed, which is how a retry duplicates it.
-  mediaFiles: z.array(z.union([z.number(), z.string(), z.object({}).passthrough()])).nullish(),
-  postPlatforms: sArr({ platform: sStr(), status: sStr() }),
-  labels: sArr(),
+  mediaFiles: z.array(z.union([z.number(), z.string(), z.object({}).passthrough()])).nullish().describe("Media on the post itself: file IDs after create_post or update_post, full file objects from get_post."),
+  postPlatforms: sArr({ platform: sStr(), status: sStr() }).describe("One entry per destination, with its platform and its own publish status."),
+  labels: sArr().describe("Labels on the post."),
+  // Documentation only: z.any() accepts every value, so these can never fail
+  // output validation whatever the API sends. .optional() is load-bearing:
+  // without it the published schema lists them as required, and a host that
+  // validates would refuse every create_post result, which has none of them.
+  threadParts: z.any().optional().describe("For a thread post: its parts, in order."),
+  threadMediaFiles: z.any().optional().describe("get_post only: the media the thread parts reference. Not included in mediaFiles."),
+  recurringSchedule: z.any().optional().describe("get_post only: the repeat schedule the post belongs to, or null."),
 };
 
 export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> = {
   list_channels: {
-    channels: sArr({ channelId: sNum(), platform: sStr(), accountName: sStr(), active: sBool() }),
+    channels: sArr({ channelId: sNum(), platform: sStr(), accountName: sStr(), active: sBool() }).describe("Connected accounts. channelId is what create_post and update_post take."),
     capabilities: sObj().describe("Whether the caller may create, publish or approve posts."),
   },
   list_posts: {
-    posts: sArr(POST_SHAPE),
-    total: sNum(), page: sNum(), limit: sNum(), totalPages: sNum(),
+    posts: sArr(POST_SHAPE).describe("The posts on this page."),
+    total: sNum().describe("Posts matching the filters, across every page."), page: sNum().describe("This page's number."), limit: sNum().describe("Page size used."), totalPages: sNum().describe("How many pages there are."),
   },
   get_post: POST_SHAPE,
   create_post: POST_SHAPE,
@@ -807,17 +814,21 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
     retriedCount: sNum().describe("How many destinations were retried."),
     skippedMaxRetries: sNum().describe("Destinations skipped for hitting the retry ceiling."),
   },
-  delete_post: { success: sBool() },
-  get_post_metrics: { postId: sNum(), platforms: sArr({ platform: sStr() }), totals: sObj() },
+  delete_post: { success: sBool().describe("true when the post was deleted.") },
+  get_post_metrics: {
+    postId: sNum().describe("The post these metrics belong to."),
+    platforms: sArr({ platform: sStr() }).describe("One entry per destination with its own figures, plus metricsSupported and supportedMetrics."),
+    totals: sObj().describe("Sums across destinations: impressions, likes, comments, shares, clicks, videoViews and linkClicks."),
+  },
   // GET /api/labels answers with a bare array, which attachStructured wraps.
-  list_labels: { items: sArr({ id: sNum(), name: sStr(), color: sStr() }) },
+  list_labels: { items: sArr({ id: sNum(), name: sStr(), color: sStr() }).describe("The workspace's labels. id is what the labels input of create_post takes.") },
   get_channel_options: {
     type: sStr().describe("boards, sections, playlists, blogs, channels, locations or creator_info."),
-    items: sArr({ id: sNum(), name: sStr() }),
-    info: sObj(),
-    unavailable: z.union([z.boolean(), z.string()]).nullish(),
+    items: sArr({ id: sNum(), name: sStr() }).describe("The options of that type. Use an item's id in the matching platformSpecific field."),
+    info: sObj().describe("Extra details for types that are not a list, such as creator_info."),
+    unavailable: z.union([z.boolean(), z.string()]).nullish().describe("Set when the options cannot be offered for this channel."),
   },
-  update_channel: { success: sBool() },
+  update_channel: { success: sBool().describe("true when the settings were saved.") },
   approve_post: POST_SHAPE,
   reject_post: POST_SHAPE,
   get_queue_slot: {
@@ -825,17 +836,26 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
     dayLabel: sStr().describe('Human label, e.g. "Today" or "Wed, Feb 14".'),
   },
   list_media: {
-    files: sArr({ id: sNum(), url: sStr(), filename: sStr(), mimeType: sStr(), sizeBytes: sNum() }),
-    page: sNum(), limit: sNum(), total: sNum(),
+    files: sArr({ id: sNum(), url: sStr(), filename: sStr(), mimeType: sStr(), sizeBytes: sNum() }).describe("Media files on this page. id is what mediaFileIds takes."),
+    page: sNum().describe("This page's number."), limit: sNum().describe("Page size used."), total: sNum().describe("Files matching the filters, across every page."),
   },
-  upload_media: { file: sObj(), id: sNum(), url: sStr(), filename: sStr(), mimeType: sStr(), sizeBytes: sNum() },
-  create_media_upload: { uploadUrl: sStr(), r2Key: sStr(), expiresIn: sNum() },
-  finalize_media_upload: { file: sObj({ id: sNum(), url: sStr(), filename: sStr() }) },
+  upload_media: {
+    file: sObj().describe("The stored media file."),
+    id: sNum().describe("The media file's ID, for mediaFileIds on create_post."),
+    url: sStr().describe("Where the file can be viewed."), filename: sStr().describe("The file's name."),
+    mimeType: sStr().describe("The file's MIME type."), sizeBytes: sNum().describe("The file's size in bytes."),
+  },
+  create_media_upload: {
+    uploadUrl: sStr().describe("Address to send the file's bytes to with an HTTP PUT."),
+    r2Key: sStr().describe("Reference for this upload; pass it to finalize_media_upload."),
+    expiresIn: sNum().describe("Seconds until uploadUrl stops working."),
+  },
+  finalize_media_upload: { file: sObj({ id: sNum(), url: sStr(), filename: sStr() }).describe("The new media file. Its id is what mediaFileIds takes.") },
   get_analytics: {
-    totalPosts: sNum(), published: sNum(), failed: sNum(), scheduled: sNum(), partial: sNum(),
-    from: sStr(), to: sStr(),
-    byPlatform: sObj(), byDay: sArr(), publishedTimes: z.array(z.any()).nullish(),
-    previous: sObj(), previousWindow: sObj(),
+    totalPosts: sNum().describe("Posts in the date range."), published: sNum().describe("How many of them published."), failed: sNum().describe("How many failed."), scheduled: sNum().describe("How many are still scheduled."), partial: sNum().describe("How many published to only some destinations."),
+    from: sStr().describe("Start of the date range."), to: sStr().describe("End of the date range."),
+    byPlatform: sObj().describe("The same counts split by platform."), byDay: sArr().describe("Post counts per day."), publishedTimes: z.array(z.any()).nullish().describe("When posts in the range were published."),
+    previous: sObj().describe("The same figures for the comparison period, when one was requested."), previousWindow: sObj().describe("The dates of that comparison period."),
   },
   // ---- Inbox profile (shapes from openapi.json, all lenient) --------------
   list_conversations: {
@@ -851,17 +871,17 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
     total: sNum().describe("How many conversations match the filters, across every page."),
   },
   get_conversation: {
-    conversationId: sNum(),
+    conversationId: sNum().describe("The conversation these messages belong to."),
     messages: sArr({ id: sNum(), direction: sStr().describe("in (from the other person) or out (sent by the workspace)."), text: sStr(), sentAt: sStr() }),
   },
   reply_to_conversation: { success: sBool(), messageId: sStr().describe("The platform's id for the sent message.") },
-  update_conversation: { success: sBool() },
+  update_conversation: { success: sBool().describe("true when the change was saved.") },
   list_post_comments: {
-    postId: sNum(),
-    platforms: sArr({ postPlatformId: sNum(), platform: sStr(), accountName: sStr(), engagement: sObj(), error: sStr() }),
+    postId: sNum().describe("The post these comments belong to."),
+    platforms: sArr({ postPlatformId: sNum(), platform: sStr(), accountName: sStr(), engagement: sObj(), error: sStr() }).describe("One entry per destination: its comments and reactions under engagement, or error when they could not be read. postPlatformId identifies the destination when replying to or moderating a comment."),
   },
-  reply_to_comment: { success: sBool(), replyId: sStr(), accountName: sStr() },
-  moderate_comment: { success: sBool(), action: sStr() },
+  reply_to_comment: { success: sBool().describe("true when the reply was posted."), replyId: sStr().describe("The platform's id for the new reply."), accountName: sStr().describe("The account the reply was posted as.") },
+  moderate_comment: { success: sBool().describe("true when the action was applied."), action: sStr().describe("The action that was applied.") },
 };
 
 // Turns a plain tool's text-only result into one carrying structuredContent,
@@ -1947,7 +1967,7 @@ server.registerTool(
   "upload_media",
   {
     description:
-      "Upload a media file (image, video or document) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM, and documents (PDF, Word .doc/.docx, PowerPoint .ppt/.pptx). Max 100MB. A document has no thumbnail or preview and can only be published to LinkedIn, as a `document` post. Provide either url OR filePath, not both.",
+      "Upload a media file (image, video or document) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM, and documents (PDF, Word .doc/.docx, PowerPoint .ppt/.pptx). Max 100MB. A document has no thumbnail or preview and can only be published to LinkedIn, as a `document` post. Provide either url OR filePath, not both. Returns the stored file, including the id to pass in mediaFileIds on create_post.",
     _meta: { "openai/fileParams": ["file"] },
     inputSchema: {
     url: z
@@ -2793,7 +2813,7 @@ server.tool(
 
 server.tool(
   "get_queue_slot",
-  "Get the organization's next available queue slot. Useful for finding the next optimal scheduling time.",
+  "Get the organization's next available queue slot. Useful for finding the next optimal scheduling time. Returns scheduledAt (an ISO timestamp) and dayLabel (a readable day).",
   {
     timezone: z
       .string()
@@ -2841,14 +2861,14 @@ server.tool(
 
 server.tool(
   "get_channel_options",
-  "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search.",
+  "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search. Returns type (which kind of option came back) and items, each with an id and a name.",
   {
     channelId: z.number().describe("The channel ID to get options for, from list_channels."),
     q: z
       .string()
       .optional()
       .describe("Search term. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging)."),
-    boardId: z.string().optional().describe("Pinterest only: numeric board ID. Returns that board's sections ({ type: 'sections', items: [{ id, name }] }) for platformSpecific.pinterest.boardSectionId, instead of the boards. Non-numeric values return 400."),
+    boardId: z.string().optional().describe("Pinterest only: the board's ID, digits only, sent as a string (from this tool's boards list). Returns that board's sections ({ type: 'sections', items: [{ id, name }] }) for platformSpecific.pinterest.boardSectionId, instead of the boards. Non-numeric values return 400."),
   },
   async ({ channelId, q, boardId }) => {
     const params = new URLSearchParams();
@@ -3485,6 +3505,13 @@ server.tool(
 //     with {} when opened this way, so it must have no required inputs.
 //   displayMode — the mode ChatGPT should render the panel in first when the
 //     model opens it. ChatGPT supports inline and fullscreen only.
+// ChatGPT's app domain for the panels. OpenAI's reference types it as an
+// origin (scheme + host), and its submission scan rejects a bare hostname.
+// The host is the one this server has always sent, so only the scheme is new.
+// The env override exists so the value can be put back without a release.
+const OPENAI_WIDGET_DOMAIN =
+  process.env.OPENAI_WIDGET_DOMAIN || "https://bulkpublish.com";
+
 type OpenAiWidgetOptions = {
   entrypoints?: Array<{ type: "global" | "thread" }>;
   displayMode?: "inline" | "fullscreen";
@@ -3497,6 +3524,14 @@ function registerWidget(config: {
   description: string;
   inputSchema: Record<string, z.ZodTypeAny>;
   outputSchema?: Record<string, z.ZodTypeAny>;
+  // ChatGPT-only texts (openai/* keys, which Claude ignores):
+  //   widgetDescription: what the panel shows, given to the model when it
+  //     loads so the assistant does not narrate it again.
+  //   invoking / invoked: status line while the tool runs and once it has
+  //     finished. OpenAI caps each at 64 characters.
+  widgetDescription: string;
+  invoking: string;
+  invoked: string;
   openai?: OpenAiWidgetOptions;
   load: (
     args: Record<string, any>
@@ -3538,7 +3573,8 @@ function registerWidget(config: {
   const displayMode = config.openai?.displayMode;
   const meta = {
     ui: { csp },
-    "openai/widgetDomain": "bulkpublish.com",
+    "openai/widgetDomain": OPENAI_WIDGET_DOMAIN,
+    "openai/widgetDescription": config.widgetDescription,
     "openai/widgetCSP": openaiCsp,
     ...(displayMode && {
       "openai/ui": {
@@ -3574,6 +3610,8 @@ function registerWidget(config: {
       outputSchema: config.outputSchema,
       _meta: {
         ui: { resourceUri: uri },
+        "openai/toolInvocation/invoking": config.invoking,
+        "openai/toolInvocation/invoked": config.invoked,
         ...(entrypoints?.length && { "openai/ui": { entrypoints } }),
       },
     },
@@ -3618,6 +3656,9 @@ const oItem = (shape: Record<string, z.ZodTypeAny>) =>
 registerWidget({
   tool: "compose_post",
   widget: "composer",
+  widgetDescription: "A post composer: pick connected channels, write the text, attach media, then save a draft or schedule it.",
+  invoking: "Opening the composer",
+  invoked: "Composer ready",
   title: "Compose a post",
   description:
     "Open an interactive composer to draft or schedule a social media post. " +
@@ -3633,10 +3674,12 @@ registerWidget({
   outputSchema: {
     channels: z
       .array(oItem({ channelId: oNum(), platform: oStr(), accountName: oStr() }))
-      .nullish(),
+      .nullish()
+      .describe("The active connected accounts offered in the composer."),
     media: z
       .array(oItem({ id: oNum(), url: oStr(), filename: oStr(), mimeType: oStr() }))
-      .nullish(),
+      .nullish()
+      .describe("Recent media files offered for attaching."),
   },
   load: async ({ content }) => {
     const [chRes, mdRes] = await Promise.all([
@@ -3675,6 +3718,9 @@ registerWidget({
 registerWidget({
   tool: "view_analytics",
   widget: "analytics",
+  widgetDescription: "An analytics dashboard for the chosen dates: post totals, status breakdown, per-platform counts and posts per day.",
+  invoking: "Loading analytics",
+  invoked: "Analytics ready",
   title: "Analytics dashboard",
   description:
     "Open an interactive analytics dashboard for a date range — totals, status " +
@@ -3688,8 +3734,8 @@ registerWidget({
     to: z.string().optional().describe("End date (ISO). Defaults to today."),
   },
   outputSchema: {
-    from: oStr(),
-    to: oStr(),
+    from: oStr().describe("Start of the date range shown."),
+    to: oStr().describe("End of the date range shown."),
     summary: oItem({
       totalPosts: oNum(),
       published: oNum(),
@@ -3700,7 +3746,7 @@ registerWidget({
         .array(oItem({ platform: oStr(), count: oNum(), published: oNum(), failed: oNum() }))
         .nullish(),
       daily: z.array(z.unknown()).nullish(),
-    }).nullish(),
+    }).nullish().describe("Post totals for the range, by status, by platform and by day."),
   },
   load: async ({ from, to }) => {
     const end = to || new Date().toISOString().slice(0, 10);
@@ -3747,6 +3793,9 @@ registerWidget({
 registerWidget({
   tool: "view_posts",
   widget: "posts",
+  widgetDescription: "A list of the user's posts with status, schedule and channels, with buttons to publish, retry, edit or delete each one.",
+  invoking: "Loading posts",
+  invoked: "Posts ready",
   title: "Posts",
   description:
     "Open an interactive list of posts with their status, schedule, and channels. " +
@@ -3779,8 +3828,9 @@ registerWidget({
           platforms: z.array(z.string()).nullish(),
         })
       )
-      .nullish(),
-    total: oNum(),
+      .nullish()
+      .describe("The posts shown, each with its status, times and platforms."),
+    total: oNum().describe("Posts matching the filter."),
   },
   load: async ({ status, limit }) => {
     const params = new URLSearchParams();
@@ -3816,10 +3866,13 @@ registerWidget({
 registerWidget({
   tool: "view_channels",
   widget: "channels",
+  widgetDescription: "The user's connected social accounts with platform, account name and connection status.",
+  invoking: "Loading channels",
+  invoked: "Channels ready",
   title: "Channels",
   description:
     "Open an interactive view of connected social channels with platform, account, " +
-    "and connection/token status.",
+    "and connection/token status. Returns the same list: channelId, platform, accountName, active and status.",
   inputSchema: {},
   outputSchema: {
     channels: z
@@ -3832,7 +3885,8 @@ registerWidget({
           status: oStr(),
         })
       )
-      .nullish(),
+      .nullish()
+      .describe("The connected accounts shown, each with its connection status."),
   },
   load: async () => {
     const res = await api("GET", "/api/channels");
@@ -3864,6 +3918,9 @@ registerWidget({
 registerWidget({
   tool: "view_media",
   widget: "media",
+  widgetDescription: "A gallery of the user's uploaded media files with thumbnails, file names and types.",
+  invoking: "Loading media",
+  invoked: "Media ready",
   title: "Media library",
   description:
     "Open an interactive gallery of uploaded media files with thumbnails and metadata.",
@@ -3882,7 +3939,8 @@ registerWidget({
           height: oNum(),
         })
       )
-      .nullish(),
+      .nullish()
+      .describe("The media files shown."),
   },
   load: async ({ limit }) => {
     const res = await api("GET", `/api/media?limit=${limit ?? 30}`);
@@ -3917,6 +3975,9 @@ if (!HIDE_BILLING_TOOLS) {
   registerWidget({
     tool: "view_quota",
     widget: "quota",
+    widgetDescription: "The account's current usage against its limits: posts, channels and media storage.",
+    invoking: "Loading usage",
+    invoked: "Usage ready",
     title: "Account usage",
     description:
       "Open an interactive view of current account usage — daily/monthly post " +
@@ -3994,7 +4055,7 @@ if (!HIDE_BILLING_TOOLS) {
 
   server.tool(
     "finalize_media_upload",
-    "Record an uploaded file as a media file after the browser PUT (pairs with create_media_upload; used by the composer UI).",
+    "Record an uploaded file as a media file after the browser PUT (pairs with create_media_upload; used by the composer UI). Returns the new media file, including the id to pass in mediaFileIds.",
     {
       r2Key: z.string().describe("The r2Key returned by create_media_upload."),
       fileName: z.string().describe("Original file name."),

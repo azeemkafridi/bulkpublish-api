@@ -103,6 +103,31 @@ function checkOpenAiKeys(s, profile) {
       if (avail.length && !avail.includes(ui.preferredDisplayMode)) errors.push(`${c.uri}: preferredDisplayMode is not in availableDisplayModes`);
     }
   }
+  // Every panel: one shared https origin, a description for the model, and
+  // status texts within OpenAI's 64-character cap on the tool that opens it.
+  const domains = new Set();
+  for (const c of s.contents) {
+    if (!String(c.uri).startsWith("ui://")) continue;
+    const dom = c._meta?.["openai/widgetDomain"];
+    let ok = false;
+    try {
+      const u = new URL(dom);
+      ok = u.protocol === "https:" && u.origin === dom;
+    } catch {}
+    if (!ok) errors.push(`${c.uri}: openai/widgetDomain must be an exact https origin, got ${JSON.stringify(dom)}`);
+    domains.add(dom);
+    if (c._meta?.ui?.domain !== undefined) errors.push(`${c.uri}: _meta.ui.domain must stay unset (Claude assigns it)`);
+    const wd = c._meta?.["openai/widgetDescription"];
+    if (typeof wd !== "string" || !wd.trim()) errors.push(`${c.uri}: openai/widgetDescription is missing`);
+  }
+  if (domains.size > 1) errors.push(`panels do not share one openai/widgetDomain: ${[...domains].join(", ")}`);
+  for (const t of s.tools) {
+    if (!t._meta?.ui?.resourceUri) continue;
+    for (const k of ["openai/toolInvocation/invoking", "openai/toolInvocation/invoked"]) {
+      const v = t._meta?.[k];
+      if (typeof v !== "string" || !v.trim() || v.length > 64) errors.push(`${t.name}: ${k} must be 1-64 characters`);
+    }
+  }
   return errors.map((e) => `${profile}: ${e}`);
 }
 

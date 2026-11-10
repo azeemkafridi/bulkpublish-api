@@ -15,8 +15,14 @@ MCP **1.53.0**
 - The handshake now reports the package version instead of a fixed `1.0.0`.
 - ID inputs say which tool supplies them (`list_channels`, `list_posts`, `list_labels`).
 - The post `status` output description lists `publishing`, which `approve_post` and `publish_post` can return.
+- **Output fields are described** on every tool, so an assistant can tell what each returned value is for, and five tools (`upload_media`, `get_queue_slot`, `get_channel_options`, `view_channels`, `finalize_media_upload`) now say what they return. The post result also documents `threadParts`, `threadMediaFiles` and `recurringSchedule`, which `get_post` already returned.
+- **ChatGPT panels:** each panel carries a short description for the model and a status line while it loads and when it is ready.
 
-No tool, input, output shape, annotation or capability changed: only descriptions and handshake metadata.
+### Fixed
+
+- **ChatGPT panel domain** is sent as a full origin (`https://bulkpublish.com`) instead of a bare hostname, the form OpenAI's reference and submission scan expect. The host is unchanged.
+
+No tool, input, annotation or capability changed, and no output field became required: only descriptions, handshake metadata and ChatGPT-only panel metadata.
 
 ## 2026-11-09 — Snapchat: link sticker, on-screen text and Story length
 
