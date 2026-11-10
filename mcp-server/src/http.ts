@@ -158,13 +158,21 @@ async function buildServerCard(): Promise<string> {
       /* host may not list resources */
     }
     const { prompts } = await client.listPrompts();
+    // The card is the one thing readable before signing in, so it carries the
+    // same title, description, website, icon and instructions the handshake
+    // announces. Fields the server does not set are simply left out.
+    const instructions = client.getInstructions();
     return JSON.stringify(
       {
         name: info.name,
-        description: "Model Context Protocol server for BulkPublish — lets AI assistants manage social media posts, channels, media, and analytics.",
+        ...(info.title && { title: info.title }),
+        description: info.description ?? "Model Context Protocol server for BulkPublish — lets AI assistants manage social media posts, channels, media, and analytics.",
         version: info.version,
+        ...(info.websiteUrl && { websiteUrl: info.websiteUrl }),
+        ...(info.icons && { icons: info.icons }),
         serverUrl: `${PUBLIC_BASE}${MCP_PATH}`,
-        serverInfo: { name: info.name, version: info.version },
+        serverInfo: info,
+        ...(instructions && { instructions }),
         authentication: { required: true, type: "oauth2" },
         tools: tools.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema })),
         resources,

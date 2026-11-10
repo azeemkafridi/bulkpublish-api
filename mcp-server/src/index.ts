@@ -443,7 +443,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
       .describe("Options for the post's Pinterest destinations."),
     gmb: z
       .object({
-        ctaType: z.string().optional().describe("Adds a call-to-action button: LEARN_MORE, BOOK, ORDER, SHOP, SIGN_UP or CALL. Every type except CALL also needs ctaUrl; CALL uses the phone number on the business listing."),
+        ctaType: z.string().optional().describe("Adds a call-to-action button: LEARN_MORE, BOOK, ORDER, SHOP, SIGN_UP or CALL. Every type except CALL also needs ctaUrl, and without it the post publishes with no button; CALL uses the phone number on the business listing."),
         ctaUrl: z.string().optional().describe("Link the call-to-action button opens. Not used with CALL."),
         eventTitle: z.string().optional().describe("Title of the event or offer. Used with postTypeOverrides.gmb of 'event' or 'offer'."),
         startDate: z.string().optional().describe("Start date, YYYY-MM-DD. Event and offer posts."),
@@ -459,7 +459,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
       .describe("Options for the post's Google Business Profile destinations."),
     tiktok: z
       .object({
-        privacyLevel: z.string().optional().describe("Who can see the post: PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR or SELF_ONLY. Not needed with sendToDrafts."),
+        privacyLevel: z.string().optional().describe("Who can see the post: PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR or SELF_ONLY. When omitted the post is public. Not needed with sendToDrafts."),
         disableDuet: z.boolean().optional().describe("true turns off Duet for the post."),
         disableStitch: z.boolean().optional().describe("true turns off Stitch for the post."),
         disableComment: z.boolean().optional().describe("true turns off comments on the post."),
@@ -567,7 +567,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
       .describe("Options for the post's Instagram destinations."),
     threads: z
       .object({
-        quotePostId: z.string().optional().describe("Numeric ID of the Threads post to quote."),
+        quotePostId: z.string().optional().describe("ID of the Threads post to quote."),
         repostId: z.string().optional().describe("With postTypeOverrides.threads = 'repost': the numeric ID of the Threads post to repost (Threads links cannot be used; the ID of a post published through BulkPublish is in get_post's platforms[].platformPostId)."),
         topicTag: z
           .string()
@@ -784,7 +784,7 @@ const POST_SHAPE: Record<string, z.ZodTypeAny> = {
   // made every create_post/update_post WITH media fail output validation after
   // the post had already been saved (2026-09-11) — the host then reported an
   // error for a post that existed, which is how a retry duplicates it.
-  mediaFiles: z.array(z.union([z.number(), z.string(), z.object({}).passthrough()])).nullish().describe("Media on the post itself: file IDs after create_post or update_post, full file objects from get_post."),
+  mediaFiles: z.array(z.union([z.number(), z.string(), z.object({}).passthrough()])).nullish().describe("Media on the post itself: file IDs after create_post or update_post, full file objects from get_post and list_posts."),
   postPlatforms: sArr({ platform: sStr(), status: sStr() }).describe("One entry per destination, with its platform and its own publish status."),
   labels: sArr().describe("Labels on the post."),
   // Documentation only: z.any() accepts every value, so these can never fail
@@ -792,13 +792,13 @@ const POST_SHAPE: Record<string, z.ZodTypeAny> = {
   // without it the published schema lists them as required, and a host that
   // validates would refuse every create_post result, which has none of them.
   threadParts: z.any().optional().describe("For a thread post: its parts, in order."),
-  threadMediaFiles: z.any().optional().describe("get_post only: the media the thread parts reference. Not included in mediaFiles."),
-  recurringSchedule: z.any().optional().describe("get_post only: the repeat schedule the post belongs to, or null."),
+  threadMediaFiles: z.any().optional().describe("get_post and list_posts: the media the thread parts reference. Not included in mediaFiles."),
+  recurringSchedule: z.any().optional().describe("get_post and list_posts: the repeat schedule the post belongs to, or null."),
 };
 
 export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> = {
   list_channels: {
-    channels: sArr({ channelId: sNum(), platform: sStr(), accountName: sStr(), active: sBool() }).describe("Connected accounts. channelId is what create_post and update_post take."),
+    channels: sArr({ channelId: sNum(), platform: sStr(), accountName: sStr(), active: sBool() }).describe("Connected accounts. Each one's id is the channelId that create_post and update_post take."),
     capabilities: sObj().describe("Whether the caller may create, publish or approve posts."),
   },
   list_posts: {
@@ -840,10 +840,8 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
     page: sNum().describe("This page's number."), limit: sNum().describe("Page size used."), total: sNum().describe("Files matching the filters, across every page."),
   },
   upload_media: {
-    file: sObj().describe("The stored media file."),
-    id: sNum().describe("The media file's ID, for mediaFileIds on create_post."),
-    url: sStr().describe("Where the file can be viewed."), filename: sStr().describe("The file's name."),
-    mimeType: sStr().describe("The file's MIME type."), sizeBytes: sNum().describe("The file's size in bytes."),
+    file: sObj().describe("The stored media file. file.id is what mediaFileIds takes; it also carries fileName, mimeType, sizeBytes and originalUrl."),
+    id: sNum(), url: sStr(), filename: sStr(), mimeType: sStr(), sizeBytes: sNum(),
   },
   create_media_upload: {
     uploadUrl: sStr().describe("Address to send the file's bytes to with an HTTP PUT."),
@@ -852,10 +850,10 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
   },
   finalize_media_upload: { file: sObj({ id: sNum(), url: sStr(), filename: sStr() }).describe("The new media file. Its id is what mediaFileIds takes.") },
   get_analytics: {
-    totalPosts: sNum().describe("Posts in the date range."), published: sNum().describe("How many of them published."), failed: sNum().describe("How many failed."), scheduled: sNum().describe("How many are still scheduled."), partial: sNum().describe("How many published to only some destinations."),
+    totalPosts: sNum().describe("Posts in the date range."), published: sNum().describe("How many of them published."), failed: sNum().describe("How many failed."), scheduled: sNum().describe("Posts currently waiting to publish, whatever the date range."), partial: sNum().describe("How many published to only some destinations."),
     from: sStr().describe("Start of the date range."), to: sStr().describe("End of the date range."),
-    byPlatform: sObj().describe("The same counts split by platform."), byDay: sArr().describe("Post counts per day."), publishedTimes: z.array(z.any()).nullish().describe("When posts in the range were published."),
-    previous: sObj().describe("The same figures for the comparison period, when one was requested."), previousWindow: sObj().describe("The dates of that comparison period."),
+    byPlatform: sObj().describe("Per platform: destinations in the range as { total, published, failed }."), byDay: sArr().describe("Posts that went out per day: { date, count, platforms }."), publishedTimes: z.array(z.any()).nullish().describe("Not filled in by this tool."),
+    previous: sObj().describe("With compare: totalPosts, published, failed, scheduled and partial for the previous window; null when that window is not available."), previousWindow: sObj().describe("With compare: { from, to, days, available } for the previous window."),
   },
   // ---- Inbox profile (shapes from openapi.json, all lenient) --------------
   list_conversations: {
@@ -1967,7 +1965,7 @@ server.registerTool(
   "upload_media",
   {
     description:
-      "Upload a media file (image, video or document) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM, and documents (PDF, Word .doc/.docx, PowerPoint .ppt/.pptx). Max 100MB. A document has no thumbnail or preview and can only be published to LinkedIn, as a `document` post. Provide either url OR filePath, not both. Returns the stored file, including the id to pass in mediaFileIds on create_post.",
+      "Upload a media file (image, video or document) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM, and documents (PDF, Word .doc/.docx, PowerPoint .ppt/.pptx). Max 100MB. A document has no thumbnail or preview and can only be published to LinkedIn, as a `document` post. Provide either url OR filePath, not both. Returns the stored file under file, including file.id to pass in mediaFileIds on create_post.",
     _meta: { "openai/fileParams": ["file"] },
     inputSchema: {
     url: z
@@ -2861,7 +2859,7 @@ server.tool(
 
 server.tool(
   "get_channel_options",
-  "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search. Returns type (which kind of option came back) and items, each with an id and a name.",
+  "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search. Returns type (which kind of option came back) and items, each with an id and a name; a TikTok channel returns info instead of items.",
   {
     channelId: z.number().describe("The channel ID to get options for, from list_channels."),
     q: z
@@ -3656,12 +3654,12 @@ const oItem = (shape: Record<string, z.ZodTypeAny>) =>
 registerWidget({
   tool: "compose_post",
   widget: "composer",
-  widgetDescription: "A post composer: pick connected channels, write the text, attach media, then save a draft or schedule it.",
+  widgetDescription: "A post composer: pick connected channels, write the text, attach media, then save a draft, schedule it or publish it now.",
   invoking: "Opening the composer",
   invoked: "Composer ready",
   title: "Compose a post",
   description:
-    "Open an interactive composer to draft or schedule a social media post. " +
+    "Open an interactive composer to draft, schedule or publish a social media post. " +
     "Shows the user's connected channels to pick from and pre-fills any provided text. " +
     "The user finishes in the UI; on submit it creates the post via create_post.",
   openai: { entrypoints: [{ type: "thread" }], displayMode: "inline" },
@@ -3793,7 +3791,7 @@ registerWidget({
 registerWidget({
   tool: "view_posts",
   widget: "posts",
-  widgetDescription: "A list of the user's posts with status, schedule and channels, with buttons to publish, retry, edit or delete each one.",
+  widgetDescription: "A list of the user's posts with status, schedule and channels, with buttons to publish now, retry, schedule or delete a post, depending on its status.",
   invoking: "Loading posts",
   invoked: "Posts ready",
   title: "Posts",

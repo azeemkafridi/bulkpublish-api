@@ -46,7 +46,7 @@
         "type": "object",
         "properties": {
           "channels": {
-            "description": "Connected accounts. channelId is what create_post and update_post take.",
+            "description": "Connected accounts. Each one's id is the channelId that create_post and update_post take.",
             "anyOf": [
               {
                 "type": "array",
@@ -331,7 +331,7 @@
                 "type": "object",
                 "properties": {
                   "ctaType": {
-                    "description": "Adds a call-to-action button: LEARN_MORE, BOOK, ORDER, SHOP, SIGN_UP or CALL. Every type except CALL also needs ctaUrl; CALL uses the phone number on the business listing.",
+                    "description": "Adds a call-to-action button: LEARN_MORE, BOOK, ORDER, SHOP, SIGN_UP or CALL. Every type except CALL also needs ctaUrl, and without it the post publishes with no button; CALL uses the phone number on the business listing.",
                     "type": "string"
                   },
                   "ctaUrl": {
@@ -378,7 +378,7 @@
                 "type": "object",
                 "properties": {
                   "privacyLevel": {
-                    "description": "Who can see the post: PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR or SELF_ONLY. Not needed with sendToDrafts.",
+                    "description": "Who can see the post: PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR or SELF_ONLY. When omitted the post is public. Not needed with sendToDrafts.",
                     "type": "string"
                   },
                   "disableDuet": {
@@ -567,7 +567,7 @@
                 "type": "object",
                 "properties": {
                   "quotePostId": {
-                    "description": "Numeric ID of the Threads post to quote.",
+                    "description": "ID of the Threads post to quote.",
                     "type": "string"
                   },
                   "repostId": {
@@ -1969,7 +1969,7 @@
             ]
           },
           "mediaFiles": {
-            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
+            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post and list_posts.",
             "anyOf": [
               {
                 "type": "array",
@@ -2051,10 +2051,10 @@
             "description": "For a thread post: its parts, in order."
           },
           "threadMediaFiles": {
-            "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+            "description": "get_post and list_posts: the media the thread parts reference. Not included in mediaFiles."
           },
           "recurringSchedule": {
-            "description": "get_post only: the repeat schedule the post belongs to, or null."
+            "description": "get_post and list_posts: the repeat schedule the post belongs to, or null."
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -2316,7 +2316,7 @@
                       ]
                     },
                     "mediaFiles": {
-                      "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
+                      "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post and list_posts.",
                       "anyOf": [
                         {
                           "type": "array",
@@ -2398,10 +2398,10 @@
                       "description": "For a thread post: its parts, in order."
                     },
                     "threadMediaFiles": {
-                      "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+                      "description": "get_post and list_posts: the media the thread parts reference. Not included in mediaFiles."
                     },
                     "recurringSchedule": {
-                      "description": "get_post only: the repeat schedule the post belongs to, or null."
+                      "description": "get_post and list_posts: the repeat schedule the post belongs to, or null."
                     }
                   },
                   "additionalProperties": {}
@@ -2653,7 +2653,7 @@
             ]
           },
           "mediaFiles": {
-            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
+            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post and list_posts.",
             "anyOf": [
               {
                 "type": "array",
@@ -2735,10 +2735,10 @@
             "description": "For a thread post: its parts, in order."
           },
           "threadMediaFiles": {
-            "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+            "description": "get_post and list_posts: the media the thread parts reference. Not included in mediaFiles."
           },
           "recurringSchedule": {
-            "description": "get_post only: the repeat schedule the post belongs to, or null."
+            "description": "get_post and list_posts: the repeat schedule the post belongs to, or null."
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -2909,7 +2909,7 @@
             ]
           },
           "mediaFiles": {
-            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
+            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post and list_posts.",
             "anyOf": [
               {
                 "type": "array",
@@ -2991,10 +2991,10 @@
             "description": "For a thread post: its parts, in order."
           },
           "threadMediaFiles": {
-            "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+            "description": "get_post and list_posts: the media the thread parts reference. Not included in mediaFiles."
           },
           "recurringSchedule": {
-            "description": "get_post only: the repeat schedule the post belongs to, or null."
+            "description": "get_post and list_posts: the repeat schedule the post belongs to, or null."
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -3169,7 +3169,7 @@
             ]
           },
           "mediaFiles": {
-            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
+            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post and list_posts.",
             "anyOf": [
               {
                 "type": "array",
@@ -3251,10 +3251,10 @@
             "description": "For a thread post: its parts, in order."
           },
           "threadMediaFiles": {
-            "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+            "description": "get_post and list_posts: the media the thread parts reference. Not included in mediaFiles."
           },
           "recurringSchedule": {
-            "description": "get_post only: the repeat schedule the post belongs to, or null."
+            "description": "get_post and list_posts: the repeat schedule the post belongs to, or null."
           },
           "retriedCount": {
             "description": "How many destinations were retried.",
@@ -3473,7 +3473,7 @@
             ]
           },
           "mediaFiles": {
-            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
+            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post and list_posts.",
             "anyOf": [
               {
                 "type": "array",
@@ -3555,10 +3555,10 @@
             "description": "For a thread post: its parts, in order."
           },
           "threadMediaFiles": {
-            "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+            "description": "get_post and list_posts: the media the thread parts reference. Not included in mediaFiles."
           },
           "recurringSchedule": {
-            "description": "get_post only: the repeat schedule the post belongs to, or null."
+            "description": "get_post and list_posts: the repeat schedule the post belongs to, or null."
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -3738,7 +3738,7 @@
             ]
           },
           "mediaFiles": {
-            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
+            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post and list_posts.",
             "anyOf": [
               {
                 "type": "array",
@@ -3820,10 +3820,10 @@
             "description": "For a thread post: its parts, in order."
           },
           "threadMediaFiles": {
-            "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+            "description": "get_post and list_posts: the media the thread parts reference. Not included in mediaFiles."
           },
           "recurringSchedule": {
-            "description": "get_post only: the repeat schedule the post belongs to, or null."
+            "description": "get_post and list_posts: the repeat schedule the post belongs to, or null."
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -3842,7 +3842,7 @@
     {
       "name": "upload_media",
       "title": "Upload media",
-      "description": "Upload a media file (image, video or document) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM, and documents (PDF, Word .doc/.docx, PowerPoint .ppt/.pptx). Max 100MB. A document has no thumbnail or preview and can only be published to LinkedIn, as a `document` post. Provide either url OR filePath, not both. Returns the stored file, including the id to pass in mediaFileIds on create_post. Use this when the user provides an image, video or document to attach to a post.",
+      "description": "Upload a media file (image, video or document) from a URL or local file path. The file is stored in BulkPublish for use in posts. Supported formats: JPEG, PNG, WebP, GIF, MP4, MOV, WebM, and documents (PDF, Word .doc/.docx, PowerPoint .ppt/.pptx). Max 100MB. A document has no thumbnail or preview and can only be published to LinkedIn, as a `document` post. Provide either url OR filePath, not both. Returns the stored file under file, including file.id to pass in mediaFileIds on create_post. Use this when the user provides an image, video or document to attach to a post.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -3891,7 +3891,7 @@
         "type": "object",
         "properties": {
           "file": {
-            "description": "The stored media file.",
+            "description": "The stored media file. file.id is what mediaFileIds takes; it also carries fileName, mimeType, sizeBytes and originalUrl.",
             "anyOf": [
               {
                 "type": "object",
@@ -3904,7 +3904,6 @@
             ]
           },
           "id": {
-            "description": "The media file's ID, for mediaFileIds on create_post.",
             "anyOf": [
               {
                 "anyOf": [
@@ -3922,7 +3921,6 @@
             ]
           },
           "url": {
-            "description": "Where the file can be viewed.",
             "anyOf": [
               {
                 "type": "string"
@@ -3933,7 +3931,6 @@
             ]
           },
           "filename": {
-            "description": "The file's name.",
             "anyOf": [
               {
                 "type": "string"
@@ -3944,7 +3941,6 @@
             ]
           },
           "mimeType": {
-            "description": "The file's MIME type.",
             "anyOf": [
               {
                 "type": "string"
@@ -3955,7 +3951,6 @@
             ]
           },
           "sizeBytes": {
-            "description": "The file's size in bytes.",
             "anyOf": [
               {
                 "anyOf": [
@@ -4287,7 +4282,7 @@
             ]
           },
           "scheduled": {
-            "description": "How many are still scheduled.",
+            "description": "Posts currently waiting to publish, whatever the date range.",
             "anyOf": [
               {
                 "anyOf": [
@@ -4345,7 +4340,7 @@
             ]
           },
           "byPlatform": {
-            "description": "The same counts split by platform.",
+            "description": "Per platform: destinations in the range as { total, published, failed }.",
             "anyOf": [
               {
                 "type": "object",
@@ -4358,7 +4353,7 @@
             ]
           },
           "byDay": {
-            "description": "Post counts per day.",
+            "description": "Posts that went out per day: { date, count, platforms }.",
             "anyOf": [
               {
                 "type": "array",
@@ -4374,7 +4369,7 @@
             ]
           },
           "publishedTimes": {
-            "description": "When posts in the range were published.",
+            "description": "Not filled in by this tool.",
             "anyOf": [
               {
                 "type": "array",
@@ -4386,7 +4381,7 @@
             ]
           },
           "previous": {
-            "description": "The same figures for the comparison period, when one was requested.",
+            "description": "With compare: totalPosts, published, failed, scheduled and partial for the previous window; null when that window is not available.",
             "anyOf": [
               {
                 "type": "object",
@@ -4399,7 +4394,7 @@
             ]
           },
           "previousWindow": {
-            "description": "The dates of that comparison period.",
+            "description": "With compare: { from, to, days, available } for the previous window.",
             "anyOf": [
               {
                 "type": "object",
@@ -4978,7 +4973,7 @@
                 "type": "object",
                 "properties": {
                   "ctaType": {
-                    "description": "Adds a call-to-action button: LEARN_MORE, BOOK, ORDER, SHOP, SIGN_UP or CALL. Every type except CALL also needs ctaUrl; CALL uses the phone number on the business listing.",
+                    "description": "Adds a call-to-action button: LEARN_MORE, BOOK, ORDER, SHOP, SIGN_UP or CALL. Every type except CALL also needs ctaUrl, and without it the post publishes with no button; CALL uses the phone number on the business listing.",
                     "type": "string"
                   },
                   "ctaUrl": {
@@ -5025,7 +5020,7 @@
                 "type": "object",
                 "properties": {
                   "privacyLevel": {
-                    "description": "Who can see the post: PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR or SELF_ONLY. Not needed with sendToDrafts.",
+                    "description": "Who can see the post: PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR or SELF_ONLY. When omitted the post is public. Not needed with sendToDrafts.",
                     "type": "string"
                   },
                   "disableDuet": {
@@ -5214,7 +5209,7 @@
                 "type": "object",
                 "properties": {
                   "quotePostId": {
-                    "description": "Numeric ID of the Threads post to quote.",
+                    "description": "ID of the Threads post to quote.",
                     "type": "string"
                   },
                   "repostId": {
@@ -6275,7 +6270,7 @@
             ]
           },
           "mediaFiles": {
-            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post.",
+            "description": "Media on the post itself: file IDs after create_post or update_post, full file objects from get_post and list_posts.",
             "anyOf": [
               {
                 "type": "array",
@@ -6357,10 +6352,10 @@
             "description": "For a thread post: its parts, in order."
           },
           "threadMediaFiles": {
-            "description": "get_post only: the media the thread parts reference. Not included in mediaFiles."
+            "description": "get_post and list_posts: the media the thread parts reference. Not included in mediaFiles."
           },
           "recurringSchedule": {
-            "description": "get_post only: the repeat schedule the post belongs to, or null."
+            "description": "get_post and list_posts: the repeat schedule the post belongs to, or null."
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -6581,7 +6576,7 @@
     {
       "name": "get_channel_options",
       "title": "Get channel post-type options",
-      "description": "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search. Returns type (which kind of option came back) and items, each with an id and a name. Use this when you need a platform's valid post types before creating a post for it.",
+      "description": "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search. Returns type (which kind of option came back) and items, each with an id and a name; a TikTok channel returns info instead of items. Use this when you need a platform's valid post types before creating a post for it.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -6762,7 +6757,7 @@
     {
       "name": "compose_post",
       "title": "Compose a post",
-      "description": "Open an interactive composer to draft or schedule a social media post. Shows the user's connected channels to pick from and pre-fills any provided text. The user finishes in the UI; on submit it creates the post via create_post. Use this when the user wants to compose a post interactively in a UI — prefer this over create_post when they'd review before posting.",
+      "description": "Open an interactive composer to draft, schedule or publish a social media post. Shows the user's connected channels to pick from and pre-fills any provided text. The user finishes in the UI; on submit it creates the post via create_post. Use this when the user wants to compose a post interactively in a UI — prefer this over create_post when they'd review before posting.",
       "inputSchema": {
         "type": "object",
         "properties": {
