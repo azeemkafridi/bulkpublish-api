@@ -3516,7 +3516,18 @@ const OPENAI_WIDGET_DOMAIN =
 type OpenAiWidgetOptions = {
   entrypoints?: Array<{ type: "global" | "thread" }>;
   displayMode?: "inline" | "fullscreen";
+  // A panel that should become openable without a conversation (Claude's
+  // Artifacts page, ChatGPT's sidebar) once EXTRA_GLOBAL_ENTRYPOINTS is on.
+  // Both hosts read the same openai/ui.entrypoints key, so this cannot be
+  // switched on for one alone. The tool must work when called with {}.
+  globalWhenEnabled?: boolean;
 };
+
+// Off by default: posts stays the only panel with a global entry point, which
+// is what the ChatGPT listing was approved with. OpenAI's docs do not say how
+// ChatGPT shows several global tools, so turn this on only after trying it
+// there in developer mode.
+const EXTRA_GLOBAL_ENTRYPOINTS = /^(1|on|true)$/i.test(process.env.EXTRA_GLOBAL_ENTRYPOINTS ?? "");
 
 function registerWidget(config: {
   tool: string;
@@ -3584,7 +3595,24 @@ function registerWidget(config: {
       },
     }),
   };
-  const entrypoints = config.openai?.entrypoints;
+  const entrypoints: Array<{ type: "global" | "thread" }> = [
+    ...(config.openai?.entrypoints ?? []),
+    ...(EXTRA_GLOBAL_ENTRYPOINTS &&
+    config.openai?.globalWhenEnabled &&
+    !config.openai.entrypoints?.some((e) => e.type === "global")
+      ? [{ type: "global" as const }]
+      : []),
+  ];
+  // Claude reads its display preference from _meta.ui on the content item
+  // returned by resources/read (not on the resources/list entry): "fullscreen"
+  // asks it to open the panel beside the conversation without a click. It is
+  // Claude's own extension, not in the SDK's types. It is set only where the
+  // panel already prefers fullscreen in ChatGPT, so both hosts get the same
+  // intent, and a host that does not know the key ignores it.
+  const contentMeta =
+    displayMode === "fullscreen"
+      ? { ...meta, ui: { ...meta.ui, preferredDisplayMode: "fullscreen" } }
+      : meta;
   registerAppResource(
     server,
     config.title,
@@ -3596,7 +3624,7 @@ function registerWidget(config: {
           uri,
           mimeType: RESOURCE_MIME_TYPE,
           text: WIDGET_HTML[config.widget] ?? "",
-          _meta: meta,
+          _meta: contentMeta,
         },
       ],
     })
@@ -3613,7 +3641,7 @@ function registerWidget(config: {
         ui: { resourceUri: uri },
         "openai/toolInvocation/invoking": config.invoking,
         "openai/toolInvocation/invoked": config.invoked,
-        ...(entrypoints?.length && { "openai/ui": { entrypoints } }),
+        ...(entrypoints.length && { "openai/ui": { entrypoints } }),
       },
     },
     async (args) => {
@@ -3726,7 +3754,7 @@ registerWidget({
   description:
     "Open an interactive analytics dashboard for a date range — totals, status " +
     "breakdown, per-platform stats, and daily post counts.",
-  openai: { displayMode: "fullscreen" },
+  openai: { displayMode: "fullscreen", globalWhenEnabled: true },
   inputSchema: {
     from: z
       .string()
@@ -3867,6 +3895,7 @@ registerWidget({
 registerWidget({
   tool: "view_channels",
   widget: "channels",
+  openai: { globalWhenEnabled: true },
   widgetDescription: "The user's connected social accounts with platform, account name and connection status.",
   invoking: "Loading channels",
   invoked: "Channels ready",
@@ -3919,6 +3948,7 @@ registerWidget({
 registerWidget({
   tool: "view_media",
   widget: "media",
+  openai: { globalWhenEnabled: true },
   widgetDescription: "A gallery of the user's uploaded media files with thumbnails, file names and types.",
   invoking: "Loading media",
   invoked: "Media ready",

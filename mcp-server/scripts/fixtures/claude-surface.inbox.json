@@ -9833,7 +9833,8 @@
             "connectDomains": [
               "https://d46a1bf4b4491a708ec851e1aade51e5.r2.cloudflarestorage.com"
             ]
-          }
+          },
+          "preferredDisplayMode": "fullscreen"
         }
       }
     },

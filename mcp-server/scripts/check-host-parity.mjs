@@ -25,6 +25,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 // Read at module load: one changes which tools register, the other the panel
 // CSP. The snapshot is of the defaults, so a caller's shell must not decide it.
 delete process.env.BULKPUBLISH_HIDE_BILLING;
+delete process.env.EXTRA_GLOBAL_ENTRYPOINTS;
 delete process.env.R2_UPLOAD_ORIGIN;
 const { createServer } = await import("../dist/index.js");
 

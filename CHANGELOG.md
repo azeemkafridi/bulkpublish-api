@@ -12,6 +12,7 @@ MCP **1.53.0**
 
 ### Changed
 
+- **Analytics opens beside the conversation in Claude:** the analytics panel asks Claude to open in the side panel without a click, matching its full-screen preference in ChatGPT. Where the side panel is not available it stays in the conversation.
 - The handshake now reports the package version instead of a fixed `1.0.0`.
 - ID inputs say which tool supplies them (`list_channels`, `list_posts`, `list_labels`).
 - The post `status` output description lists `publishing`, which `approve_post` and `publish_post` can return.
