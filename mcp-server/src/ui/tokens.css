@@ -114,3 +114,10 @@
   --color-info-bg: #14223A;
   --color-warning-bg: #2A2410;
 }
+
+/* Host safe area. Each panel script copies the host's reported insets into
+   these variables; with none reported they stay 0 and nothing moves. Padding
+   (not margin) so the panel's measured height includes it. */
+body {
+  padding: var(--bp-safe-top, 0px) var(--bp-safe-right, 0px) var(--bp-safe-bottom, 0px) var(--bp-safe-left, 0px);
+}

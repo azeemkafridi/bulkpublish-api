@@ -510,6 +510,17 @@ function applyHostContext(ctx: McpUiHostContext): void {
   }
   if (ctx.styles?.variables) applyHostStyleVariables(ctx.styles.variables);
   if (ctx.styles?.css?.fonts) applyHostFonts(ctx.styles.css.fonts);
+  // The host says how much of each edge it covers (a phone's navigation bar,
+  // the chat box over a full-screen panel, the conversation beside a side
+  // panel). Controls under those edges cannot be used, so the body pads by
+  // them (tokens.css). No insets reported means no padding.
+  const insets = ctx.safeAreaInsets;
+  if (insets) {
+    for (const side of ["top", "right", "bottom", "left"] as const) {
+      const px = Math.max(0, Number(insets[side]) || 0);
+      document.documentElement.style.setProperty(`--bp-safe-${side}`, `${px}px`);
+    }
+  }
   if (ctx.timeZone) timeZone = ctx.timeZone;
   applyOpenAiContext(ctx as Record<string, unknown>);
 }
