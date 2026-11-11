@@ -330,7 +330,7 @@ const TUMBLR_OPTIONS = z
       .array(z.string())
       .optional()
       .describe("Tumblr tags, without the leading '#'."),
-    link: z.string().optional().describe("Appended as a link block."),
+    link: z.string().optional().describe("Appended as a link block. With link tracking on, sent as a tracked short link, like caption links."),
     sourceUrl: z
       .string()
       .optional()
@@ -358,7 +358,7 @@ const SNAPCHAT_OPTIONS = z
       .string()
       .optional()
       .describe(
-        "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links."
+        "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links; if Snapchat refuses it, the link as written is used."
       ),
     linkStickerText: z
       .string()
@@ -421,7 +421,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
       .object({
         title: z.string().optional().describe("Pin title, up to 100 characters. When omitted, the start of the post text is used."),
         description: z.string().optional().describe("Pin description, up to 500 characters. When omitted, the post text is used."),
-        link: z.string().optional().describe("Destination URL the pin opens."),
+        link: z.string().optional().describe("Destination URL the pin opens. Never shortened (Pinterest may block links that redirect); gets the workspace's automatic UTM tags when those are on."),
         dominantColor: z.string().optional().describe("Hex color e.g. #FF5733"),
         coverImageUrl: z
           .string()
@@ -444,14 +444,14 @@ const PLATFORM_SPECIFIC_SCHEMA = z
     gmb: z
       .object({
         ctaType: z.string().optional().describe("Adds a call-to-action button: LEARN_MORE, BOOK, ORDER, SHOP, SIGN_UP or CALL. Every type except CALL also needs ctaUrl, and without it the post publishes with no button; CALL uses the phone number on the business listing."),
-        ctaUrl: z.string().optional().describe("Link the call-to-action button opens. Not used with CALL."),
+        ctaUrl: z.string().optional().describe("Link the call-to-action button opens. Not used with CALL. Never shortened; gets the workspace's automatic UTM tags when those are on."),
         eventTitle: z.string().optional().describe("Title of the event or offer. Used with postTypeOverrides.gmb of 'event' or 'offer'."),
         startDate: z.string().optional().describe("Start date, YYYY-MM-DD. Event and offer posts."),
         startTime: z.string().optional().describe("Start time, HH:MM in 24-hour time. Event and offer posts."),
         endDate: z.string().optional().describe("End date, YYYY-MM-DD. Event and offer posts."),
         endTime: z.string().optional().describe("End time, HH:MM in 24-hour time. Event and offer posts."),
         couponCode: z.string().optional().describe("Offer posts only: the coupon code shown to customers."),
-        redeemOnlineUrl: z.string().optional().describe("Offer posts only: link where the offer is redeemed."),
+        redeemOnlineUrl: z.string().optional().describe("Offer posts only: link where the offer is redeemed. Never shortened; gets the workspace's automatic UTM tags when those are on."),
         termsConditions: z.string().optional().describe("Offer posts only: the offer's terms and conditions."),
       })
       .passthrough()

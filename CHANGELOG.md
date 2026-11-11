@@ -36,9 +36,9 @@ MCP **1.52.0** · Node SDK **1.44.6** · Python SDK **0.45.5**
 ### Added
 
 - **Snapchat Story and Spotlight options** under `platformSpecific.snapchat.<channelId>`: `link` (a full http(s) URL, opened from a link sticker on the snap), `linkStickerText` (up to 40 characters, one line, no emoji), `linkStickerPosition` and `overlayPosition` (`top`, `middle` or `bottom`), and `overlayText` (on-screen text, up to 250 characters, no emoji). A video carrying a link or on-screen text must be vertical (9:16); photos of any shape work. Saved Stories ignore all of them.
-- **Snapchat sticker link click tracking:** with link tracking on for the post, `link` is sent as a short link with UTM tags added, exactly like links in the caption, so swipes on the sticker are counted in the Links report. The stored value stays as written.
+- **Links in post options are tracked like caption links** when link tracking is on for the post. Snapchat `link` (not on a Saved Story) and Tumblr `link` are sent as short links, so their clicks are counted in the Links report; if Snapchat refuses the short link, the post is published with the link as written. Pinterest `link` and Google Business `ctaUrl` / `redeemOnlineUrl` are never shortened and still point straight at your site, because Pinterest may block links that redirect. All of them get the workspace's automatic UTM tags when those are on, like caption links. Stored values always stay as written.
 - **Snapchat `storyDurationDays`** (Story only): `1` (24 hours, the default), `2`, `3` or `7`.
-- Invalid values are refused with `400 VALIDATION_ERROR` when the post is saved, whatever its post type. The MCP `create_post` / `update_post` schemas, the OpenAPI spec, the Postman collection, the SDK docs and the platform-reference skill describe all six.
+- Invalid values are refused with `400 VALIDATION_ERROR` when the post is saved, whatever its post type. Sticker text and position without a `link` are ignored, not refused. The MCP `create_post` / `update_post` schemas, the OpenAPI spec, the Postman collection, the SDK docs and the platform-reference skill describe all six.
 
 ### Changed
 

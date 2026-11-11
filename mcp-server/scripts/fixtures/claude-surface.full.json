@@ -333,7 +333,7 @@
                     "type": "string"
                   },
                   "link": {
-                    "description": "Destination URL the pin opens.",
+                    "description": "Destination URL the pin opens. Never shortened (Pinterest may block links that redirect); gets the workspace's automatic UTM tags when those are on.",
                     "type": "string"
                   },
                   "dominantColor": {
@@ -364,7 +364,7 @@
                     "type": "string"
                   },
                   "ctaUrl": {
-                    "description": "Link the call-to-action button opens. Not used with CALL.",
+                    "description": "Link the call-to-action button opens. Not used with CALL. Never shortened; gets the workspace's automatic UTM tags when those are on.",
                     "type": "string"
                   },
                   "eventTitle": {
@@ -392,7 +392,7 @@
                     "type": "string"
                   },
                   "redeemOnlineUrl": {
-                    "description": "Offer posts only: link where the offer is redeemed.",
+                    "description": "Offer posts only: link where the offer is redeemed. Never shortened; gets the workspace's automatic UTM tags when those are on.",
                     "type": "string"
                   },
                   "termsConditions": {
@@ -1245,7 +1245,7 @@
                           }
                         },
                         "link": {
-                          "description": "Appended as a link block.",
+                          "description": "Appended as a link block. With link tracking on, sent as a tracked short link, like caption links.",
                           "type": "string"
                         },
                         "sourceUrl": {
@@ -1301,7 +1301,7 @@
                         }
                       },
                       "link": {
-                        "description": "Appended as a link block.",
+                        "description": "Appended as a link block. With link tracking on, sent as a tracked short link, like caption links.",
                         "type": "string"
                       },
                       "sourceUrl": {
@@ -1359,7 +1359,7 @@
                           "type": "string"
                         },
                         "link": {
-                          "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links.",
+                          "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links; if Snapchat refuses it, the link as written is used.",
                           "type": "string"
                         },
                         "linkStickerText": {
@@ -1429,7 +1429,7 @@
                         "type": "string"
                       },
                       "link": {
-                        "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links.",
+                        "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links; if Snapchat refuses it, the link as written is used.",
                         "type": "string"
                       },
                       "linkStickerText": {
@@ -5767,7 +5767,7 @@
                     "type": "string"
                   },
                   "link": {
-                    "description": "Destination URL the pin opens.",
+                    "description": "Destination URL the pin opens. Never shortened (Pinterest may block links that redirect); gets the workspace's automatic UTM tags when those are on.",
                     "type": "string"
                   },
                   "dominantColor": {
@@ -5798,7 +5798,7 @@
                     "type": "string"
                   },
                   "ctaUrl": {
-                    "description": "Link the call-to-action button opens. Not used with CALL.",
+                    "description": "Link the call-to-action button opens. Not used with CALL. Never shortened; gets the workspace's automatic UTM tags when those are on.",
                     "type": "string"
                   },
                   "eventTitle": {
@@ -5826,7 +5826,7 @@
                     "type": "string"
                   },
                   "redeemOnlineUrl": {
-                    "description": "Offer posts only: link where the offer is redeemed.",
+                    "description": "Offer posts only: link where the offer is redeemed. Never shortened; gets the workspace's automatic UTM tags when those are on.",
                     "type": "string"
                   },
                   "termsConditions": {
@@ -6679,7 +6679,7 @@
                           }
                         },
                         "link": {
-                          "description": "Appended as a link block.",
+                          "description": "Appended as a link block. With link tracking on, sent as a tracked short link, like caption links.",
                           "type": "string"
                         },
                         "sourceUrl": {
@@ -6735,7 +6735,7 @@
                         }
                       },
                       "link": {
-                        "description": "Appended as a link block.",
+                        "description": "Appended as a link block. With link tracking on, sent as a tracked short link, like caption links.",
                         "type": "string"
                       },
                       "sourceUrl": {
@@ -6793,7 +6793,7 @@
                           "type": "string"
                         },
                         "link": {
-                          "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links.",
+                          "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links; if Snapchat refuses it, the link as written is used.",
                           "type": "string"
                         },
                         "linkStickerText": {
@@ -6863,7 +6863,7 @@
                         "type": "string"
                       },
                       "link": {
-                        "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links.",
+                        "description": "Story and Spotlight. A full http:// or https:// URL, opened from a link sticker on the snap. Ignored on a saved_story. With link tracking on, it is sent as a tracked short link, like caption links; if Snapchat refuses it, the link as written is used.",
                         "type": "string"
                       },
                       "linkStickerText": {

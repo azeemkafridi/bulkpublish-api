@@ -1171,3 +1171,16 @@ When link tracking is on — the organization setting, or `linkTrackingOverride`
 A short URL is 28 characters, which can be **longer** than the link it replaces. Because validation runs on the rewritten text, shortening is skipped for any channel where the rewrite would push the post past that platform's limit: a post composed at 295/300 for Bluesky publishes with its original links rather than failing at 308. The post still goes out — only the tracking is dropped for that channel, and no short link is minted for it, so `linkClicks` stays 0 there.
 
 The tight limits above are where this bites: X (280), Bluesky (300), Threads / Pinterest / Mastodon (500), and to a lesser degree Google Business (1,500) and Discord (2,000). It never applies on Facebook, LinkedIn, Tumblr or Telegram.
+
+### Links in post options
+
+Some links live in `platformSpecific` rather than the caption, and link tracking covers them too:
+
+| Field | With link tracking on |
+|---|---|
+| Snapchat `link` (Story and Spotlight) | Sent as a short link, so swipes on the sticker are counted. If Snapchat refuses the short link, the post is published with the link as written. |
+| Tumblr `link` | Sent as a short link, so its clicks are counted. |
+| Pinterest `link` | Never shortened, because Pinterest may block links that redirect. |
+| Google Business `ctaUrl`, `redeemOnlineUrl` | Never shortened. |
+
+All of them get the workspace's automatic UTM tags when those are on, exactly like caption links. The value you stored is never changed, so a retry or an edit always starts from the link you wrote.
