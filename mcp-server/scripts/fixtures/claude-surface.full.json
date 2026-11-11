@@ -54,6 +54,7 @@
                   "type": "object",
                   "properties": {
                     "id": {
+                      "description": "The channel's ID. This is the channelId that create_post and update_post take.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -71,6 +72,7 @@
                       ]
                     },
                     "platform": {
+                      "description": "The network, e.g. instagram or linkedin.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -81,6 +83,7 @@
                       ]
                     },
                     "accountName": {
+                      "description": "The connected account's name or handle.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -91,6 +94,7 @@
                       ]
                     },
                     "isActive": {
+                      "description": "false when the channel has been disconnected.",
                       "anyOf": [
                         {
                           "type": "boolean"
@@ -101,9 +105,32 @@
                       ]
                     },
                     "needsReconnect": {
+                      "description": "true when the account must be reconnected before it can publish.",
                       "anyOf": [
                         {
                           "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "tokenStatus": {
+                      "description": "State of the connection to the network, e.g. valid.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "profileImage": {
+                      "description": "Address of the account's picture, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
                         },
                         {
                           "type": "null"
@@ -124,7 +151,41 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "canCreatePosts": {
+                    "description": "Whether the caller may create and edit posts.",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "canPublishPosts": {
+                    "description": "Whether the caller may publish or schedule without approval.",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "canApprovePosts": {
+                    "description": "Whether the caller may approve or reject posts.",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -1947,6 +2008,17 @@
               }
             ]
           },
+          "updatedAt": {
+            "description": "ISO 8601 time the post last changed. Pass it as ifUnmodifiedSince to update_post, approve_post or reject_post.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "approvalStatus": {
             "description": "Team approval state: none, pending, approved or rejected.",
             "anyOf": [
@@ -1958,12 +2030,75 @@
               }
             ]
           },
+          "rejectionReason": {
+            "description": "The reason given when the post was rejected, or null.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishWhenApproved": {
+            "description": "Whether the post publishes on its own once approved.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "author": {
             "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -1976,7 +2111,48 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -1989,7 +2165,48 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -2031,7 +2248,44 @@
                 "items": {
                   "type": "object",
                   "properties": {
+                    "id": {
+                      "description": "The destination's ID (postPlatformId), used when replying to or moderating a comment.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "channelId": {
+                      "description": "The connected account this destination publishes to.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "platform": {
+                      "description": "The network, e.g. instagram or linkedin.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -2042,6 +2296,87 @@
                       ]
                     },
                     "status": {
+                      "description": "This destination's own publish status, e.g. pending, published or failed.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformPostId": {
+                      "description": "The network's ID for the published post, or null before it is published.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformUrl": {
+                      "description": "Public link to the published post, or null when there is none.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "errorMessage": {
+                      "description": "Why this destination failed, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryCount": {
+                      "description": "How many times publishing has been retried.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "maxRetries": {
+                      "description": "How many retries are allowed.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "description": "ISO 8601 time this destination was published.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -2067,7 +2402,48 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "properties": {},
+                  "properties": {
+                    "id": {
+                      "description": "The label's ID. This is what the labels input of create_post takes.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "description": "The label's name.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "color": {
+                      "description": "The label's colour as a hex code.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
                   "additionalProperties": {}
                 }
               },
@@ -2075,6 +2451,9 @@
                 "type": "null"
               }
             ]
+          },
+          "platformContent": {
+            "description": "Text that replaces content on one network, keyed by platform."
           },
           "threadParts": {
             "description": "For a thread post: its parts, in order."
@@ -2294,6 +2673,17 @@
                         }
                       ]
                     },
+                    "updatedAt": {
+                      "description": "ISO 8601 time the post last changed. Pass it as ifUnmodifiedSince to update_post, approve_post or reject_post.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "approvalStatus": {
                       "description": "Team approval state: none, pending, approved or rejected.",
                       "anyOf": [
@@ -2305,12 +2695,75 @@
                         }
                       ]
                     },
+                    "rejectionReason": {
+                      "description": "The reason given when the post was rejected, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishWhenApproved": {
+                      "description": "Whether the post publishes on its own once approved.",
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "author": {
                       "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
                       "anyOf": [
                         {
                           "type": "object",
-                          "properties": {},
+                          "properties": {
+                            "id": {
+                              "description": "The member's user ID.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "name": {
+                              "description": "The member's display name.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "image": {
+                              "description": "Address of the member's avatar, or null.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
                           "additionalProperties": {}
                         },
                         {
@@ -2323,7 +2776,48 @@
                       "anyOf": [
                         {
                           "type": "object",
-                          "properties": {},
+                          "properties": {
+                            "id": {
+                              "description": "The member's user ID.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "name": {
+                              "description": "The member's display name.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "image": {
+                              "description": "Address of the member's avatar, or null.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
                           "additionalProperties": {}
                         },
                         {
@@ -2336,7 +2830,48 @@
                       "anyOf": [
                         {
                           "type": "object",
-                          "properties": {},
+                          "properties": {
+                            "id": {
+                              "description": "The member's user ID.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "name": {
+                              "description": "The member's display name.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "image": {
+                              "description": "Address of the member's avatar, or null.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
                           "additionalProperties": {}
                         },
                         {
@@ -2378,7 +2913,44 @@
                           "items": {
                             "type": "object",
                             "properties": {
+                              "id": {
+                                "description": "The destination's ID (postPlatformId), used when replying to or moderating a comment.",
+                                "anyOf": [
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "channelId": {
+                                "description": "The connected account this destination publishes to.",
+                                "anyOf": [
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
                               "platform": {
+                                "description": "The network, e.g. instagram or linkedin.",
                                 "anyOf": [
                                   {
                                     "type": "string"
@@ -2389,6 +2961,87 @@
                                 ]
                               },
                               "status": {
+                                "description": "This destination's own publish status, e.g. pending, published or failed.",
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "platformPostId": {
+                                "description": "The network's ID for the published post, or null before it is published.",
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "platformUrl": {
+                                "description": "Public link to the published post, or null when there is none.",
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "errorMessage": {
+                                "description": "Why this destination failed, or null.",
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "retryCount": {
+                                "description": "How many times publishing has been retried.",
+                                "anyOf": [
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "maxRetries": {
+                                "description": "How many retries are allowed.",
+                                "anyOf": [
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "publishedAt": {
+                                "description": "ISO 8601 time this destination was published.",
                                 "anyOf": [
                                   {
                                     "type": "string"
@@ -2414,7 +3067,48 @@
                           "type": "array",
                           "items": {
                             "type": "object",
-                            "properties": {},
+                            "properties": {
+                              "id": {
+                                "description": "The label's ID. This is what the labels input of create_post takes.",
+                                "anyOf": [
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "name": {
+                                "description": "The label's name.",
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "color": {
+                                "description": "The label's colour as a hex code.",
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
                             "additionalProperties": {}
                           }
                         },
@@ -2422,6 +3116,9 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "platformContent": {
+                      "description": "Text that replaces content on one network, keyed by platform."
                     },
                     "threadParts": {
                       "description": "For a thread post: its parts, in order."
@@ -2631,6 +3328,17 @@
               }
             ]
           },
+          "updatedAt": {
+            "description": "ISO 8601 time the post last changed. Pass it as ifUnmodifiedSince to update_post, approve_post or reject_post.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "approvalStatus": {
             "description": "Team approval state: none, pending, approved or rejected.",
             "anyOf": [
@@ -2642,12 +3350,75 @@
               }
             ]
           },
+          "rejectionReason": {
+            "description": "The reason given when the post was rejected, or null.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishWhenApproved": {
+            "description": "Whether the post publishes on its own once approved.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "author": {
             "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -2660,7 +3431,48 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -2673,7 +3485,48 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -2715,7 +3568,44 @@
                 "items": {
                   "type": "object",
                   "properties": {
+                    "id": {
+                      "description": "The destination's ID (postPlatformId), used when replying to or moderating a comment.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "channelId": {
+                      "description": "The connected account this destination publishes to.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "platform": {
+                      "description": "The network, e.g. instagram or linkedin.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -2726,6 +3616,87 @@
                       ]
                     },
                     "status": {
+                      "description": "This destination's own publish status, e.g. pending, published or failed.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformPostId": {
+                      "description": "The network's ID for the published post, or null before it is published.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformUrl": {
+                      "description": "Public link to the published post, or null when there is none.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "errorMessage": {
+                      "description": "Why this destination failed, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryCount": {
+                      "description": "How many times publishing has been retried.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "maxRetries": {
+                      "description": "How many retries are allowed.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "description": "ISO 8601 time this destination was published.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -2751,7 +3722,48 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "properties": {},
+                  "properties": {
+                    "id": {
+                      "description": "The label's ID. This is what the labels input of create_post takes.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "description": "The label's name.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "color": {
+                      "description": "The label's colour as a hex code.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
                   "additionalProperties": {}
                 }
               },
@@ -2759,6 +3771,9 @@
                 "type": "null"
               }
             ]
+          },
+          "platformContent": {
+            "description": "Text that replaces content on one network, keyed by platform."
           },
           "threadParts": {
             "description": "For a thread post: its parts, in order."
@@ -2887,6 +3902,17 @@
               }
             ]
           },
+          "updatedAt": {
+            "description": "ISO 8601 time the post last changed. Pass it as ifUnmodifiedSince to update_post, approve_post or reject_post.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "approvalStatus": {
             "description": "Team approval state: none, pending, approved or rejected.",
             "anyOf": [
@@ -2898,12 +3924,75 @@
               }
             ]
           },
+          "rejectionReason": {
+            "description": "The reason given when the post was rejected, or null.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishWhenApproved": {
+            "description": "Whether the post publishes on its own once approved.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "author": {
             "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -2916,7 +4005,48 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -2929,7 +4059,48 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -2971,7 +4142,44 @@
                 "items": {
                   "type": "object",
                   "properties": {
+                    "id": {
+                      "description": "The destination's ID (postPlatformId), used when replying to or moderating a comment.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "channelId": {
+                      "description": "The connected account this destination publishes to.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "platform": {
+                      "description": "The network, e.g. instagram or linkedin.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -2982,6 +4190,87 @@
                       ]
                     },
                     "status": {
+                      "description": "This destination's own publish status, e.g. pending, published or failed.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformPostId": {
+                      "description": "The network's ID for the published post, or null before it is published.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformUrl": {
+                      "description": "Public link to the published post, or null when there is none.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "errorMessage": {
+                      "description": "Why this destination failed, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryCount": {
+                      "description": "How many times publishing has been retried.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "maxRetries": {
+                      "description": "How many retries are allowed.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "description": "ISO 8601 time this destination was published.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -3007,7 +4296,48 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "properties": {},
+                  "properties": {
+                    "id": {
+                      "description": "The label's ID. This is what the labels input of create_post takes.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "description": "The label's name.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "color": {
+                      "description": "The label's colour as a hex code.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
                   "additionalProperties": {}
                 }
               },
@@ -3015,6 +4345,9 @@
                 "type": "null"
               }
             ]
+          },
+          "platformContent": {
+            "description": "Text that replaces content on one network, keyed by platform."
           },
           "threadParts": {
             "description": "For a thread post: its parts, in order."
@@ -3147,6 +4480,17 @@
               }
             ]
           },
+          "updatedAt": {
+            "description": "ISO 8601 time the post last changed. Pass it as ifUnmodifiedSince to update_post, approve_post or reject_post.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "approvalStatus": {
             "description": "Team approval state: none, pending, approved or rejected.",
             "anyOf": [
@@ -3158,12 +4502,75 @@
               }
             ]
           },
+          "rejectionReason": {
+            "description": "The reason given when the post was rejected, or null.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishWhenApproved": {
+            "description": "Whether the post publishes on its own once approved.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "author": {
             "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -3176,7 +4583,48 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -3189,7 +4637,48 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -3231,7 +4720,44 @@
                 "items": {
                   "type": "object",
                   "properties": {
+                    "id": {
+                      "description": "The destination's ID (postPlatformId), used when replying to or moderating a comment.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "channelId": {
+                      "description": "The connected account this destination publishes to.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "platform": {
+                      "description": "The network, e.g. instagram or linkedin.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -3242,6 +4768,87 @@
                       ]
                     },
                     "status": {
+                      "description": "This destination's own publish status, e.g. pending, published or failed.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformPostId": {
+                      "description": "The network's ID for the published post, or null before it is published.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformUrl": {
+                      "description": "Public link to the published post, or null when there is none.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "errorMessage": {
+                      "description": "Why this destination failed, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryCount": {
+                      "description": "How many times publishing has been retried.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "maxRetries": {
+                      "description": "How many retries are allowed.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "description": "ISO 8601 time this destination was published.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -3267,7 +4874,48 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "properties": {},
+                  "properties": {
+                    "id": {
+                      "description": "The label's ID. This is what the labels input of create_post takes.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "description": "The label's name.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "color": {
+                      "description": "The label's colour as a hex code.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
                   "additionalProperties": {}
                 }
               },
@@ -3275,6 +4923,9 @@
                 "type": "null"
               }
             ]
+          },
+          "platformContent": {
+            "description": "Text that replaces content on one network, keyed by platform."
           },
           "threadParts": {
             "description": "For a thread post: its parts, in order."
@@ -3451,6 +5102,17 @@
               }
             ]
           },
+          "updatedAt": {
+            "description": "ISO 8601 time the post last changed. Pass it as ifUnmodifiedSince to update_post, approve_post or reject_post.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "approvalStatus": {
             "description": "Team approval state: none, pending, approved or rejected.",
             "anyOf": [
@@ -3462,12 +5124,75 @@
               }
             ]
           },
+          "rejectionReason": {
+            "description": "The reason given when the post was rejected, or null.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishWhenApproved": {
+            "description": "Whether the post publishes on its own once approved.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "author": {
             "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -3480,7 +5205,48 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -3493,7 +5259,48 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -3535,7 +5342,44 @@
                 "items": {
                   "type": "object",
                   "properties": {
+                    "id": {
+                      "description": "The destination's ID (postPlatformId), used when replying to or moderating a comment.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "channelId": {
+                      "description": "The connected account this destination publishes to.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "platform": {
+                      "description": "The network, e.g. instagram or linkedin.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -3546,6 +5390,87 @@
                       ]
                     },
                     "status": {
+                      "description": "This destination's own publish status, e.g. pending, published or failed.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformPostId": {
+                      "description": "The network's ID for the published post, or null before it is published.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformUrl": {
+                      "description": "Public link to the published post, or null when there is none.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "errorMessage": {
+                      "description": "Why this destination failed, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryCount": {
+                      "description": "How many times publishing has been retried.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "maxRetries": {
+                      "description": "How many retries are allowed.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "description": "ISO 8601 time this destination was published.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -3571,7 +5496,48 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "properties": {},
+                  "properties": {
+                    "id": {
+                      "description": "The label's ID. This is what the labels input of create_post takes.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "description": "The label's name.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "color": {
+                      "description": "The label's colour as a hex code.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
                   "additionalProperties": {}
                 }
               },
@@ -3579,6 +5545,9 @@
                 "type": "null"
               }
             ]
+          },
+          "platformContent": {
+            "description": "Text that replaces content on one network, keyed by platform."
           },
           "threadParts": {
             "description": "For a thread post: its parts, in order."
@@ -3716,6 +5685,17 @@
               }
             ]
           },
+          "updatedAt": {
+            "description": "ISO 8601 time the post last changed. Pass it as ifUnmodifiedSince to update_post, approve_post or reject_post.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "approvalStatus": {
             "description": "Team approval state: none, pending, approved or rejected.",
             "anyOf": [
@@ -3727,12 +5707,75 @@
               }
             ]
           },
+          "rejectionReason": {
+            "description": "The reason given when the post was rejected, or null.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishWhenApproved": {
+            "description": "Whether the post publishes on its own once approved.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "author": {
             "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -3745,7 +5788,48 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -3758,7 +5842,48 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -3800,7 +5925,44 @@
                 "items": {
                   "type": "object",
                   "properties": {
+                    "id": {
+                      "description": "The destination's ID (postPlatformId), used when replying to or moderating a comment.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "channelId": {
+                      "description": "The connected account this destination publishes to.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "platform": {
+                      "description": "The network, e.g. instagram or linkedin.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -3811,6 +5973,87 @@
                       ]
                     },
                     "status": {
+                      "description": "This destination's own publish status, e.g. pending, published or failed.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformPostId": {
+                      "description": "The network's ID for the published post, or null before it is published.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformUrl": {
+                      "description": "Public link to the published post, or null when there is none.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "errorMessage": {
+                      "description": "Why this destination failed, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryCount": {
+                      "description": "How many times publishing has been retried.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "maxRetries": {
+                      "description": "How many retries are allowed.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "description": "ISO 8601 time this destination was published.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -3836,7 +6079,48 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "properties": {},
+                  "properties": {
+                    "id": {
+                      "description": "The label's ID. This is what the labels input of create_post takes.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "description": "The label's name.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "color": {
+                      "description": "The label's colour as a hex code.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
                   "additionalProperties": {}
                 }
               },
@@ -3844,6 +6128,9 @@
                 "type": "null"
               }
             ]
+          },
+          "platformContent": {
+            "description": "Text that replaces content on one network, keyed by platform."
           },
           "threadParts": {
             "description": "For a thread post: its parts, in order."
@@ -3926,6 +6213,7 @@
                 "type": "object",
                 "properties": {
                   "id": {
+                    "description": "The file's ID. This is what mediaFileIds takes.",
                     "anyOf": [
                       {
                         "anyOf": [
@@ -3943,6 +6231,7 @@
                     ]
                   },
                   "fileName": {
+                    "description": "The file's name.",
                     "anyOf": [
                       {
                         "type": "string"
@@ -3953,6 +6242,7 @@
                     ]
                   },
                   "mimeType": {
+                    "description": "The file's type, e.g. image/jpeg or video/mp4.",
                     "anyOf": [
                       {
                         "type": "string"
@@ -3963,6 +6253,7 @@
                     ]
                   },
                   "sizeBytes": {
+                    "description": "The file's size in bytes.",
                     "anyOf": [
                       {
                         "anyOf": [
@@ -3979,7 +6270,106 @@
                       }
                     ]
                   },
+                  "width": {
+                    "description": "Width in pixels.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "height": {
+                    "description": "Height in pixels.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "duration": {
+                    "description": "Length of a video in seconds; null for an image.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "altText": {
+                    "description": "Alternative text saved for the file, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "originalUrl": {
+                    "description": "Address of the file as uploaded.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "thumbnailUrl": {
+                    "description": "Address of a small still of the file.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "previewUrl": {
+                    "description": "Address of a medium-sized still of the file.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "createdAt": {
+                    "description": "ISO 8601 time the file was uploaded.",
                     "anyOf": [
                       {
                         "type": "string"
@@ -3998,6 +6388,7 @@
             ]
           },
           "id": {
+            "description": "Not filled in. Read file.id.",
             "anyOf": [
               {
                 "anyOf": [
@@ -4015,6 +6406,7 @@
             ]
           },
           "url": {
+            "description": "Not filled in. Read file.originalUrl.",
             "anyOf": [
               {
                 "type": "string"
@@ -4025,6 +6417,7 @@
             ]
           },
           "filename": {
+            "description": "Not filled in. Read file.fileName.",
             "anyOf": [
               {
                 "type": "string"
@@ -4035,6 +6428,7 @@
             ]
           },
           "mimeType": {
+            "description": "Not filled in. Read file.mimeType.",
             "anyOf": [
               {
                 "type": "string"
@@ -4045,6 +6439,7 @@
             ]
           },
           "sizeBytes": {
+            "description": "Not filled in. Read file.sizeBytes.",
             "anyOf": [
               {
                 "anyOf": [
@@ -4119,6 +6514,7 @@
                   "type": "object",
                   "properties": {
                     "id": {
+                      "description": "The file's ID. This is what mediaFileIds takes.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -4136,6 +6532,7 @@
                       ]
                     },
                     "fileName": {
+                      "description": "The file's name.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -4146,6 +6543,7 @@
                       ]
                     },
                     "mimeType": {
+                      "description": "The file's type, e.g. image/jpeg or video/mp4.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -4156,6 +6554,7 @@
                       ]
                     },
                     "sizeBytes": {
+                      "description": "The file's size in bytes.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -4172,7 +6571,73 @@
                         }
                       ]
                     },
+                    "width": {
+                      "description": "Width in pixels.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "height": {
+                      "description": "Height in pixels.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "duration": {
+                      "description": "Length of a video in seconds; null for an image.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "altText": {
+                      "description": "Alternative text saved for the file, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "originalUrl": {
+                      "description": "Address of the file as uploaded.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -4183,6 +6648,29 @@
                       ]
                     },
                     "thumbnailUrl": {
+                      "description": "Address of a small still of the file.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "previewUrl": {
+                      "description": "Address of a medium-sized still of the file.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "description": "ISO 8601 time the file was uploaded.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -4448,8 +6936,69 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
-                "additionalProperties": {}
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "description": "Destinations on this network in the range.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "published": {
+                      "description": "How many of them published.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "failed": {
+                      "description": "How many of them failed.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
               },
               {
                 "type": "null"
@@ -4463,7 +7012,52 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "properties": {},
+                  "properties": {
+                    "date": {
+                      "description": "The day, as YYYY-MM-DD.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "count": {
+                      "description": "Posts that went out that day.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platforms": {
+                      "description": "That day's count for each network, keyed by platform.",
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
                   "additionalProperties": {}
                 }
               },
@@ -4489,7 +7083,98 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "totalPosts": {
+                    "description": "Posts in the previous window.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "published": {
+                    "description": "How many of them published.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "failed": {
+                    "description": "How many failed.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "scheduled": {
+                    "description": "Posts waiting to publish.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "partial": {
+                    "description": "How many published to only some destinations.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -4502,7 +7187,59 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "from": {
+                    "description": "Start of the previous window.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "to": {
+                    "description": "End of the previous window.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "days": {
+                    "description": "Length of the window in days.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "available": {
+                    "description": "false when the previous window cannot be compared.",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -4554,6 +7291,7 @@
                   "type": "object",
                   "properties": {
                     "id": {
+                      "description": "The label's ID. This is what the labels input of create_post takes.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -4571,6 +7309,7 @@
                       ]
                     },
                     "name": {
+                      "description": "The label's name.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -4581,6 +7320,7 @@
                       ]
                     },
                     "color": {
+                      "description": "The label's colour as a hex code.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -7040,6 +9780,17 @@
               }
             ]
           },
+          "updatedAt": {
+            "description": "ISO 8601 time the post last changed. Pass it as ifUnmodifiedSince to update_post, approve_post or reject_post.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "approvalStatus": {
             "description": "Team approval state: none, pending, approved or rejected.",
             "anyOf": [
@@ -7051,12 +9802,75 @@
               }
             ]
           },
+          "rejectionReason": {
+            "description": "The reason given when the post was rejected, or null.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishWhenApproved": {
+            "description": "Whether the post publishes on its own once approved.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "author": {
             "description": "Who wrote the post: { id, name, image }. Null when that account is gone.",
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -7069,7 +9883,48 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -7082,7 +9937,48 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "id": {
+                    "description": "The member's user ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "The member's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "image": {
+                    "description": "Address of the member's avatar, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -7124,7 +10020,44 @@
                 "items": {
                   "type": "object",
                   "properties": {
+                    "id": {
+                      "description": "The destination's ID (postPlatformId), used when replying to or moderating a comment.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "channelId": {
+                      "description": "The connected account this destination publishes to.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "platform": {
+                      "description": "The network, e.g. instagram or linkedin.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -7135,6 +10068,87 @@
                       ]
                     },
                     "status": {
+                      "description": "This destination's own publish status, e.g. pending, published or failed.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformPostId": {
+                      "description": "The network's ID for the published post, or null before it is published.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformUrl": {
+                      "description": "Public link to the published post, or null when there is none.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "errorMessage": {
+                      "description": "Why this destination failed, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryCount": {
+                      "description": "How many times publishing has been retried.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "maxRetries": {
+                      "description": "How many retries are allowed.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "description": "ISO 8601 time this destination was published.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -7160,7 +10174,48 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "properties": {},
+                  "properties": {
+                    "id": {
+                      "description": "The label's ID. This is what the labels input of create_post takes.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "description": "The label's name.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "color": {
+                      "description": "The label's colour as a hex code.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
                   "additionalProperties": {}
                 }
               },
@@ -7168,6 +10223,9 @@
                 "type": "null"
               }
             ]
+          },
+          "platformContent": {
+            "description": "Text that replaces content on one network, keyed by platform."
           },
           "threadParts": {
             "description": "For a thread post: its parts, in order."
@@ -7284,9 +10342,376 @@
                   "type": "object",
                   "properties": {
                     "platform": {
+                      "description": "The network this entry is for.",
                       "anyOf": [
                         {
                           "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformPostId": {
+                      "description": "The network's ID for the published post.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformUrl": {
+                      "description": "Public link to the published post, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "description": "This destination's publish status.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "metricsSupported": {
+                      "description": "false when this destination can never have metrics of its own.",
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "supportedMetrics": {
+                      "description": "The metric names this network can report. A name not listed is a stored zero, not a measurement, so report it as unavailable.",
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "linkClicks": {
+                      "description": "Clicks on bulkpubli.sh short links in this post, counted by BulkPublish. Separate from the network's own clicks; never add the two.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "latest": {
+                      "description": "The most recent figures for this destination; null when none have been read yet.",
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "impressions": {
+                              "description": "Times the post was shown.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "likes": {
+                              "description": "Likes or reactions.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "comments": {
+                              "description": "Comments or replies.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "shares": {
+                              "description": "Shares or reposts.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "reach": {
+                              "description": "Distinct accounts that saw the post.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "saves": {
+                              "description": "Saves or bookmarks.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "clicks": {
+                              "description": "Clicks as reported by the network.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "videoViews": {
+                              "description": "Video views.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "engagementRate": {
+                              "description": "Engagement as a share of impressions.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "platformSpecificMetrics": {
+                              "description": "Extra figures only this network reports."
+                            },
+                            "fetchedAt": {
+                              "description": "ISO 8601 time these figures were read.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "additionalProperties": {}
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "history": {
+                      "description": "Earlier readings, newest first.",
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "impressions": {
+                                "description": "Times the post was shown.",
+                                "anyOf": [
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "likes": {
+                                "description": "Likes or reactions.",
+                                "anyOf": [
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "comments": {
+                                "description": "Comments or replies.",
+                                "anyOf": [
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "shares": {
+                                "description": "Shares or reposts.",
+                                "anyOf": [
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "fetchedAt": {
+                                "description": "ISO 8601 time of this earlier reading.",
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "additionalProperties": {}
+                          }
                         },
                         {
                           "type": "null"
@@ -7307,7 +10732,134 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "impressions": {
+                    "description": "Times the post was shown.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "likes": {
+                    "description": "Likes or reactions.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "comments": {
+                    "description": "Comments or replies.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "shares": {
+                    "description": "Shares or reposts.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "clicks": {
+                    "description": "Clicks as reported by the networks.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "videoViews": {
+                    "description": "Video views.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "linkClicks": {
+                    "description": "Short-link clicks counted by BulkPublish.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -7551,6 +11103,7 @@
                   "type": "object",
                   "properties": {
                     "id": {
+                      "description": "The option's ID, for the matching platformSpecific field.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -7568,6 +11121,7 @@
                       ]
                     },
                     "name": {
+                      "description": "The option's name.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -7591,7 +11145,95 @@
             "anyOf": [
               {
                 "type": "object",
-                "properties": {},
+                "properties": {
+                  "nickname": {
+                    "description": "TikTok: the creator's display name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "avatarUrl": {
+                    "description": "TikTok: address of the creator's picture.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "privacyLevelOptions": {
+                    "description": "TikTok: the privacy levels a post may use on this account.",
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "commentDisabled": {
+                    "description": "TikTok: true when the account has comments turned off.",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "duetDisabled": {
+                    "description": "TikTok: true when the account has duets turned off.",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "stitchDisabled": {
+                    "description": "TikTok: true when the account has stitches turned off.",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "maxVideoPostDurationSec": {
+                    "description": "TikTok: the longest video, in seconds, this account may post.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
                 "additionalProperties": {}
               },
               {
@@ -8672,6 +12314,7 @@
                   "type": "object",
                   "properties": {
                     "channelId": {
+                      "description": "The channel's ID. This is the channelId that create_post takes.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -8689,6 +12332,7 @@
                       ]
                     },
                     "platform": {
+                      "description": "The network, e.g. instagram or linkedin.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -8699,6 +12343,7 @@
                       ]
                     },
                     "accountName": {
+                      "description": "The connected account's name or handle.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -8726,6 +12371,7 @@
                   "type": "object",
                   "properties": {
                     "id": {
+                      "description": "The file's ID. This is what mediaFileIds takes.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -8743,6 +12389,7 @@
                       ]
                     },
                     "url": {
+                      "description": "Address of a still of the file, for showing it.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -8753,6 +12400,7 @@
                       ]
                     },
                     "filename": {
+                      "description": "The file's name.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -8763,6 +12411,7 @@
                       ]
                     },
                     "mimeType": {
+                      "description": "The file's type, e.g. image/jpeg or video/mp4.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -8851,6 +12500,7 @@
                 "type": "object",
                 "properties": {
                   "totalPosts": {
+                    "description": "Posts in the date range.",
                     "anyOf": [
                       {
                         "anyOf": [
@@ -8868,6 +12518,7 @@
                     ]
                   },
                   "published": {
+                    "description": "How many of them published.",
                     "anyOf": [
                       {
                         "anyOf": [
@@ -8885,6 +12536,7 @@
                     ]
                   },
                   "scheduled": {
+                    "description": "Posts currently waiting to publish.",
                     "anyOf": [
                       {
                         "anyOf": [
@@ -8902,6 +12554,7 @@
                     ]
                   },
                   "failed": {
+                    "description": "How many failed.",
                     "anyOf": [
                       {
                         "anyOf": [
@@ -8919,6 +12572,7 @@
                     ]
                   },
                   "partial": {
+                    "description": "How many published to only some destinations.",
                     "anyOf": [
                       {
                         "anyOf": [
@@ -8936,6 +12590,7 @@
                     ]
                   },
                   "byPlatform": {
+                    "description": "One entry per network with its counts.",
                     "anyOf": [
                       {
                         "type": "array",
@@ -8943,6 +12598,7 @@
                           "type": "object",
                           "properties": {
                             "platform": {
+                              "description": "The network.",
                               "anyOf": [
                                 {
                                   "type": "string"
@@ -8953,6 +12609,7 @@
                               ]
                             },
                             "count": {
+                              "description": "Destinations on this network in the range.",
                               "anyOf": [
                                 {
                                   "anyOf": [
@@ -8970,6 +12627,7 @@
                               ]
                             },
                             "published": {
+                              "description": "How many of them published.",
                               "anyOf": [
                                 {
                                   "anyOf": [
@@ -8987,6 +12645,7 @@
                               ]
                             },
                             "failed": {
+                              "description": "How many of them failed.",
                               "anyOf": [
                                 {
                                   "anyOf": [
@@ -9013,6 +12672,7 @@
                     ]
                   },
                   "daily": {
+                    "description": "Posts that went out per day: { date, count, platforms }.",
                     "anyOf": [
                       {
                         "type": "array",
@@ -9089,6 +12749,7 @@
                   "type": "object",
                   "properties": {
                     "id": {
+                      "description": "The post's ID, used by get_post, update_post, publish_post and delete_post.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -9106,6 +12767,7 @@
                       ]
                     },
                     "content": {
+                      "description": "The post's main text.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9116,6 +12778,7 @@
                       ]
                     },
                     "status": {
+                      "description": "draft, scheduled, publishing, processing, published, partial or failed.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9126,6 +12789,7 @@
                       ]
                     },
                     "scheduledAt": {
+                      "description": "ISO 8601 time the post is scheduled for.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9136,6 +12800,7 @@
                       ]
                     },
                     "publishedAt": {
+                      "description": "ISO 8601 time the post was published.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9146,6 +12811,7 @@
                       ]
                     },
                     "createdAt": {
+                      "description": "ISO 8601 time the post was created.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9156,6 +12822,7 @@
                       ]
                     },
                     "platforms": {
+                      "description": "The networks the post goes to.",
                       "anyOf": [
                         {
                           "type": "array",
@@ -9236,6 +12903,7 @@
                   "type": "object",
                   "properties": {
                     "channelId": {
+                      "description": "The channel's ID. This is the channelId that create_post takes.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -9253,6 +12921,7 @@
                       ]
                     },
                     "platform": {
+                      "description": "The network, e.g. instagram or linkedin.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9263,6 +12932,7 @@
                       ]
                     },
                     "accountName": {
+                      "description": "The connected account's name or handle.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9273,6 +12943,7 @@
                       ]
                     },
                     "active": {
+                      "description": "false when the channel has been disconnected.",
                       "anyOf": [
                         {
                           "type": "boolean"
@@ -9283,6 +12954,7 @@
                       ]
                     },
                     "status": {
+                      "description": "Set only when the connection needs attention, e.g. needs reconnect.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9347,6 +13019,7 @@
                   "type": "object",
                   "properties": {
                     "id": {
+                      "description": "The file's ID. This is what mediaFileIds takes.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -9364,6 +13037,7 @@
                       ]
                     },
                     "url": {
+                      "description": "Address of a still of the file, for showing it.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9374,6 +13048,7 @@
                       ]
                     },
                     "filename": {
+                      "description": "The file's name.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9384,6 +13059,7 @@
                       ]
                     },
                     "mimeType": {
+                      "description": "The file's type, e.g. image/jpeg or video/mp4.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9394,6 +13070,7 @@
                       ]
                     },
                     "width": {
+                      "description": "Width in pixels.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -9411,6 +13088,7 @@
                       ]
                     },
                     "height": {
+                      "description": "Height in pixels.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -9469,6 +13147,7 @@
         "type": "object",
         "properties": {
           "usage": {
+            "description": "Usage against each limit, keyed by a readable name such as Channels or Posts / month.",
             "anyOf": [
               {
                 "type": "object",
@@ -9484,6 +13163,7 @@
                       "type": "object",
                       "properties": {
                         "used": {
+                          "description": "How much is in use.",
                           "anyOf": [
                             {
                               "anyOf": [
@@ -9501,6 +13181,7 @@
                           ]
                         },
                         "limit": {
+                          "description": "The most allowed; null when there is no limit.",
                           "anyOf": [
                             {
                               "anyOf": [
@@ -9681,6 +13362,7 @@
                 "type": "object",
                 "properties": {
                   "id": {
+                    "description": "The file's ID. This is what mediaFileIds takes.",
                     "anyOf": [
                       {
                         "anyOf": [
@@ -9698,6 +13380,7 @@
                     ]
                   },
                   "fileName": {
+                    "description": "The file's name.",
                     "anyOf": [
                       {
                         "type": "string"
@@ -9708,6 +13391,7 @@
                     ]
                   },
                   "mimeType": {
+                    "description": "The file's type, e.g. image/jpeg or video/mp4.",
                     "anyOf": [
                       {
                         "type": "string"
@@ -9718,6 +13402,7 @@
                     ]
                   },
                   "sizeBytes": {
+                    "description": "The file's size in bytes.",
                     "anyOf": [
                       {
                         "anyOf": [
@@ -9734,7 +13419,106 @@
                       }
                     ]
                   },
+                  "width": {
+                    "description": "Width in pixels.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "height": {
+                    "description": "Height in pixels.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "duration": {
+                    "description": "Length of a video in seconds; null for an image.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "altText": {
+                    "description": "Alternative text saved for the file, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "originalUrl": {
+                    "description": "Address of the file as uploaded.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "thumbnailUrl": {
+                    "description": "Address of a small still of the file.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "previewUrl": {
+                    "description": "Address of a medium-sized still of the file.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "createdAt": {
+                    "description": "ISO 8601 time the file was uploaded.",
                     "anyOf": [
                       {
                         "type": "string"
@@ -9825,6 +13609,7 @@
         "type": "object",
         "properties": {
           "conversations": {
+            "description": "The conversations on this page, newest first.",
             "anyOf": [
               {
                 "type": "array",
@@ -9832,6 +13617,7 @@
                   "type": "object",
                   "properties": {
                     "id": {
+                      "description": "The conversation's ID, used by get_conversation, reply_to_conversation and update_conversation.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -9849,6 +13635,7 @@
                       ]
                     },
                     "platform": {
+                      "description": "The network the conversation is on.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9881,6 +13668,7 @@
                       ]
                     },
                     "unreadCount": {
+                      "description": "Messages not yet read.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -9898,6 +13686,7 @@
                       ]
                     },
                     "lastMessageAt": {
+                      "description": "ISO 8601 time of the newest message.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9908,9 +13697,28 @@
                       ]
                     },
                     "lastMessagePreview": {
+                      "description": "The start of the newest message.",
                       "anyOf": [
                         {
                           "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "rating": {
+                      "description": "For a review: its star rating; otherwise null.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
                         },
                         {
                           "type": "null"
@@ -9929,6 +13737,7 @@
                       ]
                     },
                     "replyNotice": {
+                      "description": "Why a reply cannot be sent, or a limit to know about; null when there is nothing to say.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9939,10 +13748,63 @@
                       ]
                     },
                     "participant": {
+                      "description": "The other person in the conversation.",
                       "anyOf": [
                         {
                           "type": "object",
-                          "properties": {},
+                          "properties": {
+                            "id": {
+                              "description": "The network's ID for the other person.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "name": {
+                              "description": "Their display name.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "handle": {
+                              "description": "Their handle on the network.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "profileUrl": {
+                              "description": "Link to their profile.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
                           "additionalProperties": {}
                         },
                         {
@@ -9951,10 +13813,41 @@
                       ]
                     },
                     "channel": {
+                      "description": "The connected account the conversation belongs to.",
                       "anyOf": [
                         {
                           "type": "object",
-                          "properties": {},
+                          "properties": {
+                            "id": {
+                              "description": "The connected account's channel ID.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "accountName": {
+                              "description": "The connected account's name.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
                           "additionalProperties": {}
                         },
                         {
@@ -9963,10 +13856,52 @@
                       ]
                     },
                     "assignee": {
+                      "description": "The member the conversation is assigned to, or null.",
                       "anyOf": [
                         {
                           "type": "object",
-                          "properties": {},
+                          "properties": {
+                            "id": {
+                              "description": "The member's user ID.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "name": {
+                              "description": "The member's display name.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "image": {
+                              "description": "Address of the member's avatar, or null.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
                           "additionalProperties": {}
                         },
                         {
@@ -10083,6 +14018,7 @@
             ]
           },
           "messages": {
+            "description": "The messages in the conversation, oldest first.",
             "anyOf": [
               {
                 "type": "array",
@@ -10090,6 +14026,7 @@
                   "type": "object",
                   "properties": {
                     "id": {
+                      "description": "The message's ID.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -10118,6 +14055,7 @@
                       ]
                     },
                     "text": {
+                      "description": "The message text.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -10128,9 +14066,96 @@
                       ]
                     },
                     "sentAt": {
+                      "description": "ISO 8601 time the message was sent.",
                       "anyOf": [
                         {
                           "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "readAt": {
+                      "description": "ISO 8601 time the message was read, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "rating": {
+                      "description": "For a review: its star rating; otherwise null.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "attachments": {
+                      "description": "Files on the message as { name, type, url }, or null."
+                    },
+                    "author": {
+                      "description": "For a sent message: the member who wrote it; otherwise null.",
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "description": "The member's user ID.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "name": {
+                              "description": "The member's display name.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "image": {
+                              "description": "Address of the member's avatar, or null.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "additionalProperties": {}
                         },
                         {
                           "type": "null"
@@ -10198,6 +14223,7 @@
         "type": "object",
         "properties": {
           "success": {
+            "description": "true when the reply was sent.",
             "anyOf": [
               {
                 "type": "boolean"
@@ -10366,6 +14392,7 @@
                   "type": "object",
                   "properties": {
                     "postPlatformId": {
+                      "description": "The destination's ID. Pass it when replying to or moderating a comment.",
                       "anyOf": [
                         {
                           "anyOf": [
@@ -10383,6 +14410,7 @@
                       ]
                     },
                     "platform": {
+                      "description": "The network this entry is for.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -10393,6 +14421,18 @@
                       ]
                     },
                     "accountName": {
+                      "description": "The connected account the post went out from.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platformUrl": {
+                      "description": "Public link to the published post, or null.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -10403,10 +14443,94 @@
                       ]
                     },
                     "engagement": {
+                      "description": "This destination's comments and reactions; null when they could not be read.",
                       "anyOf": [
                         {
                           "type": "object",
-                          "properties": {},
+                          "properties": {
+                            "comments": {
+                              "description": "The comments on this destination, with their replies.",
+                              "anyOf": [
+                                {
+                                  "type": "array",
+                                  "items": {}
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "reactions": {
+                              "description": "Reactions on this destination: { id, type, actor }.",
+                              "anyOf": [
+                                {
+                                  "type": "array",
+                                  "items": {}
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "hasMoreComments": {
+                              "description": "true when there are more comments than were returned.",
+                              "anyOf": [
+                                {
+                                  "type": "boolean"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "hasMoreReactions": {
+                              "description": "true when there are more reactions than were returned.",
+                              "anyOf": [
+                                {
+                                  "type": "boolean"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "commentActions": {
+                              "description": "The moderation actions available on this destination's comments.",
+                              "anyOf": [
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "notice": {
+                              "description": "Something to know about reading this destination's comments.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "replyNotice": {
+                              "description": "Something to know before replying on this destination.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
                           "additionalProperties": {}
                         },
                         {
@@ -10415,6 +14539,7 @@
                       ]
                     },
                     "error": {
+                      "description": "Why the comments could not be read, when they could not.",
                       "anyOf": [
                         {
                           "type": "string"

@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-11-11 — MCP server: discovery documents, a setup page, and fuller output descriptions
+
+MCP **1.54.0**
+
+### Added
+
+- **MCP Server Cards:** `GET /mcp/server-card` and `GET /mcp/full/server-card` describe each endpoint in the standard Server Card format (name, version, description, website, icon and the address to connect to), so a client or directory can read who the server is before connecting. Cards do not list tools; those are still read after sign-in.
+- **AI Catalog:** `GET /.well-known/ai-catalog.json` on `mcp.bulkpublish.com` and on `www.bulkpublish.com` points at both cards.
+- **Setup page:** opening `https://mcp.bulkpublish.com/mcp` (or `/mcp/full`) in a browser now shows how to connect from Claude, ChatGPT, Cursor, Grok and other MCP clients, instead of an error. Only a browser sees it: a request that asks for an event stream or JSON, which is every MCP client request, is handled exactly as before.
+
+### Changed
+
+- **Output fields are described in full.** Results that carried nested objects described only in passing now declare and describe them: each destination of a post (`postPlatforms`), its labels and its author, approver and assignee; the `latest` and `history` figures and `totals` of `get_post_metrics`; the `capabilities` of `list_channels`; `byPlatform`, `byDay`, `previous` and `previousWindow` of `get_analytics`; media file details; the TikTok `info` of `get_channel_options`; and the conversation, message and comment results. Posts also document `updatedAt`, `rejectionReason`, `publishWhenApproved` and `platformContent`, which were already returned.
+- The older card at `/.well-known/mcp/server-card.json` is unchanged apart from one added field, `remotes`.
+
+No tool, input, description, annotation or capability changed, the responses themselves are unchanged, and no output field became required: every added field is optional and results may still carry fields the schema does not list.
+
 ## 2026-11-10 — MCP server: handshake metadata and complete input descriptions
 
 MCP **1.53.0**

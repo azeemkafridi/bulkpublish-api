@@ -102,6 +102,9 @@ The npx/stdio setup above runs the server locally. Web clients that cannot spawn
 |----------|---------|
 | `POST /mcp` | MCP Streamable HTTP (stateless) |
 | `GET /.well-known/mcp/server-card.json` | Static metadata so registries can skip scanning |
+| `GET /mcp/server-card`, `GET /mcp/full/server-card` | MCP Server Card for each endpoint: identity and where to connect |
+| `GET /.well-known/ai-catalog.json` | AI Catalog pointing at both Server Cards |
+| `GET /mcp` or `/mcp/full` from a browser | Setup page with connection steps (MCP clients are unaffected) |
 | `GET /health` | Liveness check |
 
 It is **multi-tenant** — the process holds no API key. Each caller supplies their own `bp_…` key per request via the connection URL (`?key=bp_…`), a Smithery `?config=` blob, or an `Authorization: Bearer bp_…` / `X-BulkPublish-Key` header. `initialize`, `tools/list`, and `resources/*` need no key (so scans and tool discovery work); a `tools/call` without one returns `401`.

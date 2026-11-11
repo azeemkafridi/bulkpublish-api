@@ -766,6 +766,54 @@ const sObj = (shape: Record<string, z.ZodTypeAny> = {}) =>
 const sArr = (shape: Record<string, z.ZodTypeAny> = {}) =>
   z.array(z.object(shape).passthrough()).nullish();
 
+// Lists of plain strings, and maps keyed by a name the schema cannot list in
+// advance (a platform, a date). Same leniency as above.
+const sStrArr = () => z.array(z.string()).nullish();
+const sMap = (value: z.ZodTypeAny = z.any()) => z.record(z.string(), value).nullish();
+
+// A workspace member, as embedded in posts and conversations.
+const USER_REF: Record<string, z.ZodTypeAny> = {
+  id: sNum().describe("The member's user ID."),
+  name: sStr().describe("The member's display name."),
+  image: sStr().describe("Address of the member's avatar, or null."),
+};
+
+// One media file, as returned by the media tools and embedded in posts.
+const MEDIA_SHAPE: Record<string, z.ZodTypeAny> = {
+  id: sNum().describe("The file's ID. This is what mediaFileIds takes."),
+  fileName: sStr().describe("The file's name."),
+  mimeType: sStr().describe("The file's type, e.g. image/jpeg or video/mp4."),
+  sizeBytes: sNum().describe("The file's size in bytes."),
+  width: sNum().describe("Width in pixels."),
+  height: sNum().describe("Height in pixels."),
+  duration: sNum().describe("Length of a video in seconds; null for an image."),
+  altText: sStr().describe("Alternative text saved for the file, or null."),
+  originalUrl: sStr().describe("Address of the file as uploaded."),
+  thumbnailUrl: sStr().describe("Address of a small still of the file."),
+  previewUrl: sStr().describe("Address of a medium-sized still of the file."),
+  createdAt: sStr().describe("ISO 8601 time the file was uploaded."),
+};
+
+// One destination of a post.
+const POST_PLATFORM_SHAPE: Record<string, z.ZodTypeAny> = {
+  id: sNum().describe("The destination's ID (postPlatformId), used when replying to or moderating a comment."),
+  channelId: sNum().describe("The connected account this destination publishes to."),
+  platform: sStr().describe("The network, e.g. instagram or linkedin."),
+  status: sStr().describe("This destination's own publish status, e.g. pending, published or failed."),
+  platformPostId: sStr().describe("The network's ID for the published post, or null before it is published."),
+  platformUrl: sStr().describe("Public link to the published post, or null when there is none."),
+  errorMessage: sStr().describe("Why this destination failed, or null."),
+  retryCount: sNum().describe("How many times publishing has been retried."),
+  maxRetries: sNum().describe("How many retries are allowed."),
+  publishedAt: sStr().describe("ISO 8601 time this destination was published."),
+};
+
+const LABEL_SHAPE: Record<string, z.ZodTypeAny> = {
+  id: sNum().describe("The label's ID. This is what the labels input of create_post takes."),
+  name: sStr().describe("The label's name."),
+  color: sStr().describe("The label's colour as a hex code."),
+};
+
 // One post, as returned by GET/POST/PATCH /api/posts[/{id}] and the publish route.
 const POST_SHAPE: Record<string, z.ZodTypeAny> = {
   id: sNum().describe("The post's ID, used by get_post, update_post, publish_post and delete_post."),
@@ -775,31 +823,55 @@ const POST_SHAPE: Record<string, z.ZodTypeAny> = {
   timezone: sStr().describe("Time zone the schedule was set in."),
   publishedAt: sStr().describe("ISO 8601 time the post was published."),
   createdAt: sStr().describe("ISO 8601 time the post was created."),
+  updatedAt: sStr().describe("ISO 8601 time the post last changed. Pass it as ifUnmodifiedSince to update_post, approve_post or reject_post."),
   approvalStatus: sStr().describe("Team approval state: none, pending, approved or rejected."),
-  author: sObj().describe("Who wrote the post: { id, name, image }. Null when that account is gone."),
-  approver: sObj().describe("Who approved it: { id, name, image }. Null unless approvalStatus is approved."),
-  assignee: sObj().describe("Who is expected to act on it next: { id, name, image }. Null when nobody is."),
+  rejectionReason: sStr().describe("The reason given when the post was rejected, or null."),
+  publishWhenApproved: sBool().describe("Whether the post publishes on its own once approved."),
+  author: sObj(USER_REF).describe("Who wrote the post: { id, name, image }. Null when that account is gone."),
+  approver: sObj(USER_REF).describe("Who approved it: { id, name, image }. Null unless approvalStatus is approved."),
+  assignee: sObj(USER_REF).describe("Who is expected to act on it next: { id, name, image }. Null when nobody is."),
   // POST and PATCH /api/posts echo the stored row, where this is the list of
   // media file IDs; GET resolves them to file objects. Declaring objects only
   // made every create_post/update_post WITH media fail output validation after
   // the post had already been saved (2026-09-11) — the host then reported an
   // error for a post that existed, which is how a retry duplicates it.
   mediaFiles: z.array(z.union([z.number(), z.string(), z.object({}).passthrough()])).nullish().describe("Media on the post itself: file IDs after create_post or update_post, full file objects from get_post and list_posts."),
-  postPlatforms: sArr({ platform: sStr(), status: sStr() }).describe("One entry per destination, with its platform and its own publish status."),
-  labels: sArr().describe("Labels on the post."),
+  postPlatforms: sArr(POST_PLATFORM_SHAPE).describe("One entry per destination, with its platform and its own publish status."),
+  labels: sArr(LABEL_SHAPE).describe("Labels on the post."),
   // Documentation only: z.any() accepts every value, so these can never fail
   // output validation whatever the API sends. .optional() is load-bearing:
   // without it the published schema lists them as required, and a host that
   // validates would refuse every create_post result, which has none of them.
+  platformContent: z.any().optional().describe("Text that replaces content on one network, keyed by platform."),
   threadParts: z.any().optional().describe("For a thread post: its parts, in order."),
   threadMediaFiles: z.any().optional().describe("get_post and list_posts: the media the thread parts reference. Not included in mediaFiles."),
   recurringSchedule: z.any().optional().describe("get_post and list_posts: the repeat schedule the post belongs to, or null."),
 };
 
+// The figures one metrics snapshot carries.
+const METRIC_FIGURES: Record<string, z.ZodTypeAny> = {
+  impressions: sNum().describe("Times the post was shown."),
+  likes: sNum().describe("Likes or reactions."),
+  comments: sNum().describe("Comments or replies."),
+  shares: sNum().describe("Shares or reposts."),
+};
+
 export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> = {
   list_channels: {
-    channels: sArr({ id: sNum(), platform: sStr(), accountName: sStr(), isActive: sBool(), needsReconnect: sBool() }).describe("Connected accounts. Each one's id is the channelId that create_post and update_post take."),
-    capabilities: sObj().describe("Whether the caller may create, publish or approve posts."),
+    channels: sArr({
+      id: sNum().describe("The channel's ID. This is the channelId that create_post and update_post take."),
+      platform: sStr().describe("The network, e.g. instagram or linkedin."),
+      accountName: sStr().describe("The connected account's name or handle."),
+      isActive: sBool().describe("false when the channel has been disconnected."),
+      needsReconnect: sBool().describe("true when the account must be reconnected before it can publish."),
+      tokenStatus: sStr().describe("State of the connection to the network, e.g. valid."),
+      profileImage: sStr().describe("Address of the account's picture, or null."),
+    }).describe("Connected accounts. Each one's id is the channelId that create_post and update_post take."),
+    capabilities: sObj({
+      canCreatePosts: sBool().describe("Whether the caller may create and edit posts."),
+      canPublishPosts: sBool().describe("Whether the caller may publish or schedule without approval."),
+      canApprovePosts: sBool().describe("Whether the caller may approve or reject posts."),
+    }).describe("Whether the caller may create, publish or approve posts."),
   },
   list_posts: {
     posts: sArr(POST_SHAPE).describe("The posts on this page."),
@@ -817,15 +889,50 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
   delete_post: { success: sBool().describe("true when the post was deleted.") },
   get_post_metrics: {
     postId: sNum().describe("The post these metrics belong to."),
-    platforms: sArr({ platform: sStr() }).describe("One entry per destination with its own figures, plus metricsSupported and supportedMetrics."),
-    totals: sObj().describe("Sums across destinations: impressions, likes, comments, shares, clicks, videoViews and linkClicks."),
+    platforms: sArr({
+      platform: sStr().describe("The network this entry is for."),
+      platformPostId: sStr().describe("The network's ID for the published post."),
+      platformUrl: sStr().describe("Public link to the published post, or null."),
+      status: sStr().describe("This destination's publish status."),
+      metricsSupported: sBool().describe("false when this destination can never have metrics of its own."),
+      supportedMetrics: sStrArr().describe("The metric names this network can report. A name not listed is a stored zero, not a measurement, so report it as unavailable."),
+      linkClicks: sNum().describe("Clicks on bulkpubli.sh short links in this post, counted by BulkPublish. Separate from the network's own clicks; never add the two."),
+      latest: sObj({
+        ...METRIC_FIGURES,
+        reach: sNum().describe("Distinct accounts that saw the post."),
+        saves: sNum().describe("Saves or bookmarks."),
+        clicks: sNum().describe("Clicks as reported by the network."),
+        videoViews: sNum().describe("Video views."),
+        engagementRate: sNum().describe("Engagement as a share of impressions."),
+        platformSpecificMetrics: z.any().optional().describe("Extra figures only this network reports."),
+        fetchedAt: sStr().describe("ISO 8601 time these figures were read."),
+      }).describe("The most recent figures for this destination; null when none have been read yet."),
+      history: sArr({ ...METRIC_FIGURES, fetchedAt: sStr().describe("ISO 8601 time of this earlier reading.") }).describe("Earlier readings, newest first."),
+    }).describe("One entry per destination with its own figures, plus metricsSupported and supportedMetrics."),
+    totals: sObj({
+      ...METRIC_FIGURES,
+      clicks: sNum().describe("Clicks as reported by the networks."),
+      videoViews: sNum().describe("Video views."),
+      linkClicks: sNum().describe("Short-link clicks counted by BulkPublish."),
+    }).describe("Sums across destinations: impressions, likes, comments, shares, clicks, videoViews and linkClicks."),
   },
   // GET /api/labels answers with a bare array, which attachStructured wraps.
-  list_labels: { items: sArr({ id: sNum(), name: sStr(), color: sStr() }).describe("The workspace's labels. id is what the labels input of create_post takes.") },
+  list_labels: { items: sArr(LABEL_SHAPE).describe("The workspace's labels. id is what the labels input of create_post takes.") },
   get_channel_options: {
     type: sStr().describe("boards, sections, playlists, blogs, channels, locations or creator_info."),
-    items: sArr({ id: sNum(), name: sStr() }).describe("The options of that type. Use an item's id in the matching platformSpecific field."),
-    info: sObj().describe("Extra details for types that are not a list, such as creator_info."),
+    items: sArr({
+      id: sNum().describe("The option's ID, for the matching platformSpecific field."),
+      name: sStr().describe("The option's name."),
+    }).describe("The options of that type. Use an item's id in the matching platformSpecific field."),
+    info: sObj({
+      nickname: sStr().describe("TikTok: the creator's display name."),
+      avatarUrl: sStr().describe("TikTok: address of the creator's picture."),
+      privacyLevelOptions: sStrArr().describe("TikTok: the privacy levels a post may use on this account."),
+      commentDisabled: sBool().describe("TikTok: true when the account has comments turned off."),
+      duetDisabled: sBool().describe("TikTok: true when the account has duets turned off."),
+      stitchDisabled: sBool().describe("TikTok: true when the account has stitches turned off."),
+      maxVideoPostDurationSec: sNum().describe("TikTok: the longest video, in seconds, this account may post."),
+    }).describe("Extra details for types that are not a list, such as creator_info."),
     unavailable: z.union([z.boolean(), z.string()]).nullish().describe("Set when the options cannot be offered for this channel."),
   },
   update_channel: { success: sBool().describe("true when the settings were saved.") },
@@ -836,50 +943,105 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
     dayLabel: sStr().describe('Human label, e.g. "Today" or "Wed, Feb 14".'),
   },
   list_media: {
-    files: sArr({ id: sNum(), fileName: sStr(), mimeType: sStr(), sizeBytes: sNum(), originalUrl: sStr(), thumbnailUrl: sStr() }).describe("Media files on this page. id is what mediaFileIds takes."),
+    files: sArr(MEDIA_SHAPE).describe("Media files on this page. id is what mediaFileIds takes."),
     page: sNum().describe("This page's number."), limit: sNum().describe("Page size used."), total: sNum().describe("Files matching the filters, across every page."),
   },
   upload_media: {
-    file: sObj({ id: sNum(), fileName: sStr(), mimeType: sStr(), sizeBytes: sNum(), originalUrl: sStr() }).describe("The stored media file. file.id is what mediaFileIds takes."),
+    file: sObj(MEDIA_SHAPE).describe("The stored media file. file.id is what mediaFileIds takes."),
     // The result is { file } only. These five top-level keys have never been
     // sent; they stay declared (optional) because dropping a top-level key is
     // the one schema edit a strictly-validating host could object to.
-    id: sNum(), url: sStr(), filename: sStr(), mimeType: sStr(), sizeBytes: sNum(),
+    id: sNum().describe("Not filled in. Read file.id."), url: sStr().describe("Not filled in. Read file.originalUrl."), filename: sStr().describe("Not filled in. Read file.fileName."), mimeType: sStr().describe("Not filled in. Read file.mimeType."), sizeBytes: sNum().describe("Not filled in. Read file.sizeBytes."),
   },
   create_media_upload: {
     uploadUrl: sStr().describe("Address to send the file's bytes to with an HTTP PUT."),
     r2Key: sStr().describe("Reference for this upload; pass it to finalize_media_upload."),
     expiresIn: sNum().describe("Seconds until uploadUrl stops working."),
   },
-  finalize_media_upload: { file: sObj({ id: sNum(), fileName: sStr(), mimeType: sStr(), sizeBytes: sNum(), originalUrl: sStr() }).describe("The new media file. Its id is what mediaFileIds takes.") },
+  finalize_media_upload: { file: sObj(MEDIA_SHAPE).describe("The new media file. Its id is what mediaFileIds takes.") },
   get_analytics: {
     totalPosts: sNum().describe("Posts in the date range."), published: sNum().describe("How many of them published."), failed: sNum().describe("How many failed."), scheduled: sNum().describe("Posts currently waiting to publish, whatever the date range."), partial: sNum().describe("How many published to only some destinations."),
     from: sStr().describe("Start of the date range."), to: sStr().describe("End of the date range."),
-    byPlatform: sObj().describe("Per platform: destinations in the range as { total, published, failed }."), byDay: sArr().describe("Posts that went out per day: { date, count, platforms }."), publishedTimes: z.array(z.any()).nullish().describe("Not filled in by this tool."),
-    previous: sObj().describe("With compare: totalPosts, published, failed, scheduled and partial for the previous window; null when that window is not available."), previousWindow: sObj().describe("With compare: { from, to, days, available } for the previous window."),
+    byPlatform: sMap(z.object({
+      total: sNum().describe("Destinations on this network in the range."),
+      published: sNum().describe("How many of them published."),
+      failed: sNum().describe("How many of them failed."),
+    }).passthrough()).describe("Per platform: destinations in the range as { total, published, failed }."),
+    byDay: sArr({
+      date: sStr().describe("The day, as YYYY-MM-DD."),
+      count: sNum().describe("Posts that went out that day."),
+      platforms: sMap().describe("That day's count for each network, keyed by platform."),
+    }).describe("Posts that went out per day: { date, count, platforms }."),
+    publishedTimes: z.array(z.any()).nullish().describe("Not filled in by this tool."),
+    previous: sObj({
+      totalPosts: sNum().describe("Posts in the previous window."), published: sNum().describe("How many of them published."), failed: sNum().describe("How many failed."), scheduled: sNum().describe("Posts waiting to publish."), partial: sNum().describe("How many published to only some destinations."),
+    }).describe("With compare: totalPosts, published, failed, scheduled and partial for the previous window; null when that window is not available."),
+    previousWindow: sObj({
+      from: sStr().describe("Start of the previous window."), to: sStr().describe("End of the previous window."), days: sNum().describe("Length of the window in days."), available: sBool().describe("false when the previous window cannot be compared."),
+    }).describe("With compare: { from, to, days, available } for the previous window."),
   },
   // ---- Inbox profile (shapes from openapi.json, all lenient) --------------
   list_conversations: {
     conversations: sArr({
-      id: sNum(), platform: sStr(), kind: sStr().describe("dm, review or comment."),
-      status: sStr().describe("open, archived or snoozed."), unreadCount: sNum(),
-      lastMessageAt: sStr(), lastMessagePreview: sStr(),
+      id: sNum().describe("The conversation's ID, used by get_conversation, reply_to_conversation and update_conversation."),
+      platform: sStr().describe("The network the conversation is on."),
+      kind: sStr().describe("dm, review or comment."),
+      status: sStr().describe("open, archived or snoozed."),
+      unreadCount: sNum().describe("Messages not yet read."),
+      lastMessageAt: sStr().describe("ISO 8601 time of the newest message."),
+      lastMessagePreview: sStr().describe("The start of the newest message."),
+      rating: sNum().describe("For a review: its star rating; otherwise null."),
       canReply: sBool().describe("Whether a reply sent now can be delivered; replyNotice says why not."),
-      replyNotice: sStr(), participant: sObj(), channel: sObj(), assignee: sObj(),
-    }),
+      replyNotice: sStr().describe("Why a reply cannot be sent, or a limit to know about; null when there is nothing to say."),
+      participant: sObj({
+        id: sNum().describe("The network's ID for the other person."),
+        name: sStr().describe("Their display name."),
+        handle: sStr().describe("Their handle on the network."),
+        profileUrl: sStr().describe("Link to their profile."),
+      }).describe("The other person in the conversation."),
+      channel: sObj({
+        id: sNum().describe("The connected account's channel ID."),
+        accountName: sStr().describe("The connected account's name."),
+      }).describe("The connected account the conversation belongs to."),
+      assignee: sObj(USER_REF).describe("The member the conversation is assigned to, or null."),
+    }).describe("The conversations on this page, newest first."),
     nextCursor: sStr().describe("Pass back as cursor for the next page; null on the last page."),
     offset: sNum().describe("Where this page started when paging by position; 0 when paging by cursor."),
     total: sNum().describe("How many conversations match the filters, across every page."),
   },
   get_conversation: {
     conversationId: sNum().describe("The conversation these messages belong to."),
-    messages: sArr({ id: sNum(), direction: sStr().describe("in (from the other person) or out (sent by the workspace)."), text: sStr(), sentAt: sStr() }),
+    messages: sArr({
+      id: sNum().describe("The message's ID."),
+      direction: sStr().describe("in (from the other person) or out (sent by the workspace)."),
+      text: sStr().describe("The message text."),
+      sentAt: sStr().describe("ISO 8601 time the message was sent."),
+      readAt: sStr().describe("ISO 8601 time the message was read, or null."),
+      rating: sNum().describe("For a review: its star rating; otherwise null."),
+      attachments: z.any().optional().describe("Files on the message as { name, type, url }, or null."),
+      author: sObj(USER_REF).describe("For a sent message: the member who wrote it; otherwise null."),
+    }).describe("The messages in the conversation, oldest first."),
   },
-  reply_to_conversation: { success: sBool(), messageId: sStr().describe("The platform's id for the sent message.") },
+  reply_to_conversation: { success: sBool().describe("true when the reply was sent."), messageId: sStr().describe("The platform's id for the sent message.") },
   update_conversation: { success: sBool().describe("true when the change was saved.") },
   list_post_comments: {
     postId: sNum().describe("The post these comments belong to."),
-    platforms: sArr({ postPlatformId: sNum(), platform: sStr(), accountName: sStr(), engagement: sObj(), error: sStr() }).describe("One entry per destination: its comments and reactions under engagement, or error when they could not be read. postPlatformId identifies the destination when replying to or moderating a comment."),
+    platforms: sArr({
+      postPlatformId: sNum().describe("The destination's ID. Pass it when replying to or moderating a comment."),
+      platform: sStr().describe("The network this entry is for."),
+      accountName: sStr().describe("The connected account the post went out from."),
+      platformUrl: sStr().describe("Public link to the published post, or null."),
+      engagement: sObj({
+        comments: z.array(z.any()).nullish().describe("The comments on this destination, with their replies."),
+        reactions: z.array(z.any()).nullish().describe("Reactions on this destination: { id, type, actor }."),
+        hasMoreComments: sBool().describe("true when there are more comments than were returned."),
+        hasMoreReactions: sBool().describe("true when there are more reactions than were returned."),
+        commentActions: sStrArr().describe("The moderation actions available on this destination's comments."),
+        notice: sStr().describe("Something to know about reading this destination's comments."),
+        replyNotice: sStr().describe("Something to know before replying on this destination."),
+      }).describe("This destination's comments and reactions; null when they could not be read."),
+      error: sStr().describe("Why the comments could not be read, when they could not."),
+    }).describe("One entry per destination: its comments and reactions under engagement, or error when they could not be read. postPlatformId identifies the destination when replying to or moderating a comment."),
   },
   reply_to_comment: { success: sBool().describe("true when the reply was posted."), replyId: sStr().describe("The platform's id for the new reply."), accountName: sStr().describe("The account the reply was posted as.") },
   moderate_comment: { success: sBool().describe("true when the action was applied."), action: sStr().describe("The action that was applied.") },
@@ -3687,6 +3849,19 @@ const oNum = () => z.union([z.number(), z.string()]).nullish();
 const oItem = (shape: Record<string, z.ZodTypeAny>) =>
   z.object(shape).passthrough();
 
+// Described once, used by the panels that list the same things.
+const W_CHANNEL = {
+  channelId: oNum().describe("The channel's ID. This is the channelId that create_post takes."),
+  platform: oStr().describe("The network, e.g. instagram or linkedin."),
+  accountName: oStr().describe("The connected account's name or handle."),
+};
+const W_MEDIA = {
+  id: oNum().describe("The file's ID. This is what mediaFileIds takes."),
+  url: oStr().describe("Address of a still of the file, for showing it."),
+  filename: oStr().describe("The file's name."),
+  mimeType: oStr().describe("The file's type, e.g. image/jpeg or video/mp4."),
+};
+
 // --- compose_post → composer ---
 registerWidget({
   tool: "compose_post",
@@ -3708,11 +3883,11 @@ registerWidget({
   },
   outputSchema: {
     channels: z
-      .array(oItem({ channelId: oNum(), platform: oStr(), accountName: oStr() }))
+      .array(oItem(W_CHANNEL))
       .nullish()
       .describe("The active connected accounts offered in the composer."),
     media: z
-      .array(oItem({ id: oNum(), url: oStr(), filename: oStr(), mimeType: oStr() }))
+      .array(oItem(W_MEDIA))
       .nullish()
       .describe("Recent media files offered for attaching."),
   },
@@ -3772,15 +3947,21 @@ registerWidget({
     from: oStr().describe("Start of the date range shown."),
     to: oStr().describe("End of the date range shown."),
     summary: oItem({
-      totalPosts: oNum(),
-      published: oNum(),
-      scheduled: oNum(),
-      failed: oNum(),
-      partial: oNum(),
+      totalPosts: oNum().describe("Posts in the date range."),
+      published: oNum().describe("How many of them published."),
+      scheduled: oNum().describe("Posts currently waiting to publish."),
+      failed: oNum().describe("How many failed."),
+      partial: oNum().describe("How many published to only some destinations."),
       byPlatform: z
-        .array(oItem({ platform: oStr(), count: oNum(), published: oNum(), failed: oNum() }))
-        .nullish(),
-      daily: z.array(z.unknown()).nullish(),
+        .array(oItem({
+          platform: oStr().describe("The network."),
+          count: oNum().describe("Destinations on this network in the range."),
+          published: oNum().describe("How many of them published."),
+          failed: oNum().describe("How many of them failed."),
+        }))
+        .nullish()
+        .describe("One entry per network with its counts."),
+      daily: z.array(z.unknown()).nullish().describe("Posts that went out per day: { date, count, platforms }."),
     }).nullish().describe("Post totals for the range, by status, by platform and by day."),
   },
   load: async ({ from, to }) => {
@@ -3854,13 +4035,13 @@ registerWidget({
     posts: z
       .array(
         oItem({
-          id: oNum(),
-          content: oStr(),
-          status: oStr(),
-          scheduledAt: oStr(),
-          publishedAt: oStr(),
-          createdAt: oStr(),
-          platforms: z.array(z.string()).nullish(),
+          id: oNum().describe("The post's ID, used by get_post, update_post, publish_post and delete_post."),
+          content: oStr().describe("The post's main text."),
+          status: oStr().describe("draft, scheduled, publishing, processing, published, partial or failed."),
+          scheduledAt: oStr().describe("ISO 8601 time the post is scheduled for."),
+          publishedAt: oStr().describe("ISO 8601 time the post was published."),
+          createdAt: oStr().describe("ISO 8601 time the post was created."),
+          platforms: z.array(z.string()).nullish().describe("The networks the post goes to."),
         })
       )
       .nullish()
@@ -3914,11 +4095,9 @@ registerWidget({
     channels: z
       .array(
         oItem({
-          channelId: oNum(),
-          platform: oStr(),
-          accountName: oStr(),
-          active: z.boolean().nullish(),
-          status: oStr(),
+          ...W_CHANNEL,
+          active: z.boolean().nullish().describe("false when the channel has been disconnected."),
+          status: oStr().describe("Set only when the connection needs attention, e.g. needs reconnect."),
         })
       )
       .nullish()
@@ -3968,12 +4147,9 @@ registerWidget({
     media: z
       .array(
         oItem({
-          id: oNum(),
-          url: oStr(),
-          filename: oStr(),
-          mimeType: oStr(),
-          width: oNum(),
-          height: oNum(),
+          ...W_MEDIA,
+          width: oNum().describe("Width in pixels."),
+          height: oNum().describe("Height in pixels."),
         })
       )
       .nullish()
@@ -4025,9 +4201,10 @@ if (!HIDE_BILLING_TOOLS) {
       usage: z
         .record(
           z.string(),
-          z.union([z.string(), oItem({ used: oNum(), limit: oNum() })])
+          z.union([z.string(), oItem({ used: oNum().describe("How much is in use."), limit: oNum().describe("The most allowed; null when there is no limit.") })])
         )
-        .nullish(),
+        .nullish()
+        .describe("Usage against each limit, keyed by a readable name such as Channels or Posts / month."),
     },
     load: async () => {
       const res = await api("GET", "/api/quotas/usage");

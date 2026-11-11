@@ -22,7 +22,10 @@
  * the OAuth flow in Cursor-runtime clients (Grok Bot), claude.ai and ChatGPT.
  * tools/list / resources / ping stay anonymous for scanners.
  *
- * Other endpoints: GET /health, GET /.well-known/mcp/server-card.json.
+ * Other endpoints: GET /health, GET /.well-known/mcp/server-card.json (the
+ * older, home-made card), GET /mcp/server-card and /mcp/full/server-card (MCP
+ * Server Cards, SEP-2127), GET /.well-known/ai-catalog.json (points at both),
+ * and a setup page for a browser that opens /mcp or /mcp/full.
  * Env: PORT (default 8080), PUBLIC_BASE_URL (the external https URL of THIS
  * server, default https://mcp.bulkpublish.com), OAUTH_SIGNING_SECRET,
  * BULKPUBLISH_BASE_URL (the API, inherited by src/index.ts).
@@ -34,6 +37,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { mcpAuthRouter } from "@modelcontextprotocol/sdk/server/auth/router.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { SUPPORTED_PROTOCOL_VERSIONS } from "@modelcontextprotocol/sdk/types.js";
 import { createServer, requestContext, resolveToolProfile, type ToolProfile } from "./index.js";
 
 // The hosted server is the one the directories review, so it defaults to the
@@ -142,6 +146,176 @@ let serverCardJson = JSON.stringify({
   prompts: [],
 });
 
+// ---------------------------------------------------------------------------
+// MCP Server Cards (SEP-2127) + AI Catalog — discovery before connecting
+// ---------------------------------------------------------------------------
+// A card says who the server is and where to connect, and nothing else: the
+// format leaves tools, resources and prompts out on purpose, since those are
+// only true for a signed-in caller. One card per endpoint, served at the
+// location the extension reserves (<endpoint>/server-card), and an AI Catalog
+// at the well-known path that points at both. All of it is new, read-only and
+// public; no MCP request goes through any of these routes.
+const SERVER_CARD_SCHEMA = "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json";
+const SERVER_CARD_TYPE = "application/mcp-server-card+json";
+// The name the MCP Registry knows this server by (package.json `mcpName`).
+const CARD_NAME = "io.github.azeemkafridi/bulkpublish";
+// The card schema caps description at 100 characters, which the handshake's
+// own description exceeds, so the cards carry these shorter ones.
+const CARD_DESCRIPTION =
+  "Schedule and publish social media posts, manage media, and read analytics and comments.";
+
+function remote(path: string) {
+  return {
+    type: "streamable-http" as const,
+    url: `${PUBLIC_BASE}${path}`,
+    supportedProtocolVersions: [...SUPPORTED_PROTOCOL_VERSIONS],
+  };
+}
+
+type CardIdentity = { version: string; title?: string; description?: string; websiteUrl?: string; icons?: unknown };
+
+function officialCard(path: string, info: CardIdentity, variant?: { name: string; title: string; description: string }): string {
+  return JSON.stringify(
+    {
+      $schema: SERVER_CARD_SCHEMA,
+      name: variant ? `${CARD_NAME}-${variant.name}` : CARD_NAME,
+      version: info.version,
+      description: variant ? variant.description : CARD_DESCRIPTION,
+      title: variant ? variant.title : info.title ?? "BulkPublish",
+      websiteUrl: info.websiteUrl ?? "https://www.bulkpublish.com",
+      repository: {
+        url: "https://github.com/azeemkafridi/bulkpublish-api",
+        source: "github",
+        subfolder: "mcp-server",
+      },
+      ...(info.icons ? { icons: info.icons } : {}),
+      remotes: [remote(path)],
+    },
+    null,
+    2
+  );
+}
+
+const FULL_VARIANT = {
+  name: "full",
+  title: "BulkPublish (all tools)",
+  description:
+    "Every BulkPublish tool: posts, media, schedules, templates, feeds, analytics and inbox.",
+};
+
+// Fallbacks until the live handshake has been read (see the .then() at the
+// bottom); same idea as serverCardJson above.
+let officialCardJson = officialCard(MCP_PATH, { version: "1.0.0" });
+let officialFullCardJson = officialCard(MCP_FULL_PATH, { version: "1.0.0" }, FULL_VARIANT);
+
+const AI_CATALOG_JSON = JSON.stringify(
+  {
+    specVersion: "1.0",
+    entries: [
+      {
+        identifier: "urn:air:bulkpublish.com:mcp:bulkpublish",
+        type: SERVER_CARD_TYPE,
+        url: `${PUBLIC_BASE}${MCP_PATH}/server-card`,
+      },
+      {
+        identifier: "urn:air:bulkpublish.com:mcp:bulkpublish-full",
+        type: SERVER_CARD_TYPE,
+        url: `${PUBLIC_BASE}${MCP_FULL_PATH}/server-card`,
+      },
+    ],
+  },
+  null,
+  2
+);
+
+// ---------------------------------------------------------------------------
+// Setup page — what a person sees on opening the MCP address in a browser
+// ---------------------------------------------------------------------------
+// Until this existed a browser got a JSON-RPC 406 (or an event stream that
+// never ended), which is also what a directory's crawler recorded as "no setup
+// instructions". Shown ONLY to a GET that asks for HTML and not for an event
+// stream or JSON: every MCP client's GET asks for text/event-stream, so none
+// of them can land here.
+function wantsSetupPage(req: Request): boolean {
+  if (req.method !== "GET") return false;
+  const accept = String(req.headers.accept ?? "").toLowerCase();
+  return (
+    accept.includes("text/html") &&
+    !accept.includes("text/event-stream") &&
+    !accept.includes("application/json")
+  );
+}
+
+function setupPage(path: string, full: boolean): string {
+  const url = `${PUBLIC_BASE}${path}`;
+  const other = full
+    ? `Looking for the shorter set of everyday tools? Use <code>${PUBLIC_BASE}${MCP_PATH}</code>.`
+    : `Want every tool, including schedules, templates and feeds? Use <code>${PUBLIC_BASE}${MCP_FULL_PATH}</code>.`;
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connect BulkPublish to your AI assistant</title>
+<meta name="description" content="How to add the BulkPublish MCP server to Claude, ChatGPT, Cursor, Grok and other assistants.">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="alternate" type="${SERVER_CARD_TYPE}" href="${url}/server-card">
+<style>
+  :root { color-scheme: light dark; --fg:#1a1a1a; --muted:#5c5c5c; --bg:#fff; --card:#f6f6f4; --line:#e3e3df; --accent:#ff5601; }
+  @media (prefers-color-scheme: dark) { :root { --fg:#f2f2f0; --muted:#a8a8a3; --bg:#141413; --card:#1f1f1d; --line:#33332f; } }
+  body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); max-width: 44rem; margin: 3rem auto; padding: 0 1rem; line-height: 1.55; }
+  h1 { font-size: 1.7rem; margin: 0 0 .4rem; } h2 { font-size: 1.1rem; margin: 2rem 0 .5rem; }
+  p, li { color: var(--fg); } .muted { color: var(--muted); }
+  code { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: .1rem .35rem; font-size: .92em; word-break: break-all; }
+  .url { display: block; padding: .7rem .9rem; margin: .6rem 0; font-size: 1rem; }
+  a { color: var(--accent); } ol, ul { padding-left: 1.2rem; } li { margin: .3rem 0; }
+</style>
+</head>
+<body>
+<h1>Connect BulkPublish to your AI assistant</h1>
+<p class="muted">BulkPublish schedules and publishes social media posts to your connected accounts. This address is its MCP server: add it to an assistant and you can draft, schedule and publish posts, manage media, and read analytics by asking.</p>
+
+<h2>Server address</h2>
+<code class="url">${url}</code>
+<p class="muted">Remote MCP server (Streamable HTTP). ${other}</p>
+
+<h2>Sign in</h2>
+<p>Your assistant opens a BulkPublish sign-in page the first time it connects (OAuth). Paste an API key from <a href="https://app.bulkpublish.com/developer">your BulkPublish account</a> there and approve. You need a BulkPublish account with at least one social account connected.</p>
+
+<h2>Add it to your assistant</h2>
+<ul>
+  <li><strong>Claude:</strong> install it from the <a href="https://claude.ai/directory/bulkpublish">Claude directory</a>, or add a custom connector with the address above.</li>
+  <li><strong>ChatGPT:</strong> open <a href="https://chatgpt.com/plugins/plugin_asdk_app_6aa1e36d0a108191b38d12b95e3d5568">BulkPublish in ChatGPT</a> and connect.</li>
+  <li><strong>Cursor:</strong> install it from the <a href="https://cursor.com/marketplace/bulkpublish">Cursor Marketplace</a>.</li>
+  <li><strong>Grok:</strong> add it from <a href="https://x.ai/bot/plugin/74890828">Grok Bot plugins</a>, or create a custom connector with the address above.</li>
+  <li><strong>Any other MCP client:</strong> add a remote server with the address above and sign in when asked.</li>
+</ul>
+<p>Step-by-step guides for each assistant are at <a href="https://www.bulkpublish.com/integrations/">bulkpublish.com/integrations</a>.</p>
+
+<h2>Check that it works</h2>
+<p>Ask your assistant: <em>&ldquo;List my connected BulkPublish channels.&rdquo;</em> It should answer with your social accounts. Then try <em>&ldquo;Draft a post for LinkedIn about our launch&rdquo;</em>. Posts are saved as drafts unless you ask for a time, and the assistant asks before publishing anything.</p>
+
+<h2>Help</h2>
+<p><a href="https://help.bulkpublish.com">Help center</a> &middot; <a href="https://www.bulkpublish.com/privacy/">Privacy</a> &middot; <a href="https://www.bulkpublish.com/terms/">Terms</a> &middot; <a href="https://www.bulkpublish.com">bulkpublish.com</a></p>
+</body>
+</html>`;
+}
+
+function setupPageHandler(path: string, full: boolean) {
+  const html = setupPage(path, full);
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!wantsSetupPage(req)) return next();
+    res
+      .status(200)
+      .set("Cache-Control", "public, max-age=300")
+      .set("Vary", "Accept")
+      .set("Link", `<${PUBLIC_BASE}${path}/server-card>; rel="alternate"; type="${SERVER_CARD_TYPE}"`)
+      .type("html")
+      .send(html);
+  };
+}
+
 async function buildServerCard(): Promise<string> {
   const server = createServer({ profile: TOOL_PROFILE });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
@@ -162,6 +336,8 @@ async function buildServerCard(): Promise<string> {
     // same title, description, website, icon and instructions the handshake
     // announces. Fields the server does not set are simply left out.
     const instructions = client.getInstructions();
+    officialCardJson = officialCard(MCP_PATH, info as CardIdentity);
+    officialFullCardJson = officialCard(MCP_FULL_PATH, info as CardIdentity, FULL_VARIANT);
     return JSON.stringify(
       {
         name: info.name,
@@ -171,6 +347,9 @@ async function buildServerCard(): Promise<string> {
         ...(info.websiteUrl && { websiteUrl: info.websiteUrl }),
         ...(info.icons && { icons: info.icons }),
         serverUrl: `${PUBLIC_BASE}${MCP_PATH}`,
+        // Same connection details as the official card below, for a reader of
+        // this older document that looks for them under the standard key.
+        remotes: [remote(MCP_PATH)],
         serverInfo: info,
         ...(instructions && { instructions }),
         authentication: { required: true, type: "oauth2" },
@@ -400,6 +579,21 @@ app.get("/.well-known/mcp/server-card.json", (_req: Request, res: Response) => {
   res.set("Cache-Control", "public, max-age=300").type("application/json").send(serverCardJson);
 });
 
+// MCP Server Cards at the reserved <endpoint>/server-card location, plus the
+// bare well-known spelling some crawlers try. Distinct paths from /mcp and
+// /mcp/full themselves, so the MCP handlers never see these requests.
+function sendCard(get: () => string) {
+  return (_req: Request, res: Response) => {
+    res.set("Cache-Control", "public, max-age=300").type(SERVER_CARD_TYPE).send(get());
+  };
+}
+app.get([`${MCP_PATH}/server-card`, "/.well-known/mcp-server-card"], sendCard(() => officialCardJson));
+app.get(`${MCP_FULL_PATH}/server-card`, sendCard(() => officialFullCardJson));
+
+app.get("/.well-known/ai-catalog.json", (_req: Request, res: Response) => {
+  res.set("Cache-Control", "public, max-age=300").type("application/ai-catalog+json").send(AI_CATALOG_JSON);
+});
+
 // Square brand icon (same mark as the webapp/marketing favicon.svg). Served so
 // the connector directory's favicon fetch against mcp.bulkpublish.com — and
 // tool-call icons — resolve to the BulkPublish logo instead of a blank globe.
@@ -470,8 +664,8 @@ function normalizeMcpAccept(req: Request, _res: Response, next: NextFunction): v
   next();
 }
 
-app.all(MCP_PATH, normalizeMcpAccept, mcpHandler(TOOL_PROFILE, RESOURCE_METADATA_URL));
-app.all(MCP_FULL_PATH, normalizeMcpAccept, mcpHandler("full", FULL_RESOURCE_METADATA_URL));
+app.all(MCP_PATH, setupPageHandler(MCP_PATH, false), normalizeMcpAccept, mcpHandler(TOOL_PROFILE, RESOURCE_METADATA_URL));
+app.all(MCP_FULL_PATH, setupPageHandler(MCP_FULL_PATH, true), normalizeMcpAccept, mcpHandler("full", FULL_RESOURCE_METADATA_URL));
 app.post("/", normalizeMcpAccept, mcpHandler(TOOL_PROFILE, RESOURCE_METADATA_URL));
 
 buildServerCard()
