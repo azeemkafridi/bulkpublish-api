@@ -1,0 +1,19 @@
+# bulkpublish-api
+
+> A free social media publishing API that lets developers, AI agents, and LLMs publish, schedule, and analyze posts across 15 platforms from a single API call without browser sessions.
+
+Sign up at app.bulkpublish.com, create an API key (prefix bp_) in Settings > Developer, and connect social accounts in the dashboard under Channels. SDKs are available for Python and Node.js, plus a Homebrew formula and a REST API. Includes an MCP server (local stdio with 79 tools, hosted at mcp.bulkpublish.com with core and inbox profiles), a 24-skill content library, and ready-made tool definitions for Claude, OpenAI, and LangChain.
+
+## Docs
+
+- [bulkpublish-api README](https://raw.githubusercontent.com/azeemkafridi/bulkpublish-api/main/README.md): Overview of the free social media API for publishing to 15 platforms from one call, built for AI agents and automation.
+- [Authentication](https://raw.githubusercontent.com/azeemkafridi/bulkpublish-api/main/guides/authentication.md): Creating API keys in the dashboard, sending them as Bearer tokens, expiration settings, and rotation without downtime.
+- [Inbox and Comments](https://raw.githubusercontent.com/azeemkafridi/bulkpublish-api/main/guides/inbox.md): Reading and replying to direct messages, reviews and comments via API or SDK, with required OAuth scopes and roles.
+- [Media Uploads](https://raw.githubusercontent.com/azeemkafridi/bulkpublish-api/main/guides/media-uploads.md): Uploading images and videos, supported file types, the 100 MB limit, and the chunked multipart flow for videos up to 1 GB.
+- [Platform-Specific Options](https://raw.githubusercontent.com/azeemkafridi/bulkpublish-api/main/guides/platforms.md): Reading platform availability states, disabled platform errors, and variants like linkedin.organization gated separately.
+- [Rate Limits](https://raw.githubusercontent.com/azeemkafridi/bulkpublish-api/main/guides/rate-limits.md): Per-minute burst limits, daily plan quotas, rate limit headers, 429 responses, and best practices for handling limits.
+- [Scheduling](https://raw.githubusercontent.com/azeemkafridi/bulkpublish-api/main/guides/scheduling.md): Setting scheduledAt and timezone, moving posts between draft and scheduled, and reading the queue.
+
+## Optional
+
+- [Changelog](https://raw.githubusercontent.com/azeemkafridi/bulkpublish-api/main/CHANGELOG.md): Release notes covering inbox endpoints, comment replies and moderation, and MCP openWorldHint annotation changes.
