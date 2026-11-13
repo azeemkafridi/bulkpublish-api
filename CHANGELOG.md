@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-11-13 — Tumblr link blocks are no longer shortened
+
+MCP **1.54.1** (descriptions only)
+
+### Changed
+
+- **Tumblr `link` is no longer sent as a short link.** Tumblr builds the link block's card from the address it is given and labels it with that address's site, so a short link could show our domain instead of yours. It now goes straight to your site, with the workspace's automatic UTM tags when those are on, the same as Pinterest `link` and Google Business `ctaUrl` / `redeemOnlineUrl`. Snapchat `link` is still sent as a short link.
+- **Snapchat `linkStickerText` and `linkStickerPosition` are ignored without a `link`**, not refused. The field descriptions said "Needs link"; they now say so.
+
 ## 2026-11-13 — X posts take up to 20 images
 
 Node SDK **1.44.7** (README only)

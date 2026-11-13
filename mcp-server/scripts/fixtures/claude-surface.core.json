@@ -1287,7 +1287,7 @@
                           }
                         },
                         "link": {
-                          "description": "Appended as a link block. With link tracking on, sent as a tracked short link, like caption links.",
+                          "description": "Appended as a link block. Never shortened; gets the workspace's automatic UTM tags when those are on.",
                           "type": "string"
                         },
                         "sourceUrl": {
@@ -1343,7 +1343,7 @@
                         }
                       },
                       "link": {
-                        "description": "Appended as a link block. With link tracking on, sent as a tracked short link, like caption links.",
+                        "description": "Appended as a link block. Never shortened; gets the workspace's automatic UTM tags when those are on.",
                         "type": "string"
                       },
                       "sourceUrl": {
@@ -1405,11 +1405,11 @@
                           "type": "string"
                         },
                         "linkStickerText": {
-                          "description": "Text on the link sticker: one line, up to 40 characters, no emoji. Needs link.",
+                          "description": "Text on the link sticker: one line, up to 40 characters, no emoji. Ignored without a link.",
                           "type": "string"
                         },
                         "linkStickerPosition": {
-                          "description": "Where the link sticker sits. Needs link. Snapchat centres it when omitted.",
+                          "description": "Where the link sticker sits. Ignored without a link. Snapchat centres it when omitted.",
                           "type": "string",
                           "enum": [
                             "top",
@@ -1475,11 +1475,11 @@
                         "type": "string"
                       },
                       "linkStickerText": {
-                        "description": "Text on the link sticker: one line, up to 40 characters, no emoji. Needs link.",
+                        "description": "Text on the link sticker: one line, up to 40 characters, no emoji. Ignored without a link.",
                         "type": "string"
                       },
                       "linkStickerPosition": {
-                        "description": "Where the link sticker sits. Needs link. Snapchat centres it when omitted.",
+                        "description": "Where the link sticker sits. Ignored without a link. Snapchat centres it when omitted.",
                         "type": "string",
                         "enum": [
                           "top",
@@ -8683,7 +8683,7 @@
                           }
                         },
                         "link": {
-                          "description": "Appended as a link block. With link tracking on, sent as a tracked short link, like caption links.",
+                          "description": "Appended as a link block. Never shortened; gets the workspace's automatic UTM tags when those are on.",
                           "type": "string"
                         },
                         "sourceUrl": {
@@ -8739,7 +8739,7 @@
                         }
                       },
                       "link": {
-                        "description": "Appended as a link block. With link tracking on, sent as a tracked short link, like caption links.",
+                        "description": "Appended as a link block. Never shortened; gets the workspace's automatic UTM tags when those are on.",
                         "type": "string"
                       },
                       "sourceUrl": {
@@ -8801,11 +8801,11 @@
                           "type": "string"
                         },
                         "linkStickerText": {
-                          "description": "Text on the link sticker: one line, up to 40 characters, no emoji. Needs link.",
+                          "description": "Text on the link sticker: one line, up to 40 characters, no emoji. Ignored without a link.",
                           "type": "string"
                         },
                         "linkStickerPosition": {
-                          "description": "Where the link sticker sits. Needs link. Snapchat centres it when omitted.",
+                          "description": "Where the link sticker sits. Ignored without a link. Snapchat centres it when omitted.",
                           "type": "string",
                           "enum": [
                             "top",
@@ -8871,11 +8871,11 @@
                         "type": "string"
                       },
                       "linkStickerText": {
-                        "description": "Text on the link sticker: one line, up to 40 characters, no emoji. Needs link.",
+                        "description": "Text on the link sticker: one line, up to 40 characters, no emoji. Ignored without a link.",
                         "type": "string"
                       },
                       "linkStickerPosition": {
-                        "description": "Where the link sticker sits. Needs link. Snapchat centres it when omitted.",
+                        "description": "Where the link sticker sits. Ignored without a link. Snapchat centres it when omitted.",
                         "type": "string",
                         "enum": [
                           "top",

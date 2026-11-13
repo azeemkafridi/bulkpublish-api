@@ -1179,7 +1179,7 @@ Some links live in `platformSpecific` rather than the caption, and link tracking
 | Field | With link tracking on |
 |---|---|
 | Snapchat `link` (Story and Spotlight) | Sent as a short link, so swipes on the sticker are counted. If Snapchat refuses the short link, the post is published with the link as written. |
-| Tumblr `link` | Sent as a short link, so its clicks are counted. |
+| Tumblr `link` | Never shortened, because Tumblr builds the link card from this address. |
 | Pinterest `link` | Never shortened, because Pinterest may block links that redirect. |
 | Google Business `ctaUrl`, `redeemOnlineUrl` | Never shortened. |
 

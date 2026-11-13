@@ -330,7 +330,7 @@ const TUMBLR_OPTIONS = z
       .array(z.string())
       .optional()
       .describe("Tumblr tags, without the leading '#'."),
-    link: z.string().optional().describe("Appended as a link block. With link tracking on, sent as a tracked short link, like caption links."),
+    link: z.string().optional().describe("Appended as a link block. Never shortened; gets the workspace's automatic UTM tags when those are on."),
     sourceUrl: z
       .string()
       .optional()
@@ -363,11 +363,11 @@ const SNAPCHAT_OPTIONS = z
     linkStickerText: z
       .string()
       .optional()
-      .describe("Text on the link sticker: one line, up to 40 characters, no emoji. Needs link."),
+      .describe("Text on the link sticker: one line, up to 40 characters, no emoji. Ignored without a link."),
     linkStickerPosition: z
       .enum(["top", "middle", "bottom"])
       .optional()
-      .describe("Where the link sticker sits. Needs link. Snapchat centres it when omitted."),
+      .describe("Where the link sticker sits. Ignored without a link. Snapchat centres it when omitted."),
     overlayText: z
       .string()
       .optional()

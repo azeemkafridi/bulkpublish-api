@@ -485,8 +485,8 @@ A chain of posts is not a post type here: send `postFormat: "thread"` with `thre
 | `title` | Saved Story title, max 45 chars. Defaults to the caption's first line, truncated. |
 | `locale` | Spotlight locale. Default `en_US`. |
 | `link` | Story and Spotlight. Full http(s) URL, opened from a link sticker on the snap. |
-| `linkStickerText` | Up to 40 characters, one line, no emoji. Needs `link`. |
-| `linkStickerPosition` | `top`, `middle` or `bottom`. Needs `link`. Centred when omitted. |
+| `linkStickerText` | Up to 40 characters, one line, no emoji. Ignored without `link`. |
+| `linkStickerPosition` | `top`, `middle` or `bottom`. Ignored without `link`. Centred when omitted. |
 | `overlayText` | Story and Spotlight. On-screen text, up to 250 characters, no emoji. Not the caption. |
 | `overlayPosition` | `top`, `middle` or `bottom`. |
 | `storyDurationDays` | Story only. `1` (24 hours, default), `2`, `3` or `7`. |
