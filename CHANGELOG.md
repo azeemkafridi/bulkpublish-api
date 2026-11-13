@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-13 — X posts take up to 20 images
+
+Node SDK **1.44.7** (README only)
+
+### Changed
+
+- **X allows 20 images per post, up from 4.** The API now accepts up to 20 images on an X `tweet`, and on each part of an X thread. One video per post and no mixing of images with video are unchanged. The Node SDK README, the media uploads guide and the platform reference skill say so. No request or response shape changed.
+
 ## 2026-11-11 — MCP server: discovery documents, a setup page, and fuller output descriptions
 
 MCP **1.54.0**

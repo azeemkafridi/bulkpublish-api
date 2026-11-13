@@ -312,7 +312,7 @@ Different platforms have different requirements for media. BulkPublish handles m
 | TikTok | 20 MB | 4 GB | 1 video or 35 photos | Photos must be 1080px max |
 | YouTube | -- | 128 GB | 1 | Video only |
 | Facebook | -- | -- | Multiple | Images + videos |
-| X / Twitter | -- | -- | 4 images or 1 video | GIFs supported |
+| X / Twitter | -- | -- | 20 images or 1 video | GIFs supported |
 | Pinterest | -- | -- | 1 | Image or video per pin |
 | LinkedIn | 10 MB (JPEG/PNG/GIF) | 500 MB (MP4) | 20 images or 1 video | Video 3–1800s; 2–20 images for gallery or PDF carousel |
 | Threads | -- | -- | Multiple | Images + videos |

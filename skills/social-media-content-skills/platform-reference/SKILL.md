@@ -116,7 +116,7 @@ Every value `postTypeOverrides` accepts; the first is the default.
 
 | Type | Media | Notes |
 |---|---|---|
-| `tweet` (default) | 0-4 images OR 0-1 video | Text-only OK. No mixing images+video |
+| `tweet` (default) | 0-20 images OR 0-1 video | Text-only OK. No mixing images+video. Up to 4 images show as a grid; 5 or more scroll sideways |
 | `video` | 1 video required | Video post |
 | `thread` | Per-part media | Use `postFormat: "thread"` + `threadParts` |
 | `repost` | None | Reposts (retweets) an existing post; `platformSpecific.x.repostId` = status URL or ID; own text/media ignored |
