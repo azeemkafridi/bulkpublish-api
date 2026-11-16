@@ -271,7 +271,8 @@ More examples in [`examples/`](examples/) — including [Python automation scrip
 - **Link tracking** — Opt in per organization, or per post via `linkTrackingOverride`, to rewrite links through `bulkpubli.sh` and count the clicks. Reported as `linkClicks` / `totalLinkClicks` and measured by BulkPublish rather than the platform, so it works even where the platform reports nothing — see [Character Limits](guides/platforms.md#character-limits)
 - **Labels** — Organize posts and media with color-coded labels
 - **Hashtag groups** — Save sets of hashtags and drop them into a post in one call
-- **Templates** — Save post text and start new posts from it
+- **Templates** — Save post text, and optionally a post setup (channels, format, post types, media, per-platform media and text), and start new posts from it
+- **Per-platform media** — Attach several files and choose which ones each platform publishes with `platformMediaFileIds` — see [Per-Platform Media](guides/platforms.md#per-platform-media)
 - **Review links** — Share a read-only page of a post with someone who has no account
 - **Calendar notes** — Pin campaigns, holidays and reminders to calendar days
 - **Bulk operations** — Delete or retry multiple posts in a single request

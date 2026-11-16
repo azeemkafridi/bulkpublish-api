@@ -25,6 +25,7 @@ These fields replace the stored value as a whole, so send everything to keep:
 |---|---|
 | `platformContent` | Every platform's text you want to keep |
 | `mediaFileIds` | The full list, in order |
+| `platformMediaFileIds` | Every platform's file choice you want to keep. Left out while `mediaFileIds` changes, files no longer attached drop out of each list, and a platform left with none of its files goes back to all of them |
 | `labelIds` | The full list |
 | `channels` | The COMPLETE list of accounts the post should keep (below) |
 

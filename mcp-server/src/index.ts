@@ -694,6 +694,22 @@ const PLATFORM_CONTENT_SCHEMA = z
     'Per-platform content overrides, e.g. { "x": "Short tweet", "linkedin": "Longer LinkedIn post" }.'
   );
 
+// Which of the post's attached files each platform publishes. Keys are the
+// platform names, each a list of media file ids that must also be attached.
+const PLATFORM_MEDIA_FILE_IDS_SCHEMA = z
+  .object(
+    Object.fromEntries(
+      PLATFORM_ENUM.options.map((p) => [
+        p,
+        z.array(z.number().int().positive()).max(35).optional().describe(`Media file IDs published on ${p}, in this order. [] publishes it without media.`),
+      ])
+    ) as Record<string, z.ZodOptional<z.ZodArray<z.ZodNumber>>>
+  )
+  .optional()
+  .describe(
+    'Which of the attached files (mediaFileIds) each platform publishes, keyed by platform, e.g. { "instagram": [12, 14], "x": [12], "linkedin": [] }. A platform that is not listed publishes all of mediaFileIds, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFileIds, or the request is refused with 400 VALIDATION_ERROR. Each platform\'s media limits are checked against its own list. Ignored for thread posts, whose parts carry their own media.'
+  );
+
 // ---------------------------------------------------------------------------
 // HTTP helper
 // ---------------------------------------------------------------------------
@@ -843,6 +859,7 @@ const POST_SHAPE: Record<string, z.ZodTypeAny> = {
   // without it the published schema lists them as required, and a host that
   // validates would refuse every create_post result, which has none of them.
   platformContent: z.any().optional().describe("Text that replaces content on one network, keyed by platform."),
+  platformMediaFileIds: z.any().optional().describe("Which of the post's media file IDs each platform publishes, keyed by platform. A platform that is not listed publishes all of mediaFiles; an empty list publishes it without media."),
   threadParts: z.any().optional().describe("For a thread post: its parts, in order."),
   threadMediaFiles: z.any().optional().describe("get_post and list_posts: the media the thread parts reference. Not included in mediaFiles."),
   recurringSchedule: z.any().optional().describe("get_post and list_posts: the repeat schedule the post belongs to, or null."),
@@ -1235,7 +1252,7 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   update_media: { title: "Set media alt text", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH /api/media/{id}; overwrites the alt text (previous value not kept). Same value twice is a no-op." },
   update_label: { title: "Update label", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH; overwrites name/colour." },
   update_hashtag_group: { title: "Update hashtag group", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH; overwrites the group's name or hashtags." },
-  update_template: { title: "Update post template", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH; overwrites the template's text." },
+  update_template: { title: "Update post template", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PUT /api/templates/{id}; overwrites the template's text or setup." },
   update_calendar_note: { title: "Update calendar note", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH; overwrites the note." },
   update_channel: { title: "Update channel sync settings", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "PATCH /api/channels/{id}. Overwrites the channel's X sync switches (previous value not kept, so destructive under the review definition). Turning one on makes BulkPublish read from X on that channel's behalf, which is billed per read, so open world. Same values twice is a no-op. Never connects, disconnects or deletes a channel." },
   update_channel_set: { title: "Update channel set", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PATCH; overwrites the set's name or members." },
@@ -1353,8 +1370,8 @@ export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } =
     delete_hashtag_group: "the user wants to remove a saved hashtag group.",
     update_media: "the user wants to add or change an image's alt text / accessibility description.",
     list_templates: "the user wants their saved post templates, or wants to start a post from one.",
-    create_template: "the user wants to save post text for reuse.",
-    update_template: "the user wants to rename a template or change its text.",
+    create_template: "the user wants to save post text, or a post setup (channels, format, media), for reuse.",
+    update_template: "the user wants to rename a template or change its text or setup.",
     delete_template: "the user wants to remove a saved template.",
     list_calendar_notes: "the user asks what is noted on the content calendar for a period (campaigns, holidays, reminders).",
     create_calendar_note: "the user wants to pin a note, reminder or campaign marker to a calendar day without creating a post.",
@@ -1689,6 +1706,7 @@ server.tool(
       .describe("Array of label IDs to tag the post with. Label IDs come from list_labels."),
     platformSpecific: PLATFORM_SPECIFIC_SCHEMA,
     platformContent: PLATFORM_CONTENT_SCHEMA,
+    platformMediaFileIds: PLATFORM_MEDIA_FILE_IDS_SCHEMA,
     postFormat: z
       .enum(["post", "video", "reel", "story", "carousel", "thread"])
       .optional()
@@ -1791,6 +1809,7 @@ server.tool(
     labels,
     platformSpecific,
     platformContent,
+    platformMediaFileIds,
     postFormat,
     threadParts,
     postTypeOverrides,
@@ -1861,6 +1880,7 @@ server.tool(
     if (labels) body.labels = labels;
     if (platformSpecific) body.platformSpecific = platformSpecific;
     if (platformContent) body.platformContent = platformContent;
+    if (platformMediaFileIds) body.platformMediaFileIds = platformMediaFileIds;
     if (postFormat) body.postFormat = postFormat;
     if (threadParts) body.threadParts = threadParts;
     if (postTypeOverrides) body.postTypeOverrides = postTypeOverrides;
@@ -2447,7 +2467,7 @@ server.tool(
 
 server.tool(
   "list_templates",
-  "List the organization's saved post templates — reusable text to start a new post from. Filter by kind to get saved first-comment snippets instead of captions.",
+  "List the organization's saved post templates — reusable text to start a new post from. A caption template may also keep a post setup (channelIds, postFormat, postTypeOverrides, mediaFileIds, platformMediaFileIds, platformContent) to pass on to create_post; each template carries `media`, its files that are still in the media library. Filter by kind to get saved first-comment snippets instead of captions.",
   {
     kind: z.enum(["caption", "first_comment"]).optional().describe("Which kind of saved text to list. Defaults to caption."),
   },
@@ -2460,17 +2480,49 @@ server.tool(
   }
 );
 
+// The post setup a caption template can keep besides its text. On update,
+// null clears a field. Sending any of them on a first_comment template is a 400.
+const templateSetupShape = (clearable: boolean) => {
+  const clear = clearable ? " Send null to clear it." : "";
+  const n = <T extends z.ZodTypeAny>(t: T) => (clearable ? t.nullable().optional() : t.optional());
+  return {
+    channelIds: n(z.array(z.number().int().positive()).max(100)).describe(
+      "Channels (from list_channels) a post started from this template goes to. Channels disconnected since are skipped." + clear
+    ),
+    postFormat: n(z.enum(["post", "video", "reel", "story", "carousel", "thread"])).describe(
+      "The post format the template starts in, as in create_post's postFormat." + clear
+    ),
+    postTypeOverrides: n(z.record(z.string(), z.string())).describe(
+      'Per-platform post types, as in create_post\'s postTypeOverrides, e.g. { "instagram": "reel" }.' + clear
+    ),
+    mediaFileIds: n(z.array(z.number().int().positive()).max(35)).describe(
+      "Media file IDs (from upload_media or list_media) a post started from this template attaches. A file a template uses is kept in the media library." + clear
+    ),
+    platformMediaFileIds: n(z.record(z.string(), z.array(z.number().int().positive()))).describe(
+      'Which of mediaFileIds each platform gets, as in create_post\'s platformMediaFileIds, e.g. { "x": [12] }; every id must be in mediaFileIds.' + clear
+    ),
+    platformContent: n(z.record(z.string(), z.string())).describe(
+      'Per-platform text, as in create_post\'s platformContent.' + clear
+    ),
+  };
+};
+const TEMPLATE_SETUP_KEYS = ["channelIds", "postFormat", "postTypeOverrides", "mediaFileIds", "platformMediaFileIds", "platformContent"] as const;
+
 server.tool(
   "create_template",
-  "Save post text as a named template for reuse (text only; media and channels belong to the post). Up to 200 per organization per kind (captions and first-comment snippets each have their own 200); names are unique per kind, so a caption and a first-comment snippet can share a name.",
+  "Save post text as a named template for reuse. A caption template can also keep a post setup: channels, post format, per-platform post types, media, and per-platform media and text (caption templates only; sending them with kind first_comment is refused). Text may be left out when the template sets any of these. Channels and media must belong to the workspace. Per-platform publish options (platformSpecific) belong to the post. Up to 200 per organization per kind (captions and first-comment snippets each have their own 200); names are unique per kind, so a caption and a first-comment snippet can share a name.",
   {
     name: z.string().max(100).describe("Template name."),
-    content: z.string().max(10000).describe("Template text."),
+    content: z.string().max(10000).optional().describe("Template text. Required unless a caption template sets one of the setup fields."),
     kind: z.enum(["caption", "first_comment"]).optional().describe("What the text is for: a post caption, or a first-comment reply. Defaults to caption."),
+    ...templateSetupShape(false),
   },
-  async ({ name, content, kind }) => {
-    const body: Record<string, unknown> = { name, content };
+  async (args) => {
+    const { name, content, kind } = args;
+    const body: Record<string, unknown> = { name };
+    if (content !== undefined) body.content = content;
     if (kind !== undefined) body.kind = kind;
+    for (const k of TEMPLATE_SETUP_KEYS) if (args[k] !== undefined) body[k] = args[k];
     const res = await api("POST", "/api/templates", body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
@@ -2478,16 +2530,19 @@ server.tool(
 
 server.tool(
   "update_template",
-  "Rename a template and/or replace its text (partial update — at least one field is required).",
+  "Rename a template, replace its text, and/or change the post setup a caption template keeps (partial update — at least one field is required; null clears a setup field).",
   {
     templateId: z.number().describe("The template ID."),
     name: z.string().max(100).optional(),
     content: z.string().max(10000).optional(),
+    ...templateSetupShape(true),
   },
-  async ({ templateId, name, content }) => {
+  async (args) => {
+    const { templateId, name, content } = args;
     const body: Record<string, unknown> = {};
     if (name !== undefined) body.name = name;
     if (content !== undefined) body.content = content;
+    for (const k of TEMPLATE_SETUP_KEYS) if (args[k] !== undefined) body[k] = args[k];
     const res = await api("PUT", `/api/templates/${templateId}`, body);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
@@ -2750,6 +2805,9 @@ server.tool(
     platformContent: PLATFORM_CONTENT_SCHEMA.describe(
       "Optional per-platform text overrides, keyed by platform. Replaced wholesale, not merged: send every platform's override you want to keep, or omit to leave them unchanged."
     ),
+    platformMediaFileIds: PLATFORM_MEDIA_FILE_IDS_SCHEMA.describe(
+      'Optional. Which of the post\'s attached files each platform publishes, keyed by platform, e.g. { "instagram": [12, 14], "linkedin": [] }. A platform that is not listed publishes all of the post\'s media; an empty list publishes it without media; every id must also be attached to the post. Sending it replaces the stored choice. When it is omitted but mediaFileIds changes, files no longer attached are dropped from each list, and a platform left with none of the files it named goes back to all of the post\'s media. Ignored for thread posts.'
+    ),
     postFormat: z
       .enum(["post", "thread"])
       .optional()
@@ -2842,6 +2900,7 @@ server.tool(
     ifUnmodifiedSince,
     channels,
     platformContent,
+    platformMediaFileIds,
     postFormat,
     threadParts,
     assignedUserId,
@@ -2851,6 +2910,7 @@ server.tool(
     if (content !== undefined) body.content = content;
     if (channels !== undefined) body.channels = channels;
     if (platformContent !== undefined) body.platformContent = platformContent;
+    if (platformMediaFileIds !== undefined) body.platformMediaFileIds = platformMediaFileIds;
     if (postFormat !== undefined) body.postFormat = postFormat;
     if (threadParts !== undefined) body.threadParts = threadParts;
     if (status !== undefined) body.status = status;

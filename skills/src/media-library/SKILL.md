@@ -24,7 +24,9 @@ A reservation that is never registered stores nothing.
 
 `upload_media` returns the stored file. Pass its ID in `mediaFileIds` on
 `create_post`. Upload first, then create the post — a post cannot reference a
-file that does not exist yet.
+file that does not exist yet. To send different files to different platforms,
+add `platformMediaFileIds`, e.g. `{"x": [12]}`; a platform not listed gets every
+attached file.
 
 ## Before uploading
 

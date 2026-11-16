@@ -167,6 +167,7 @@ class PostsResource:
         post_format: Optional[str] = None,
         platform_specific: Optional[Dict[str, Any]] = None,
         platform_content: Optional[Dict[str, str]] = None,
+        platform_media_file_ids: Optional[Dict[str, List[int]]] = None,
         delete_media_after_publish: Optional[bool] = None,
         thread_parts: Optional[List[Dict[str, Any]]] = None,
         post_type_overrides: Optional[Dict[str, str]] = None,
@@ -324,6 +325,16 @@ class PostsResource:
 
             platform_content: Per-platform content overrides for different char limits
                 (bluesky: 300, pinterest/threads/mastodon: 500, etc.).
+            platform_media_file_ids: Which of the attached media each platform
+                publishes, keyed by platform, e.g.
+                ``{"instagram": [12, 14], "x": [12], "linkedin": []}``. A
+                platform that is not listed publishes all of ``media_files``,
+                in order. A listed platform publishes exactly the files in its
+                list, in that order; an empty list publishes it without media.
+                Every id must also be in ``media_files`` (400
+                VALIDATION_ERROR otherwise), and each platform's media limits
+                are checked against its own list. Ignored for thread posts,
+                whose parts carry their own media.
             delete_media_after_publish: Remove attached media after publishing,
                 once every channel has published, freeing the storage it counted
                 against. The media records remain, flagged as having their
@@ -442,6 +453,8 @@ class PostsResource:
             body["platformSpecific"] = platform_specific
         if platform_content is not None:
             body["platformContent"] = platform_content
+        if platform_media_file_ids is not None:
+            body["platformMediaFileIds"] = platform_media_file_ids
         if delete_media_after_publish is not None:
             body["deleteMediaAfterPublish"] = delete_media_after_publish
         if thread_parts is not None:
@@ -484,6 +497,12 @@ class PostsResource:
                 gone out on (published, publishing, processing or
                 unconfirmed) must stay in the list, or the update is refused
                 with 400 ``CHANNEL_ALREADY_PUBLISHED`` and nothing is saved.
+
+                ``platform_media_file_ids`` replaces the stored per-platform
+                media choice.  When it is omitted but ``media_files`` changes,
+                files no longer attached are dropped from each list, and a
+                platform left with none of the files it named goes back to all
+                of the post's media.
 
                 Pass ``if_unmodified_since`` (the post's ``updatedAt`` exactly
                 as your last read returned it) to have the update refused with
@@ -1068,6 +1087,7 @@ _SNAKE_TO_CAMEL = {
     "post_format": "postFormat",
     "platform_specific": "platformSpecific",
     "platform_content": "platformContent",
+    "platform_media_file_ids": "platformMediaFileIds",
     "delete_media_after_publish": "deleteMediaAfterPublish",
     "thread_parts": "threadParts",
     "post_type_overrides": "postTypeOverrides",

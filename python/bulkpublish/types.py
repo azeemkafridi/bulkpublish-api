@@ -104,6 +104,10 @@ class Post(TypedDict, total=False):
     postTypeOverrides: Dict[str, Any]
     platformSpecific: Dict[str, Any]
     platformContent: Dict[str, str]
+    # Which of mediaFiles each platform publishes (media file ids, in that
+    # platform's order). A platform not listed publishes all of mediaFiles; an
+    # empty list publishes it without media. Absent or None when not set.
+    platformMediaFileIds: Optional[Dict[str, List[int]]]
     platformThreadParts: Dict[str, Any]
     deleteMediaAfterPublish: bool
     threadParts: Optional[List[Dict[str, Any]]]
@@ -404,16 +408,46 @@ class AccountMetrics(TypedDict, total=False):
 # ---------------------------------------------------------------------------
 
 
+class TemplateMediaFile(TypedDict, total=False):
+    """A file a template attaches, as returned in a template's ``media``."""
+
+    id: int
+    originalUrl: str
+    thumbnailUrl: Optional[str]
+    fileName: str
+    mimeType: str
+    sizeBytes: int
+    width: Optional[int]
+    height: Optional[int]
+    duration: Optional[float]
+    altText: Optional[str]
+
+
 class PostTemplate(TypedDict, total=False):
     """Saved post text to start a new post from.
 
     ``kind`` is ``caption`` or ``first_comment``; names are unique per kind.
+
+    A caption template may also keep a post setup: ``channelIds``,
+    ``postFormat`` (``post``, ``video``, ``reel``, ``story``, ``carousel`` or
+    ``thread``), ``postTypeOverrides``, ``mediaFileIds``,
+    ``platformMediaFileIds`` (ids among ``mediaFileIds``) and
+    ``platformContent``. Each is None when the template does not set it.
+    ``media`` lists the template's files that are still in the media library,
+    in its order.
     """
 
     id: int
     name: str
     content: str
     kind: str
+    channelIds: Optional[List[int]]
+    postFormat: Optional[str]
+    postTypeOverrides: Optional[Dict[str, str]]
+    mediaFileIds: Optional[List[int]]
+    platformMediaFileIds: Optional[Dict[str, List[int]]]
+    platformContent: Optional[Dict[str, str]]
+    media: List[TemplateMediaFile]
     createdAt: str
     updatedAt: str
 

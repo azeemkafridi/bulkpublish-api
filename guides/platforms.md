@@ -218,6 +218,35 @@ If you need different text for different platforms, use `platformContent` instea
 
 Platforms listed in `platformContent` use that text. All others fall back to the `content` field.
 
+## Per-Platform Media
+
+To send different attached files to different platforms, attach every file in `mediaFiles` and say which ones each platform gets in `platformMediaFileIds`:
+
+```json
+{
+  "content": "New collection is live.",
+  "mediaFiles": [12, 14, 15],
+  "platformMediaFileIds": {
+    "instagram": [12, 14, 15],
+    "x": [14],
+    "linkedin": []
+  },
+  "channels": [
+    {"channelId": 1, "platform": "instagram"},
+    {"channelId": 2, "platform": "x"},
+    {"channelId": 3, "platform": "linkedin"},
+    {"channelId": 4, "platform": "facebook"}
+  ],
+  "status": "draft"
+}
+```
+
+- A platform that is not listed (Facebook above) publishes all of `mediaFiles`, in order.
+- A listed platform publishes exactly the files in its list, in that order. An empty list (LinkedIn above) publishes it without media.
+- Every id must also be in `mediaFiles`, or the request is refused with `400 VALIDATION_ERROR`. Each platform's media limits (how many files, which types) are checked against its own list.
+- On `PUT /api/posts/{id}`, sending `platformMediaFileIds` replaces the stored choice. If you leave it out but change `mediaFiles`, files no longer attached drop out of each list, and a platform left with none of the files it named goes back to all of the post's media.
+- Thread posts ignore it: each thread part carries its own media.
+
 ## Reposts
 
 Post type `repost` (via `postTypeOverrides`) on **X, Threads, Bluesky and Mastodon**

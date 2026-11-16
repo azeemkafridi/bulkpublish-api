@@ -107,6 +107,7 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 - YouTube and TikTok **only accept video** — do not include them for image-only posts
 - Instagram defaults to `feed_photo` — set `postTypeOverrides` for video content
 - Use `platformContent` for shorter text on low-limit platforms (Bluesky 300, Pinterest 500)
+- Use `platformMediaFileIds` to send different attached files to different platforms, e.g. `{ instagram: [12, 14], x: [12], linkedin: [] }`. A platform that is not listed gets all of `mediaFiles`; an empty list posts it without media; every id must also be in `mediaFiles`
 
 ## Resources
 

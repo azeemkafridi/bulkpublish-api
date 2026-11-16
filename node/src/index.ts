@@ -218,7 +218,7 @@ export { AnalyticsResource } from './analytics.js';
 export { LabelsResource } from './labels.js';
 export { HashtagGroupsResource } from './hashtag-groups.js';
 export { TemplatesResource } from './templates.js';
-export type { PostTemplate, TemplateKind } from './templates.js';
+export type { PostTemplate, TemplateKind, TemplatePostFormat, TemplateMediaFile, TemplateSetup } from './templates.js';
 export { ReviewLinksResource } from './review-links.js';
 export type { ReviewLink } from './review-links.js';
 export { ClientConnectLinksResource, CLIENT_CONNECT_PLATFORMS } from './client-connect-links.js';

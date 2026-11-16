@@ -21,10 +21,15 @@ any, `and` for all).
 ## Saved templates
 
 `list_templates` (`kind`: `caption` or `first_comment`), `create_template`
-(`name`, `content`, `kind`), `update_template`, `delete_template`. Text only:
-media and accounts belong to the post. Up to 200 per kind, names unique per
-kind. To start a post from a caption template, use its text as the content of
-`create_post`. A first-comment snippet is saved here but attached to a post as
+(`name`, `content`, `kind`), `update_template`, `delete_template`. Up to 200
+per kind, names unique per kind. A caption template can also keep a post
+setup: `channelIds`, `postFormat`, `postTypeOverrides`, `mediaFileIds`,
+`platformMediaFileIds` and `platformContent` (its text may then be empty;
+`null` clears one on update). Per-platform options (`platformSpecific`) belong
+to the post. To start a post from a caption template, use its text as the
+content of `create_post`, and pass on any setup it keeps: `channelIds` become
+`channels` (look up each platform with `list_channels`), and `media` lists the
+files still in the library. A first-comment snippet is saved here but attached to a post as
 `platformSpecific._firstComment`.
 
 ## Hashtag groups

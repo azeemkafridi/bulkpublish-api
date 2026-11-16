@@ -17,6 +17,11 @@ scheduledAt    (ISO 8601 string)  — required when status is "scheduled"
 timezone       (string)           — IANA name, e.g. "America/New_York", "Asia/Karachi"
 mediaFileIds   (number[])         — IDs from upload_media
 platformContent (object)          — per-platform text: {"x": "Short", "linkedin": "Longer version"}
+platformMediaFileIds (object)     — which attached files each platform gets:
+                                    {"instagram": [12, 14], "x": [12], "linkedin": []}
+                                    A platform not listed gets all of mediaFileIds;
+                                    [] posts it without media; every id must also
+                                    be in mediaFileIds. Ignored for threads
 postTypeOverrides (object)        — per-platform format: {"instagram": "reel", "facebook": "story"}
 postFormat     ("post"|"video"|"reel"|"story"|"carousel"|"thread") — "thread" requires threadParts
 threadParts    (array)            — [{content: string, mediaFileIds?: number[]}], min 2 parts.

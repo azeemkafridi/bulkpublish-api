@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-11-16 — Per-platform media on posts; templates that keep a post setup
+
+Node SDK **1.45.0** · Python **0.46.0** · MCP **1.55.0** · spec + Postman
+
+### Added
+
+- **`platformMediaFileIds` on posts** (`POST /api/posts`, `PUT /api/posts/{id}`, and every post response): which of the post's `mediaFiles` each platform publishes, keyed by platform, e.g. `{ "instagram": [12, 14], "x": [12], "linkedin": [] }`. A platform that is not listed publishes all of `mediaFiles`, in order, exactly as before. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in `mediaFiles`, otherwise `400 VALIDATION_ERROR`, and each platform's media limits are checked against its own list. On update, sending it replaces the stored choice; if it is left out while `mediaFiles` changes, files no longer attached drop out of each list, and a platform left with none of the files it named goes back to all of the post's media. Thread posts ignore it. Node `CreatePostParams` / `UpdatePostParams` / `Post`, Python `posts.create(platform_media_file_ids=…)` / `posts.update(…)` and `Post`, and the MCP `create_post` / `update_post` inputs carry it; the platforms guide has a new Per-Platform Media section.
+- **Caption templates can keep a post setup.** `POST /api/templates` and `PUT /api/templates/{id}` accept six optional fields: `channelIds`, `postFormat` (`post`, `video`, `reel`, `story`, `carousel`, `thread`), `postTypeOverrides`, `mediaFileIds`, `platformMediaFileIds` (ids must be among the template's `mediaFileIds`) and `platformContent`. On update, `null` clears one. Channels and media must belong to the workspace (`403` otherwise), and sending any of them on a `first_comment` template is a `400`. A file a template uses is kept in the media library. Node `templates.create` / `templates.update` (new `TemplateSetup`, `TemplatePostFormat`, `TemplateMediaFile` types), Python `templates.create` / `templates.update` (on update, passing `None` clears a field; leaving it out keeps it), and the MCP `create_template` / `update_template` tools take them.
+- **Template responses include `media`**: the template's files that are still in the media library, in its order, each with `id`, `originalUrl`, `thumbnailUrl`, `fileName`, `mimeType`, `sizeBytes`, `width`, `height`, `duration` and `altText`.
+
+### Changed
+
+- **`content` is no longer required on `POST /api/templates`** when a caption template sets any of the setup fields above. Node and Python make it optional; MCP `create_template` too.
+- Template descriptions no longer say templates are text only. Per-platform publish options (`platformSpecific`) still belong to the post.
+
 ## 2026-11-16 — Empty thread parts are left out when a thread publishes
 
 Node SDK **1.44.8** and MCP **1.54.2** (descriptions only)

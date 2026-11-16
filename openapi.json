@@ -105,6 +105,16 @@
             },
             "description": "Per-platform content overrides mapping platform name to a plain string, e.g. { \"x\": \"Short version\" }. Values must be strings \u2014 nested objects are rejected with 400 VALIDATION_ERROR."
           },
+          "platformMediaFileIds": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            },
+            "description": "Which of the post's media each platform publishes, keyed by platform, e.g. { \"instagram\": [12, 14], \"facebook\": [] }. A platform that is not listed publishes all of mediaFiles, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFiles. Ignored for thread posts, whose parts carry their own media."
+          },
           "deleteMediaAfterPublish": {
             "type": "boolean",
             "default": false,
@@ -1289,6 +1299,123 @@
             ],
             "description": "What the saved text is for: a post caption, or a first-comment reply."
           },
+          "channelIds": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "Channels a post started from this template is sent to. Channels disconnected since are skipped when it is used. Caption templates only."
+          },
+          "postFormat": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "post",
+              "video",
+              "reel",
+              "story",
+              "carousel",
+              "thread",
+              null
+            ],
+            "description": "The post format the template starts in, as in a post's postFormat. Caption templates only."
+          },
+          "postTypeOverrides": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Per-platform post types, as in a post's postTypeOverrides. Caption templates only."
+          },
+          "mediaFileIds": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "Media file IDs from POST /api/media that a post started from this template attaches. While a template uses a file, the file is kept in the media library. Caption templates only."
+          },
+          "platformMediaFileIds": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            },
+            "description": "Which of mediaFileIds each platform gets, as in a post's platformMediaFileIds; every id must be in mediaFileIds. Caption templates only."
+          },
+          "platformContent": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Per-platform text, as in a post's platformContent. Caption templates only."
+          },
+          "media": {
+            "type": "array",
+            "description": "The template's files that are still in the media library, in its order, ready to attach.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "originalUrl": {
+                  "type": "string"
+                },
+                "thumbnailUrl": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "fileName": {
+                  "type": "string"
+                },
+                "mimeType": {
+                  "type": "string"
+                },
+                "sizeBytes": {
+                  "type": "integer"
+                },
+                "width": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "height": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "duration": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "altText": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -1799,6 +1926,16 @@
                     },
                     "description": "Optional. Per-platform content overrides mapping platform name to a plain string, e.g. { \"x\": \"Short version\" }. Values must be strings \u2014 nested objects are rejected with 400 VALIDATION_ERROR."
                   },
+                  "platformMediaFileIds": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "description": "Optional. Which of the post's media each platform publishes, keyed by platform, e.g. { \"instagram\": [12, 14], \"facebook\": [] }. A platform that is not listed publishes all of mediaFiles, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFiles. Ignored for thread posts, whose parts carry their own media. An id that is not in mediaFiles is rejected with 400 VALIDATION_ERROR. Each platform's media limits (how many files, which types) are checked against its own list."
+                  },
                   "deleteMediaAfterPublish": {
                     "type": "boolean",
                     "default": false,
@@ -2168,6 +2305,16 @@
                       "type": "string"
                     },
                     "description": "Per-platform content overrides, keyed by platform; values must be plain strings (nested objects are rejected with 400 VALIDATION_ERROR). Replaced wholesale on update."
+                  },
+                  "platformMediaFileIds": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "description": "Optional. Which of the post's media each platform publishes, keyed by platform, e.g. { \"instagram\": [12, 14], \"facebook\": [] }. A platform that is not listed publishes all of mediaFiles, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFiles. Ignored for thread posts, whose parts carry their own media. Sending it replaces the stored choice. When it is omitted but mediaFiles changes, files no longer attached are dropped from each list, and a platform left with none of the files it named goes back to all of the post's media."
                   },
                   "postTypeOverrides": {
                     "type": "object",
@@ -9264,7 +9411,7 @@
           "Templates"
         ],
         "summary": "List post templates",
-        "description": "Every saved template in the organization, sorted by name. Returns { templates: PostTemplate[] }. Templates are text only; media, channels and per-platform options belong to the post.",
+        "description": "Every saved template in the organization, sorted by name. Returns { templates: PostTemplate[] }. A caption template may also keep a post setup (channelIds, postFormat, postTypeOverrides, mediaFileIds, platformMediaFileIds, platformContent); each template carries `media`, its files that are still in the media library. Per-platform publish options (platformSpecific) belong to the post.",
         "parameters": [
           {
             "name": "kind",
@@ -9311,8 +9458,7 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "name",
-                  "content"
+                  "name"
                 ],
                 "properties": {
                   "name": {
@@ -9323,7 +9469,7 @@
                   "content": {
                     "type": "string",
                     "maxLength": 10000,
-                    "description": "Template text. CRLF is normalised to LF and surrounding whitespace trimmed."
+                    "description": "Template text. CRLF is normalised to LF and surrounding whitespace trimmed. Required, except that a caption template that sets any of channelIds, postFormat, postTypeOverrides, mediaFileIds, platformMediaFileIds or platformContent may have no text."
                   },
                   "kind": {
                     "type": "string",
@@ -9333,6 +9479,69 @@
                     ],
                     "default": "caption",
                     "description": "What the saved text is for: a post caption, or a first-comment reply. Name uniqueness is scoped per kind, so a caption and a first comment can share a name."
+                  },
+                  "channelIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "Optional. Channels a post started from this template is sent to. Channels disconnected since are skipped when it is used. Caption templates only."
+                  },
+                  "postFormat": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "post",
+                      "video",
+                      "reel",
+                      "story",
+                      "carousel",
+                      "thread",
+                      null
+                    ],
+                    "description": "Optional. The post format the template starts in, as in a post's postFormat. Caption templates only."
+                  },
+                  "postTypeOverrides": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Optional. Per-platform post types, as in a post's postTypeOverrides. Caption templates only."
+                  },
+                  "mediaFileIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "Optional. Media file IDs from POST /api/media that a post started from this template attaches. While a template uses a file, the file is kept in the media library. Caption templates only."
+                  },
+                  "platformMediaFileIds": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "description": "Optional. Which of mediaFileIds each platform gets, as in a post's platformMediaFileIds; every id must be in mediaFileIds. Caption templates only."
+                  },
+                  "platformContent": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Optional. Per-platform text, as in a post's platformContent. Caption templates only."
                   }
                 }
               }
@@ -9432,6 +9641,69 @@
                     "type": "string",
                     "maxLength": 10000,
                     "description": "Template text. CRLF is normalised to LF and surrounding whitespace trimmed."
+                  },
+                  "channelIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "Optional. Channels a post started from this template is sent to. Channels disconnected since are skipped when it is used. Caption templates only. Send null to clear it."
+                  },
+                  "postFormat": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "post",
+                      "video",
+                      "reel",
+                      "story",
+                      "carousel",
+                      "thread",
+                      null
+                    ],
+                    "description": "Optional. The post format the template starts in, as in a post's postFormat. Caption templates only. Send null to clear it."
+                  },
+                  "postTypeOverrides": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Optional. Per-platform post types, as in a post's postTypeOverrides. Caption templates only. Send null to clear it."
+                  },
+                  "mediaFileIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "Optional. Media file IDs from POST /api/media that a post started from this template attaches. While a template uses a file, the file is kept in the media library. Caption templates only. Send null to clear it."
+                  },
+                  "platformMediaFileIds": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "description": "Optional. Which of mediaFileIds each platform gets, as in a post's platformMediaFileIds; every id must be in mediaFileIds. Caption templates only. Send null to clear it."
+                  },
+                  "platformContent": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Optional. Per-platform text, as in a post's platformContent. Caption templates only. Send null to clear it."
                   }
                 }
               }

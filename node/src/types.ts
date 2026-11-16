@@ -459,6 +459,13 @@ export interface Post {
   content: string;
   platformContent: Record<string, string>;
   mediaFiles: MediaFile[] | number[];
+  /**
+   * Which of `mediaFiles` each platform publishes, keyed by platform (media
+   * file ids, in that platform's order). A platform that is not listed
+   * publishes all of `mediaFiles`; an empty list publishes it without media.
+   * Absent or null when the post has no per-platform choice.
+   */
+  platformMediaFileIds?: Record<string, number[]> | null;
   status: PostStatus | null;
   scheduledAt: string | null;
   publishedAt: string | null;
@@ -737,6 +744,18 @@ export interface CreatePostParams {
    */
   platformContent?: Record<string, string>;
   /**
+   * Which of the post's media each platform publishes, keyed by platform.
+   * A platform that is not listed publishes all of `mediaFiles`, in order. A
+   * listed platform publishes exactly the files in its list, in that order; an
+   * empty list publishes it without media. Every id must also be in
+   * `mediaFiles` (400 VALIDATION_ERROR otherwise), and each platform's media
+   * limits are checked against its own list. Ignored for thread posts, whose
+   * parts carry their own media.
+   *
+   * @example { instagram: [12, 14], facebook: [] }
+   */
+  platformMediaFileIds?: Record<string, number[]>;
+  /**
    * Whether to delete uploaded media right after publishing. Default: false —
    * media is kept and reclaimed by the server's 3-month retention sweep.
    * Forced to false by the server when the post has a repeatSchedule.
@@ -856,6 +875,14 @@ export interface UpdatePostParams {
   postTypeOverrides?: Record<string, string>;
   platformSpecific?: Record<string, Record<string, unknown>>;
   platformContent?: Record<string, string>;
+  /**
+   * Which of the post's media each platform publishes (see
+   * CreatePostParams.platformMediaFileIds). Sending it replaces the stored
+   * choice. When it is omitted but `mediaFiles` changes, files no longer
+   * attached are dropped from each list, and a platform left with none of the
+   * files it named goes back to all of the post's media.
+   */
+  platformMediaFileIds?: Record<string, number[]>;
   deleteMediaAfterPublish?: boolean;
   repeatSchedule?: RepeatScheduleConfig;
   threadParts?: ThreadPart[];
