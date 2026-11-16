@@ -1943,7 +1943,7 @@
                         "type": "integer"
                       }
                     },
-                    "description": "Optional. Which of the post's media each platform publishes, keyed by platform, e.g. { \"instagram\": [12, 14], \"facebook\": [] }. A platform that is not listed publishes all of mediaFiles, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFiles. Ignored for thread posts, whose parts carry their own media. Instagram's userTags mediaIndex keeps counting mediaFiles; TikTok's photoCoverIndex counts the images in TikTok's own list. An id that is not in mediaFiles is rejected with 400 VALIDATION_ERROR. Each platform's media limits (how many files, which types) are checked against its own list."
+                    "description": "Optional. Which of the post's media each platform publishes, keyed by platform, e.g. { \"instagram\": [12, 14], \"facebook\": [] }. A platform that is not listed publishes all of mediaFiles, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFiles. Ignored for thread posts, whose parts carry their own media. Instagram's userTags mediaIndex keeps counting mediaFiles; TikTok's photoCoverIndex counts the images in TikTok's own list. With repeatSchedule, the choice is copied onto the repeat schedule, so every run gives each platform the same files. An id that is not in mediaFiles is rejected with 400 VALIDATION_ERROR. Each platform's media limits (how many files, which types) are checked against its own list."
                   },
                   "deleteMediaAfterPublish": {
                     "type": "boolean",
@@ -9498,7 +9498,7 @@
                   "content": {
                     "type": "string",
                     "maxLength": 10000,
-                    "description": "Template text. CRLF is normalised to LF and surrounding whitespace trimmed. Required, except that a caption template that sets any of channelIds, postFormat, postTypeOverrides, mediaFileIds, platformMediaFileIds or platformContent may have no text."
+                    "description": "Template text. CRLF is normalised to LF and surrounding whitespace trimmed. Required, except that a caption template that sets any of channelIds, postFormat, postTypeOverrides, mediaFileIds, platformMediaFileIds or platformContent may have no text. Setup fields that hold nothing (an empty list or object) do not count, so empty text with only those is rejected with 400 VALIDATION_ERROR (content is required)."
                   },
                   "kind": {
                     "type": "string",
