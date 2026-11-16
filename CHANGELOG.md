@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-11-16 — Per-platform media on repeat schedules; template format without threads
+
+Node SDK **1.46.0** · Python **0.47.0** · MCP **1.56.0** · spec + Postman
+
+### Added
+
+- **`platformMediaFileIds` on repeat schedules** (`POST /api/schedules`, `PUT /api/schedules/{id}` and the `Schedule` response), with the same shape and meaning as on posts: which of the schedule's `mediaFileIds` each platform gets, and every run's post carries the same choice. Every id must also be in `mediaFileIds`, otherwise `400 VALIDATION_ERROR`. On update, sending it replaces the stored choice; if it is left out while `mediaFileIds` changes, files no longer attached drop out of each list, and a platform left with none of them goes back to all of them. Node `CreateScheduleParams` / `UpdateScheduleParams` / `RecurringSchedule`, the Python `schedules.create` / `schedules.update` docs and `Schedule` type, the MCP `create_schedule` / `update_schedule` inputs, and the scheduling guide carry it.
+- A post created with `repeatSchedule` copies its `platformMediaFileIds` onto the schedule (described on the Node field and the MCP `repeatSchedule` input).
+
+### Changed
+
+- **A template's `postFormat` no longer accepts `thread`**; it is one of `post`, `video`, `reel`, `story`, `carousel`, and `thread` is refused with `400`, because a template cannot keep thread parts. Node `TemplatePostFormat`, the Python docs, the MCP enum and the content-organisation skill follow.
+- **`POST /api/templates` refuses empty text when the setup sent holds nothing** (for example only `channelIds: []`): `400 "content is required"`. The Node, Python and MCP descriptions say so.
+- The post `platformMediaFileIds` descriptions add that Instagram's `userTags` `mediaIndex` keeps counting `mediaFiles`, and TikTok's `photoCoverIndex` counts the images in TikTok's own list.
+
 ## 2026-11-16 — Per-platform media on posts; templates that keep a post setup
 
 Node SDK **1.45.0** · Python **0.46.0** · MCP **1.55.0** · spec + Postman

@@ -113,7 +113,7 @@
                 "type": "integer"
               }
             },
-            "description": "Which of the post's media each platform publishes, keyed by platform, e.g. { \"instagram\": [12, 14], \"facebook\": [] }. A platform that is not listed publishes all of mediaFiles, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFiles. Ignored for thread posts, whose parts carry their own media."
+            "description": "Which of the post's media each platform publishes, keyed by platform, e.g. { \"instagram\": [12, 14], \"facebook\": [] }. A platform that is not listed publishes all of mediaFiles, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFiles. Ignored for thread posts, whose parts carry their own media. Instagram's userTags mediaIndex keeps counting mediaFiles; TikTok's photoCoverIndex counts the images in TikTok's own list."
           },
           "deleteMediaAfterPublish": {
             "type": "boolean",
@@ -632,6 +632,16 @@
             "items": {
               "type": "integer"
             }
+          },
+          "platformMediaFileIds": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            },
+            "description": "Which of mediaFileIds each platform gets on every run, keyed by platform, e.g. { \"instagram\": [12] }. A platform that is not listed gets all of mediaFileIds; a listed one gets exactly those files, in that order; an empty list posts it without media. Every id must also be in mediaFileIds (400 VALIDATION_ERROR otherwise). Each run's post carries the same choice as its platformMediaFileIds."
           },
           "contentTemplate": {
             "type": "string"
@@ -1317,7 +1327,6 @@
               "reel",
               "story",
               "carousel",
-              "thread",
               null
             ],
             "description": "The post format the template starts in, as in a post's postFormat. Caption templates only."
@@ -1934,7 +1943,7 @@
                         "type": "integer"
                       }
                     },
-                    "description": "Optional. Which of the post's media each platform publishes, keyed by platform, e.g. { \"instagram\": [12, 14], \"facebook\": [] }. A platform that is not listed publishes all of mediaFiles, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFiles. Ignored for thread posts, whose parts carry their own media. An id that is not in mediaFiles is rejected with 400 VALIDATION_ERROR. Each platform's media limits (how many files, which types) are checked against its own list."
+                    "description": "Optional. Which of the post's media each platform publishes, keyed by platform, e.g. { \"instagram\": [12, 14], \"facebook\": [] }. A platform that is not listed publishes all of mediaFiles, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFiles. Ignored for thread posts, whose parts carry their own media. Instagram's userTags mediaIndex keeps counting mediaFiles; TikTok's photoCoverIndex counts the images in TikTok's own list. An id that is not in mediaFiles is rejected with 400 VALIDATION_ERROR. Each platform's media limits (how many files, which types) are checked against its own list."
                   },
                   "deleteMediaAfterPublish": {
                     "type": "boolean",
@@ -2314,7 +2323,7 @@
                         "type": "integer"
                       }
                     },
-                    "description": "Optional. Which of the post's media each platform publishes, keyed by platform, e.g. { \"instagram\": [12, 14], \"facebook\": [] }. A platform that is not listed publishes all of mediaFiles, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFiles. Ignored for thread posts, whose parts carry their own media. Sending it replaces the stored choice. When it is omitted but mediaFiles changes, files no longer attached are dropped from each list, and a platform left with none of the files it named goes back to all of the post's media."
+                    "description": "Optional. Which of the post's media each platform publishes, keyed by platform, e.g. { \"instagram\": [12, 14], \"facebook\": [] }. A platform that is not listed publishes all of mediaFiles, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFiles. Ignored for thread posts, whose parts carry their own media. Instagram's userTags mediaIndex keeps counting mediaFiles; TikTok's photoCoverIndex counts the images in TikTok's own list. Sending it replaces the stored choice. When it is omitted but mediaFiles changes, files no longer attached are dropped from each list, and a platform left with none of the files it named goes back to all of the post's media."
                   },
                   "postTypeOverrides": {
                     "type": "object",
@@ -6513,6 +6522,16 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and does not publish until an approver releases it via POST /api/posts/{id}/approve. Default false. Forced to true server-side for roles without post:publish (contributors), regardless of this flag \u2014 on create and on every update, including an update that does not send the field."
+                  },
+                  "platformMediaFileIds": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "description": "Optional. Which of mediaFileIds each platform gets on every run, keyed by platform, e.g. { \"instagram\": [12] }. A platform that is not listed gets all of mediaFileIds; a listed one gets exactly those files, in that order; an empty list posts it without media. Every id must also be in mediaFileIds (400 VALIDATION_ERROR otherwise). Each run's post carries the same choice as its platformMediaFileIds."
                   }
                 }
               }
@@ -6691,6 +6710,16 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Optional. Hold every occurrence this schedule generates for team approval \u2014 each generated post lands with approvalStatus 'pending' and does not publish until an approver releases it via POST /api/posts/{id}/approve. Default false. Forced to true server-side for roles without post:publish (contributors), regardless of this flag \u2014 on create and on every update, including an update that does not send the field."
+                  },
+                  "platformMediaFileIds": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "description": "Optional. Which of mediaFileIds each platform gets on every run, keyed by platform, e.g. { \"instagram\": [12] }. A platform that is not listed gets all of mediaFileIds; a listed one gets exactly those files, in that order; an empty list posts it without media. Every id must also be in mediaFileIds (400 VALIDATION_ERROR otherwise). Each run's post carries the same choice as its platformMediaFileIds. Sending it replaces the stored choice; when it is omitted but mediaFileIds changes, files no longer attached are dropped from each list, and a platform left with none of the files it named goes back to all of them."
                   }
                 }
               }
@@ -9498,7 +9527,6 @@
                       "reel",
                       "story",
                       "carousel",
-                      "thread",
                       null
                     ],
                     "description": "Optional. The post format the template starts in, as in a post's postFormat. Caption templates only."
@@ -9660,7 +9688,6 @@
                       "reel",
                       "story",
                       "carousel",
-                      "thread",
                       null
                     ],
                     "description": "Optional. The post format the template starts in, as in a post's postFormat. Caption templates only. Send null to clear it."

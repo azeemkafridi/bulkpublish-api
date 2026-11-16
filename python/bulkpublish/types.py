@@ -429,8 +429,9 @@ class PostTemplate(TypedDict, total=False):
     ``kind`` is ``caption`` or ``first_comment``; names are unique per kind.
 
     A caption template may also keep a post setup: ``channelIds``,
-    ``postFormat`` (``post``, ``video``, ``reel``, ``story``, ``carousel`` or
-    ``thread``), ``postTypeOverrides``, ``mediaFileIds``,
+    ``postFormat`` (``post``, ``video``, ``reel``, ``story`` or ``carousel``;
+    not ``thread``, since a template cannot keep thread parts),
+    ``postTypeOverrides``, ``mediaFileIds``,
     ``platformMediaFileIds`` (ids among ``mediaFileIds``) and
     ``platformContent``. Each is None when the template does not set it.
     ``media`` lists the template's files that are still in the media library,
@@ -555,6 +556,9 @@ class Schedule(TypedDict, total=False):
     isActive: bool
     contentTemplate: str
     mediaFileIds: List[int]
+    # Which of mediaFileIds each platform gets on every run; a platform not
+    # listed gets all of them. None when not set.
+    platformMediaFileIds: Optional[Dict[str, List[int]]]
     postTypeOverrides: Dict[str, Any]
     platformSpecific: Dict[str, Any]
     postFormat: str

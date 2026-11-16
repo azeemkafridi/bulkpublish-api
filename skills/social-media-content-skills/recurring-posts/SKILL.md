@@ -30,7 +30,9 @@ Sunday … 6 = Saturday) for weekly and biweekly; `dayOfMonth` for monthly;
 `name`, `channelIds`, `frequency` (`daily`, `weekly`, `biweekly`, `monthly`),
 `timeOfDay` (`"HH:MM"`, 24h), `dayOfWeek` (0 = Sunday … 6 = Saturday) for
 weekly and biweekly, `dayOfMonth` (1-31) for monthly, `contentTemplate`,
-`mediaFileIds` (reused on every run), `timezone` (default UTC), `isActive`
+`mediaFileIds` (reused on every run), `platformMediaFileIds` (which of those
+files each platform gets, e.g. `{"x": [12]}`; a platform not listed gets all
+of them), `timezone` (default UTC), `isActive`
 (default true), and `requireApproval` to hold every generated post for a
 teammate (forced on for a member who cannot publish).
 

@@ -246,6 +246,8 @@ To send different attached files to different platforms, attach every file in `m
 - Every id must also be in `mediaFiles`, or the request is refused with `400 VALIDATION_ERROR`. Each platform's media limits (how many files, which types) are checked against its own list.
 - On `PUT /api/posts/{id}`, sending `platformMediaFileIds` replaces the stored choice. If you leave it out but change `mediaFiles`, files no longer attached drop out of each list, and a platform left with none of the files it named goes back to all of the post's media.
 - Thread posts ignore it: each thread part carries its own media.
+- Instagram's `userTags` `mediaIndex` keeps counting `mediaFiles`, not the Instagram list. TikTok's `photoCoverIndex` counts the images in TikTok's own list.
+- Repeat schedules take the same field (`POST /api/schedules`, `PUT /api/schedules/{id}`), measured against the schedule's `mediaFileIds`, and every run's post carries the choice. A post created with `repeatSchedule` copies its choice onto the schedule.
 
 ## Reposts
 

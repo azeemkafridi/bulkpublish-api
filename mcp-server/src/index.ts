@@ -707,7 +707,7 @@ const PLATFORM_MEDIA_FILE_IDS_SCHEMA = z
   )
   .optional()
   .describe(
-    'Which of the attached files (mediaFileIds) each platform publishes, keyed by platform, e.g. { "instagram": [12, 14], "x": [12], "linkedin": [] }. A platform that is not listed publishes all of mediaFileIds, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFileIds, or the request is refused with 400 VALIDATION_ERROR. Each platform\'s media limits are checked against its own list. Ignored for thread posts, whose parts carry their own media.'
+    'Which of the attached files (mediaFileIds) each platform publishes, keyed by platform, e.g. { "instagram": [12, 14], "x": [12], "linkedin": [] }. A platform that is not listed publishes all of mediaFileIds, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFileIds, or the request is refused with 400 VALIDATION_ERROR. Each platform\'s media limits are checked against its own list. Ignored for thread posts, whose parts carry their own media. Instagram\'s userTags mediaIndex keeps counting mediaFileIds; TikTok\'s photoCoverIndex counts the images in TikTok\'s own list.'
   );
 
 // ---------------------------------------------------------------------------
@@ -1775,7 +1775,7 @@ server.tool(
       })
       .optional()
       .describe(
-        "Optional. Make this a repeating post: it is re-published on this cadence. Media on a repeating post is always kept (deleteMediaAfterPublish is forced to false)."
+        "Optional. Make this a repeating post: it is re-published on this cadence. Media on a repeating post is always kept (deleteMediaAfterPublish is forced to false), and its platformMediaFileIds choice is copied onto the schedule, so every run carries it."
       ),
     autoPlugEnabled: z
       .boolean()
@@ -2489,8 +2489,8 @@ const templateSetupShape = (clearable: boolean) => {
     channelIds: n(z.array(z.number().int().positive()).max(100)).describe(
       "Channels (from list_channels) a post started from this template goes to. Channels disconnected since are skipped." + clear
     ),
-    postFormat: n(z.enum(["post", "video", "reel", "story", "carousel", "thread"])).describe(
-      "The post format the template starts in, as in create_post's postFormat." + clear
+    postFormat: n(z.enum(["post", "video", "reel", "story", "carousel"])).describe(
+      "The post format the template starts in, as in create_post's postFormat. Not thread: a template cannot keep thread parts." + clear
     ),
     postTypeOverrides: n(z.record(z.string(), z.string())).describe(
       'Per-platform post types, as in create_post\'s postTypeOverrides, e.g. { "instagram": "reel" }.' + clear
@@ -2510,7 +2510,7 @@ const TEMPLATE_SETUP_KEYS = ["channelIds", "postFormat", "postTypeOverrides", "m
 
 server.tool(
   "create_template",
-  "Save post text as a named template for reuse. A caption template can also keep a post setup: channels, post format, per-platform post types, media, and per-platform media and text (caption templates only; sending them with kind first_comment is refused). Text may be left out when the template sets any of these. Channels and media must belong to the workspace. Per-platform publish options (platformSpecific) belong to the post. Up to 200 per organization per kind (captions and first-comment snippets each have their own 200); names are unique per kind, so a caption and a first-comment snippet can share a name.",
+  "Save post text as a named template for reuse. A caption template can also keep a post setup: channels, post format, per-platform post types, media, and per-platform media and text (caption templates only; sending them with kind first_comment is refused). Text may be left out when the template sets any of these to something (an empty text with only channelIds: [] is refused). Channels and media must belong to the workspace. Per-platform publish options (platformSpecific) belong to the post. Up to 200 per organization per kind (captions and first-comment snippets each have their own 200); names are unique per kind, so a caption and a first-comment snippet can share a name.",
   {
     name: z.string().max(100).describe("Template name."),
     content: z.string().max(10000).optional().describe("Template text. Required unless a caption template sets one of the setup fields."),
@@ -2806,7 +2806,7 @@ server.tool(
       "Optional per-platform text overrides, keyed by platform. Replaced wholesale, not merged: send every platform's override you want to keep, or omit to leave them unchanged."
     ),
     platformMediaFileIds: PLATFORM_MEDIA_FILE_IDS_SCHEMA.describe(
-      'Optional. Which of the post\'s attached files each platform publishes, keyed by platform, e.g. { "instagram": [12, 14], "linkedin": [] }. A platform that is not listed publishes all of the post\'s media; an empty list publishes it without media; every id must also be attached to the post. Sending it replaces the stored choice. When it is omitted but mediaFileIds changes, files no longer attached are dropped from each list, and a platform left with none of the files it named goes back to all of the post\'s media. Ignored for thread posts.'
+      'Optional. Which of the post\'s attached files each platform publishes, keyed by platform, e.g. { "instagram": [12, 14], "linkedin": [] }. A platform that is not listed publishes all of the post\'s media; an empty list publishes it without media; every id must also be attached to the post. Sending it replaces the stored choice. When it is omitted but mediaFileIds changes, files no longer attached are dropped from each list, and a platform left with none of the files it named goes back to all of the post\'s media. Ignored for thread posts. Instagram\'s userTags mediaIndex keeps counting the post\'s media; TikTok\'s photoCoverIndex counts the images in TikTok\'s own list.'
     ),
     postFormat: z
       .enum(["post", "thread"])
@@ -3275,6 +3275,9 @@ server.tool(
       .array(z.number())
       .optional()
       .describe("Media file IDs re-used for every generated post."),
+    platformMediaFileIds: PLATFORM_MEDIA_FILE_IDS_SCHEMA.describe(
+      'Which of mediaFileIds each platform gets on every run, keyed by platform, e.g. { "instagram": [12], "linkedin": [] }. A platform that is not listed gets all of mediaFileIds; a listed one gets exactly those files, in that order; an empty list posts it without media. Every id must also be in mediaFileIds, or the request is refused with 400 VALIDATION_ERROR. Each run\'s post carries the same choice.'
+    ),
     timezone: z
       .string()
       .optional()
@@ -3290,7 +3293,7 @@ server.tool(
         "Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and does not publish until an approver releases it via approve_post. Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
       ),
   },
-  async ({ name, channelIds, frequency, timeOfDay, dayOfWeek, dayOfMonth, contentTemplate, mediaFileIds, timezone, isActive, requireApproval }) => {
+  async ({ name, channelIds, frequency, timeOfDay, dayOfWeek, dayOfMonth, contentTemplate, mediaFileIds, platformMediaFileIds, timezone, isActive, requireApproval }) => {
     const body: Record<string, unknown> = {
       name,
       channelIds,
@@ -3301,6 +3304,7 @@ server.tool(
     if (dayOfMonth !== undefined) body.dayOfMonth = dayOfMonth;
     if (contentTemplate !== undefined) body.contentTemplate = contentTemplate;
     if (mediaFileIds !== undefined) body.mediaFileIds = mediaFileIds;
+    if (platformMediaFileIds !== undefined) body.platformMediaFileIds = platformMediaFileIds;
     if (timezone) body.timezone = timezone;
     if (isActive !== undefined) body.isActive = isActive;
     if (requireApproval !== undefined) body.requireApproval = requireApproval;
@@ -3341,6 +3345,9 @@ server.tool(
       .array(z.number())
       .optional()
       .describe("Replace the media file IDs used for generated posts."),
+    platformMediaFileIds: PLATFORM_MEDIA_FILE_IDS_SCHEMA.describe(
+      'Optional. Which of mediaFileIds each platform gets on every run, keyed by platform, e.g. { "x": [12] }. A platform that is not listed gets all of them; an empty list posts it without media; every id must also be in the schedule\'s mediaFileIds. Sending it replaces the stored choice. When it is omitted but mediaFileIds changes, files no longer attached are dropped from each list, and a platform left with none of the files it named goes back to all of them.'
+    ),
     timezone: z.string().optional().describe("New IANA timezone."),
     isActive: z
       .boolean()
@@ -3353,7 +3360,7 @@ server.tool(
         "Hold every future occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and does not publish until an approver releases it via approve_post. Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
       ),
   },
-  async ({ scheduleId, name, contentTemplate, frequency, timeOfDay, dayOfWeek, dayOfMonth, mediaFileIds, timezone, isActive, requireApproval }) => {
+  async ({ scheduleId, name, contentTemplate, frequency, timeOfDay, dayOfWeek, dayOfMonth, mediaFileIds, platformMediaFileIds, timezone, isActive, requireApproval }) => {
     const body: Record<string, unknown> = {};
     if (name !== undefined) body.name = name;
     if (contentTemplate !== undefined) body.contentTemplate = contentTemplate;
@@ -3362,6 +3369,7 @@ server.tool(
     if (dayOfWeek !== undefined) body.dayOfWeek = dayOfWeek;
     if (dayOfMonth !== undefined) body.dayOfMonth = dayOfMonth;
     if (mediaFileIds !== undefined) body.mediaFileIds = mediaFileIds;
+    if (platformMediaFileIds !== undefined) body.platformMediaFileIds = platformMediaFileIds;
     if (timezone !== undefined) body.timezone = timezone;
     if (isActive !== undefined) body.isActive = isActive;
     if (requireApproval !== undefined) body.requireApproval = requireApproval;

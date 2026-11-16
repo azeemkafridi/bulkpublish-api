@@ -52,8 +52,8 @@ _SETUP_DOC = """
 
         - ``channel_ids``: channels a post started from it goes to. Channels
           disconnected since are skipped. Must belong to the workspace (403).
-        - ``post_format``: ``post``, ``video``, ``reel``, ``story``,
-          ``carousel`` or ``thread``.
+        - ``post_format``: ``post``, ``video``, ``reel``, ``story`` or
+          ``carousel`` (not ``thread``: a template cannot keep thread parts).
         - ``post_type_overrides``: per-platform post types, as on a post.
         - ``media_file_ids``: media file IDs a post started from it attaches.
           A file a template uses is kept in the media library. Must belong to
@@ -124,7 +124,9 @@ class TemplatesResource:
 TemplatesResource.create.__doc__ = (
     """Create a template. Up to 200 per organization per kind; names are unique
         per kind (default kind: ``caption``). ``content`` is required unless a
-        caption template sets one of the setup fields below.
+        caption template sets one of the setup fields below to something (an
+        empty text with only ``channel_ids=[]``, say, is a 400 "content is
+        required").
 """
     + _SETUP_DOC
 )

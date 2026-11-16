@@ -334,7 +334,9 @@ class PostsResource:
                 Every id must also be in ``media_files`` (400
                 VALIDATION_ERROR otherwise), and each platform's media limits
                 are checked against its own list. Ignored for thread posts,
-                whose parts carry their own media.
+                whose parts carry their own media. Instagram's ``userTags``
+                ``mediaIndex`` keeps counting ``media_files``; TikTok's
+                ``photoCoverIndex`` counts the images in TikTok's own list.
             delete_media_after_publish: Remove attached media after publishing,
                 once every channel has published, freeing the storage it counted
                 against. The media records remain, flagged as having their

@@ -196,6 +196,7 @@ You can attach a recurring schedule when creating a post by including `repeatSch
 | `channelIds` | number[] | Channel IDs to publish to |
 | `contentTemplate` | string | Post content |
 | `mediaFileIds` | number[] | Optional media to attach |
+| `platformMediaFileIds` | object | Optional. Which of `mediaFileIds` each platform gets on every run, e.g. `{"x": [12], "linkedin": []}`. A platform not listed gets all of them; an empty list posts it without media; every id must also be in `mediaFileIds`. See [Per-Platform Media](platforms.md#per-platform-media) |
 | `isActive` | boolean | Whether the schedule is active (default: `true`) |
 
 ### Managing Schedules

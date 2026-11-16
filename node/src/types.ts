@@ -750,7 +750,10 @@ export interface CreatePostParams {
    * empty list publishes it without media. Every id must also be in
    * `mediaFiles` (400 VALIDATION_ERROR otherwise), and each platform's media
    * limits are checked against its own list. Ignored for thread posts, whose
-   * parts carry their own media.
+   * parts carry their own media. Instagram's `userTags` `mediaIndex` keeps
+   * counting `mediaFiles`; TikTok's `photoCoverIndex` counts the images in
+   * TikTok's own list. With `repeatSchedule`, the choice is copied onto the
+   * schedule, so every run's post carries it too.
    *
    * @example { instagram: [12, 14], facebook: [] }
    */
@@ -1444,6 +1447,12 @@ export interface RecurringSchedule {
   timezone: string | null;
   channelIds: number[];
   mediaFileIds: number[];
+  /**
+   * Which of `mediaFileIds` each platform gets on every run, keyed by
+   * platform. A platform that is not listed gets all of them; an empty list
+   * posts it without media. Absent or null when not set.
+   */
+  platformMediaFileIds?: Record<string, number[]> | null;
   contentTemplate: string;
   postTypeOverrides: Record<string, string>;
   platformSpecific: Record<string, Record<string, unknown>>;
@@ -1477,6 +1486,16 @@ export interface CreateScheduleParams {
   channelIds: number[];
   /** Media file IDs to attach. */
   mediaFileIds?: number[];
+  /**
+   * Which of `mediaFileIds` each platform gets on every run, keyed by
+   * platform. A platform that is not listed gets all of them; a listed one
+   * gets exactly those files, in that order; an empty list posts it without
+   * media. Every id must also be in `mediaFileIds` (400 VALIDATION_ERROR
+   * otherwise). Each run's post carries the same choice.
+   *
+   * @example { instagram: [12], linkedin: [] }
+   */
+  platformMediaFileIds?: Record<string, number[]>;
   /** Post content template. */
   contentTemplate?: string;
   /** Per-platform post type overrides. */
@@ -1508,6 +1527,13 @@ export interface UpdateScheduleParams {
   timezone?: string;
   channelIds?: number[];
   mediaFileIds?: number[];
+  /**
+   * See CreateScheduleParams.platformMediaFileIds. Sending it replaces the
+   * stored choice. When it is omitted but `mediaFileIds` changes, files no
+   * longer attached are dropped from each list, and a platform left with none
+   * of the files it named goes back to all of them.
+   */
+  platformMediaFileIds?: Record<string, number[]>;
   contentTemplate?: string;
   postTypeOverrides?: Record<string, string>;
   platformSpecific?: Record<string, Record<string, unknown>>;

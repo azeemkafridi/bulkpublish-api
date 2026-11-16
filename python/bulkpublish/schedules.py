@@ -75,7 +75,12 @@ class SchedulesResource:
                 ``channelIds``.  Optional: ``dayOfWeek`` (0=Sunday..6=Saturday,
                 for weekly/biweekly), ``dayOfMonth`` (1-31, for monthly),
                 ``timezone`` (default UTC), ``contentTemplate``,
-                ``mediaFileIds``, ``isActive`` (default True),
+                ``mediaFileIds``, ``platformMediaFileIds`` (which of
+                ``mediaFileIds`` each platform gets on every run, e.g.
+                ``{"instagram": [12], "linkedin": []}``; a platform not listed
+                gets all of them, an empty list posts it without media, and
+                every id must also be in ``mediaFileIds`` or the request is
+                a 400), ``isActive`` (default True),
                 ``requireApproval`` (default False — when True, every
                 occurrence this schedule generates lands with
                 ``approvalStatus: "pending"`` and does not publish until
@@ -108,7 +113,11 @@ class SchedulesResource:
             schedule_id: The schedule's unique identifier.
             **fields: Fields to update (same keys as :meth:`create`,
                 including ``requireApproval``). Toggling ``requireApproval``
-                affects future occurrences only.
+                affects future occurrences only. Sending
+                ``platformMediaFileIds`` replaces the stored choice; when it
+                is omitted but ``mediaFileIds`` changes, files no longer
+                attached are dropped from each list, and a platform left with
+                none of the files it named goes back to all of them.
 
         Returns:
             The updated schedule object.

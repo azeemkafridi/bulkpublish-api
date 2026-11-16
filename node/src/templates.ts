@@ -3,7 +3,8 @@ import type { HttpClient } from './client.js';
 export type TemplateKind = 'caption' | 'first_comment';
 
 /** The post format a caption template starts in. */
-export type TemplatePostFormat = 'post' | 'video' | 'reel' | 'story' | 'carousel' | 'thread';
+/** A thread is not offered: a template cannot keep thread parts (400). */
+export type TemplatePostFormat = 'post' | 'video' | 'reel' | 'story' | 'carousel';
 
 /** A file a template attaches, as returned on every template response. */
 export interface TemplateMediaFile {
@@ -53,7 +54,8 @@ export interface PostTemplate extends TemplateSetup {
 /**
  * Saved post templates — text to start a new post from. A caption template
  * may also keep a post setup (channels, format, per-platform post types,
- * media, and per-platform media and text); `content` may then be empty.
+ * media, and per-platform media and text); `content` may then be empty, as
+ * long as the setup sent holds something.
  * Per-platform publish options (`platformSpecific`) belong to the post.
  * `kind` picks between a post caption and a saved first-comment reply; names
  * are unique per kind.
@@ -88,7 +90,8 @@ export class TemplatesResource {
 
   /**
    * Create a template. Up to 200 per organization per kind; names are unique per kind (default kind: 'caption').
-   * `content` is required unless a caption template sets one of the setup fields.
+   * `content` is required unless a caption template sets one of the setup fields to something
+   * (an empty text with only `channelIds: []`, say, is refused with 400 "content is required").
    */
   async create(params: { name: string; content?: string; kind?: TemplateKind } & TemplateSetup): Promise<{ template: PostTemplate }> {
     return this.http.post('/api/templates', params);
