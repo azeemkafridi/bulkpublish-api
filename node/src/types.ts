@@ -757,6 +757,8 @@ export interface CreatePostParams {
    * post targets, not only the first one: an over-long part is rejected with
    * 400 VALIDATION_ERROR naming the part number, the platform and its limit.
    * URLs count as 23 characters on X and Mastodon, their real length elsewhere.
+   * A part with neither text nor media is left out when the thread publishes,
+   * since no network accepts an empty segment.
    */
   threadParts?: ThreadPart[];
   /**

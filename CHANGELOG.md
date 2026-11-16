@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-16 — Empty thread parts are left out when a thread publishes
+
+Node SDK **1.44.8** and MCP **1.54.2** (descriptions only)
+
+### Changed
+
+- **A thread part with neither text nor media is left out when the thread publishes.** No network accepts an empty segment, so a blank part used to fail its network after the parts before it were already live. It is now skipped and the rest of the thread publishes in order. The `threadParts` descriptions in the API reference, the Node SDK and the MCP server say so. No request or response shape changed.
+
 ## 2026-11-13 — Tumblr link blocks are no longer shortened
 
 MCP **1.54.1** (descriptions only)
