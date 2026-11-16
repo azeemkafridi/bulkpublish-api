@@ -9614,7 +9614,7 @@
           "Templates"
         ],
         "summary": "Update post template",
-        "description": "At least one of `name` or `content`. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "Send at least one of `name`, `content` or a setup field (`null` clears a setup field). A template left with no text and no setup is rejected with 400 VALIDATION_ERROR. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "parameters": [
           {
             "name": "id",
