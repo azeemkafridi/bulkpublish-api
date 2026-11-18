@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-11-18 — MCP create_post no longer spends API calls looking up media
+
+MCP **1.56.1**
+
+### Fixed
+
+- **`create_post` with `mediaFileIds` no longer makes one extra API call per attached file.** Before checking a post against each platform's media rules, it looked up every file with `GET /api/media/{id}`, and each lookup counted toward the daily API allowance. On a plan with 10 calls a day, uploading five photos (two calls each) and then creating a post ran out during the lookups, so the post was never created. The file types now come from the upload, finalize, get and list results the server has already received, so the check costs nothing. When a file was not seen that way (for example, it was uploaded in an earlier session), the server skips its own check and the API's media check when the post is created decides.
+- **Any refusal is now reported as the API's own message.** A failed lookup used to be reported as `Media ID ___ not found` whatever the cause, including `429 DAILY_QUOTA_EXCEEDED`, while the file existed. With the lookups gone, a quota refusal now reads `Daily API quota exceeded (11/10). Resets at midnight UTC.`
+
 ## 2026-11-16 — Per-platform media on repeat schedules; template format without threads
 
 Node SDK **1.46.0** · Python **0.47.0** · MCP **1.56.0** · spec + Postman

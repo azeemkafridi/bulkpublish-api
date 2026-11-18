@@ -27,6 +27,7 @@ import {
 } from "@modelcontextprotocol/ext-apps/server";
 import { WIDGET_HTML } from "./ui/widgets.generated.js";
 import { registerPrompts } from "./prompts.js";
+import { rememberMediaTypes, knownMediaTypes } from "./media-types.js";
 
 const MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
@@ -738,6 +739,7 @@ async function api<T = unknown>(
   });
 
   const data = (await res.json().catch(() => ({}))) as T;
+  if (res.ok && path.startsWith("/api/media")) rememberMediaTypes(activeApiKey(), data);
   return { ok: res.ok, status: res.status, data };
 }
 
@@ -1570,25 +1572,13 @@ interface MediaInfo {
   mimeType: string;
 }
 
-async function getMediaInfoForIds(
-  ids: number[]
-): Promise<{ medias: MediaInfo[]; error?: string }> {
-  if (ids.length === 0) return { medias: [] };
-  const results: MediaInfo[] = [];
-  for (const id of ids) {
-    const res = await api<{ file?: { id: number; mimeType: string } }>(
-      "GET",
-      `/api/media/${id}`
-    );
-    if (!res.ok) return { medias: [], error: `Media ID ${id} not found` };
-    // The API nests the record under `file` — reading mimeType off the top level
-    // made hasVideo/hasImage always false and blocked every TikTok/YouTube video post.
-    const d =
-      (res.data as { file?: { id: number; mimeType: string } }).file ??
-      (res.data as unknown as { id: number; mimeType: string });
-    results.push({ id: d.id, mimeType: d.mimeType });
-  }
-  return { medias: results };
+// No API call here: each lookup used to count against the caller's daily
+// allowance, and on a small plan the lookups alone exhausted it (the 429 was
+// then reported as "Media ID ___ not found"). Types come from the media
+// responses this process has already seen; when any file is unknown, the
+// check is skipped and the API's own media check on create decides.
+function knownMediaInfo(ids: number[]): MediaInfo[] | null {
+  return knownMediaTypes(activeApiKey(), ids);
 }
 
 function validatePlatformRequirements(
@@ -1827,15 +1817,8 @@ server.tool(
   }) => {
     // Validate platform requirements before creating
     if (mediaFileIds && mediaFileIds.length > 0) {
-      const { medias, error: mediaError } = await getMediaInfoForIds(
-        mediaFileIds
-      );
-      if (mediaError) {
-        return {
-          content: [{ type: "text" as const, text: `Error: ${mediaError}` }],
-        };
-      }
-      const validationErrors = validatePlatformRequirements(
+      const medias = knownMediaInfo(mediaFileIds);
+      const validationErrors = medias === null ? [] : validatePlatformRequirements(
         channels,
         medias,
         postTypeOverrides
@@ -2286,6 +2269,7 @@ server.registerTool(
     });
 
     const data = await uploadRes.json().catch(() => ({}));
+    if (uploadRes.ok) rememberMediaTypes(activeApiKey(), data);
     const result: ApiResponse = {
       ok: uploadRes.ok,
       status: uploadRes.status,
