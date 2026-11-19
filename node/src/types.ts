@@ -673,7 +673,7 @@ export interface CreatePostParams {
    *   Reel or video post people are tagged by username only. Carousel videos and Stories carry no tags. `shareToFeed` (Reels only): `false`
    *   shows the Reel only in the Reels tab, `true` also in the main feed; omitted keeps Instagram's default. `locationId` (digits) is the numeric
    *   ID of a Facebook Page that has a location (photos, videos, Reels, carousels; not Stories). `isAiGenerated` (boolean) shows Instagram's
-   *   "AI info" label on any post type (on a carousel, on the carousel itself); only `true` is sent, and Instagram may still label a post on its own.
+   *   "AI info" label on a feed photo, video, Reel or carousel, not a Story (on a carousel, on the carousel itself); only `true` is sent, and Instagram may still label a post on its own.
    * - **facebook**: Optional: `shareToStory`, `thumbnailUrl`, `textFormatPresetId`. `textFormatPresetId` (digits, a Facebook background ID) shows a short
    *   text post on a coloured background; used only on a Page feed post with no photo, video or link card and at most 130 characters,
    *   otherwise left out, and dropped (published as plain text) if Facebook refuses it. `thumbnailUrl` is the cover for a video

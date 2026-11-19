@@ -99,7 +99,7 @@ Every value `postTypeOverrides` accepts; the first is the default.
 - `shareToFeed` — boolean, Reels only: `false` shows the Reel only in the Reels tab, `true` also in the main feed
 - `locationId` — digits only: the numeric ID of a Facebook Page that has a location (not for Stories)
 - `coverUrl` — string, cover image URL for a video or Reel. Instagram accepts a cover image or a cover moment, never both, so this wins over `thumbnailTimestamp`
-- `isAiGenerated` — boolean, `true` shows Instagram's "AI info" label (any post type; on a carousel it goes on the carousel itself). Set it only when the user says the content was made with AI
+- `isAiGenerated` — boolean, `true` shows Instagram's "AI info" label (feed photos, videos, Reels and carousels, not Stories; on a carousel it goes on the carousel itself). Set it only when the user says the content was made with AI
 
 **IMPORTANT:** If you have video and don't set `postTypeOverrides.instagram`, it defaults to `feed_photo` and FAILS. Always set to `reel` or `feed_video` for video.
 

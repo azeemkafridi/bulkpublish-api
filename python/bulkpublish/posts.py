@@ -210,7 +210,7 @@ class PostsResource:
                 - **instagram**: Optional: ``collaborators``, ``shareToStory``, ``trialReel``,
                   ``graduationStrategy`` (``"manual"``/``"auto"``), ``thumbnailTimestamp``,
                   ``coverUrl``, ``userTags``, ``shareToFeed``, ``locationId``, ``isAiGenerated``.
-                  ``isAiGenerated`` (bool) shows Instagram's "AI info" label on any post type (on a
+                  ``isAiGenerated`` (bool) shows Instagram's "AI info" label on a feed photo, video, Reel or carousel, not a Story (on a
                   carousel, on the carousel itself); only ``True`` is sent. ``collaborators`` is a comma-separated list of usernames (no
                   leading @) tagged as co-authors; it applies to post types ``feed_photo``,
                   ``feed_video``, ``reel`` and ``carousel`` -- on a carousel the co-authors go

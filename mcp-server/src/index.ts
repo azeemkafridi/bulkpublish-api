@@ -566,7 +566,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
           .boolean()
           .optional()
           .describe(
-            "true shows Instagram's \"AI info\" label, disclosing that the post contains AI-generated content. Any post type; on a carousel it goes on the carousel itself. Only set it when the user says the content was made with AI. false or omitted adds no label, though Instagram may still label a post on its own."
+            "true shows Instagram's \"AI info\" label, disclosing that the post contains AI-generated content. Feed photos, videos, Reels and carousels, not Stories; on a carousel it goes on the carousel itself. Only set it when the user says the content was made with AI. false or omitted adds no label, though Instagram may still label a post on its own."
           ),
       })
       .passthrough()
