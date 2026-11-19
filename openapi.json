@@ -1933,7 +1933,7 @@
                     "additionalProperties": {
                       "type": "string"
                     },
-                    "description": "Optional. Per-platform content overrides mapping platform name to a plain string, e.g. { \"x\": \"Short version\" }. Values must be strings \u2014 nested objects are rejected with 400 VALIDATION_ERROR."
+                    "description": "Optional. Per-platform content overrides mapping platform name to a plain string, e.g. { \"x\": \"Short version\" }. Values must be strings \u2014 nested objects are rejected with 400 VALIDATION_ERROR. Each platform's character limit is checked against its own override when it has one, and against `content` otherwise; an override for a platform the post does not target is ignored."
                   },
                   "platformMediaFileIds": {
                     "type": "object",
