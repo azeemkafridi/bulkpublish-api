@@ -12,7 +12,7 @@
 // through `ctx.has(...)`. `npm run check:prompts` renders every prompt in every
 // profile and fails on a tool name that the instance does not serve, on prose
 // promising a feature that profile lacks, and on stack disclosure.
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
 
 export type PromptCtx = {

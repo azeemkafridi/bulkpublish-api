@@ -11,8 +11,8 @@
  *   BULKPUBLISH_BASE_URL — API base URL (default: https://app.bulkpublish.com)
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { McpServer } from "@modelcontextprotocol/server";
+import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import { z } from "zod";
 import { readFileSync, existsSync, realpathSync } from "node:fs";
 import { basename, resolve } from "node:path";
@@ -26,6 +26,7 @@ import {
   RESOURCE_MIME_TYPE,
 } from "@modelcontextprotocol/ext-apps/server";
 import { WIDGET_HTML } from "./ui/widgets.generated.js";
+import { installTasks, MemoryTaskStore, type TaskStore } from "./tasks.js";
 import { registerPrompts } from "./prompts.js";
 import { rememberMediaTypes, knownMediaTypes } from "./media-types.js";
 
@@ -1362,7 +1363,9 @@ const SERVER_INSTRUCTIONS =
 // Build a fully-registered MCP server instance. Called once for stdio (below)
 // and once per request by the hosted HTTP server, so each HTTP caller gets an
 // isolated server whose tool calls use their own API key via requestContext.
-export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } = {}): McpServer {
+export function createServer(
+  opts: { profile?: ToolProfile; hosted?: boolean; tasks?: TaskStore } = {}
+): McpServer {
   const profile: ToolProfile = opts.profile ?? "full";
   // Hosted (src/http.ts): the tools run on OUR machine, not the caller's, so
   // anything that reads the local filesystem must refuse rather than hand a
@@ -1394,10 +1397,10 @@ export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } =
   // --- Tool annotations (MCP Connectors Directory requirement) -------------
   // Directory review requires every tool to expose a human-readable `title`
   // plus the applicable readOnly/destructive hint. Both registration paths —
-  // regular tools (server.tool) and widgets (registerAppTool →
+  // plain tools (server.registerTool) and widgets (registerAppTool →
   // server.registerTool) — funnel through the SDK's internal
-  // _createRegisteredTool(name, title, description, inputSchema, outputSchema,
-  // annotations, …), so we inject annotations there by tool name from this one
+  // _createRegisteredTool (slot layout in TOOL_SLOT below), so we inject
+  // annotations there by tool name from this one
   // map instead of threading an argument through ~37 call sites. Guarded so it
   // degrades to "no annotations" (rather than crashing) if the SDK changes.
   // "Use this when…" hints appended to each tool's description — OpenAI's Apps
@@ -1490,6 +1493,35 @@ export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } =
     moderate_comment: "the user wants to like, hide or delete a comment on one of their published posts.",
   };
   {
+    // _createRegisteredTool's positional arguments in @modelcontextprotocol/server
+    // 2.x. SDK 1.x had no icons or scopeChallenge, so _meta and the handler sat
+    // two slots earlier; a hook still using those indices would wrap
+    // scopeChallenge and leave the real handler without structuredContent,
+    // silently. The length check below turns the next reshuffle into an error.
+    const TOOL_SLOT = { name: 0, title: 1, description: 2, inputSchema: 3, outputSchema: 4, annotations: 5, icons: 6, execution: 7, scopeChallenge: 8, meta: 9, handler: 10 } as const;
+    const TOOL_SLOT_COUNT = 11;
+    // 2.x writes every tool schema as JSON Schema 2020-12; 1.x wrote draft-07,
+    // and that is what both directories approved and what every client has
+    // seen. The SDK fixes the dialect internally, so each schema is handed over
+    // as a thin wrapper whose JSON conversion asks zod for draft-07. Parsing
+    // and validation (`~standard.validate`, zod's own methods) are inherited
+    // from the real schema untouched; only the published JSON changes.
+    const asDraft07 = (schema: unknown): unknown => {
+      const std = (schema as { "~standard"?: { jsonSchema?: Record<"input" | "output", (o: object) => unknown> } } | undefined)?.["~standard"];
+      if (!std?.jsonSchema) return schema;
+      const json = std.jsonSchema;
+      const wrapped = Object.create(schema as object);
+      Object.defineProperty(wrapped, "~standard", {
+        value: {
+          ...std,
+          jsonSchema: {
+            input: (o: object) => json.input({ ...o, target: "draft-07" }),
+            output: (o: object) => json.output({ ...o, target: "draft-07" }),
+          },
+        },
+      });
+      return wrapped;
+    };
     const srv = server as unknown as {
       _createRegisteredTool?: (...a: unknown[]) => unknown;
     };
@@ -1502,7 +1534,10 @@ export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } =
     }
     const bound = original.bind(server);
     srv._createRegisteredTool = (...args: unknown[]) => {
-      const name = args[0] as string;
+      if (args.length !== TOOL_SLOT_COUNT || typeof args[TOOL_SLOT.handler] !== "function") {
+        throw new Error("McpServer._createRegisteredTool changed shape — update TOOL_SLOT for this SDK version.");
+      }
+      const name = args[TOOL_SLOT.name] as string;
       const ann = TOOL_ANNOTATIONS[name];
       if (!ann) {
         // Every tool needs an entry — that is where its title, hints and the
@@ -1515,34 +1550,36 @@ export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } =
         return { enabled: false, disable() {}, enable() {}, update() {}, remove() {} };
       }
       servedTools.add(name);
-      if (!args[1]) args[1] = ann.title; // tool title (regular tools have none)
+      if (!args[TOOL_SLOT.title]) args[TOOL_SLOT.title] = ann.title; // plain tools have none
       // Output schema + structuredContent for the plain tools. The widgets set
       // both themselves, so only fill an empty slot. Both halves must land
       // together: the SDK fails any call where a declared outputSchema has no
       // structuredContent to validate.
       const outShape = TOOL_OUTPUT_SCHEMAS[name];
-      if (outShape && !args[4]) {
+      if (outShape && !args[TOOL_SLOT.outputSchema]) {
         // An OPEN object, not the raw shape. From a raw shape the SDK publishes
         // "additionalProperties": false, while structuredContent is the API
         // response as it came, which carries fields the shape does not list
         // (get_post returns the whole post). A client that validates results
         // against the published schema, as the MCP SDK's own Client does, then
         // refuses a call that succeeded. The shape documents; it must not forbid.
-        args[4] = z.object(outShape).passthrough(); // outputSchema slot
-        const handler = args[8]; // _createRegisteredTool(..., execution, _meta, handler)
-        if (typeof handler === "function") {
-          const inner = handler as (...a: unknown[]) => unknown;
-          args[8] = async (...cbArgs: unknown[]) =>
-            attachStructured(await inner(...cbArgs), name);
-        }
+        args[TOOL_SLOT.outputSchema] = z.object(outShape).passthrough();
+        const inner = args[TOOL_SLOT.handler] as (...a: unknown[]) => unknown;
+        args[TOOL_SLOT.handler] = async (...cbArgs: unknown[]) =>
+          attachStructured(await inner(...cbArgs), name);
       }
+      args[TOOL_SLOT.inputSchema] = asDraft07(args[TOOL_SLOT.inputSchema]);
+      args[TOOL_SLOT.outputSchema] = asDraft07(args[TOOL_SLOT.outputSchema]);
+      // 1.x listed every tool with execution.taskSupport "forbidden"; 2.x omits
+      // the field unless set. Kept explicit until a tool actually supports tasks.
+      args[TOOL_SLOT.execution] ??= { taskSupport: "forbidden" };
       const { why: _why, title: _title, ...hints } = ann;
       // All four hints, explicit booleans, on every tool. Anything a call
       // site passes explicitly still wins.
-      args[5] = { ...hints, ...((args[5] as object) ?? {}) }; // annotations slot
+      args[TOOL_SLOT.annotations] = { ...hints, ...((args[TOOL_SLOT.annotations] as object) ?? {}) };
       const use = TOOL_USE_HINTS[name];
-      if (use && typeof args[2] === "string" && !(args[2] as string).includes("Use this when")) {
-        args[2] = (args[2] as string).replace(/\s+$/, "") + " Use this when " + use; // description slot
+      if (use && typeof args[TOOL_SLOT.description] === "string" && !(args[TOOL_SLOT.description] as string).includes("Use this when")) {
+        args[TOOL_SLOT.description] = (args[TOOL_SLOT.description] as string).replace(/\s+$/, "") + " Use this when " + use;
       }
       return bound(...args);
     };
@@ -1552,16 +1589,18 @@ export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } =
 // Tool: list_channels
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "list_channels",
-  "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status, plus a `capabilities` object saying whether the caller may create, publish or approve posts. Check that before attempting a write rather than discovering the permission from a 403.",
   {
-    active: z
-      .boolean()
-      .optional()
-      .describe(
-        "Filter by active status. Defaults to true (only active channels). false also includes up to 100 disconnected channels, most recently updated first."
-      ),
+    description: "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status, plus a `capabilities` object saying whether the caller may create, publish or approve posts. Check that before attempting a write rather than discovering the permission from a 403.",
+    inputSchema: {
+      active: z
+        .boolean()
+        .optional()
+        .describe(
+          "Filter by active status. Defaults to true (only active channels). false also includes up to 100 disconnected channels, most recently updated first."
+        ),
+    },
   },
   async ({ active }) => {
     const params = new URLSearchParams();
@@ -1576,20 +1615,22 @@ server.tool(
 // Tool: list_platforms
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "list_platforms",
-  "List every social platform BulkPublish supports and whether it is currently available. " +
-    "Check this before telling a user they can connect a platform or scheduling a post to one: " +
-    "a platform in state 'off' rejects post creation with a 403 PLATFORM_DISABLED error and holds " +
-    "any already-scheduled posts until it is re-enabled, and one in state 'connect_off' cannot accept " +
-    "new connections although existing channels keep publishing. Disabled platforms are still listed, " +
-    "with enabled=false and a reason. A platform may also carry a 'variants' object keyed by channel " +
-    "accountType for sub-platforms gated on their own: LinkedIn reports variants.organization for " +
-    "company pages (a separate LinkedIn app with its own review), while the platform-level state " +
-    "covers personal profiles — so pages can be paused while personal-profile posting is live. " +
-    "A variant is never more permissive than its parent, and when a variant blocks a write the 403 " +
-    "PLATFORM_DISABLED error carries an accountType field naming it.",
-  {},
+  {
+    description: "List every social platform BulkPublish supports and whether it is currently available. " +
+      "Check this before telling a user they can connect a platform or scheduling a post to one: " +
+      "a platform in state 'off' rejects post creation with a 403 PLATFORM_DISABLED error and holds " +
+      "any already-scheduled posts until it is re-enabled, and one in state 'connect_off' cannot accept " +
+      "new connections although existing channels keep publishing. Disabled platforms are still listed, " +
+      "with enabled=false and a reason. A platform may also carry a 'variants' object keyed by channel " +
+      "accountType for sub-platforms gated on their own: LinkedIn reports variants.organization for " +
+      "company pages (a separate LinkedIn app with its own review), while the platform-level state " +
+      "covers personal profiles — so pages can be paused while personal-profile posting is live. " +
+      "A variant is never more permissive than its parent, and when a variant blocks a write the 403 " +
+      "PLATFORM_DISABLED error carries an accountType field naming it.",
+    inputSchema: {},
+  },
   async () => {
     const res = await api("GET", "/api/platforms");
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -1693,150 +1734,152 @@ function validatePlatformRequirements(
 // Tool: create_post
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "create_post",
-  "Create a new social media post. Can be saved as a draft or scheduled for a specific time. Supports platform-specific content overrides, media attachments, labels, and thread format. " +
-    "IMPORTANT: YouTube requires a video. TikTok requires a video, or 1 to 35 images with postTypeOverrides.tiktok = \"photo_slideshow\". Do not include either on a text-only post. " +
-    "Instagram defaults to feed_photo — set postTypeOverrides for video content (reel, feed_video).",
   {
-    content: z
-      .string()
-      .optional()
-      .describe(
-        "The post text content. Optional — defaults to empty for media-only posts. " +
-        "LinkedIn mentions: write @[Display Name](urn:li:organization:ID) for a Page or @[Display Name](urn:li:person:ID) for a person; " +
-        "search_mentions on a LinkedIn channel returns ready-made Page tokens. The token publishes as a real mention on LinkedIn and as plain @Display Name on other channels."
-      ),
-    channels: z
-      .array(
-        z.object({
-          channelId: z.number().describe("Channel ID to post to, from list_channels."),
-          platform: PLATFORM_ENUM.describe(
-            "Platform name. One of the supported BulkPublish platforms."
-          ),
-        })
-      )
-      .describe(
-        "Array of channels to post to. Get channel IDs from list_channels."
-      ),
-    status: z
-      .enum(["draft", "scheduled"])
-      .optional()
-      .describe('Post status. "draft" (default) or "scheduled".'),
-    scheduledAt: z
-      .string()
-      .optional()
-      .describe(
-        "ISO 8601 datetime for scheduling (e.g. 2025-01-15T10:00:00Z). Required when status is scheduled."
-      ),
-    timezone: z
-      .string()
-      .optional()
-      .describe('Timezone for scheduling (e.g. "America/New_York"). Defaults to UTC.'),
-    mediaFileIds: z
-      .array(z.number())
-      .optional()
-      .describe(
-        "Array of media file IDs to attach. Upload media first with upload_media."
-      ),
-    labels: z
-      .array(z.number())
-      .optional()
-      .describe("Array of label IDs to tag the post with. Label IDs come from list_labels."),
-    platformSpecific: PLATFORM_SPECIFIC_SCHEMA,
-    platformContent: PLATFORM_CONTENT_SCHEMA,
-    platformMediaFileIds: PLATFORM_MEDIA_FILE_IDS_SCHEMA,
-    postFormat: z
-      .enum(["post", "video", "reel", "story", "carousel", "thread"])
-      .optional()
-      .describe('Post format. "post" (default), "video", "reel", "story", "carousel", or "thread" for multi-part threads.'),
-    threadParts: z
-      .array(
-        z.object({
-          content: z.string().describe("Thread part content."),
-          mediaFileIds: z
-            .array(z.number())
-            .optional()
-            .describe("Media files for this thread part."),
-        })
-      )
-      .optional()
-      .describe(
-        "Thread parts array. Required when postFormat is thread (min 2 parts). EVERY part is measured against the character limit of every platform the post targets, not only the first \u2014 an over-long part is rejected with 400 VALIDATION_ERROR naming the part number, the platform and its limit. URLs count as 23 characters on X and Mastodon, their real length elsewhere. A part with neither text nor media is left out when the thread publishes, since no network accepts an empty segment."
-      ),
-    postTypeOverrides: POST_TYPE_OVERRIDES_SCHEMA,
-    requestApproval: z
-      .boolean()
-      .optional()
-      .describe(
-        "Optional (default false). Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for API keys of roles without post:publish (contributors), regardless of this flag."
-      ),
-    publishWhenApproved: z
-      .boolean()
-      .optional()
-      .describe(
-        "Optional (default false). Set true on a post that waits for approval when it should go out as soon as it is approved, even if that is after its scheduled time. This is how someone who needs approval says 'publish now': status 'scheduled', scheduledAt = now, requestApproval true (or a contributor key), publishWhenApproved true. An approval arriving more than 15 minutes late then publishes immediately; with false it is approved but returned to draft for a new time. Stored only when the post ends up approvalStatus 'pending'; otherwise saved as false."
-      ),
-    linkTrackingOverride: z
-      .boolean()
-      .nullable()
-      .optional()
-      .describe(
-        "Optional per-post override for link tracking (bulkpubli.sh). true forces links in this post to be shortened and their clicks counted, false forces them to publish as written, and null/omitted (the default) inherits the organization's Link Tracking setting. Shortening happens at publish time, per channel, so two accounts on the same platform get distinct codes; it is skipped for a channel when the rewrite would push the post past that platform's character limit (a short URL is 28 characters and can be longer than the link it replaces). Short links are part of the Pro and Business plans: on Free, links always publish as written and true has no effect."
-      ),
-    platformThreadParts: z
-      .record(
-        z.string(),
-        z.array(
+    description: "Create a new social media post. Can be saved as a draft or scheduled for a specific time. Supports platform-specific content overrides, media attachments, labels, and thread format. " +
+      "IMPORTANT: YouTube requires a video. TikTok requires a video, or 1 to 35 images with postTypeOverrides.tiktok = \"photo_slideshow\". Do not include either on a text-only post. " +
+      "Instagram defaults to feed_photo — set postTypeOverrides for video content (reel, feed_video).",
+    inputSchema: {
+      content: z
+        .string()
+        .optional()
+        .describe(
+          "The post text content. Optional — defaults to empty for media-only posts. " +
+          "LinkedIn mentions: write @[Display Name](urn:li:organization:ID) for a Page or @[Display Name](urn:li:person:ID) for a person; " +
+          "search_mentions on a LinkedIn channel returns ready-made Page tokens. The token publishes as a real mention on LinkedIn and as plain @Display Name on other channels."
+        ),
+      channels: z
+        .array(
           z.object({
-            content: z.string().describe("Thread part content."),
-            mediaFileIds: z.array(z.number()).optional().describe("Media files for this thread part."),
+            channelId: z.number().describe("Channel ID to post to, from list_channels."),
+            platform: PLATFORM_ENUM.describe(
+              "Platform name. One of the supported BulkPublish platforms."
+            ),
           })
         )
-      )
-      .optional()
-      .describe(
-        'Optional per-platform thread overrides, keyed by platform, e.g. { "x": [{ "content": "Part 1" }, { "content": "Part 2" }] }. Part content must be a plain string.'
-      ),
-    deleteMediaAfterPublish: z
-      .boolean()
-      .optional()
-      .describe(
-        "Optional (default false: media is kept in the library). Set true to delete the attached media once every channel has published, so it stops counting toward the storage limit. Forced to false when repeatSchedule is set."
-      ),
-    repeatSchedule: z
-      .object({
-        frequency: z.enum(["daily", "weekly", "biweekly", "monthly"]).describe("How often the post repeats."),
-        daysOfWeek: z.array(z.number().int().min(0).max(6)).optional().describe("Weekly/biweekly: days to post on, 0=Sunday … 6=Saturday."),
-        dayOfMonth: z.number().int().min(1).max(31).optional().describe("Monthly: day of the month."),
-        timeOfDay: z.string().optional().describe("Time to post, HH:MM (24-hour)."),
-        timezone: z.string().optional().describe("IANA timezone for timeOfDay. Defaults to the post's timezone, then UTC."),
-      })
-      .optional()
-      .describe(
-        "Optional. Make this a repeating post: it is re-published on this cadence. Media on a repeating post is always kept (deleteMediaAfterPublish is forced to false), and its platformMediaFileIds choice is copied onto the schedule, so every run carries it."
-      ),
-    autoPlugEnabled: z
-      .boolean()
-      .optional()
-      .describe("Optional (default false). Automatically post a follow-up comment (autoPlugText) once the published post reaches autoPlugThreshold likes."),
-    autoPlugText: z.string().optional().describe("Optional. The follow-up comment text for auto-plug."),
-    autoPlugThreshold: z
-      .number()
-      .int()
-      .min(0)
-      .optional()
-      .describe("Optional (default 50). Likes needed before the auto-plug comment is posted."),
-    autoRepostEnabled: z
-      .boolean()
-      .optional()
-      .describe("Optional (default false). Automatically repost/reshare the post once it reaches autoRepostThreshold likes."),
-    autoRepostThreshold: z
-      .number()
-      .int()
-      .min(0)
-      .optional()
-      .describe("Optional (default 100). Likes needed before the post is reposted."),
+        .describe(
+          "Array of channels to post to. Get channel IDs from list_channels."
+        ),
+      status: z
+        .enum(["draft", "scheduled"])
+        .optional()
+        .describe('Post status. "draft" (default) or "scheduled".'),
+      scheduledAt: z
+        .string()
+        .optional()
+        .describe(
+          "ISO 8601 datetime for scheduling (e.g. 2025-01-15T10:00:00Z). Required when status is scheduled."
+        ),
+      timezone: z
+        .string()
+        .optional()
+        .describe('Timezone for scheduling (e.g. "America/New_York"). Defaults to UTC.'),
+      mediaFileIds: z
+        .array(z.number())
+        .optional()
+        .describe(
+          "Array of media file IDs to attach. Upload media first with upload_media."
+        ),
+      labels: z
+        .array(z.number())
+        .optional()
+        .describe("Array of label IDs to tag the post with. Label IDs come from list_labels."),
+      platformSpecific: PLATFORM_SPECIFIC_SCHEMA,
+      platformContent: PLATFORM_CONTENT_SCHEMA,
+      platformMediaFileIds: PLATFORM_MEDIA_FILE_IDS_SCHEMA,
+      postFormat: z
+        .enum(["post", "video", "reel", "story", "carousel", "thread"])
+        .optional()
+        .describe('Post format. "post" (default), "video", "reel", "story", "carousel", or "thread" for multi-part threads.'),
+      threadParts: z
+        .array(
+          z.object({
+            content: z.string().describe("Thread part content."),
+            mediaFileIds: z
+              .array(z.number())
+              .optional()
+              .describe("Media files for this thread part."),
+          })
+        )
+        .optional()
+        .describe(
+          "Thread parts array. Required when postFormat is thread (min 2 parts). EVERY part is measured against the character limit of every platform the post targets, not only the first \u2014 an over-long part is rejected with 400 VALIDATION_ERROR naming the part number, the platform and its limit. URLs count as 23 characters on X and Mastodon, their real length elsewhere. A part with neither text nor media is left out when the thread publishes, since no network accepts an empty segment."
+        ),
+      postTypeOverrides: POST_TYPE_OVERRIDES_SCHEMA,
+      requestApproval: z
+        .boolean()
+        .optional()
+        .describe(
+          "Optional (default false). Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for API keys of roles without post:publish (contributors), regardless of this flag."
+        ),
+      publishWhenApproved: z
+        .boolean()
+        .optional()
+        .describe(
+          "Optional (default false). Set true on a post that waits for approval when it should go out as soon as it is approved, even if that is after its scheduled time. This is how someone who needs approval says 'publish now': status 'scheduled', scheduledAt = now, requestApproval true (or a contributor key), publishWhenApproved true. An approval arriving more than 15 minutes late then publishes immediately; with false it is approved but returned to draft for a new time. Stored only when the post ends up approvalStatus 'pending'; otherwise saved as false."
+        ),
+      linkTrackingOverride: z
+        .boolean()
+        .nullable()
+        .optional()
+        .describe(
+          "Optional per-post override for link tracking (bulkpubli.sh). true forces links in this post to be shortened and their clicks counted, false forces them to publish as written, and null/omitted (the default) inherits the organization's Link Tracking setting. Shortening happens at publish time, per channel, so two accounts on the same platform get distinct codes; it is skipped for a channel when the rewrite would push the post past that platform's character limit (a short URL is 28 characters and can be longer than the link it replaces). Short links are part of the Pro and Business plans: on Free, links always publish as written and true has no effect."
+        ),
+      platformThreadParts: z
+        .record(
+          z.string(),
+          z.array(
+            z.object({
+              content: z.string().describe("Thread part content."),
+              mediaFileIds: z.array(z.number()).optional().describe("Media files for this thread part."),
+            })
+          )
+        )
+        .optional()
+        .describe(
+          'Optional per-platform thread overrides, keyed by platform, e.g. { "x": [{ "content": "Part 1" }, { "content": "Part 2" }] }. Part content must be a plain string.'
+        ),
+      deleteMediaAfterPublish: z
+        .boolean()
+        .optional()
+        .describe(
+          "Optional (default false: media is kept in the library). Set true to delete the attached media once every channel has published, so it stops counting toward the storage limit. Forced to false when repeatSchedule is set."
+        ),
+      repeatSchedule: z
+        .object({
+          frequency: z.enum(["daily", "weekly", "biweekly", "monthly"]).describe("How often the post repeats."),
+          daysOfWeek: z.array(z.number().int().min(0).max(6)).optional().describe("Weekly/biweekly: days to post on, 0=Sunday … 6=Saturday."),
+          dayOfMonth: z.number().int().min(1).max(31).optional().describe("Monthly: day of the month."),
+          timeOfDay: z.string().optional().describe("Time to post, HH:MM (24-hour)."),
+          timezone: z.string().optional().describe("IANA timezone for timeOfDay. Defaults to the post's timezone, then UTC."),
+        })
+        .optional()
+        .describe(
+          "Optional. Make this a repeating post: it is re-published on this cadence. Media on a repeating post is always kept (deleteMediaAfterPublish is forced to false), and its platformMediaFileIds choice is copied onto the schedule, so every run carries it."
+        ),
+      autoPlugEnabled: z
+        .boolean()
+        .optional()
+        .describe("Optional (default false). Automatically post a follow-up comment (autoPlugText) once the published post reaches autoPlugThreshold likes."),
+      autoPlugText: z.string().optional().describe("Optional. The follow-up comment text for auto-plug."),
+      autoPlugThreshold: z
+        .number()
+        .int()
+        .min(0)
+        .optional()
+        .describe("Optional (default 50). Likes needed before the auto-plug comment is posted."),
+      autoRepostEnabled: z
+        .boolean()
+        .optional()
+        .describe("Optional (default false). Automatically repost/reshare the post once it reaches autoRepostThreshold likes."),
+      autoRepostThreshold: z
+        .number()
+        .int()
+        .min(0)
+        .optional()
+        .describe("Optional (default 100). Likes needed before the post is reposted."),
+    },
   },
   async ({
     content,
@@ -1938,57 +1981,59 @@ server.tool(
 // Tool: list_posts
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "list_posts",
-  "List posts with optional filters for status, search text, date range, channel, and label. Returns paginated results with platform statuses and metrics, ordered newest-first by publishedAt if the post is live, else scheduledAt, else createdAt.",
   {
-    status: z
-      .enum(["draft", "scheduled", "publishing", "published", "processing", "failed", "partial"])
-      .optional()
-      .describe("Filter by post status."),
-    search: z.string().optional().describe("Search post content (case-insensitive)."),
-    page: z.number().optional().describe("Page number (default 1)."),
-    limit: z.number().optional().describe("Results per page (default 20, max 500)."),
-    channelId: z.number().optional().describe("Only posts on this channel. Channel IDs come from list_channels."),
-    labelId: z.number().optional().describe("Filter by a single label ID. Prefer labelIds."),
-    labelIds: z
-      .array(z.number())
-      .optional()
-      .describe("Filter by several label IDs (from list_labels). Combined per labelMode."),
-    labelMode: z
-      .enum(["or", "and"])
-      .optional()
-      .describe("How labelIds combine: 'or' (default) matches posts with any of them, 'and' only posts with all of them."),
-    recurring: z
-      .boolean()
-      .optional()
-      .describe("Set true to return only posts attached to a recurring schedule."),
-    from: z.string().optional().describe("Filter posts created on or after this ISO date."),
-    to: z.string().optional().describe("Filter posts created on or before this ISO date."),
-    scheduledFrom: z
-      .string()
-      .optional()
-      .describe("Filter posts scheduled on or after this ISO date."),
-    scheduledTo: z
-      .string()
-      .optional()
-      .describe("Filter posts scheduled on or before this ISO date."),
-    approvalStatus: z
-      .enum(["none", "pending", "approved", "rejected"])
-      .optional()
-      .describe("Filter by team approval state (e.g. 'pending' for the approval queue)."),
-    assignedTo: z
-      .string()
-      .optional()
-      .describe(
-        "Filter by who the post is assigned to: a user id, 'me' for the caller, or 'unassigned'. Orthogonal to status \u2014 a post can be scheduled AND assigned."
-      ),
-    order: z
-      .enum(["asc", "desc"])
-      .optional()
-      .describe(
-        "Direction of the timeline sort (published, else due, else created). 'desc' is the default and returns the most recent first. Use 'asc' to read what is coming NEXT \u2014 with a limit, 'desc' returns the posts scheduled furthest out, not the soonest."
-      ),
+    description: "List posts with optional filters for status, search text, date range, channel, and label. Returns paginated results with platform statuses and metrics, ordered newest-first by publishedAt if the post is live, else scheduledAt, else createdAt.",
+    inputSchema: {
+      status: z
+        .enum(["draft", "scheduled", "publishing", "published", "processing", "failed", "partial"])
+        .optional()
+        .describe("Filter by post status."),
+      search: z.string().optional().describe("Search post content (case-insensitive)."),
+      page: z.number().optional().describe("Page number (default 1)."),
+      limit: z.number().optional().describe("Results per page (default 20, max 500)."),
+      channelId: z.number().optional().describe("Only posts on this channel. Channel IDs come from list_channels."),
+      labelId: z.number().optional().describe("Filter by a single label ID. Prefer labelIds."),
+      labelIds: z
+        .array(z.number())
+        .optional()
+        .describe("Filter by several label IDs (from list_labels). Combined per labelMode."),
+      labelMode: z
+        .enum(["or", "and"])
+        .optional()
+        .describe("How labelIds combine: 'or' (default) matches posts with any of them, 'and' only posts with all of them."),
+      recurring: z
+        .boolean()
+        .optional()
+        .describe("Set true to return only posts attached to a recurring schedule."),
+      from: z.string().optional().describe("Filter posts created on or after this ISO date."),
+      to: z.string().optional().describe("Filter posts created on or before this ISO date."),
+      scheduledFrom: z
+        .string()
+        .optional()
+        .describe("Filter posts scheduled on or after this ISO date."),
+      scheduledTo: z
+        .string()
+        .optional()
+        .describe("Filter posts scheduled on or before this ISO date."),
+      approvalStatus: z
+        .enum(["none", "pending", "approved", "rejected"])
+        .optional()
+        .describe("Filter by team approval state (e.g. 'pending' for the approval queue)."),
+      assignedTo: z
+        .string()
+        .optional()
+        .describe(
+          "Filter by who the post is assigned to: a user id, 'me' for the caller, or 'unassigned'. Orthogonal to status \u2014 a post can be scheduled AND assigned."
+        ),
+      order: z
+        .enum(["asc", "desc"])
+        .optional()
+        .describe(
+          "Direction of the timeline sort (published, else due, else created). 'desc' is the default and returns the most recent first. Use 'asc' to read what is coming NEXT \u2014 with a limit, 'desc' returns the posts scheduled furthest out, not the soonest."
+        ),
+    },
   },
   async ({
     status,
@@ -2036,11 +2081,13 @@ server.tool(
 // Tool: get_post
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "get_post",
-  "Get a single post by ID with full details including platform statuses, labels, media files, recurring schedule info, and metrics. For a thread post, `threadParts` holds the parts and `threadMediaFiles` resolves the media they reference: that media is NOT in `mediaFiles`, which carries only the media on the post itself.",
   {
-    postId: z.number().describe("The post ID."),
+    description: "Get a single post by ID with full details including platform statuses, labels, media files, recurring schedule info, and metrics. For a thread post, `threadParts` holds the parts and `threadMediaFiles` resolves the media they reference: that media is NOT in `mediaFiles`, which carries only the media on the post itself.",
+    inputSchema: {
+      postId: z.number().describe("The post ID."),
+    },
   },
   async ({ postId }) => {
     const res = await api("GET", `/api/posts/${postId}`);
@@ -2052,13 +2099,15 @@ server.tool(
 // Tool: publish_post
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "publish_post",
-  "Publish a draft or scheduled post immediately. The post will be queued for publishing to all its target channels. " +
-    "Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). To 'publish now' with approval, create_post with status 'scheduled', scheduledAt = now, requestApproval true and publishWhenApproved true, so it goes out the moment it is approved. " +
-    "Publishing a pending/rejected post as an approver implicitly approves it.",
   {
-    postId: z.number().describe("The post ID to publish, from create_post or list_posts."),
+    description: "Publish a draft or scheduled post immediately. The post will be queued for publishing to all its target channels. " +
+      "Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED and must submit the post for approval instead (create/update with requestApproval, then a teammate approves). To 'publish now' with approval, create_post with status 'scheduled', scheduledAt = now, requestApproval true and publishWhenApproved true, so it goes out the moment it is approved. " +
+      "Publishing a pending/rejected post as an approver implicitly approves it.",
+    inputSchema: {
+      postId: z.number().describe("The post ID to publish, from create_post or list_posts."),
+    },
   },
   async ({ postId }) => {
     const res = await api("POST", `/api/posts/${postId}/publish`);
@@ -2070,19 +2119,21 @@ server.tool(
 // Tool: retry_post
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "retry_post",
-  "Retry publishing a failed or partially failed post. Only retries the platforms that failed, not the ones that already succeeded. " +
-    "Platforms in status 'unconfirmed' (the publish request may have reached the platform but its response was lost — the post may already be live) are NOT retried unless republish is true; " +
-    "if the post has unconfirmed platforms and no failed ones, the call fails with a 400 and code UNCONFIRMED_REQUIRES_REPUBLISH — ask the user to check the account on the platform, and only pass republish: true after they confirm the post is not live.",
   {
-    postId: z.number().describe("The post ID to retry."),
-    republish: z
-      .boolean()
-      .optional()
-      .describe(
-        "Explicit opt-in to also retry platforms in status 'unconfirmed'. Their publish may have already gone through, so this can DUPLICATE the post — only pass true after the user has checked the account and confirmed the post is not live. Defaults to false."
-      ),
+    description: "Retry publishing a failed or partially failed post. Only retries the platforms that failed, not the ones that already succeeded. " +
+      "Platforms in status 'unconfirmed' (the publish request may have reached the platform but its response was lost — the post may already be live) are NOT retried unless republish is true; " +
+      "if the post has unconfirmed platforms and no failed ones, the call fails with a 400 and code UNCONFIRMED_REQUIRES_REPUBLISH — ask the user to check the account on the platform, and only pass republish: true after they confirm the post is not live.",
+    inputSchema: {
+      postId: z.number().describe("The post ID to retry."),
+      republish: z
+        .boolean()
+        .optional()
+        .describe(
+          "Explicit opt-in to also retry platforms in status 'unconfirmed'. Their publish may have already gone through, so this can DUPLICATE the post — only pass true after the user has checked the account and confirmed the post is not live. Defaults to false."
+        ),
+    },
   },
   async ({ postId, republish }) => {
     const res = await api("POST", `/api/posts/${postId}/retry`, republish === undefined ? undefined : { republish });
@@ -2094,28 +2145,30 @@ server.tool(
 // Tool: approve_post
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "approve_post",
-  "Approve a post awaiting team approval. Requires a role with post:approve (owner, admin, approver). " +
-    "Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. " +
-    "If the scheduled time passed more than 15 minutes ago, whenLate decides: 'publish' publishes it immediately (status 'publishing'); 'hold' approves it but returns it with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time — tell the user it needs rescheduling. " +
-    "When whenLate is omitted it follows the post's publishWhenApproved: true means 'publish', false means 'hold'. If a late post's publishWhenApproved is false, ask the user whether to publish now or send it back before approving. The author is notified in-app either way. " +
-    "Approving sets publishWhenApproved to false. Pass the updatedAt of the version you showed the user as ifUnmodifiedSince, so an edit made since then is not approved unseen. " +
-    "Errors: 400 if the post is not awaiting approval, whenLate is not 'publish'/'hold' or ifUnmodifiedSince is not a timestamp, 403 if the role lacks post:approve, 404 if not found, 409 if the post changed since you loaded it (checked when ifUnmodifiedSince is sent) or is no longer awaiting approval — reload it with get_post and review again.",
   {
-    postId: z.number().describe("The post ID to approve."),
-    whenLate: z
-      .enum(["publish", "hold"])
-      .optional()
-      .describe(
-        "Optional. Only matters when the post's scheduled time passed more than 15 minutes ago: 'publish' = publish now, 'hold' = approve and return it to draft for the author to pick a new time. Defaults to 'publish' when the post's publishWhenApproved is true, otherwise 'hold'."
-      ),
-    ifUnmodifiedSince: z
-      .string()
-      .optional()
-      .describe(
-        "Optional. The post's updatedAt (ISO 8601) as you last loaded it with get_post. The approval only lands on that version; if the post changed since, nothing is written and the call returns 409."
-      ),
+    description: "Approve a post awaiting team approval. Requires a role with post:approve (owner, admin, approver). " +
+      "Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. " +
+      "If the scheduled time passed more than 15 minutes ago, whenLate decides: 'publish' publishes it immediately (status 'publishing'); 'hold' approves it but returns it with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time — tell the user it needs rescheduling. " +
+      "When whenLate is omitted it follows the post's publishWhenApproved: true means 'publish', false means 'hold'. If a late post's publishWhenApproved is false, ask the user whether to publish now or send it back before approving. The author is notified in-app either way. " +
+      "Approving sets publishWhenApproved to false. Pass the updatedAt of the version you showed the user as ifUnmodifiedSince, so an edit made since then is not approved unseen. " +
+      "Errors: 400 if the post is not awaiting approval, whenLate is not 'publish'/'hold' or ifUnmodifiedSince is not a timestamp, 403 if the role lacks post:approve, 404 if not found, 409 if the post changed since you loaded it (checked when ifUnmodifiedSince is sent) or is no longer awaiting approval — reload it with get_post and review again.",
+    inputSchema: {
+      postId: z.number().describe("The post ID to approve."),
+      whenLate: z
+        .enum(["publish", "hold"])
+        .optional()
+        .describe(
+          "Optional. Only matters when the post's scheduled time passed more than 15 minutes ago: 'publish' = publish now, 'hold' = approve and return it to draft for the author to pick a new time. Defaults to 'publish' when the post's publishWhenApproved is true, otherwise 'hold'."
+        ),
+      ifUnmodifiedSince: z
+        .string()
+        .optional()
+        .describe(
+          "Optional. The post's updatedAt (ISO 8601) as you last loaded it with get_post. The approval only lands on that version; if the post changed since, nothing is written and the call returns 409."
+        ),
+    },
   },
   async ({ postId, whenLate, ifUnmodifiedSince }) => {
     const body: Record<string, unknown> = {};
@@ -2134,25 +2187,27 @@ server.tool(
 // Tool: reject_post
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "reject_post",
-  "Reject a post awaiting team approval. Requires a role with post:approve. " +
-    "The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval. " +
-    "Rejecting sets publishWhenApproved to false. Pass the updatedAt you reviewed as ifUnmodifiedSince to refuse the rejection if the post changed since. " +
-    "Errors: 400 if the post is not awaiting approval or ifUnmodifiedSince is not a timestamp, 403 if the role lacks post:approve, 404 if not found, 409 if the post changed since you loaded it (checked when ifUnmodifiedSince is sent) or is no longer awaiting approval — reload it with get_post and review again.",
   {
-    postId: z.number().describe("The post ID to reject."),
-    reason: z
-      .string()
-      .max(2000)
-      .optional()
-      .describe("Optional reason (max 2000 chars). Shown to the author (in-app notification + on the post)."),
-    ifUnmodifiedSince: z
-      .string()
-      .optional()
-      .describe(
-        "Optional. The post's updatedAt (ISO 8601) as you last loaded it with get_post. If the post changed since, nothing is written and the call returns 409."
-      ),
+    description: "Reject a post awaiting team approval. Requires a role with post:approve. " +
+      "The post returns to draft with approvalStatus 'rejected' and the optional reason; the author is notified and can edit + reschedule to resubmit for approval. " +
+      "Rejecting sets publishWhenApproved to false. Pass the updatedAt you reviewed as ifUnmodifiedSince to refuse the rejection if the post changed since. " +
+      "Errors: 400 if the post is not awaiting approval or ifUnmodifiedSince is not a timestamp, 403 if the role lacks post:approve, 404 if not found, 409 if the post changed since you loaded it (checked when ifUnmodifiedSince is sent) or is no longer awaiting approval — reload it with get_post and review again.",
+    inputSchema: {
+      postId: z.number().describe("The post ID to reject."),
+      reason: z
+        .string()
+        .max(2000)
+        .optional()
+        .describe("Optional reason (max 2000 chars). Shown to the author (in-app notification + on the post)."),
+      ifUnmodifiedSince: z
+        .string()
+        .optional()
+        .describe(
+          "Optional. The post's updatedAt (ISO 8601) as you last loaded it with get_post. If the post changed since, nothing is written and the call returns 409."
+        ),
+    },
   },
   async ({ postId, reason, ifUnmodifiedSince }) => {
     const body: Record<string, unknown> = {};
@@ -2335,14 +2390,16 @@ server.registerTool(
 // Tool: list_media
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "list_media",
-  "List uploaded media files with optional search and pagination. Returns file metadata including URLs, dimensions, and labels.",
   {
-    search: z.string().optional().describe("Search by filename."),
-    page: z.number().optional().describe("Page number (default 1)."),
-    limit: z.number().optional().describe("Results per page (default 20, max 100)."),
-    type: z.enum(["image", "video", "document"]).optional().describe("Filter by media kind: image, video or document (PDF, Word and PowerPoint files). Omit for all files. The response's `total` counts matches across all pages."),
+    description: "List uploaded media files with optional search and pagination. Returns file metadata including URLs, dimensions, and labels.",
+    inputSchema: {
+      search: z.string().optional().describe("Search by filename."),
+      page: z.number().optional().describe("Page number (default 1)."),
+      limit: z.number().optional().describe("Results per page (default 20, max 100)."),
+      type: z.enum(["image", "video", "document"]).optional().describe("Filter by media kind: image, video or document (PDF, Word and PowerPoint files). Omit for all files. The response's `total` counts matches across all pages."),
+    },
   },
   async ({ search, page, limit, type }) => {
     const params = new URLSearchParams();
@@ -2361,19 +2418,21 @@ server.tool(
 // Tool: get_analytics
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "get_analytics",
-  "Get an analytics summary for a date range. Returns total posts, status breakdown (published, failed, scheduled), per-platform stats, and daily post counts. Optional filters narrow every figure to matching posts; `compare` adds the equal-length previous window under `previous` (available for windows of 15 days or fewer — the 30-day statistics-retention cap applies).",
   {
-    from: z.string().describe("Start date in ISO format (e.g. 2025-01-01)."),
-    to: z.string().describe("End date in ISO format (e.g. 2025-01-31)."),
-    channelIds: z.string().optional().describe("Comma-separated channel ids to include, e.g. \"12,15\". Ids come from list_channels."),
-    platforms: z.string().optional().describe("Comma-separated platform keys to include, e.g. \"x,linkedin\"."),
-    labelIds: z.string().optional().describe("Comma-separated label ids (from list_labels); a post matches when it carries ANY of them."),
-    postFormat: z.enum(["post", "thread"]).optional().describe("Only single posts or only threads."),
-    mediaType: z.enum(["text", "image", "video"]).optional().describe("By the post's first media file: text (no media), image or video."),
-    compare: z.boolean().optional().describe("Also return the previous equal-length window as `previous` / `previousWindow`."),
-    tz: z.string().optional().describe("IANA timezone (e.g. \"Asia/Karachi\") that sets where each day starts and ends and how daily counts are grouped. Defaults to UTC; pass the user's zone so 'today' and daily figures match their calendar."),
+    description: "Get an analytics summary for a date range. Returns total posts, status breakdown (published, failed, scheduled), per-platform stats, and daily post counts. Optional filters narrow every figure to matching posts; `compare` adds the equal-length previous window under `previous` (available for windows of 15 days or fewer — the 30-day statistics-retention cap applies).",
+    inputSchema: {
+      from: z.string().describe("Start date in ISO format (e.g. 2025-01-01)."),
+      to: z.string().describe("End date in ISO format (e.g. 2025-01-31)."),
+      channelIds: z.string().optional().describe("Comma-separated channel ids to include, e.g. \"12,15\". Ids come from list_channels."),
+      platforms: z.string().optional().describe("Comma-separated platform keys to include, e.g. \"x,linkedin\"."),
+      labelIds: z.string().optional().describe("Comma-separated label ids (from list_labels); a post matches when it carries ANY of them."),
+      postFormat: z.enum(["post", "thread"]).optional().describe("Only single posts or only threads."),
+      mediaType: z.enum(["text", "image", "video"]).optional().describe("By the post's first media file: text (no media), image or video."),
+      compare: z.boolean().optional().describe("Also return the previous equal-length window as `previous` / `previousWindow`."),
+      tz: z.string().optional().describe("IANA timezone (e.g. \"Asia/Karachi\") that sets where each day starts and ends and how daily counts are grouped. Defaults to UTC; pass the user's zone so 'today' and daily figures match their calendar."),
+    },
   },
   async ({ from, to, channelIds, platforms, labelIds, postFormat, mediaType, compare, tz }) => {
     const params = new URLSearchParams({ from, to });
@@ -2393,14 +2452,16 @@ server.tool(
 // Tools: account and engagement analytics
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "get_account_analytics",
-  "Daily account snapshots per connected channel: followers, impressions, reach and profile views, for a date range of up to the last 30 days. Use it for how an account is growing; use get_engagement_analytics for how posts performed. engagementRate is always null here (no platform reports one per account), profileViews is reported by Facebook only and websiteClicks by Google Business only, so a 0 for those elsewhere means not reported.",
   {
-    from: z.string().optional().describe("Start date, YYYY-MM-DD. Defaults to 30 days ago; earlier dates are raised to 30 days ago."),
-    to: z.string().optional().describe("End date, YYYY-MM-DD. Defaults to today."),
-    channelIds: z.string().optional().describe("Comma-separated channel ids to include, e.g. \"12,15\". Ids come from list_channels."),
-    platforms: z.string().optional().describe("Comma-separated platform keys to include, e.g. \"instagram,linkedin\"."),
+    description: "Daily account snapshots per connected channel: followers, impressions, reach and profile views, for a date range of up to the last 30 days. Use it for how an account is growing; use get_engagement_analytics for how posts performed. engagementRate is always null here (no platform reports one per account), profileViews is reported by Facebook only and websiteClicks by Google Business only, so a 0 for those elsewhere means not reported.",
+    inputSchema: {
+      from: z.string().optional().describe("Start date, YYYY-MM-DD. Defaults to 30 days ago; earlier dates are raised to 30 days ago."),
+      to: z.string().optional().describe("End date, YYYY-MM-DD. Defaults to today."),
+      channelIds: z.string().optional().describe("Comma-separated channel ids to include, e.g. \"12,15\". Ids come from list_channels."),
+      platforms: z.string().optional().describe("Comma-separated platform keys to include, e.g. \"instagram,linkedin\"."),
+    },
   },
   async ({ from, to, channelIds, platforms }) => {
     const params = new URLSearchParams();
@@ -2414,25 +2475,27 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "get_engagement_analytics",
-  "Engagement across posts in a date range (at most 30 days): impressions, reach, likes, comments, shares, saves, clicks and video views, with totals per platform and per day and a ranked list of top posts. Pass top=true for just the leaderboard. Platforms listed in unmeasuredPlatforms cannot report per-post metrics, so their zeros mean not reported, not measured zero.",
   {
-    from: z.string().describe("Start date, YYYY-MM-DD. Clamped to at most 30 days before `to`."),
-    to: z.string().describe("End date, YYYY-MM-DD."),
-    tz: z.string().optional().describe("IANA timezone (e.g. \"Asia/Karachi\") that sets where each day starts and how byDay is grouped. Defaults to UTC; pass the same zone as to get_analytics so the two agree."),
-    channelIds: z.string().optional().describe("Comma-separated channel ids to include. Ids come from list_channels."),
-    platforms: z.string().optional().describe("Comma-separated platform keys to include."),
-    labelIds: z.string().optional().describe("Comma-separated label ids (from list_labels); a post matches when it carries ANY of them."),
-    postFormat: z.enum(["post", "thread"]).optional().describe("Only single posts or only threads."),
-    mediaType: z.enum(["text", "image", "video"]).optional().describe("By the post's first media file: text (no media), image or video."),
-    top: z.boolean().optional().describe("true returns only topPosts (allPosts comes back empty), which is much smaller for a long window."),
-    topBy: z
-      .enum(["impressions", "reach", "likes", "comments", "shares", "saves", "clicks", "videoViews", "linkClicks", "engagements", "engagementRate"])
-      .optional()
-      .describe("What topPosts is ranked by (default impressions). engagements = likes + comments + shares + clicks."),
-    topOrder: z.enum(["asc", "desc"]).optional().describe("desc (default) for the best posts, asc for the worst."),
-    compare: z.boolean().optional().describe("Also return the previous equal-length window as `previous` / `previousWindow`."),
+    description: "Engagement across posts in a date range (at most 30 days): impressions, reach, likes, comments, shares, saves, clicks and video views, with totals per platform and per day and a ranked list of top posts. Pass top=true for just the leaderboard. Platforms listed in unmeasuredPlatforms cannot report per-post metrics, so their zeros mean not reported, not measured zero.",
+    inputSchema: {
+      from: z.string().describe("Start date, YYYY-MM-DD. Clamped to at most 30 days before `to`."),
+      to: z.string().describe("End date, YYYY-MM-DD."),
+      tz: z.string().optional().describe("IANA timezone (e.g. \"Asia/Karachi\") that sets where each day starts and how byDay is grouped. Defaults to UTC; pass the same zone as to get_analytics so the two agree."),
+      channelIds: z.string().optional().describe("Comma-separated channel ids to include. Ids come from list_channels."),
+      platforms: z.string().optional().describe("Comma-separated platform keys to include."),
+      labelIds: z.string().optional().describe("Comma-separated label ids (from list_labels); a post matches when it carries ANY of them."),
+      postFormat: z.enum(["post", "thread"]).optional().describe("Only single posts or only threads."),
+      mediaType: z.enum(["text", "image", "video"]).optional().describe("By the post's first media file: text (no media), image or video."),
+      top: z.boolean().optional().describe("true returns only topPosts (allPosts comes back empty), which is much smaller for a long window."),
+      topBy: z
+        .enum(["impressions", "reach", "likes", "comments", "shares", "saves", "clicks", "videoViews", "linkClicks", "engagements", "engagementRate"])
+        .optional()
+        .describe("What topPosts is ranked by (default impressions). engagements = likes + comments + shares + clicks."),
+      topOrder: z.enum(["asc", "desc"]).optional().describe("desc (default) for the best posts, asc for the worst."),
+      compare: z.boolean().optional().describe("Also return the previous equal-length window as `previous` / `previousWindow`."),
+    },
   },
   async ({ from, to, tz, channelIds, platforms, labelIds, postFormat, mediaType, top, topBy, topOrder, compare }) => {
     const params = new URLSearchParams({ from, to });
@@ -2455,14 +2518,16 @@ server.tool(
 // Tool: list_labels
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "list_labels",
-  "List the labels available for tagging posts and media, sorted by name. Returns at most 500 (the first 500 alphabetically).",
   {
-    type: z
-      .enum(["post", "media"])
-      .optional()
-      .describe('Filter by label type: "post" or "media". Returns all if omitted.'),
+    description: "List the labels available for tagging posts and media, sorted by name. Returns at most 500 (the first 500 alphabetically).",
+    inputSchema: {
+      type: z
+        .enum(["post", "media"])
+        .optional()
+        .describe('Filter by label type: "post" or "media". Returns all if omitted.'),
+    },
   },
   async ({ type }) => {
     const params = new URLSearchParams();
@@ -2477,19 +2542,21 @@ server.tool(
 // Tool: create_label
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "create_label",
-  "Create a new label for organizing posts or media files.",
   {
-    name: z.string().describe("Label name."),
-    color: z
-      .string()
-      .optional()
-      .describe('Hex color code (e.g. "#6366f1"). Defaults to indigo.'),
-    type: z
-      .enum(["post", "media"])
-      .optional()
-      .describe('Label type: "post" (default) or "media".'),
+    description: "Create a new label for organizing posts or media files.",
+    inputSchema: {
+      name: z.string().describe("Label name."),
+      color: z
+        .string()
+        .optional()
+        .describe('Hex color code (e.g. "#6366f1"). Defaults to indigo.'),
+      type: z
+        .enum(["post", "media"])
+        .optional()
+        .describe('Label type: "post" (default) or "media".'),
+    },
   },
   async ({ name, color, type }) => {
     const body: Record<string, unknown> = { name };
@@ -2504,22 +2571,26 @@ server.tool(
 // Tools: hashtag groups
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "list_hashtag_groups",
-  "List the organization's saved hashtag groups — named sets of hashtags to drop into a post.",
-  {},
+  {
+    description: "List the organization's saved hashtag groups — named sets of hashtags to drop into a post.",
+    inputSchema: {},
+  },
   async () => {
     const res = await api("GET", "/api/hashtag-groups");
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );
 
-server.tool(
+server.registerTool(
   "create_hashtag_group",
-  "Save a named set of hashtags (1-30) for reuse in posts. Hashtags may be given with or without the leading '#'; letters, digits and underscores only. Up to 100 groups per organization.",
   {
-    name: z.string().max(100).describe("Group name, unique per organization."),
-    hashtags: z.array(z.string()).min(1).max(30).describe("Hashtags, e.g. [\"launch\", \"#newproduct\"]."),
+    description: "Save a named set of hashtags (1-30) for reuse in posts. Hashtags may be given with or without the leading '#'; letters, digits and underscores only. Up to 100 groups per organization.",
+    inputSchema: {
+      name: z.string().max(100).describe("Group name, unique per organization."),
+      hashtags: z.array(z.string()).min(1).max(30).describe("Hashtags, e.g. [\"launch\", \"#newproduct\"]."),
+    },
   },
   async ({ name, hashtags }) => {
     const res = await api("POST", "/api/hashtag-groups", { name, hashtags });
@@ -2527,13 +2598,15 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "update_hashtag_group",
-  "Rename a hashtag group and/or replace its hashtags (partial update — at least one field is required).",
   {
-    groupId: z.number().describe("The hashtag group ID."),
-    name: z.string().max(100).optional().describe("New name."),
-    hashtags: z.array(z.string()).min(1).max(30).optional().describe("Replacement hashtag list."),
+    description: "Rename a hashtag group and/or replace its hashtags (partial update — at least one field is required).",
+    inputSchema: {
+      groupId: z.number().describe("The hashtag group ID."),
+      name: z.string().max(100).optional().describe("New name."),
+      hashtags: z.array(z.string()).min(1).max(30).optional().describe("Replacement hashtag list."),
+    },
   },
   async ({ groupId, name, hashtags }) => {
     const body: Record<string, unknown> = {};
@@ -2544,11 +2617,13 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "delete_hashtag_group",
-  "Delete a saved hashtag group. Posts that already contain its hashtags are untouched.",
   {
-    groupId: z.number().describe("The hashtag group ID to delete."),
+    description: "Delete a saved hashtag group. Posts that already contain its hashtags are untouched.",
+    inputSchema: {
+      groupId: z.number().describe("The hashtag group ID to delete."),
+    },
   },
   async ({ groupId }) => {
     const res = await api("DELETE", `/api/hashtag-groups/${groupId}`);
@@ -2560,11 +2635,13 @@ server.tool(
 // Tools: post templates
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "list_templates",
-  "List the organization's saved post templates — reusable text to start a new post from. A caption template may also keep a post setup (channelIds, postFormat, postTypeOverrides, mediaFileIds, platformMediaFileIds, platformContent) to pass on to create_post; each template carries `media`, its files that are still in the media library. Filter by kind to get saved first-comment snippets instead of captions.",
   {
-    kind: z.enum(["caption", "first_comment"]).optional().describe("Which kind of saved text to list. Defaults to caption."),
+    description: "List the organization's saved post templates — reusable text to start a new post from. A caption template may also keep a post setup (channelIds, postFormat, postTypeOverrides, mediaFileIds, platformMediaFileIds, platformContent) to pass on to create_post; each template carries `media`, its files that are still in the media library. Filter by kind to get saved first-comment snippets instead of captions.",
+    inputSchema: {
+      kind: z.enum(["caption", "first_comment"]).optional().describe("Which kind of saved text to list. Defaults to caption."),
+    },
   },
   async ({ kind }) => {
     const params = new URLSearchParams();
@@ -2603,14 +2680,16 @@ const templateSetupShape = (clearable: boolean) => {
 };
 const TEMPLATE_SETUP_KEYS = ["channelIds", "postFormat", "postTypeOverrides", "mediaFileIds", "platformMediaFileIds", "platformContent"] as const;
 
-server.tool(
+server.registerTool(
   "create_template",
-  "Save post text as a named template for reuse. A caption template can also keep a post setup: channels, post format, per-platform post types, media, and per-platform media and text (caption templates only; sending them with kind first_comment is refused). Text may be left out when the template sets any of these to something (an empty text with only channelIds: [] is refused). Channels and media must belong to the workspace. Per-platform publish options (platformSpecific) belong to the post. Up to 200 per organization per kind (captions and first-comment snippets each have their own 200); names are unique per kind, so a caption and a first-comment snippet can share a name.",
   {
-    name: z.string().max(100).describe("Template name."),
-    content: z.string().max(10000).optional().describe("Template text. Required unless a caption template sets one of the setup fields."),
-    kind: z.enum(["caption", "first_comment"]).optional().describe("What the text is for: a post caption, or a first-comment reply. Defaults to caption."),
-    ...templateSetupShape(false),
+    description: "Save post text as a named template for reuse. A caption template can also keep a post setup: channels, post format, per-platform post types, media, and per-platform media and text (caption templates only; sending them with kind first_comment is refused). Text may be left out when the template sets any of these to something (an empty text with only channelIds: [] is refused). Channels and media must belong to the workspace. Per-platform publish options (platformSpecific) belong to the post. Up to 200 per organization per kind (captions and first-comment snippets each have their own 200); names are unique per kind, so a caption and a first-comment snippet can share a name.",
+    inputSchema: {
+      name: z.string().max(100).describe("Template name."),
+      content: z.string().max(10000).optional().describe("Template text. Required unless a caption template sets one of the setup fields."),
+      kind: z.enum(["caption", "first_comment"]).optional().describe("What the text is for: a post caption, or a first-comment reply. Defaults to caption."),
+      ...templateSetupShape(false),
+    },
   },
   async (args) => {
     const { name, content, kind } = args;
@@ -2623,14 +2702,16 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "update_template",
-  "Rename a template, replace its text, and/or change the post setup a caption template keeps (partial update — at least one field is required; null clears a setup field).",
   {
-    templateId: z.number().describe("The template ID."),
-    name: z.string().max(100).optional(),
-    content: z.string().max(10000).optional(),
-    ...templateSetupShape(true),
+    description: "Rename a template, replace its text, and/or change the post setup a caption template keeps (partial update — at least one field is required; null clears a setup field).",
+    inputSchema: {
+      templateId: z.number().describe("The template ID."),
+      name: z.string().max(100).optional(),
+      content: z.string().max(10000).optional(),
+      ...templateSetupShape(true),
+    },
   },
   async (args) => {
     const { templateId, name, content } = args;
@@ -2643,10 +2724,12 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "delete_template",
-  "Delete a saved post template.",
-  { templateId: z.number().describe("The template ID to delete.") },
+  {
+    description: "Delete a saved post template.",
+    inputSchema: { templateId: z.number().describe("The template ID to delete.") },
+  },
   async ({ templateId }) => {
     const res = await api("DELETE", `/api/templates/${templateId}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -2657,12 +2740,14 @@ server.tool(
 // Tools: calendar notes
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "list_calendar_notes",
-  "List calendar notes (free text pinned to a day — campaigns, holidays, 'no posts this week'; they never publish) in a date range of at most a year. Returns at most 1000 notes, earliest first; narrow the range to see more.",
   {
-    from: z.string().describe("Start date, YYYY-MM-DD (inclusive)."),
-    to: z.string().describe("End date, YYYY-MM-DD (inclusive)."),
+    description: "List calendar notes (free text pinned to a day — campaigns, holidays, 'no posts this week'; they never publish) in a date range of at most a year. Returns at most 1000 notes, earliest first; narrow the range to see more.",
+    inputSchema: {
+      from: z.string().describe("Start date, YYYY-MM-DD (inclusive)."),
+      to: z.string().describe("End date, YYYY-MM-DD (inclusive)."),
+    },
   },
   async ({ from, to }) => {
     const res = await api("GET", `/api/calendar-notes?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
@@ -2670,13 +2755,15 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "create_calendar_note",
-  "Pin a note to a day on the content calendar. Not a post: nothing is published. A workspace may keep up to 5000 notes (400 LIMIT_REACHED beyond that).",
   {
-    date: z.string().describe("Calendar date, YYYY-MM-DD."),
-    body: z.string().max(2000).describe("Note text."),
-    color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().describe("Six-digit hex colour, default #F59E0B."),
+    description: "Pin a note to a day on the content calendar. Not a post: nothing is published. A workspace may keep up to 5000 notes (400 LIMIT_REACHED beyond that).",
+    inputSchema: {
+      date: z.string().describe("Calendar date, YYYY-MM-DD."),
+      body: z.string().max(2000).describe("Note text."),
+      color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().describe("Six-digit hex colour, default #F59E0B."),
+    },
   },
   async ({ date, body, color }) => {
     const payload: Record<string, unknown> = { date, body };
@@ -2686,14 +2773,16 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "update_calendar_note",
-  "Change a calendar note's day, text and/or colour (partial update — at least one field is required).",
   {
-    noteId: z.number().describe("The note ID."),
-    date: z.string().optional().describe("New date, YYYY-MM-DD."),
-    body: z.string().max(2000).optional(),
-    color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+    description: "Change a calendar note's day, text and/or colour (partial update — at least one field is required).",
+    inputSchema: {
+      noteId: z.number().describe("The note ID."),
+      date: z.string().optional().describe("New date, YYYY-MM-DD."),
+      body: z.string().max(2000).optional(),
+      color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+    },
   },
   async ({ noteId, date, body, color }) => {
     const payload: Record<string, unknown> = {};
@@ -2705,10 +2794,12 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "delete_calendar_note",
-  "Delete a calendar note.",
-  { noteId: z.number().describe("The note ID to delete.") },
+  {
+    description: "Delete a calendar note.",
+    inputSchema: { noteId: z.number().describe("The note ID to delete.") },
+  },
   async ({ noteId }) => {
     const res = await api("DELETE", `/api/calendar-notes/${noteId}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -2719,12 +2810,14 @@ server.tool(
 // Tools: post review links
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "share_post",
-  "Create (or fetch) a post's read-only review link that anyone can open without signing in — for client approval outside the app. Returns { shareToken, url, created }. regenerate=true mints a new link and kills the old one. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
   {
-    postId: z.number().describe("The post ID."),
-    regenerate: z.boolean().optional().describe("Mint a new token, invalidating the previous link."),
+    description: "Create (or fetch) a post's read-only review link that anyone can open without signing in — for client approval outside the app. Returns { shareToken, url, created }. regenerate=true mints a new link and kills the old one. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+    inputSchema: {
+      postId: z.number().describe("The post ID."),
+      regenerate: z.boolean().optional().describe("Mint a new token, invalidating the previous link."),
+    },
   },
   async ({ postId, regenerate }) => {
     const res = await api("POST", `/api/posts/${postId}/share`, regenerate ? { regenerate: true } : {});
@@ -2732,10 +2825,12 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "unshare_post",
-  "Revoke a post's review link so the URL stops working. Idempotent. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
-  { postId: z.number().describe("The post ID.") },
+  {
+    description: "Revoke a post's review link so the URL stops working. Idempotent. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+    inputSchema: { postId: z.number().describe("The post ID.") },
+  },
   async ({ postId }) => {
     const res = await api("DELETE", `/api/posts/${postId}/share`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -2746,12 +2841,14 @@ server.tool(
 // Tools: client review links (a batch of posts, not just one)
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "list_review_links",
-  "List the organization's client review links (batch review links), newest first, with how many posts each one covers. Paged: returns { reviewLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
   {
-    page: z.number().optional().describe("Page number (default 1)."),
-    limit: z.number().optional().describe("Links per page (default 50, max 100)."),
+    description: "List the organization's client review links (batch review links), newest first, with how many posts each one covers. Paged: returns { reviewLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+    inputSchema: {
+      page: z.number().optional().describe("Page number (default 1)."),
+      limit: z.number().optional().describe("Links per page (default 50, max 100)."),
+    },
   },
   async ({ page, limit }) => {
     const params = new URLSearchParams();
@@ -2763,12 +2860,14 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "create_review_link",
-  "Create a read-only review link covering several posts at once — the multi-post counterpart of share_post. Anyone with the link can open it without signing in. Every postId must belong to the organization. Unlike share_post this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns { reviewLink, url }. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
   {
-    postIds: z.array(z.number()).min(1).max(50).describe("Post IDs to cover, up to 50 per link."),
-    name: z.string().max(150).optional().describe("Optional label shown only to your team (e.g. the client's name) — never shown on the public page."),
+    description: "Create a read-only review link covering several posts at once — the multi-post counterpart of share_post. Anyone with the link can open it without signing in. Every postId must belong to the organization. Unlike share_post this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns { reviewLink, url }. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+    inputSchema: {
+      postIds: z.array(z.number()).min(1).max(50).describe("Post IDs to cover, up to 50 per link."),
+      name: z.string().max(150).optional().describe("Optional label shown only to your team (e.g. the client's name) — never shown on the public page."),
+    },
   },
   async ({ postIds, name }) => {
     const body: Record<string, unknown> = { postIds };
@@ -2778,10 +2877,12 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "delete_review_link",
-  "Revoke a client review link. The posts it covered are untouched. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
-  { reviewLinkId: z.number().describe("The review link ID.") },
+  {
+    description: "Revoke a client review link. The posts it covered are untouched. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+    inputSchema: { reviewLinkId: z.number().describe("The review link ID.") },
+  },
   async ({ reviewLinkId }) => {
     const res = await api("DELETE", `/api/review-links/${reviewLinkId}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -2797,12 +2898,14 @@ const CLIENT_CONNECT_PLATFORMS = [
   "gmb", "linkedin", "mastodon", "discord", "tumblr", "snapchat",
 ] as const;
 
-server.tool(
+server.registerTool(
   "list_client_connect_links",
-  "List the organization's client-connect links, newest first — one-time links a client can open, with no BulkPublish account, to connect their own platform account. Paged: returns { clientConnectLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
   {
-    page: z.number().optional().describe("Page number (default 1)."),
-    limit: z.number().optional().describe("Links per page (default 50, max 100)."),
+    description: "List the organization's client-connect links, newest first — one-time links a client can open, with no BulkPublish account, to connect their own platform account. Paged: returns { clientConnectLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+    inputSchema: {
+      page: z.number().optional().describe("Page number (default 1)."),
+      limit: z.number().optional().describe("Links per page (default 50, max 100)."),
+    },
   },
   async ({ page, limit }) => {
     const params = new URLSearchParams();
@@ -2814,11 +2917,13 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "create_client_connect_link",
-  `Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (telegram asks for a bot token instead of a plain sign-in, and stays a manual connect by your own team): ${CLIENT_CONNECT_PLATFORMS.join(", ")}. For bluesky, the client enters their handle and approves access on Bluesky; they are never asked for a password. For facebook, the client signs in to Facebook and then picks which one of their Pages to connect. For mastodon, they first enter the address of the server their account is on. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.`,
   {
-    name: z.string().max(150).describe("Your own label for the client (e.g. \"Acme Corp\"). Never shown to the client — only applied to the resulting channel so you can tell whose account it is."),
+    description: `Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (telegram asks for a bot token instead of a plain sign-in, and stays a manual connect by your own team): ${CLIENT_CONNECT_PLATFORMS.join(", ")}. For bluesky, the client enters their handle and approves access on Bluesky; they are never asked for a password. For facebook, the client signs in to Facebook and then picks which one of their Pages to connect. For mastodon, they first enter the address of the server their account is on. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.`,
+    inputSchema: {
+      name: z.string().max(150).describe("Your own label for the client (e.g. \"Acme Corp\"). Never shown to the client — only applied to the resulting channel so you can tell whose account it is."),
+    },
   },
   async ({ name }) => {
     const res = await api("POST", "/api/client-connect-links", { name });
@@ -2826,10 +2931,12 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "delete_client_connect_link",
-  "Revoke a client-connect link before it has been used. Idempotent; an account it already connected is untouched. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
-  { clientConnectLinkId: z.number().describe("The client-connect link ID.") },
+  {
+    description: "Revoke a client-connect link before it has been used. Idempotent; an account it already connected is untouched. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+    inputSchema: { clientConnectLinkId: z.number().describe("The client-connect link ID.") },
+  },
   async ({ clientConnectLinkId }) => {
     const res = await api("DELETE", `/api/client-connect-links/${clientConnectLinkId}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -2840,12 +2947,14 @@ server.tool(
 // Tool: update_media (alt text)
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "update_media",
-  "Set a media file's alt text (accessibility description). It belongs to the file, so one value covers every post that reuses it, and is sent to Instagram, LinkedIn, X, Bluesky, Tumblr and Discord. Pass an empty string to clear.",
   {
-    mediaId: z.number().describe("The media file ID."),
-    altText: z.string().max(1000).describe("Description of the image for people who cannot see it. Empty string clears it."),
+    description: "Set a media file's alt text (accessibility description). It belongs to the file, so one value covers every post that reuses it, and is sent to Instagram, LinkedIn, X, Bluesky, Tumblr and Discord. Pass an empty string to clear.",
+    inputSchema: {
+      mediaId: z.number().describe("The media file ID."),
+      altText: z.string().max(1000).describe("Description of the image for people who cannot see it. Empty string clears it."),
+    },
   },
   async ({ mediaId, altText }) => {
     const res = await api("PATCH", `/api/media/${mediaId}`, { altText: altText || null });
@@ -2860,11 +2969,13 @@ server.tool(
 // ---------------------------------------------------------------------------
 
 if (!HIDE_BILLING_TOOLS) {
-  server.tool(
+  server.registerTool(
     "get_quota_usage",
-    "Check current account usage. Returns daily/monthly post counts, scheduled post counts, channel counts, and media storage usage. " +
-      "Also returns channelSlots — purchased extra channel slots ($2.99/month each, available on every plan; a seat-based subscription whose unused slots are auto-canceled before renewal): each active slot raises the effective total channel limit by one and allows one channel above the per-platform cap; per-slot autoRenews says whether it renews or lapses at expiresAt.",
-    {},
+    {
+      description: "Check current account usage. Returns daily/monthly post counts, scheduled post counts, channel counts, and media storage usage. " +
+        "Also returns channelSlots — purchased extra channel slots ($2.99/month each, available on every plan; a seat-based subscription whose unused slots are auto-canceled before renewal): each active slot raises the effective total channel limit by one and allows one channel above the per-platform cap; per-slot autoRenews says whether it renews or lapses at expiresAt.",
+      inputSchema: {},
+    },
     async () => {
       const res = await api("GET", "/api/quotas/usage");
       return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -2876,108 +2987,110 @@ if (!HIDE_BILLING_TOOLS) {
 // Tool: update_post
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "update_post",
-  "Update an existing post. Can change content, schedule, media, labels, status, target channels, per-platform text, thread parts, assignee, recurring schedule, and platform-specific settings. " +
-    "Only draft, scheduled, failed, or partial posts can be edited; editing a failed post resets it to draft, a partial post stays partial. " +
-    "Set status to 'draft' or 'scheduled' to move the post between those states — scheduling a partial post re-queues only its failed channels; use publish_post to publish immediately. " +
-    "To add or remove a channel, send `channels` with the COMPLETE list the post should keep (read it from get_post first): channels left out are dropped from the post, new ones are added as pending, and the ones kept keep their publish state.",
   {
-    postId: z.number().describe("The post ID to update."),
-    content: z.string().optional().describe("New post text content."),
-    channels: z
-      .array(
-        z.object({
-          channelId: z.number().describe("Channel ID, from list_channels."),
-          platform: PLATFORM_ENUM.describe("The channel's platform."),
-        })
-      )
-      .min(1)
-      .optional()
-      .describe(
-        "Optional. The FULL list of channels the post should target after this update — not a diff, and at least one. Channels already on the post that you include keep their state (a published one is not re-published); channels you leave out are removed; new ones are added as pending. A channel the post has already gone out on must stay in the list: leaving it out is refused with CHANNEL_ALREADY_PUBLISHED and nothing is saved. Omit to leave the channels unchanged."
+    description: "Update an existing post. Can change content, schedule, media, labels, status, target channels, per-platform text, thread parts, assignee, recurring schedule, and platform-specific settings. " +
+      "Only draft, scheduled, failed, or partial posts can be edited; editing a failed post resets it to draft, a partial post stays partial. " +
+      "Set status to 'draft' or 'scheduled' to move the post between those states — scheduling a partial post re-queues only its failed channels; use publish_post to publish immediately. " +
+      "To add or remove a channel, send `channels` with the COMPLETE list the post should keep (read it from get_post first): channels left out are dropped from the post, new ones are added as pending, and the ones kept keep their publish state.",
+    inputSchema: {
+      postId: z.number().describe("The post ID to update."),
+      content: z.string().optional().describe("New post text content."),
+      channels: z
+        .array(
+          z.object({
+            channelId: z.number().describe("Channel ID, from list_channels."),
+            platform: PLATFORM_ENUM.describe("The channel's platform."),
+          })
+        )
+        .min(1)
+        .optional()
+        .describe(
+          "Optional. The FULL list of channels the post should target after this update — not a diff, and at least one. Channels already on the post that you include keep their state (a published one is not re-published); channels you leave out are removed; new ones are added as pending. A channel the post has already gone out on must stay in the list: leaving it out is refused with CHANNEL_ALREADY_PUBLISHED and nothing is saved. Omit to leave the channels unchanged."
+        ),
+      platformContent: PLATFORM_CONTENT_SCHEMA.describe(
+        "Optional per-platform text overrides, keyed by platform. Replaced wholesale, not merged: send every platform's override you want to keep, or omit to leave them unchanged."
       ),
-    platformContent: PLATFORM_CONTENT_SCHEMA.describe(
-      "Optional per-platform text overrides, keyed by platform. Replaced wholesale, not merged: send every platform's override you want to keep, or omit to leave them unchanged."
-    ),
-    platformMediaFileIds: PLATFORM_MEDIA_FILE_IDS_SCHEMA.describe(
-      'Optional. Which of the post\'s attached files each platform publishes, keyed by platform, e.g. { "instagram": [12, 14], "linkedin": [] }. A platform that is not listed publishes all of the post\'s media; an empty list publishes it without media; every id must also be attached to the post. Sending it replaces the stored choice. When it is omitted but mediaFileIds changes, files no longer attached are dropped from each list, and a platform left with none of the files it named goes back to all of the post\'s media. Ignored for thread posts. Instagram\'s userTags mediaIndex keeps counting the post\'s media; TikTok\'s photoCoverIndex counts the images in TikTok\'s own list.'
-    ),
-    postFormat: z
-      .enum(["post", "thread"])
-      .optional()
-      .describe("Optional. 'thread' to turn the post into a multi-part thread (send threadParts too), 'post' for a single post."),
-    threadParts: z
-      .array(
-        z.object({
-          content: z.string().describe("Thread part content."),
-          mediaFileIds: z.array(z.number()).optional().describe("Media files for this thread part."),
-        })
-      )
-      .optional()
-      .describe(
-        "Optional. Replace the thread parts (at least 2 when postFormat is thread). Every part is measured against the character limit of every platform the post targets; an over-long part is rejected naming the part, platform and limit."
+      platformMediaFileIds: PLATFORM_MEDIA_FILE_IDS_SCHEMA.describe(
+        'Optional. Which of the post\'s attached files each platform publishes, keyed by platform, e.g. { "instagram": [12, 14], "linkedin": [] }. A platform that is not listed publishes all of the post\'s media; an empty list publishes it without media; every id must also be attached to the post. Sending it replaces the stored choice. When it is omitted but mediaFileIds changes, files no longer attached are dropped from each list, and a platform left with none of the files it named goes back to all of the post\'s media. Ignored for thread posts. Instagram\'s userTags mediaIndex keeps counting the post\'s media; TikTok\'s photoCoverIndex counts the images in TikTok\'s own list.'
       ),
-    assignedUserId: z
-      .string()
-      .nullable()
-      .optional()
-      .describe(
-        "Optional. The member expected to act on this post next (a user id from the organization), or null to unassign. Omit to leave the assignment unchanged."
-      ),
-    recurringScheduleId: z
-      .number()
-      .nullable()
-      .optional()
-      .describe(
-        "Optional. Attach the post to a recurring schedule by id, or null to detach it. Omit to leave it unchanged. The schedule must belong to the same organization (another id is refused with 422 VALIDATION_ERROR), and the value must be a positive integer or null."
-      ),
-    status: z
-      .enum(["draft", "scheduled"])
-      .optional()
-      .describe(
-        "Move the post between draft and scheduled. 'scheduled' requires a future scheduledAt (in this call or already stored) and at least one channel; 'draft' unschedules it. Any other value is rejected. Omit to leave the status unchanged. To publish immediately, use publish_post instead."
-      ),
-    scheduledAt: z
-      .string()
-      .optional()
-      .describe("New ISO 8601 scheduled datetime."),
-    timezone: z.string().optional().describe("Timezone for scheduling."),
-    mediaFileIds: z
-      .array(z.number())
-      .optional()
-      .describe("Replace attached media file IDs."),
-    labelIds: z
-      .array(z.number())
-      .optional()
-      .describe("Replace label IDs on the post."),
-    postTypeOverrides: POST_TYPE_OVERRIDES_SCHEMA,
-    platformSpecific: PLATFORM_SPECIFIC_SCHEMA,
-    requestApproval: z
-      .boolean()
-      .optional()
-      .describe(
-        "Optional (default false). Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for API keys of roles without post:publish (contributors), regardless of this flag."
-      ),
-    publishWhenApproved: z
-      .boolean()
-      .optional()
-      .describe(
-        "Optional. Set true to have the post go out as soon as it is approved, even after its scheduled time (see create_post). An explicit value is stored while the post waits for approval. Omitted, it is kept, except that sending a different scheduledAt clears it to false, and it is always false once the post is no longer approvalStatus 'pending'."
-      ),
-    linkTrackingOverride: z
-      .boolean()
-      .nullable()
-      .optional()
-      .describe(
-        "Optional per-post override for link tracking (bulkpubli.sh). true forces links in this post to be shortened and their clicks counted, false forces them to publish as written, and null clears the override so the post inherits the organization's Link Tracking setting again. Omit to leave it unchanged."
-      ),
-    ifUnmodifiedSince: z
-      .string()
-      .optional()
-      .describe(
-        "Optional precondition: the post's updatedAt exactly as the last read returned it. The update is refused with 409 CONFLICT if a teammate has changed the post since, rather than overwriting their version. Pass it whenever you read a post before editing it; omit it to keep the previous last-write-wins behaviour."
-      ),
+      postFormat: z
+        .enum(["post", "thread"])
+        .optional()
+        .describe("Optional. 'thread' to turn the post into a multi-part thread (send threadParts too), 'post' for a single post."),
+      threadParts: z
+        .array(
+          z.object({
+            content: z.string().describe("Thread part content."),
+            mediaFileIds: z.array(z.number()).optional().describe("Media files for this thread part."),
+          })
+        )
+        .optional()
+        .describe(
+          "Optional. Replace the thread parts (at least 2 when postFormat is thread). Every part is measured against the character limit of every platform the post targets; an over-long part is rejected naming the part, platform and limit."
+        ),
+      assignedUserId: z
+        .string()
+        .nullable()
+        .optional()
+        .describe(
+          "Optional. The member expected to act on this post next (a user id from the organization), or null to unassign. Omit to leave the assignment unchanged."
+        ),
+      recurringScheduleId: z
+        .number()
+        .nullable()
+        .optional()
+        .describe(
+          "Optional. Attach the post to a recurring schedule by id, or null to detach it. Omit to leave it unchanged. The schedule must belong to the same organization (another id is refused with 422 VALIDATION_ERROR), and the value must be a positive integer or null."
+        ),
+      status: z
+        .enum(["draft", "scheduled"])
+        .optional()
+        .describe(
+          "Move the post between draft and scheduled. 'scheduled' requires a future scheduledAt (in this call or already stored) and at least one channel; 'draft' unschedules it. Any other value is rejected. Omit to leave the status unchanged. To publish immediately, use publish_post instead."
+        ),
+      scheduledAt: z
+        .string()
+        .optional()
+        .describe("New ISO 8601 scheduled datetime."),
+      timezone: z.string().optional().describe("Timezone for scheduling."),
+      mediaFileIds: z
+        .array(z.number())
+        .optional()
+        .describe("Replace attached media file IDs."),
+      labelIds: z
+        .array(z.number())
+        .optional()
+        .describe("Replace label IDs on the post."),
+      postTypeOverrides: POST_TYPE_OVERRIDES_SCHEMA,
+      platformSpecific: PLATFORM_SPECIFIC_SCHEMA,
+      requestApproval: z
+        .boolean()
+        .optional()
+        .describe(
+          "Optional (default false). Set true to hold a scheduled post for team approval (approvalStatus becomes 'pending'). Forced on server-side for API keys of roles without post:publish (contributors), regardless of this flag."
+        ),
+      publishWhenApproved: z
+        .boolean()
+        .optional()
+        .describe(
+          "Optional. Set true to have the post go out as soon as it is approved, even after its scheduled time (see create_post). An explicit value is stored while the post waits for approval. Omitted, it is kept, except that sending a different scheduledAt clears it to false, and it is always false once the post is no longer approvalStatus 'pending'."
+        ),
+      linkTrackingOverride: z
+        .boolean()
+        .nullable()
+        .optional()
+        .describe(
+          "Optional per-post override for link tracking (bulkpubli.sh). true forces links in this post to be shortened and their clicks counted, false forces them to publish as written, and null clears the override so the post inherits the organization's Link Tracking setting again. Omit to leave it unchanged."
+        ),
+      ifUnmodifiedSince: z
+        .string()
+        .optional()
+        .describe(
+          "Optional precondition: the post's updatedAt exactly as the last read returned it. The update is refused with 409 CONFLICT if a teammate has changed the post since, rather than overwriting their version. Pass it whenever you read a post before editing it; omit it to keep the previous last-write-wins behaviour."
+        ),
+    },
   },
   async ({
     postId,
@@ -3055,11 +3168,13 @@ server.tool(
 // Tool: delete_post
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "delete_post",
-  "Delete a post by ID. Any post can be deleted except one that is publishing right now (409 PUBLISH_IN_PROGRESS; wait for it to finish). Deleting removes the post from BulkPublish only: a published post stays live on the platforms, and its stats here are removed with it. Deleting a post made by a repeat schedule also switches that schedule off.",
   {
-    postId: z.number().describe("The post ID to delete, from list_posts."),
+    description: "Delete a post by ID. Any post can be deleted except one that is publishing right now (409 PUBLISH_IN_PROGRESS; wait for it to finish). Deleting removes the post from BulkPublish only: a published post stays live on the platforms, and its stats here are removed with it. Deleting a post made by a repeat schedule also switches that schedule off.",
+    inputSchema: {
+      postId: z.number().describe("The post ID to delete, from list_posts."),
+    },
   },
   async ({ postId }) => {
     const res = await api("DELETE", `/api/posts/${postId}`);
@@ -3071,11 +3186,13 @@ server.tool(
 // Tool: get_post_metrics
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "get_post_metrics",
-  "Get engagement metrics for a published post. Returns likes, comments, shares, impressions, and other platform-specific metrics. IMPORTANT: every platform entry carries `metricsSupported` and `supportedMetrics` — a metric key NOT in `supportedMetrics` is stored as 0 because that platform's API has no such field, so report it as unavailable rather than as zero. X reports impressions/likes/comments/shares/saves (bookmarks); Bluesky and Mastodon report no impressions; Pinterest reports no reach; YouTube reports no shares or reach; Discord reports likes (reaction counts) and comments (thread replies); TikTok reports reach, saves and clicks only for accounts that have granted TikTok insights. An Instagram story reports only impressions, reach and comments (story replies). Google Business, Telegram, Tumblr and LinkedIn personal profiles report nothing readable at all, and an X post comes back with `metricsSupported: false` until its channel turns on X metrics sync. Each platform entry also carries `linkClicks` (summed in `totals.linkClicks`): clicks on bulkpubli.sh short links in this post, measured by BulkPublish rather than reported by the platform. It sits OUTSIDE `latest` and is distinct from the platform's own `clicks` — one visit can register in both, so never add them together. It is therefore available even for the platforms that report nothing, and `supportedMetrics` always includes it. Bot and link-preview traffic is excluded; it is 0 for organizations without Link Tracking enabled.",
   {
-    postId: z.number().describe("The post ID to get metrics for."),
+    description: "Get engagement metrics for a published post. Returns likes, comments, shares, impressions, and other platform-specific metrics. IMPORTANT: every platform entry carries `metricsSupported` and `supportedMetrics` — a metric key NOT in `supportedMetrics` is stored as 0 because that platform's API has no such field, so report it as unavailable rather than as zero. X reports impressions/likes/comments/shares/saves (bookmarks); Bluesky and Mastodon report no impressions; Pinterest reports no reach; YouTube reports no shares or reach; Discord reports likes (reaction counts) and comments (thread replies); TikTok reports reach, saves and clicks only for accounts that have granted TikTok insights. An Instagram story reports only impressions, reach and comments (story replies). Google Business, Telegram, Tumblr and LinkedIn personal profiles report nothing readable at all, and an X post comes back with `metricsSupported: false` until its channel turns on X metrics sync. Each platform entry also carries `linkClicks` (summed in `totals.linkClicks`): clicks on bulkpubli.sh short links in this post, measured by BulkPublish rather than reported by the platform. It sits OUTSIDE `latest` and is distinct from the platform's own `clicks` — one visit can register in both, so never add them together. It is therefore available even for the platforms that report nothing, and `supportedMetrics` always includes it. Bot and link-preview traffic is excluded; it is 0 for organizations without Link Tracking enabled.",
+    inputSchema: {
+      postId: z.number().describe("The post ID to get metrics for."),
+    },
   },
   async ({ postId }) => {
     const res = await api("GET", `/api/posts/${postId}/metrics`);
@@ -3087,14 +3204,16 @@ server.tool(
 // Tool: publish_story
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "publish_story",
-  "Publish a post as a story on Facebook or Instagram.",
   {
-    postId: z.number().describe("The post ID to publish as a story."),
-    platform: z
-      .enum(["facebook", "instagram"])
-      .describe("Platform to publish the story on."),
+    description: "Publish a post as a story on Facebook or Instagram.",
+    inputSchema: {
+      postId: z.number().describe("The post ID to publish as a story."),
+      platform: z
+        .enum(["facebook", "instagram"])
+        .describe("Platform to publish the story on."),
+    },
   },
   async ({ postId, platform }) => {
     const res = await api("POST", `/api/posts/${postId}/story`, { platform });
@@ -3106,22 +3225,24 @@ server.tool(
 // Tool: bulk_posts
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "bulk_posts",
-  "Perform a bulk action on multiple posts. Supports deleting, retrying, or rescheduling up to 100 posts at once.",
   {
-    action: z
-      .enum(["delete", "retry", "reschedule"])
-      .describe('Bulk action: "delete", "retry", or "reschedule".'),
-    postIds: z
-      .array(z.number())
-      .min(1)
-      .max(100)
-      .describe("Array of post IDs to perform the action on, at most 100 per call. Split a larger selection into batches of 100."),
-    scheduledAt: z
-      .string()
-      .optional()
-      .describe('New ISO 8601 datetime. Required when action is "reschedule".'),
+    description: "Perform a bulk action on multiple posts. Supports deleting, retrying, or rescheduling up to 100 posts at once.",
+    inputSchema: {
+      action: z
+        .enum(["delete", "retry", "reschedule"])
+        .describe('Bulk action: "delete", "retry", or "reschedule".'),
+      postIds: z
+        .array(z.number())
+        .min(1)
+        .max(100)
+        .describe("Array of post IDs to perform the action on, at most 100 per call. Split a larger selection into batches of 100."),
+      scheduledAt: z
+        .string()
+        .optional()
+        .describe('New ISO 8601 datetime. Required when action is "reschedule".'),
+    },
   },
   async ({ action, postIds, scheduledAt }) => {
     const body: Record<string, unknown> = { action, postIds };
@@ -3135,22 +3256,24 @@ server.tool(
 // Tool: get_queue_slot
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "get_queue_slot",
-  "Get the organization's next available queue slot. Useful for finding the next optimal scheduling time. Returns scheduledAt (an ISO timestamp) and dayLabel (a readable day).",
   {
-    timezone: z
-      .string()
-      .optional()
-      .describe('IANA timezone for the slot calculation (e.g. "America/New_York"). Defaults to UTC.'),
-    position: z
-      .enum(["next", "end"])
-      .optional()
-      .describe('"next" (default): the next free slot. "end": the slot after the last pending scheduled post, i.e. the bottom of the queue.'),
-    excludePostId: z
-      .number()
-      .optional()
-      .describe("When the slot is for rescheduling an existing post, its ID — so its current slot is not counted as booked."),
+    description: "Get the organization's next available queue slot. Useful for finding the next optimal scheduling time. Returns scheduledAt (an ISO timestamp) and dayLabel (a readable day).",
+    inputSchema: {
+      timezone: z
+        .string()
+        .optional()
+        .describe('IANA timezone for the slot calculation (e.g. "America/New_York"). Defaults to UTC.'),
+      position: z
+        .enum(["next", "end"])
+        .optional()
+        .describe('"next" (default): the next free slot. "end": the slot after the last pending scheduled post, i.e. the bottom of the queue.'),
+      excludePostId: z
+        .number()
+        .optional()
+        .describe("When the slot is for rescheduling an existing post, its ID — so its current slot is not counted as booked."),
+    },
   },
   async ({ timezone, position, excludePostId }) => {
     const params = new URLSearchParams();
@@ -3167,11 +3290,13 @@ server.tool(
 // Tool: get_channel_health
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "get_channel_health",
-  "Check the health status of a connected channel. Returns token validity, connection status, and any issues.",
   {
-    channelId: z.number().describe("The channel ID to check health for."),
+    description: "Check the health status of a connected channel. Returns token validity, connection status, and any issues.",
+    inputSchema: {
+      channelId: z.number().describe("The channel ID to check health for."),
+    },
   },
   async ({ channelId }) => {
     const res = await api("GET", `/api/channels/${channelId}/health`);
@@ -3183,16 +3308,18 @@ server.tool(
 // Tool: get_channel_options
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "get_channel_options",
-  "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search. Returns type (which kind of option came back) and items, each with an id and a name; a TikTok channel returns info instead of items.",
   {
-    channelId: z.number().describe("The channel ID to get options for, from list_channels."),
-    q: z
-      .string()
-      .optional()
-      .describe("Search term. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging)."),
-    boardId: z.string().optional().describe("Pinterest only: the board's ID, digits only, sent as a string (from this tool's boards list). Returns that board's sections ({ type: 'sections', items: [{ id, name }] }) for platformSpecific.pinterest.boardSectionId, instead of the boards. Non-numeric values return 400."),
+    description: "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search. Returns type (which kind of option came back) and items, each with an id and a name; a TikTok channel returns info instead of items.",
+    inputSchema: {
+      channelId: z.number().describe("The channel ID to get options for, from list_channels."),
+      q: z
+        .string()
+        .optional()
+        .describe("Search term. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging)."),
+      boardId: z.string().optional().describe("Pinterest only: the board's ID, digits only, sent as a string (from this tool's boards list). Returns that board's sections ({ type: 'sections', items: [{ id, name }] }) for platformSpecific.pinterest.boardSectionId, instead of the boards. Non-numeric values return 400."),
+    },
   },
   async ({ channelId, q, boardId }) => {
     const params = new URLSearchParams();
@@ -3208,13 +3335,15 @@ server.tool(
 // Tool: update_channel
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "update_channel",
-  "Change a connected channel's sync settings. Both switches apply to X channels only, where every read is billed, and each is off until turned on: metricsSyncEnabled turns on analytics sync (at most once every 7 days) and the list of people who liked a post; inboxSyncEnabled turns on direct messages and replies to the channel's posts. Send at least one. On a channel of any other platform the call succeeds but changes nothing. Needs a role that can manage channels (owner, admin, approver). Does not connect, reconnect or remove a channel.",
   {
-    channelId: z.number().describe("The channel ID (from list_channels)."),
-    metricsSyncEnabled: z.boolean().optional().describe("X only. Turn analytics sync and liker lists on or off. Omit to leave unchanged."),
-    inboxSyncEnabled: z.boolean().optional().describe("X only. Turn reading direct messages and replies on or off. Omit to leave unchanged."),
+    description: "Change a connected channel's sync settings. Both switches apply to X channels only, where every read is billed, and each is off until turned on: metricsSyncEnabled turns on analytics sync (at most once every 7 days) and the list of people who liked a post; inboxSyncEnabled turns on direct messages and replies to the channel's posts. Send at least one. On a channel of any other platform the call succeeds but changes nothing. Needs a role that can manage channels (owner, admin, approver). Does not connect, reconnect or remove a channel.",
+    inputSchema: {
+      channelId: z.number().describe("The channel ID (from list_channels)."),
+      metricsSyncEnabled: z.boolean().optional().describe("X only. Turn analytics sync and liker lists on or off. Omit to leave unchanged."),
+      inboxSyncEnabled: z.boolean().optional().describe("X only. Turn reading direct messages and replies on or off. Omit to leave unchanged."),
+    },
   },
   async ({ channelId, metricsSyncEnabled, inboxSyncEnabled }) => {
     const body: Record<string, unknown> = {};
@@ -3232,12 +3361,14 @@ server.tool(
 // Tool: search_mentions
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "search_mentions",
-  "Search for @mention suggestions on a channel (X, Bluesky, Mastodon, LinkedIn). On LinkedIn the query is a Page's URL slug (exact match), each result's handle is a ready-to-paste @[Name](urn:li:organization:ID) token, and vanityName is the slug it matched — check it against the Page you meant before using the token, since a display name alone is ambiguous.",
   {
-    channelId: z.number().describe("The channel ID to search mentions on."),
-    query: z.string().describe("Search query for the mention lookup."),
+    description: "Search for @mention suggestions on a channel (X, Bluesky, Mastodon, LinkedIn). On LinkedIn the query is a Page's URL slug (exact match), each result's handle is a ready-to-paste @[Name](urn:li:organization:ID) token, and vanityName is the slug it matched — check it against the Page you meant before using the token, since a display name alone is ambiguous.",
+    inputSchema: {
+      channelId: z.number().describe("The channel ID to search mentions on."),
+      query: z.string().describe("Search query for the mention lookup."),
+    },
   },
   async ({ channelId, query }) => {
     const params = new URLSearchParams({ q: query });
@@ -3253,11 +3384,13 @@ server.tool(
 // Tool: get_media
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "get_media",
-  "Get details of a single media file by ID. Returns metadata, URL, dimensions, and labels.",
   {
-    mediaId: z.number().describe("The media file ID."),
+    description: "Get details of a single media file by ID. Returns metadata, URL, dimensions, and labels.",
+    inputSchema: {
+      mediaId: z.number().describe("The media file ID."),
+    },
   },
   async ({ mediaId }) => {
     const res = await api("GET", `/api/media/${mediaId}`);
@@ -3269,11 +3402,13 @@ server.tool(
 // Tool: delete_media
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "delete_media",
-  "Delete a media file by ID. Removes the file from storage and detaches it from any posts.",
   {
-    mediaId: z.number().describe("The media file ID to delete."),
+    description: "Delete a media file by ID. Removes the file from storage and detaches it from any posts.",
+    inputSchema: {
+      mediaId: z.number().describe("The media file ID to delete."),
+    },
   },
   async ({ mediaId }) => {
     const res = await api("DELETE", `/api/media/${mediaId}`);
@@ -3285,13 +3420,15 @@ server.tool(
 // Tool: update_label
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "update_label",
-  "Update an existing label's name or color.",
   {
-    labelId: z.number().describe("The label ID to update."),
-    name: z.string().optional().describe("New label name."),
-    color: z.string().optional().describe('New hex color code (e.g. "#ef4444").'),
+    description: "Update an existing label's name or color.",
+    inputSchema: {
+      labelId: z.number().describe("The label ID to update."),
+      name: z.string().optional().describe("New label name."),
+      color: z.string().optional().describe('New hex color code (e.g. "#ef4444").'),
+    },
   },
   async ({ labelId, name, color }) => {
     const body: Record<string, unknown> = {};
@@ -3306,11 +3443,13 @@ server.tool(
 // Tool: delete_label
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "delete_label",
-  "Delete a label by ID. Removes the label from all associated posts or media.",
   {
-    labelId: z.number().describe("The label ID to delete."),
+    description: "Delete a label by ID. Removes the label from all associated posts or media.",
+    inputSchema: {
+      labelId: z.number().describe("The label ID to delete."),
+    },
   },
   async ({ labelId }) => {
     const res = await api("DELETE", `/api/labels/${labelId}`);
@@ -3322,10 +3461,12 @@ server.tool(
 // Tool: list_schedules
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "list_schedules",
-  "List recurring post schedules, newest first (at most 500; a workspace with more gets the 500 most recently created). Returns schedule name, frequency/timeOfDay timing fields, target channels, active status, and nextRunAt. These schedules also appear in the web app: managed on the Repeat Posts page, with upcoming runs shown on the Calendar.",
-  {},
+  {
+    description: "List recurring post schedules, newest first (at most 500; a workspace with more gets the 500 most recently created). Returns schedule name, frequency/timeOfDay timing fields, target channels, active status, and nextRunAt. These schedules also appear in the web app: managed on the Repeat Posts page, with upcoming runs shown on the Calendar.",
+    inputSchema: {},
+  },
   async () => {
     const res = await api("GET", "/api/schedules");
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -3336,57 +3477,59 @@ server.tool(
 // Tool: create_schedule
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "create_schedule",
-  "Create a new recurring post schedule. Posts are automatically created and published on the chosen frequency. The schedule is visible in the web app (Repeat Posts page, with upcoming runs on the Calendar); a post record exists only once an occurrence fires, carrying recurringScheduleId.",
   {
-    name: z.string().describe("Schedule name."),
-    channelIds: z
-      .array(z.number())
-      .describe("Array of channel IDs to post to."),
-    frequency: z
-      .enum(["daily", "weekly", "biweekly", "monthly"])
-      .describe("How often the schedule runs."),
-    timeOfDay: z
-      .string()
-      .describe('Time of day to post, 24h "HH:MM" (e.g. "09:00").'),
-    dayOfWeek: z
-      .number()
-      .min(0)
-      .max(6)
-      .optional()
-      .describe("Day of week (0=Sunday..6=Saturday). Required for weekly/biweekly."),
-    dayOfMonth: z
-      .number()
-      .min(1)
-      .max(31)
-      .optional()
-      .describe("Day of month (1-31). Required for monthly."),
-    contentTemplate: z
-      .string()
-      .optional()
-      .describe("Post content template. Defaults to empty."),
-    mediaFileIds: z
-      .array(z.number())
-      .optional()
-      .describe("Media file IDs re-used for every generated post."),
-    platformMediaFileIds: PLATFORM_MEDIA_FILE_IDS_SCHEMA.describe(
-      'Which of mediaFileIds each platform gets on every run, keyed by platform, e.g. { "instagram": [12], "linkedin": [] }. A platform that is not listed gets all of mediaFileIds; a listed one gets exactly those files, in that order; an empty list posts it without media. Every id must also be in mediaFileIds, or the request is refused with 400 VALIDATION_ERROR. Each run\'s post carries the same choice.'
-    ),
-    timezone: z
-      .string()
-      .optional()
-      .describe('IANA timezone (e.g. "America/New_York"). Defaults to UTC.'),
-    isActive: z
-      .boolean()
-      .optional()
-      .describe("Whether the schedule starts active. Defaults to true."),
-    requireApproval: z
-      .boolean()
-      .optional()
-      .describe(
-        "Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and does not publish until an approver releases it via approve_post. Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
+    description: "Create a new recurring post schedule. Posts are automatically created and published on the chosen frequency. The schedule is visible in the web app (Repeat Posts page, with upcoming runs on the Calendar); a post record exists only once an occurrence fires, carrying recurringScheduleId.",
+    inputSchema: {
+      name: z.string().describe("Schedule name."),
+      channelIds: z
+        .array(z.number())
+        .describe("Array of channel IDs to post to."),
+      frequency: z
+        .enum(["daily", "weekly", "biweekly", "monthly"])
+        .describe("How often the schedule runs."),
+      timeOfDay: z
+        .string()
+        .describe('Time of day to post, 24h "HH:MM" (e.g. "09:00").'),
+      dayOfWeek: z
+        .number()
+        .min(0)
+        .max(6)
+        .optional()
+        .describe("Day of week (0=Sunday..6=Saturday). Required for weekly/biweekly."),
+      dayOfMonth: z
+        .number()
+        .min(1)
+        .max(31)
+        .optional()
+        .describe("Day of month (1-31). Required for monthly."),
+      contentTemplate: z
+        .string()
+        .optional()
+        .describe("Post content template. Defaults to empty."),
+      mediaFileIds: z
+        .array(z.number())
+        .optional()
+        .describe("Media file IDs re-used for every generated post."),
+      platformMediaFileIds: PLATFORM_MEDIA_FILE_IDS_SCHEMA.describe(
+        'Which of mediaFileIds each platform gets on every run, keyed by platform, e.g. { "instagram": [12], "linkedin": [] }. A platform that is not listed gets all of mediaFileIds; a listed one gets exactly those files, in that order; an empty list posts it without media. Every id must also be in mediaFileIds, or the request is refused with 400 VALIDATION_ERROR. Each run\'s post carries the same choice.'
       ),
+      timezone: z
+        .string()
+        .optional()
+        .describe('IANA timezone (e.g. "America/New_York"). Defaults to UTC.'),
+      isActive: z
+        .boolean()
+        .optional()
+        .describe("Whether the schedule starts active. Defaults to true."),
+      requireApproval: z
+        .boolean()
+        .optional()
+        .describe(
+          "Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and does not publish until an approver releases it via approve_post. Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
+        ),
+    },
   },
   async ({ name, channelIds, frequency, timeOfDay, dayOfWeek, dayOfMonth, contentTemplate, mediaFileIds, platformMediaFileIds, timezone, isActive, requireApproval }) => {
     const body: Record<string, unknown> = {
@@ -3412,48 +3555,50 @@ server.tool(
 // Tool: update_schedule
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "update_schedule",
-  "Update an existing recurring schedule. Can change name, content template, frequency/timing, timezone, media, or active status. The next run time is recomputed by the server when timing changes.",
   {
-    scheduleId: z.number().describe("The schedule ID to update."),
-    name: z.string().optional().describe("New schedule name."),
-    contentTemplate: z.string().optional().describe("New post content template."),
-    frequency: z
-      .enum(["daily", "weekly", "biweekly", "monthly"])
-      .optional()
-      .describe("New frequency."),
-    timeOfDay: z.string().optional().describe('New time of day, 24h "HH:MM".'),
-    dayOfWeek: z
-      .number()
-      .min(0)
-      .max(6)
-      .optional()
-      .describe("New day of week (0=Sunday..6=Saturday) for weekly/biweekly."),
-    dayOfMonth: z
-      .number()
-      .min(1)
-      .max(31)
-      .optional()
-      .describe("New day of month (1-31) for monthly."),
-    mediaFileIds: z
-      .array(z.number())
-      .optional()
-      .describe("Replace the media file IDs used for generated posts."),
-    platformMediaFileIds: PLATFORM_MEDIA_FILE_IDS_SCHEMA.describe(
-      'Optional. Which of mediaFileIds each platform gets on every run, keyed by platform, e.g. { "x": [12] }. A platform that is not listed gets all of them; an empty list posts it without media; every id must also be in the schedule\'s mediaFileIds. Sending it replaces the stored choice. When it is omitted but mediaFileIds changes, files no longer attached are dropped from each list, and a platform left with none of the files it named goes back to all of them.'
-    ),
-    timezone: z.string().optional().describe("New IANA timezone."),
-    isActive: z
-      .boolean()
-      .optional()
-      .describe("Enable or disable the schedule."),
-    requireApproval: z
-      .boolean()
-      .optional()
-      .describe(
-        "Hold every future occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and does not publish until an approver releases it via approve_post. Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
+    description: "Update an existing recurring schedule. Can change name, content template, frequency/timing, timezone, media, or active status. The next run time is recomputed by the server when timing changes.",
+    inputSchema: {
+      scheduleId: z.number().describe("The schedule ID to update."),
+      name: z.string().optional().describe("New schedule name."),
+      contentTemplate: z.string().optional().describe("New post content template."),
+      frequency: z
+        .enum(["daily", "weekly", "biweekly", "monthly"])
+        .optional()
+        .describe("New frequency."),
+      timeOfDay: z.string().optional().describe('New time of day, 24h "HH:MM".'),
+      dayOfWeek: z
+        .number()
+        .min(0)
+        .max(6)
+        .optional()
+        .describe("New day of week (0=Sunday..6=Saturday) for weekly/biweekly."),
+      dayOfMonth: z
+        .number()
+        .min(1)
+        .max(31)
+        .optional()
+        .describe("New day of month (1-31) for monthly."),
+      mediaFileIds: z
+        .array(z.number())
+        .optional()
+        .describe("Replace the media file IDs used for generated posts."),
+      platformMediaFileIds: PLATFORM_MEDIA_FILE_IDS_SCHEMA.describe(
+        'Optional. Which of mediaFileIds each platform gets on every run, keyed by platform, e.g. { "x": [12] }. A platform that is not listed gets all of them; an empty list posts it without media; every id must also be in the schedule\'s mediaFileIds. Sending it replaces the stored choice. When it is omitted but mediaFileIds changes, files no longer attached are dropped from each list, and a platform left with none of the files it named goes back to all of them.'
       ),
+      timezone: z.string().optional().describe("New IANA timezone."),
+      isActive: z
+        .boolean()
+        .optional()
+        .describe("Enable or disable the schedule."),
+      requireApproval: z
+        .boolean()
+        .optional()
+        .describe(
+          "Hold every future occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and does not publish until an approver releases it via approve_post. Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
+        ),
+    },
   },
   async ({ scheduleId, name, contentTemplate, frequency, timeOfDay, dayOfWeek, dayOfMonth, mediaFileIds, platformMediaFileIds, timezone, isActive, requireApproval }) => {
     const body: Record<string, unknown> = {};
@@ -3477,11 +3622,13 @@ server.tool(
 // Tool: delete_schedule
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "delete_schedule",
-  "Delete a recurring schedule by ID. Stops all future posts from this schedule.",
   {
-    scheduleId: z.number().describe("The schedule ID to delete."),
+    description: "Delete a recurring schedule by ID. Stops all future posts from this schedule.",
+    inputSchema: {
+      scheduleId: z.number().describe("The schedule ID to delete."),
+    },
   },
   async ({ scheduleId }) => {
     const res = await api("DELETE", `/api/schedules/${scheduleId}`);
@@ -3493,10 +3640,12 @@ server.tool(
 // Tool: list_channel_sets
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "list_channel_sets",
-  "List saved channel sets — named channel groupings for one-click multi-channel targeting. Returns id, name, and channelIds for each set, ordered by name.",
-  {},
+  {
+    description: "List saved channel sets — named channel groupings for one-click multi-channel targeting. Returns id, name, and channelIds for each set, ordered by name.",
+    inputSchema: {},
+  },
   async () => {
     const res = await api("GET", "/api/channel-sets");
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -3507,15 +3656,17 @@ server.tool(
 // Tool: create_channel_set
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "create_channel_set",
-  "Create a channel set — a saved channel grouping for one-click multi-channel targeting. Names are unique per organization (a duplicate fails with a 409, code DUPLICATE_NAME); an organization can have up to 50 sets.",
   {
-    name: z.string().max(100).describe("Set name (max 100 chars, unique per organization)."),
-    channelIds: z
-      .array(z.number())
-      .min(1)
-      .describe("IDs of channels in your organization (at least 1)."),
+    description: "Create a channel set — a saved channel grouping for one-click multi-channel targeting. Names are unique per organization (a duplicate fails with a 409, code DUPLICATE_NAME); an organization can have up to 50 sets.",
+    inputSchema: {
+      name: z.string().max(100).describe("Set name (max 100 chars, unique per organization)."),
+      channelIds: z
+        .array(z.number())
+        .min(1)
+        .describe("IDs of channels in your organization (at least 1)."),
+    },
   },
   async ({ name, channelIds }) => {
     const res = await api("POST", "/api/channel-sets", { name, channelIds });
@@ -3527,17 +3678,19 @@ server.tool(
 // Tool: update_channel_set
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "update_channel_set",
-  "Update a channel set's name and/or channels (partial update — at least one field is required). A name that collides with another set fails with a 409, code DUPLICATE_NAME.",
   {
-    setId: z.number().describe("The channel set ID to update."),
-    name: z.string().max(100).optional().describe("New set name (max 100 chars, unique per organization)."),
-    channelIds: z
-      .array(z.number())
-      .min(1)
-      .optional()
-      .describe("Replacement channel IDs (at least 1)."),
+    description: "Update a channel set's name and/or channels (partial update — at least one field is required). A name that collides with another set fails with a 409, code DUPLICATE_NAME.",
+    inputSchema: {
+      setId: z.number().describe("The channel set ID to update."),
+      name: z.string().max(100).optional().describe("New set name (max 100 chars, unique per organization)."),
+      channelIds: z
+        .array(z.number())
+        .min(1)
+        .optional()
+        .describe("Replacement channel IDs (at least 1)."),
+    },
   },
   async ({ setId, name, channelIds }) => {
     const body: Record<string, unknown> = {};
@@ -3552,11 +3705,13 @@ server.tool(
 // Tool: delete_channel_set
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "delete_channel_set",
-  "Delete a channel set by ID. Does not affect the channels themselves.",
   {
-    setId: z.number().describe("The channel set ID to delete."),
+    description: "Delete a channel set by ID. Does not affect the channels themselves.",
+    inputSchema: {
+      setId: z.number().describe("The channel set ID to delete."),
+    },
   },
   async ({ setId }) => {
     const res = await api("DELETE", `/api/channel-sets/${setId}`);
@@ -3568,10 +3723,12 @@ server.tool(
 // Tool: list_rss_feeds
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "list_rss_feeds",
-  "List RSS autopost feeds — RSS/Atom feeds, checked on a schedule set by the plan (every 60 minutes on Free and Lifetime, 30 on Pro, 15 on Business), whose new items automatically become posts. Returns name, feedUrl, channelIds, mode, fieldMapping (how items are rendered into posts; null = default), enabled, lastCheckedAt, and lastError for each feed.",
-  {},
+  {
+    description: "List RSS autopost feeds — RSS/Atom feeds, checked on a schedule set by the plan (every 60 minutes on Free and Lifetime, 30 on Pro, 15 on Business), whose new items automatically become posts. Returns name, feedUrl, channelIds, mode, fieldMapping (how items are rendered into posts; null = default), enabled, lastCheckedAt, and lastError for each feed.",
+    inputSchema: {},
+  },
   async () => {
     const res = await api("GET", "/api/rss-feeds");
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
@@ -3633,29 +3790,31 @@ const rssFieldMappingSchema = z
   })
   .describe("Field mapping controlling how each feed item becomes a post.");
 
-server.tool(
+server.registerTool(
   "create_rss_feed",
-  "Add an RSS autopost feed. The feed is checked on a schedule set by the plan (every 60 minutes on Free and Lifetime, 30 on Pro, 15 on Business) and new items become posts on the chosen channels. The server validates that feedUrl is a reachable public RSS 2.0 or Atom feed. The number of feeds is capped by plan (Free 1, Lifetime 3, Pro 10, Business 50); one more is refused with 403 QUOTA_EXCEEDED. mode 'publish' needs a paid plan or Lifetime (403 FEATURE_DISABLED on Free).",
   {
-    name: z.string().max(100).describe("Feed name (max 100 chars)."),
-    feedUrl: z.string().describe("Public RSS 2.0 or Atom feed URL."),
-    channelIds: z
-      .array(z.number())
-      .min(1)
-      .describe("IDs of channels new items are posted to (at least 1)."),
-    mode: z
-      .enum(["draft", "publish"])
-      .optional()
-      .describe(
-        "draft = new items become draft posts for review (the default); publish = auto-published."
-      ),
-    fieldMapping: rssFieldMappingSchema.optional(),
-    requireApproval: z
-      .boolean()
-      .optional()
-      .describe(
-        "Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for approve_post. Only meaningful when mode is 'publish' (draft items never publish on their own, and a feed force-demoted to draft by the plan gate stays ungated). Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
-      ),
+    description: "Add an RSS autopost feed. The feed is checked on a schedule set by the plan (every 60 minutes on Free and Lifetime, 30 on Pro, 15 on Business) and new items become posts on the chosen channels. The server validates that feedUrl is a reachable public RSS 2.0 or Atom feed. The number of feeds is capped by plan (Free 1, Lifetime 3, Pro 10, Business 50); one more is refused with 403 QUOTA_EXCEEDED. mode 'publish' needs a paid plan or Lifetime (403 FEATURE_DISABLED on Free).",
+    inputSchema: {
+      name: z.string().max(100).describe("Feed name (max 100 chars)."),
+      feedUrl: z.string().describe("Public RSS 2.0 or Atom feed URL."),
+      channelIds: z
+        .array(z.number())
+        .min(1)
+        .describe("IDs of channels new items are posted to (at least 1)."),
+      mode: z
+        .enum(["draft", "publish"])
+        .optional()
+        .describe(
+          "draft = new items become draft posts for review (the default); publish = auto-published."
+        ),
+      fieldMapping: rssFieldMappingSchema.optional(),
+      requireApproval: z
+        .boolean()
+        .optional()
+        .describe(
+          "Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for approve_post. Only meaningful when mode is 'publish' (draft items never publish on their own, and a feed force-demoted to draft by the plan gate stays ungated). Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
+        ),
+    },
   },
   async ({ name, feedUrl, channelIds, mode, fieldMapping, requireApproval }) => {
     const body: Record<string, unknown> = { name, feedUrl, channelIds };
@@ -3671,38 +3830,40 @@ server.tool(
 // Tool: update_rss_feed
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "update_rss_feed",
-  "Update an RSS autopost feed (partial update). Note: changing feedUrl re-baselines the feed — its check state resets and only items published after the change are posted, so the new feed's backlog is not flooded.",
   {
-    feedId: z.number().describe("The RSS feed ID to update."),
-    name: z.string().max(100).optional().describe("New feed name."),
-    feedUrl: z
-      .string()
-      .optional()
-      .describe(
-        "New feed URL. Changing it re-baselines the feed (only items newer than the change are posted)."
-      ),
-    channelIds: z
-      .array(z.number())
-      .min(1)
-      .optional()
-      .describe("Replacement channel IDs (at least 1)."),
-    mode: z
-      .enum(["draft", "publish"])
-      .optional()
-      .describe("draft = new items become drafts for review; publish = auto-published."),
-    fieldMapping: rssFieldMappingSchema
-      .nullable()
-      .optional()
-      .describe("New field mapping; pass null to clear back to the built-in default."),
-    enabled: z.boolean().optional().describe("Enable or disable polling of this feed."),
-    requireApproval: z
-      .boolean()
-      .optional()
-      .describe(
-        "Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for approve_post. Only meaningful when mode is 'publish' (draft items never publish on their own, and a feed force-demoted to draft by the plan gate stays ungated). Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
-      ),
+    description: "Update an RSS autopost feed (partial update). Note: changing feedUrl re-baselines the feed — its check state resets and only items published after the change are posted, so the new feed's backlog is not flooded.",
+    inputSchema: {
+      feedId: z.number().describe("The RSS feed ID to update."),
+      name: z.string().max(100).optional().describe("New feed name."),
+      feedUrl: z
+        .string()
+        .optional()
+        .describe(
+          "New feed URL. Changing it re-baselines the feed (only items newer than the change are posted)."
+        ),
+      channelIds: z
+        .array(z.number())
+        .min(1)
+        .optional()
+        .describe("Replacement channel IDs (at least 1)."),
+      mode: z
+        .enum(["draft", "publish"])
+        .optional()
+        .describe("draft = new items become drafts for review; publish = auto-published."),
+      fieldMapping: rssFieldMappingSchema
+        .nullable()
+        .optional()
+        .describe("New field mapping; pass null to clear back to the built-in default."),
+      enabled: z.boolean().optional().describe("Enable or disable polling of this feed."),
+      requireApproval: z
+        .boolean()
+        .optional()
+        .describe(
+          "Hold items auto-published from this feed for team approval — each generated post lands with approvalStatus 'pending' and waits for approve_post. Only meaningful when mode is 'publish' (draft items never publish on their own, and a feed force-demoted to draft by the plan gate stays ungated). Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong."
+        ),
+    },
   },
   async ({ feedId, name, feedUrl, channelIds, mode, fieldMapping, enabled, requireApproval }) => {
     const body: Record<string, unknown> = {};
@@ -3722,11 +3883,13 @@ server.tool(
 // Tool: delete_rss_feed
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "delete_rss_feed",
-  "Delete an RSS autopost feed by ID. Stops polling; already-created posts are kept.",
   {
-    feedId: z.number().describe("The RSS feed ID to delete."),
+    description: "Delete an RSS autopost feed by ID. Stops polling; already-created posts are kept.",
+    inputSchema: {
+      feedId: z.number().describe("The RSS feed ID to delete."),
+    },
   },
   async ({ feedId }) => {
     const res = await api("DELETE", `/api/rss-feeds/${feedId}`);
@@ -3745,16 +3908,18 @@ server.tool(
 // media file; abort cancels and frees stored parts.
 // ---------------------------------------------------------------------------
 
-server.tool(
+server.registerTool(
   "create_multipart_upload",
-  "Start a chunked (multipart) direct-to-storage upload for large media — videos up to 1GB, images up to 100MB. Returns r2Key, uploadId, the fixed partSize (10485760 bytes = 10MB), and one PUT URL per part (valid 3600s). PUT each 10MB slice to its URL, collect each response's ETag header, then call complete_multipart_upload. For ordinary files prefer upload_media.",
   {
-    contentType: z
-      .string()
-      .describe("File MIME type, e.g. video/mp4 or image/png."),
-    sizeBytes: z
-      .number()
-      .describe("Exact file size in bytes. Videos up to 1GB; images up to 100MB."),
+    description: "Start a chunked (multipart) direct-to-storage upload for large media — videos up to 1GB, images up to 100MB. Returns r2Key, uploadId, the fixed partSize (10485760 bytes = 10MB), and one PUT URL per part (valid 3600s). PUT each 10MB slice to its URL, collect each response's ETag header, then call complete_multipart_upload. For ordinary files prefer upload_media.",
+    inputSchema: {
+      contentType: z
+        .string()
+        .describe("File MIME type, e.g. video/mp4 or image/png."),
+      sizeBytes: z
+        .number()
+        .describe("Exact file size in bytes. Videos up to 1GB; images up to 100MB."),
+    },
   },
   async ({ contentType, sizeBytes }) => {
     const res = await api("POST", "/api/media/multipart/create", {
@@ -3765,27 +3930,29 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "complete_multipart_upload",
-  "Complete a chunked upload: the server assembles the uploaded parts, verifies the stored object (existence, size, magic bytes, storage quota) and records the media file — same verification and response shape as finalize_media_upload. A failed assembly automatically aborts the upload.",
   {
-    r2Key: z.string().describe("The r2Key returned by create_multipart_upload."),
-    uploadId: z.string().describe("The uploadId returned by create_multipart_upload."),
-    parts: z
-      .array(
-        z.object({
-          partNumber: z.number().min(1).describe("1-based part number."),
-          etag: z.string().describe("ETag response header from the part PUT."),
-        })
-      )
-      .min(1)
-      .describe("Every uploaded part with its ETag."),
-    fileName: z.string().describe("Original file name."),
-    mimeType: z.string().describe("File MIME type."),
-    sizeBytes: z.number().describe("File size in bytes."),
-    width: z.number().optional().describe("Pixel width (images/video)."),
-    height: z.number().optional().describe("Pixel height (images/video)."),
-    duration: z.number().optional().describe("Duration in seconds (video)."),
+    description: "Complete a chunked upload: the server assembles the uploaded parts, verifies the stored object (existence, size, magic bytes, storage quota) and records the media file — same verification and response shape as finalize_media_upload. A failed assembly automatically aborts the upload.",
+    inputSchema: {
+      r2Key: z.string().describe("The r2Key returned by create_multipart_upload."),
+      uploadId: z.string().describe("The uploadId returned by create_multipart_upload."),
+      parts: z
+        .array(
+          z.object({
+            partNumber: z.number().min(1).describe("1-based part number."),
+            etag: z.string().describe("ETag response header from the part PUT."),
+          })
+        )
+        .min(1)
+        .describe("Every uploaded part with its ETag."),
+      fileName: z.string().describe("Original file name."),
+      mimeType: z.string().describe("File MIME type."),
+      sizeBytes: z.number().describe("File size in bytes."),
+      width: z.number().optional().describe("Pixel width (images/video)."),
+      height: z.number().optional().describe("Pixel height (images/video)."),
+      duration: z.number().optional().describe("Duration in seconds (video)."),
+    },
   },
   async ({ r2Key, uploadId, parts, fileName, mimeType, sizeBytes, width, height, duration }) => {
     const body: Record<string, unknown> = {
@@ -3804,12 +3971,14 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   "abort_multipart_upload",
-  "Abort an in-progress chunked upload and permanently free its stored parts. Use only when the upload should be cancelled; do not use this after all parts have been uploaded if you intend to complete the upload. This action cannot be undone.",
   {
-    r2Key: z.string().describe("The r2Key returned by create_multipart_upload."),
-    uploadId: z.string().describe("The uploadId returned by create_multipart_upload."),
+    description: "Abort an in-progress chunked upload and permanently free its stored parts. Use only when the upload should be cancelled; do not use this after all parts have been uploaded if you intend to complete the upload. This action cannot be undone.",
+    inputSchema: {
+      r2Key: z.string().describe("The r2Key returned by create_multipart_upload."),
+      uploadId: z.string().describe("The uploadId returned by create_multipart_upload."),
+    },
   },
   async ({ r2Key, uploadId }) => {
     const res = await api("POST", "/api/media/multipart/abort", { r2Key, uploadId });
@@ -4412,14 +4581,16 @@ if (!HIDE_BILLING_TOOLS) {
   // uploads, prefer upload_media (URL or local path).
   // ---------------------------------------------------------------------------
 
-  server.tool(
+  server.registerTool(
     "create_media_upload",
-    "Reserve a one-time upload link for a direct browser upload (used by the composer UI). For scripted uploads use upload_media instead.",
     {
-      contentType: z
-        .string()
-        .describe("File MIME type, e.g. image/png or video/mp4."),
-      sizeBytes: z.number().describe("File size in bytes."),
+      description: "Reserve a one-time upload link for a direct browser upload (used by the composer UI). For scripted uploads use upload_media instead.",
+      inputSchema: {
+        contentType: z
+          .string()
+          .describe("File MIME type, e.g. image/png or video/mp4."),
+        sizeBytes: z.number().describe("File size in bytes."),
+      },
     },
     async ({ contentType, sizeBytes }) => {
       const res = await api("POST", "/api/media/presign", {
@@ -4430,17 +4601,19 @@ if (!HIDE_BILLING_TOOLS) {
     }
   );
 
-  server.tool(
+  server.registerTool(
     "finalize_media_upload",
-    "Record an uploaded file as a media file after the browser PUT (pairs with create_media_upload; used by the composer UI). Returns the new media file, including the id to pass in mediaFileIds.",
     {
-      r2Key: z.string().describe("The r2Key returned by create_media_upload."),
-      fileName: z.string().describe("Original file name."),
-      mimeType: z.string().describe("File MIME type."),
-      sizeBytes: z.number().describe("File size in bytes."),
-      width: z.number().optional().describe("Pixel width (images/video)."),
-      height: z.number().optional().describe("Pixel height (images/video)."),
-      duration: z.number().optional().describe("Duration in seconds (video)."),
+      description: "Record an uploaded file as a media file after the browser PUT (pairs with create_media_upload; used by the composer UI). Returns the new media file, including the id to pass in mediaFileIds.",
+      inputSchema: {
+        r2Key: z.string().describe("The r2Key returned by create_media_upload."),
+        fileName: z.string().describe("Original file name."),
+        mimeType: z.string().describe("File MIME type."),
+        sizeBytes: z.number().describe("File size in bytes."),
+        width: z.number().optional().describe("Pixel width (images/video)."),
+        height: z.number().optional().describe("Pixel height (images/video)."),
+        duration: z.number().optional().describe("Duration in seconds (video)."),
+      },
     },
     async ({ r2Key, fileName, mimeType, sizeBytes, width, height, duration }) => {
       const body: Record<string, unknown> = {
@@ -4474,19 +4647,21 @@ if (!HIDE_BILLING_TOOLS) {
   const RECONNECT =
     " If the channel's connection has stopped working, the call is refused and the channel needs reconnecting from the Channels page.";
 
-  server.tool(
+  server.registerTool(
     "list_conversations",
-    "List Inbox conversations: direct messages, reviews and comment threads across the connected channels, newest activity first. Each conversation has its platform, kind (dm, review or comment), the other person, unread count, a preview of the last message, and canReply with replyNotice saying why a reply cannot be sent now. Internal team notes are not included. Results are paged: pass nextCursor back as cursor for the next page." +
-      INBOX_AVAILABILITY,
     {
-      status: z.enum(["open", "archived", "snoozed"]).optional().describe("open (default), archived or snoozed."),
-      kind: z.enum(["dm", "review", "comment"]).optional().describe("Only direct messages, reviews or comment threads. Omit for all."),
-      platforms: z.array(z.string()).optional().describe("Only these platforms, e.g. [\"instagram\", \"facebook\"]."),
-      channelId: z.number().optional().describe("Only conversations on this connected account. Channel IDs come from list_channels."),
-      assigned: z.string().optional().describe("me, unassigned, or a teammate's user id."),
-      q: z.string().optional().describe("Search the person's name and handle and the message text (2 to 100 characters)."),
-      cursor: z.string().optional().describe("nextCursor from the previous page."),
-      limit: z.number().optional().describe("Page size, 1 to 100 (default 50)."),
+      description: "List Inbox conversations: direct messages, reviews and comment threads across the connected channels, newest activity first. Each conversation has its platform, kind (dm, review or comment), the other person, unread count, a preview of the last message, and canReply with replyNotice saying why a reply cannot be sent now. Internal team notes are not included. Results are paged: pass nextCursor back as cursor for the next page." +
+        INBOX_AVAILABILITY,
+      inputSchema: {
+        status: z.enum(["open", "archived", "snoozed"]).optional().describe("open (default), archived or snoozed."),
+        kind: z.enum(["dm", "review", "comment"]).optional().describe("Only direct messages, reviews or comment threads. Omit for all."),
+        platforms: z.array(z.string()).optional().describe("Only these platforms, e.g. [\"instagram\", \"facebook\"]."),
+        channelId: z.number().optional().describe("Only conversations on this connected account. Channel IDs come from list_channels."),
+        assigned: z.string().optional().describe("me, unassigned, or a teammate's user id."),
+        q: z.string().optional().describe("Search the person's name and handle and the message text (2 to 100 characters)."),
+        cursor: z.string().optional().describe("nextCursor from the previous page."),
+        limit: z.number().optional().describe("Page size, 1 to 100 (default 50)."),
+      },
     },
     async ({ status, kind, platforms, channelId, assigned, q, cursor, limit }) => {
       const params = new URLSearchParams();
@@ -4504,12 +4679,14 @@ if (!HIDE_BILLING_TOOLS) {
     }
   );
 
-  server.tool(
+  server.registerTool(
     "get_conversation",
-    "Get the messages of one Inbox conversation: the newest 500, oldest first, each with its direction (in from the other person, out sent by the workspace), text, attachments and time. Reading does not mark the conversation read." +
-      INBOX_AVAILABILITY,
     {
-      conversationId: z.number().describe("The conversation id from list_conversations."),
+      description: "Get the messages of one Inbox conversation: the newest 500, oldest first, each with its direction (in from the other person, out sent by the workspace), text, attachments and time. Reading does not mark the conversation read." +
+        INBOX_AVAILABILITY,
+      inputSchema: {
+        conversationId: z.number().describe("The conversation id from list_conversations."),
+      },
     },
     async ({ conversationId }) => {
       const res = await api("GET", `/api/inbox/conversations/${conversationId}/messages`);
@@ -4517,16 +4694,18 @@ if (!HIDE_BILLING_TOOLS) {
     }
   );
 
-  server.tool(
+  server.registerTool(
     "reply_to_conversation",
-    "Send a reply in an Inbox conversation. The message goes to the person on the platform right away, from the channel the conversation belongs to, and it cannot be unsent. Send text (up to 4,000 characters), up to 4 media library files, or both; reviews and comment threads take text only. Facebook Messenger and Instagram accept a reply only within 24 hours of the person's last message; after that the call is refused." +
-      RECONNECT +
-      INBOX_AVAILABILITY,
     {
-      conversationId: z.number().describe("The conversation id from list_conversations."),
-      text: z.string().max(4000).optional().describe("The reply text."),
-      mediaIds: z.array(z.number()).max(4).optional().describe("Media library file ids to attach (direct messages only)."),
-      replyToMessageId: z.number().optional().describe("Comment threads only: the id of the incoming message to answer. Defaults to the newest one from the other person."),
+      description: "Send a reply in an Inbox conversation. The message goes to the person on the platform right away, from the channel the conversation belongs to, and it cannot be unsent. Send text (up to 4,000 characters), up to 4 media library files, or both; reviews and comment threads take text only. Facebook Messenger and Instagram accept a reply only within 24 hours of the person's last message; after that the call is refused." +
+        RECONNECT +
+        INBOX_AVAILABILITY,
+      inputSchema: {
+        conversationId: z.number().describe("The conversation id from list_conversations."),
+        text: z.string().max(4000).optional().describe("The reply text."),
+        mediaIds: z.array(z.number()).max(4).optional().describe("Media library file ids to attach (direct messages only)."),
+        replyToMessageId: z.number().optional().describe("Comment threads only: the id of the incoming message to answer. Defaults to the newest one from the other person."),
+      },
     },
     async ({ conversationId, text, mediaIds, replyToMessageId }) => {
       if (!text && !mediaIds?.length) {
@@ -4541,16 +4720,18 @@ if (!HIDE_BILLING_TOOLS) {
     }
   );
 
-  server.tool(
+  server.registerTool(
     "update_conversation",
-    "Change how the workspace handles one Inbox conversation: mark it read or unread, archive or reopen it, snooze it until a time (at most 90 days out), or assign it to a teammate, who is notified. Nothing is sent to the other person and nothing changes on the platform. Send at least one field." +
-      INBOX_AVAILABILITY,
     {
-      conversationId: z.number().describe("The conversation id from list_conversations."),
-      read: z.boolean().optional().describe("true marks it read, false unread."),
-      status: z.enum(["open", "archived"]).optional().describe("archived archives it, open reopens it. Either clears a snooze."),
-      snoozedUntil: z.string().nullable().optional().describe("ISO timestamp in the future to snooze until; null unsnoozes."),
-      assignedUserId: z.string().nullable().optional().describe("A workspace member's user id; null unassigns."),
+      description: "Change how the workspace handles one Inbox conversation: mark it read or unread, archive or reopen it, snooze it until a time (at most 90 days out), or assign it to a teammate, who is notified. Nothing is sent to the other person and nothing changes on the platform. Send at least one field." +
+        INBOX_AVAILABILITY,
+      inputSchema: {
+        conversationId: z.number().describe("The conversation id from list_conversations."),
+        read: z.boolean().optional().describe("true marks it read, false unread."),
+        status: z.enum(["open", "archived"]).optional().describe("archived archives it, open reopens it. Either clears a snooze."),
+        snoozedUntil: z.string().nullable().optional().describe("ISO timestamp in the future to snooze until; null unsnoozes."),
+        assignedUserId: z.string().nullable().optional().describe("A workspace member's user id; null unassigns."),
+      },
     },
     async ({ conversationId, read, status, snoozedUntil, assignedUserId }) => {
       const body: Record<string, unknown> = {};
@@ -4566,13 +4747,15 @@ if (!HIDE_BILLING_TOOLS) {
     }
   );
 
-  server.tool(
+  server.registerTool(
     "list_post_comments",
-    "List the comments and reactions on one published post, per channel, read from each platform. Each channel's entry has its postPlatformId and each comment its id, which reply_to_comment and moderate_comment take, plus commentActions listing the actions that channel supports. Some platforms have no comment access (TikTok, Pinterest, Google Business, Telegram, Snapchat) and say so in a notice.",
     {
-      postId: z.number().describe("The post id."),
-      commentsLimit: z.number().optional().describe("Max comments per channel (default 25, max 100)."),
-      reactionsLimit: z.number().optional().describe("Max reactors (people who liked or reacted) per channel (default 25, max 100)."),
+      description: "List the comments and reactions on one published post, per channel, read from each platform. Each channel's entry has its postPlatformId and each comment its id, which reply_to_comment and moderate_comment take, plus commentActions listing the actions that channel supports. Some platforms have no comment access (TikTok, Pinterest, Google Business, Telegram, Snapchat) and say so in a notice.",
+      inputSchema: {
+        postId: z.number().describe("The post id."),
+        commentsLimit: z.number().optional().describe("Max comments per channel (default 25, max 100)."),
+        reactionsLimit: z.number().optional().describe("Max reactors (people who liked or reacted) per channel (default 25, max 100)."),
+      },
     },
     async ({ postId, commentsLimit, reactionsLimit }) => {
       const params = new URLSearchParams();
@@ -4584,17 +4767,19 @@ if (!HIDE_BILLING_TOOLS) {
     }
   );
 
-  server.tool(
+  server.registerTool(
     "reply_to_comment",
-    "Reply to a comment on one of the workspace's published posts. The reply is posted publicly on the platform right away, as the channel the post was published to, and it cannot be taken back from here. Up to 2,000 characters." +
-      RECONNECT +
-      COMMENTS_AVAILABILITY,
     {
-      postId: z.number().describe("The post id."),
-      postPlatformId: z.number().describe("The channel's postPlatformId from list_post_comments."),
-      commentId: z.string().describe("The comment's id from list_post_comments."),
-      text: z.string().max(2000).describe("The reply text."),
-      rootCommentId: z.string().optional().describe("When replying to a reply: the thread's top-level comment id (Instagram and YouTube). Leave it out when replying to a top-level comment."),
+      description: "Reply to a comment on one of the workspace's published posts. The reply is posted publicly on the platform right away, as the channel the post was published to, and it cannot be taken back from here. Up to 2,000 characters." +
+        RECONNECT +
+        COMMENTS_AVAILABILITY,
+      inputSchema: {
+        postId: z.number().describe("The post id."),
+        postPlatformId: z.number().describe("The channel's postPlatformId from list_post_comments."),
+        commentId: z.string().describe("The comment's id from list_post_comments."),
+        text: z.string().max(2000).describe("The reply text."),
+        rootCommentId: z.string().optional().describe("When replying to a reply: the thread's top-level comment id (Instagram and YouTube). Leave it out when replying to a top-level comment."),
+      },
     },
     async ({ postId, postPlatformId, commentId, text, rootCommentId }) => {
       const body: Record<string, unknown> = { postPlatformId, commentId, text };
@@ -4604,16 +4789,18 @@ if (!HIDE_BILLING_TOOLS) {
     }
   );
 
-  server.tool(
+  server.registerTool(
     "moderate_comment",
-    "Like, unlike, hide, unhide or delete a comment on one of the workspace's published posts, on the platform, as the channel the post was published to. Likes and hides can be undone; delete is permanent and needs a role that can publish. Hiding or deleting also removes the comment from the Inbox. Which actions a channel supports is in its commentActions from list_post_comments (Threads supports hide and unhide; Facebook supports hide, unhide and delete). A comment hidden on Threads or Facebook comes back with hidden: true." +
-      RECONNECT +
-      MODERATION_AVAILABILITY,
     {
-      postId: z.number().describe("The post id."),
-      postPlatformId: z.number().describe("The channel's postPlatformId from list_post_comments."),
-      commentId: z.string().describe("The comment's id from list_post_comments."),
-      action: z.enum(["like", "unlike", "hide", "unhide", "delete"]).describe("What to do with the comment."),
+      description: "Like, unlike, hide, unhide or delete a comment on one of the workspace's published posts, on the platform, as the channel the post was published to. Likes and hides can be undone; delete is permanent and needs a role that can publish. Hiding or deleting also removes the comment from the Inbox. Which actions a channel supports is in its commentActions from list_post_comments (Threads supports hide and unhide; Facebook supports hide, unhide and delete). A comment hidden on Threads or Facebook comes back with hidden: true." +
+        RECONNECT +
+        MODERATION_AVAILABILITY,
+      inputSchema: {
+        postId: z.number().describe("The post id."),
+        postPlatformId: z.number().describe("The channel's postPlatformId from list_post_comments."),
+        commentId: z.string().describe("The comment's id from list_post_comments."),
+        action: z.enum(["like", "unlike", "hide", "unhide", "delete"]).describe("What to do with the comment."),
+      },
     },
     async ({ postId, postPlatformId, commentId, action }) => {
       const res = await api("POST", `/api/posts/${postId}/comments/moderate`, { postPlatformId, commentId, action });
@@ -4642,6 +4829,11 @@ if (!HIDE_BILLING_TOOLS) {
       return { ...result, tools: result.tools.map((t) => withoutUnservedRefs(t, served)) };
     });
   }
+
+  // Tasks (protocol 2026-07-28 only): the serving entry passes a store only to
+  // instances it builds for that era, so a 2025-era client's server is
+  // unchanged. See src/tasks.ts.
+  if (opts.tasks) installTasks(server, { store: opts.tasks, caller: activeApiKey });
 
   return server;
 }
@@ -4709,10 +4901,13 @@ if (isDirectRun) {
     );
   }
 
-  const server = createServer({ profile: resolveToolProfile("full") });
-  const transport = new StdioServerTransport();
-  server.connect(transport).catch((err) => {
-    console.error("Failed to start MCP server:", err);
-    process.exit(1);
+  // serveStdio answers both protocol eras on one pipe: a client that opens
+  // with initialize gets the same server as before, one that opens with
+  // server/discover gets 2026-07-28. One server per connection either way.
+  const profile = resolveToolProfile("full");
+  // One process serves one user over stdio, so tasks can live in memory.
+  const tasks = new MemoryTaskStore();
+  serveStdio((ctx) => createServer({ profile, tasks: ctx.era === "modern" ? tasks : undefined }), {
+    onerror: (err) => console.error("MCP server error:", err),
   });
 }

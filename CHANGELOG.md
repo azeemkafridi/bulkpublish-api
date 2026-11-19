@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-11-19 — MCP server: protocol 2026-07-28, tasks for long uploads and publishes, a check before a risky retry
+
+MCP **1.58.0**
+
+### Changed
+
+- **MCP server:** answers clients on MCP protocol revision 2026-07-28 as well as every earlier revision (2024-11-05 through 2025-11-25), over both stdio and the hosted server. Clients that connect the older way see exactly the tools, descriptions, schemas and panels they saw before; nothing to change on your side. The hosted server card lists 2026-07-28 among its supported protocol versions.
+
+### Added
+
+- **MCP tasks:** on protocol 2026-07-28, a client that supports tasks gets `upload_media` and `publish_post` back as a task it can check on, instead of waiting on the call. As a task, `publish_post` also waits for your channels to finish and returns the post's final status (published, partial or failed), not just "queued". Cancelling stops the wait; publishing itself carries on. Every other client, and every other tool, answers exactly as before.
+- **MCP `retry_post`:** when a retry is refused because a platform never confirmed the original post (it may already be live), assistants that support tasks and confirmation forms now ask you to check the account instead of returning the error. Only "it is not live" retries it; anything else retries nothing. Every other retry answers exactly as before, so automated retries are unchanged, and passing `republish: true` still retries without asking. `publish_post` itself never asks for confirmation.
+
 ## 2026-11-19 — Instagram carousels of up to 20, an AI info label for Instagram and Threads, two analytics tools
 
 Node SDK **1.46.2** · Python **0.47.2** · MCP **1.57.0** · spec + Postman
