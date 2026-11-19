@@ -308,7 +308,7 @@ Different platforms have different requirements for media. BulkPublish handles m
 
 | Platform | Image Max | Video Max | Max Files | Notes |
 |----------|----------|----------|-----------|-------|
-| Instagram | 8 MB (JPEG) | 1 GB | 10 (carousel) | Auto-converts to JPEG |
+| Instagram | 8 MB (JPEG) | 1 GB | 20 (carousel) | Auto-converts to JPEG |
 | TikTok | 20 MB | 4 GB | 1 video or 35 photos | Photos must be 1080px max |
 | YouTube | -- | 128 GB | 1 | Video only |
 | Facebook | -- | -- | Multiple | Images + videos |

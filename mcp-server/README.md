@@ -191,6 +191,8 @@ Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles))
 | `delete_label` | Delete a label |
 | **Analytics** | |
 | `get_analytics` ★ | Get analytics summary for a date range |
+| `get_account_analytics` | Daily follower, impression, reach and profile-view snapshots per channel, up to the last 30 days |
+| `get_engagement_analytics` | Likes, comments, shares, views and reach across posts in a date range, per platform and per day, with a ranked top-posts list |
 | **Schedules** | |
 | `list_schedules` | List recurring schedules |
 | `create_schedule` | Create a recurring schedule |

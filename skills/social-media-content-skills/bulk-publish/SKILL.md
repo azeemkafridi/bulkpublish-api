@@ -46,7 +46,7 @@ Returns: `id` (use this in `mediaFileIds` when creating posts), `fileName`, `mim
 |---|---|---|---|
 | Instagram Reels | — | MP4, 9:16 | 3 seconds–15 minutes |
 | Instagram Stories | JPEG/PNG, 9:16 | MP4, 9:16 | 1080x1920 recommended; video 3–60 seconds |
-| Instagram Carousel | JPEG/PNG | — | 2-10 images |
+| Instagram Carousel | JPEG/PNG | MP4 | 2-20 images or videos |
 | TikTok | — | MP4 | Up to 3 minutes for every account; some accounts 5 or 10 |
 | YouTube | — | MP4 | Requires title in platformSpecific |
 | Pinterest | JPEG/PNG, 2:3 | MP4 | 1000x1500 recommended; video pins at least 4 seconds |

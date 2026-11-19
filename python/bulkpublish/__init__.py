@@ -10,7 +10,7 @@ from .exceptions import (
     ConflictError,
 )
 
-__version__ = "0.47.1"
+__version__ = "0.47.2"
 __all__ = [
     "BulkPublish",
     "AsyncBulkPublish",

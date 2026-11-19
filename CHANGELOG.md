@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-11-19 — Instagram carousels of up to 20, an AI info label for Instagram and Threads, two analytics tools
+
+Node SDK **1.46.2** · Python **0.47.2** · MCP **1.57.0** · spec + Postman
+
+### Added
+
+- **`platformSpecific.instagram.isAiGenerated` and `platformSpecific.threads.isAiGenerated`** (boolean). `true` shows the platform's "AI info" label, a self-disclosure that the post contains AI-generated content. Instagram: feed photos, videos, Reels and carousels (not Stories, where Meta documents no support), set on the carousel itself rather than its items. Threads: text, image, video and carousel posts, and every part of a thread. Only `true` is sent; `false` or leaving it out adds no label, and either platform may still label a post on its own. A non-boolean is refused with `400 VALIDATION_ERROR`. In the spec, the Postman bodies, the Node and Python docs, the MCP `create_post` / `update_post` schemas and prompts, the platform guide and the platform-reference skill. Facebook has no documented equivalent, so it is not offered there.
+- **MCP `get_account_analytics`** (`GET /api/analytics/account`: daily followers, impressions, reach and profile views per channel) **and `get_engagement_analytics`** (`GET /api/analytics/engagement`: likes, comments, shares, views and reach across posts, per platform and per day, with a ranked top-posts list). Both read-only, in the `full` profile; the local server now serves 82 tools. The `core` and `inbox` profiles are unchanged apart from the new optional `isAiGenerated` fields.
+
+### Changed
+
+- **Instagram carousels take 2 to 20 items**, images, videos or a mix (it was 10). The platform guide, the media-uploads table, the MCP prompt and the skills say so.
+
+### Fixed
+
+- `PATCH /api/posts/{id}`: `recurringScheduleId` must be a repeat schedule in your organization (another id is `422 VALIDATION_ERROR`) and a positive integer or `null` (`400 VALIDATION_ERROR`). The spec, the Postman responses and the MCP `update_post` description say so; the `400` also names `assignedUserId`'s type check, which was already enforced.
+- TikTok `sendToDrafts`: a video draft carries no caption, and TikTok may show its own default description on it until the creator replaces it. In the spec, the Node and Python docs, the MCP schema and the skills.
+
 ## 2026-11-19 — TikTok privacy: the default is documented, and the listed values are right
 
 Node SDK **1.46.1** · Python **0.47.1** · spec

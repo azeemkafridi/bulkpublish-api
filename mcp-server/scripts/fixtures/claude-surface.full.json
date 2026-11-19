@@ -500,7 +500,7 @@
                     "type": "number"
                   },
                   "sendToDrafts": {
-                    "description": "Send a video or photo_slideshow post to the creator's TikTok drafts instead of publishing it (default false). privacyLevel is then not required, and the direct-post settings (privacyLevel, disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, autoAddMusic, thumbnailTimestamp) are ignored. A video draft carries no caption; a photo draft sends it. Once delivered the destination becomes published with no platformUrl; if the creator posts it within about a week, platformPostId becomes the video id, platformUrl is filled in and analytics are collected.",
+                    "description": "Send a video or photo_slideshow post to the creator's TikTok drafts instead of publishing it (default false). privacyLevel is then not required, and the direct-post settings (privacyLevel, disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, autoAddMusic, thumbnailTimestamp) are ignored. A video draft carries no caption (TikTok may show its own default description on it until the creator replaces it); a photo draft sends it. Once delivered the destination becomes published with no platformUrl; if the creator posts it within about a week, platformPostId becomes the video id, platformUrl is filled in and analytics are collected.",
                     "type": "boolean"
                   },
                   "photoCoverIndex": {
@@ -648,6 +648,10 @@
                   "coverUrl": {
                     "description": "Cover image URL for a video or Reel. Takes precedence over thumbnailTimestamp: Instagram accepts one or the other and rejects a request carrying both, so only this one is forwarded when both are sent.",
                     "type": "string"
+                  },
+                  "isAiGenerated": {
+                    "description": "true shows Instagram's \"AI info\" label, disclosing that the post contains AI-generated content. Feed photos, videos, Reels and carousels, not Stories; on a carousel it goes on the carousel itself. Only set it when the user says the content was made with AI. false or omitted adds no label, though Instagram may still label a post on its own.",
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": {}
@@ -693,6 +697,10 @@
                   "linkAttachment": {
                     "description": "An http(s) URL on a public host shown as the preview card on a text post; left out on other post types. Threads refuses a post with more than 5 links in total, and a link here that differs from every link in the text counts as one more.",
                     "type": "string"
+                  },
+                  "isAiGenerated": {
+                    "description": "true shows Threads' \"AI info\" label on a text, image, video or carousel post, and on every part of a thread. Only set it when the user says the content was made with AI. false or omitted adds no label, though Threads may still label a post on its own.",
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": {}
@@ -1617,6 +1625,162 @@
               }
             }
           },
+          "platformMediaFileIds": {
+            "description": "Which of the attached files (mediaFileIds) each platform publishes, keyed by platform, e.g. { \"instagram\": [12, 14], \"x\": [12], \"linkedin\": [] }. A platform that is not listed publishes all of mediaFileIds, in order. A listed platform publishes exactly the files in its list, in that order; an empty list publishes it without media. Every id must also be in mediaFileIds, or the request is refused with 400 VALIDATION_ERROR. Each platform's media limits are checked against its own list. Ignored for thread posts, whose parts carry their own media. Instagram's userTags mediaIndex keeps counting mediaFileIds; TikTok's photoCoverIndex counts the images in TikTok's own list.",
+            "type": "object",
+            "properties": {
+              "facebook": {
+                "description": "Media file IDs published on facebook, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "instagram": {
+                "description": "Media file IDs published on instagram, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "x": {
+                "description": "Media file IDs published on x, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "tiktok": {
+                "description": "Media file IDs published on tiktok, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "youtube": {
+                "description": "Media file IDs published on youtube, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "threads": {
+                "description": "Media file IDs published on threads, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "bluesky": {
+                "description": "Media file IDs published on bluesky, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "pinterest": {
+                "description": "Media file IDs published on pinterest, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "gmb": {
+                "description": "Media file IDs published on gmb, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "linkedin": {
+                "description": "Media file IDs published on linkedin, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "mastodon": {
+                "description": "Media file IDs published on mastodon, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "discord": {
+                "description": "Media file IDs published on discord, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "telegram": {
+                "description": "Media file IDs published on telegram, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "tumblr": {
+                "description": "Media file IDs published on tumblr, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "snapchat": {
+                "description": "Media file IDs published on snapchat, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              }
+            }
+          },
           "postFormat": {
             "description": "Post format. \"post\" (default), \"video\", \"reel\", \"story\", \"carousel\", or \"thread\" for multi-part threads.",
             "type": "string",
@@ -1630,7 +1794,7 @@
             ]
           },
           "threadParts": {
-            "description": "Thread parts array. Required when postFormat is thread (min 2 parts). EVERY part is measured against the character limit of every platform the post targets, not only the first — an over-long part is rejected with 400 VALIDATION_ERROR naming the part number, the platform and its limit. URLs count as 23 characters on X and Mastodon, their real length elsewhere.",
+            "description": "Thread parts array. Required when postFormat is thread (min 2 parts). EVERY part is measured against the character limit of every platform the post targets, not only the first — an over-long part is rejected with 400 VALIDATION_ERROR naming the part number, the platform and its limit. URLs count as 23 characters on X and Mastodon, their real length elsewhere. A part with neither text nor media is left out when the thread publishes, since no network accepts an empty segment.",
             "type": "array",
             "items": {
               "type": "object",
@@ -1850,7 +2014,7 @@
             "type": "boolean"
           },
           "repeatSchedule": {
-            "description": "Optional. Make this a repeating post: it is re-published on this cadence. Media on a repeating post is always kept (deleteMediaAfterPublish is forced to false).",
+            "description": "Optional. Make this a repeating post: it is re-published on this cadence. Media on a repeating post is always kept (deleteMediaAfterPublish is forced to false), and its platformMediaFileIds choice is copied onto the schedule, so every run carries it.",
             "type": "object",
             "properties": {
               "frequency": {
@@ -2454,6 +2618,9 @@
           },
           "platformContent": {
             "description": "Text that replaces content on one network, keyed by platform."
+          },
+          "platformMediaFileIds": {
+            "description": "Which of the post's media file IDs each platform publishes, keyed by platform. A platform that is not listed publishes all of mediaFiles; an empty list publishes it without media."
           },
           "threadParts": {
             "description": "For a thread post: its parts, in order."
@@ -3120,6 +3287,9 @@
                     "platformContent": {
                       "description": "Text that replaces content on one network, keyed by platform."
                     },
+                    "platformMediaFileIds": {
+                      "description": "Which of the post's media file IDs each platform publishes, keyed by platform. A platform that is not listed publishes all of mediaFiles; an empty list publishes it without media."
+                    },
                     "threadParts": {
                       "description": "For a thread post: its parts, in order."
                     },
@@ -3775,6 +3945,9 @@
           "platformContent": {
             "description": "Text that replaces content on one network, keyed by platform."
           },
+          "platformMediaFileIds": {
+            "description": "Which of the post's media file IDs each platform publishes, keyed by platform. A platform that is not listed publishes all of mediaFiles; an empty list publishes it without media."
+          },
           "threadParts": {
             "description": "For a thread post: its parts, in order."
           },
@@ -4348,6 +4521,9 @@
           },
           "platformContent": {
             "description": "Text that replaces content on one network, keyed by platform."
+          },
+          "platformMediaFileIds": {
+            "description": "Which of the post's media file IDs each platform publishes, keyed by platform. A platform that is not listed publishes all of mediaFiles; an empty list publishes it without media."
           },
           "threadParts": {
             "description": "For a thread post: its parts, in order."
@@ -4926,6 +5102,9 @@
           },
           "platformContent": {
             "description": "Text that replaces content on one network, keyed by platform."
+          },
+          "platformMediaFileIds": {
+            "description": "Which of the post's media file IDs each platform publishes, keyed by platform. A platform that is not listed publishes all of mediaFiles; an empty list publishes it without media."
           },
           "threadParts": {
             "description": "For a thread post: its parts, in order."
@@ -5549,6 +5728,9 @@
           "platformContent": {
             "description": "Text that replaces content on one network, keyed by platform."
           },
+          "platformMediaFileIds": {
+            "description": "Which of the post's media file IDs each platform publishes, keyed by platform. A platform that is not listed publishes all of mediaFiles; an empty list publishes it without media."
+          },
           "threadParts": {
             "description": "For a thread post: its parts, in order."
           },
@@ -6131,6 +6313,9 @@
           },
           "platformContent": {
             "description": "Text that replaces content on one network, keyed by platform."
+          },
+          "platformMediaFileIds": {
+            "description": "Which of the post's media file IDs each platform publishes, keyed by platform. A platform that is not listed publishes all of mediaFiles; an empty list publishes it without media."
           },
           "threadParts": {
             "description": "For a thread post: its parts, in order."
@@ -7262,6 +7447,581 @@
       }
     },
     {
+      "name": "get_account_analytics",
+      "title": "Get account analytics",
+      "description": "Daily account snapshots per connected channel: followers, impressions, reach and profile views, for a date range of up to the last 30 days. Use it for how an account is growing; use get_engagement_analytics for how posts performed. engagementRate is always null here (no platform reports one per account), profileViews is reported by Facebook only and websiteClicks by Google Business only, so a 0 for those elsewhere means not reported. Use this when the user asks how an account is doing: followers, reach, impressions or profile views over time.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "description": "Start date, YYYY-MM-DD. Defaults to 30 days ago; earlier dates are raised to 30 days ago.",
+            "type": "string"
+          },
+          "to": {
+            "description": "End date, YYYY-MM-DD. Defaults to today.",
+            "type": "string"
+          },
+          "channelIds": {
+            "description": "Comma-separated channel ids to include, e.g. \"12,15\". Ids come from list_channels.",
+            "type": "string"
+          },
+          "platforms": {
+            "description": "Comma-separated platform keys to include, e.g. \"instagram,linkedin\".",
+            "type": "string"
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "metrics": {
+            "description": "Daily account snapshots, one per channel per day.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "channelId": {
+                      "description": "The channel this snapshot belongs to.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "date": {
+                      "description": "The day of the snapshot, YYYY-MM-DD.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "followers": {
+                      "description": "Followers on that day.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "impressions": {
+                      "description": "Impressions that day.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "reach": {
+                      "description": "Reach that day.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "profileViews": {
+                      "description": "Profile views that day (Facebook only; 0 elsewhere means not reported).",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "websiteClicks": {
+                      "description": "Website clicks that day (Google Business only; 0 elsewhere means not reported).",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "engagementRate": {
+                      "description": "Always null: no account-level rate is measured.",
+                      "anyOf": [
+                        {},
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "channels": {
+            "description": "The channels the snapshots belong to.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "Channel id.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platform": {
+                      "description": "Platform key.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "accountName": {
+                      "description": "The account's name on the platform.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "get_engagement_analytics",
+      "title": "Get engagement analytics",
+      "description": "Engagement across posts in a date range (at most 30 days): impressions, reach, likes, comments, shares, saves, clicks and video views, with totals per platform and per day and a ranked list of top posts. Pass top=true for just the leaderboard. Platforms listed in unmeasuredPlatforms cannot report per-post metrics, so their zeros mean not reported, not measured zero. Use this when the user asks which posts did best, or for likes, comments, shares, views or engagement rate across posts in a date range.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "description": "Start date, YYYY-MM-DD. Clamped to at most 30 days before `to`."
+          },
+          "to": {
+            "type": "string",
+            "description": "End date, YYYY-MM-DD."
+          },
+          "tz": {
+            "description": "IANA timezone (e.g. \"Asia/Karachi\") that sets where each day starts and how byDay is grouped. Defaults to UTC; pass the same zone as to get_analytics so the two agree.",
+            "type": "string"
+          },
+          "channelIds": {
+            "description": "Comma-separated channel ids to include. Ids come from list_channels.",
+            "type": "string"
+          },
+          "platforms": {
+            "description": "Comma-separated platform keys to include.",
+            "type": "string"
+          },
+          "labelIds": {
+            "description": "Comma-separated label ids (from list_labels); a post matches when it carries ANY of them.",
+            "type": "string"
+          },
+          "postFormat": {
+            "description": "Only single posts or only threads.",
+            "type": "string",
+            "enum": [
+              "post",
+              "thread"
+            ]
+          },
+          "mediaType": {
+            "description": "By the post's first media file: text (no media), image or video.",
+            "type": "string",
+            "enum": [
+              "text",
+              "image",
+              "video"
+            ]
+          },
+          "top": {
+            "description": "true returns only topPosts (allPosts comes back empty), which is much smaller for a long window.",
+            "type": "boolean"
+          },
+          "topBy": {
+            "description": "What topPosts is ranked by (default impressions). engagements = likes + comments + shares + clicks.",
+            "type": "string",
+            "enum": [
+              "impressions",
+              "reach",
+              "likes",
+              "comments",
+              "shares",
+              "saves",
+              "clicks",
+              "videoViews",
+              "linkClicks",
+              "engagements",
+              "engagementRate"
+            ]
+          },
+          "topOrder": {
+            "description": "desc (default) for the best posts, asc for the worst.",
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ]
+          },
+          "compare": {
+            "description": "Also return the previous equal-length window as `previous` / `previousWindow`.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "totalImpressions": {
+            "description": "Impressions across matching posts.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totalReach": {
+            "description": "Reach across matching posts.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totalLikes": {
+            "description": "Likes.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totalComments": {
+            "description": "Comments.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totalShares": {
+            "description": "Shares.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totalSaves": {
+            "description": "Saves.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totalClicks": {
+            "description": "Clicks.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totalVideoViews": {
+            "description": "Video views.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "avgEngagementRate": {
+            "description": "Average post engagement rate.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "byPlatform": {
+            "description": "Totals per platform key.",
+            "anyOf": [
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "byDay": {
+            "description": "Totals per day.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "topPosts": {
+            "description": "Best posts by topBy (impressions unless set).",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "allPosts": {
+            "description": "Every matching post with its per-platform metrics; empty when top is set.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unmeasuredPlatforms": {
+            "description": "Platforms in the window that cannot report per-post metrics; their zeros mean not reported.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
       "name": "list_labels",
       "title": "List labels",
       "description": "List the labels available for tagging posts and media, sorted by name. Returns at most 500 (the first 500 alphabetically). Use this when the user wants their post labels/tags.",
@@ -7520,7 +8280,7 @@
     {
       "name": "list_templates",
       "title": "List post templates",
-      "description": "List the organization's saved post templates — reusable text to start a new post from. Filter by kind to get saved first-comment snippets instead of captions. Use this when the user wants their saved post templates, or wants to start a post from one.",
+      "description": "List the organization's saved post templates — reusable text to start a new post from. A caption template may also keep a post setup (channelIds, postFormat, postTypeOverrides, mediaFileIds, platformMediaFileIds, platformContent) to pass on to create_post; each template carries `media`, its files that are still in the media library. Filter by kind to get saved first-comment snippets instead of captions. Use this when the user wants their saved post templates, or wants to start a post from one.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -7548,7 +8308,7 @@
     {
       "name": "create_template",
       "title": "Create post template",
-      "description": "Save post text as a named template for reuse (text only; media and channels belong to the post). Up to 200 per organization per kind (captions and first-comment snippets each have their own 200); names are unique per kind, so a caption and a first-comment snippet can share a name. Use this when the user wants to save post text for reuse.",
+      "description": "Save post text as a named template for reuse. A caption template can also keep a post setup: channels, post format, per-platform post types, media, and per-platform media and text (caption templates only; sending them with kind first_comment is refused). Text may be left out when the template sets any of these to something (an empty text with only channelIds: [] is refused). Channels and media must belong to the workspace. Per-platform publish options (platformSpecific) belong to the post. Up to 200 per organization per kind (captions and first-comment snippets each have their own 200); names are unique per kind, so a caption and a first-comment snippet can share a name. Use this when the user wants to save post text, or a post setup (channels, format, media), for reuse.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -7558,9 +8318,9 @@
             "description": "Template name."
           },
           "content": {
+            "description": "Template text. Required unless a caption template sets one of the setup fields.",
             "type": "string",
-            "maxLength": 10000,
-            "description": "Template text."
+            "maxLength": 10000
           },
           "kind": {
             "description": "What the text is for: a post caption, or a first-comment reply. Defaults to caption.",
@@ -7569,11 +8329,76 @@
               "caption",
               "first_comment"
             ]
+          },
+          "channelIds": {
+            "description": "Channels (from list_channels) a post started from this template goes to. Channels disconnected since are skipped.",
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "postFormat": {
+            "description": "The post format the template starts in, as in create_post's postFormat. Not thread: a template cannot keep thread parts.",
+            "type": "string",
+            "enum": [
+              "post",
+              "video",
+              "reel",
+              "story",
+              "carousel"
+            ]
+          },
+          "postTypeOverrides": {
+            "description": "Per-platform post types, as in create_post's postTypeOverrides, e.g. { \"instagram\": \"reel\" }.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "mediaFileIds": {
+            "description": "Media file IDs (from upload_media or list_media) a post started from this template attaches. A file a template uses is kept in the media library.",
+            "maxItems": 35,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "platformMediaFileIds": {
+            "description": "Which of mediaFileIds each platform gets, as in create_post's platformMediaFileIds, e.g. { \"x\": [12] }; every id must be in mediaFileIds.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              }
+            }
+          },
+          "platformContent": {
+            "description": "Per-platform text, as in create_post's platformContent.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
           }
         },
         "required": [
-          "name",
-          "content"
+          "name"
         ],
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
@@ -7590,7 +8415,7 @@
     {
       "name": "update_template",
       "title": "Update post template",
-      "description": "Rename a template and/or replace its text (partial update — at least one field is required). Use this when the user wants to rename a template or change its text.",
+      "description": "Rename a template, replace its text, and/or change the post setup a caption template keeps (partial update — at least one field is required; null clears a setup field). Use this when the user wants to rename a template or change its text or setup.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -7605,6 +8430,114 @@
           "content": {
             "type": "string",
             "maxLength": 10000
+          },
+          "channelIds": {
+            "description": "Channels (from list_channels) a post started from this template goes to. Channels disconnected since are skipped. Send null to clear it.",
+            "anyOf": [
+              {
+                "maxItems": 100,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postFormat": {
+            "description": "The post format the template starts in, as in create_post's postFormat. Not thread: a template cannot keep thread parts. Send null to clear it.",
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "post",
+                  "video",
+                  "reel",
+                  "story",
+                  "carousel"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postTypeOverrides": {
+            "description": "Per-platform post types, as in create_post's postTypeOverrides, e.g. { \"instagram\": \"reel\" }. Send null to clear it.",
+            "anyOf": [
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mediaFileIds": {
+            "description": "Media file IDs (from upload_media or list_media) a post started from this template attaches. A file a template uses is kept in the media library. Send null to clear it.",
+            "anyOf": [
+              {
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "platformMediaFileIds": {
+            "description": "Which of mediaFileIds each platform gets, as in create_post's platformMediaFileIds, e.g. { \"x\": [12] }; every id must be in mediaFileIds. Send null to clear it.",
+            "anyOf": [
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "platformContent": {
+            "description": "Per-platform text, as in create_post's platformContent. Send null to clear it.",
+            "anyOf": [
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -8190,6 +9123,162 @@
               }
             }
           },
+          "platformMediaFileIds": {
+            "description": "Optional. Which of the post's attached files each platform publishes, keyed by platform, e.g. { \"instagram\": [12, 14], \"linkedin\": [] }. A platform that is not listed publishes all of the post's media; an empty list publishes it without media; every id must also be attached to the post. Sending it replaces the stored choice. When it is omitted but mediaFileIds changes, files no longer attached are dropped from each list, and a platform left with none of the files it named goes back to all of the post's media. Ignored for thread posts. Instagram's userTags mediaIndex keeps counting the post's media; TikTok's photoCoverIndex counts the images in TikTok's own list.",
+            "type": "object",
+            "properties": {
+              "facebook": {
+                "description": "Media file IDs published on facebook, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "instagram": {
+                "description": "Media file IDs published on instagram, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "x": {
+                "description": "Media file IDs published on x, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "tiktok": {
+                "description": "Media file IDs published on tiktok, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "youtube": {
+                "description": "Media file IDs published on youtube, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "threads": {
+                "description": "Media file IDs published on threads, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "bluesky": {
+                "description": "Media file IDs published on bluesky, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "pinterest": {
+                "description": "Media file IDs published on pinterest, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "gmb": {
+                "description": "Media file IDs published on gmb, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "linkedin": {
+                "description": "Media file IDs published on linkedin, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "mastodon": {
+                "description": "Media file IDs published on mastodon, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "discord": {
+                "description": "Media file IDs published on discord, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "telegram": {
+                "description": "Media file IDs published on telegram, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "tumblr": {
+                "description": "Media file IDs published on tumblr, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "snapchat": {
+                "description": "Media file IDs published on snapchat, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              }
+            }
+          },
           "postFormat": {
             "description": "Optional. 'thread' to turn the post into a multi-part thread (send threadParts too), 'post' for a single post.",
             "type": "string",
@@ -8233,7 +9322,7 @@
             ]
           },
           "recurringScheduleId": {
-            "description": "Optional. Attach the post to a recurring schedule by id, or null to detach it. Omit to leave it unchanged.",
+            "description": "Optional. Attach the post to a recurring schedule by id, or null to detach it. Omit to leave it unchanged. The schedule must belong to the same organization (another id is refused with 422 VALIDATION_ERROR), and the value must be a positive integer or null.",
             "anyOf": [
               {
                 "type": "number"
@@ -8613,7 +9702,7 @@
                     "type": "number"
                   },
                   "sendToDrafts": {
-                    "description": "Send a video or photo_slideshow post to the creator's TikTok drafts instead of publishing it (default false). privacyLevel is then not required, and the direct-post settings (privacyLevel, disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, autoAddMusic, thumbnailTimestamp) are ignored. A video draft carries no caption; a photo draft sends it. Once delivered the destination becomes published with no platformUrl; if the creator posts it within about a week, platformPostId becomes the video id, platformUrl is filled in and analytics are collected.",
+                    "description": "Send a video or photo_slideshow post to the creator's TikTok drafts instead of publishing it (default false). privacyLevel is then not required, and the direct-post settings (privacyLevel, disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, autoAddMusic, thumbnailTimestamp) are ignored. A video draft carries no caption (TikTok may show its own default description on it until the creator replaces it); a photo draft sends it. Once delivered the destination becomes published with no platformUrl; if the creator posts it within about a week, platformPostId becomes the video id, platformUrl is filled in and analytics are collected.",
                     "type": "boolean"
                   },
                   "photoCoverIndex": {
@@ -8761,6 +9850,10 @@
                   "coverUrl": {
                     "description": "Cover image URL for a video or Reel. Takes precedence over thumbnailTimestamp: Instagram accepts one or the other and rejects a request carrying both, so only this one is forwarded when both are sent.",
                     "type": "string"
+                  },
+                  "isAiGenerated": {
+                    "description": "true shows Instagram's \"AI info\" label, disclosing that the post contains AI-generated content. Feed photos, videos, Reels and carousels, not Stories; on a carousel it goes on the carousel itself. Only set it when the user says the content was made with AI. false or omitted adds no label, though Instagram may still label a post on its own.",
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": {}
@@ -8806,6 +9899,10 @@
                   "linkAttachment": {
                     "description": "An http(s) URL on a public host shown as the preview card on a text post; left out on other post types. Threads refuses a post with more than 5 links in total, and a link here that differs from every link in the text counts as one more.",
                     "type": "string"
+                  },
+                  "isAiGenerated": {
+                    "description": "true shows Threads' \"AI info\" label on a text, image, video or carousel post, and on every part of a thread. Only set it when the user says the content was made with AI. false or omitted adds no label, though Threads may still label a post on its own.",
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": {}
@@ -10227,6 +11324,9 @@
           "platformContent": {
             "description": "Text that replaces content on one network, keyed by platform."
           },
+          "platformMediaFileIds": {
+            "description": "Which of the post's media file IDs each platform publishes, keyed by platform. A platform that is not listed publishes all of mediaFiles; an empty list publishes it without media."
+          },
           "threadParts": {
             "description": "For a thread post: its parts, in order."
           },
@@ -11548,6 +12648,162 @@
               "type": "number"
             }
           },
+          "platformMediaFileIds": {
+            "description": "Which of mediaFileIds each platform gets on every run, keyed by platform, e.g. { \"instagram\": [12], \"linkedin\": [] }. A platform that is not listed gets all of mediaFileIds; a listed one gets exactly those files, in that order; an empty list posts it without media. Every id must also be in mediaFileIds, or the request is refused with 400 VALIDATION_ERROR. Each run's post carries the same choice.",
+            "type": "object",
+            "properties": {
+              "facebook": {
+                "description": "Media file IDs published on facebook, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "instagram": {
+                "description": "Media file IDs published on instagram, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "x": {
+                "description": "Media file IDs published on x, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "tiktok": {
+                "description": "Media file IDs published on tiktok, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "youtube": {
+                "description": "Media file IDs published on youtube, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "threads": {
+                "description": "Media file IDs published on threads, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "bluesky": {
+                "description": "Media file IDs published on bluesky, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "pinterest": {
+                "description": "Media file IDs published on pinterest, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "gmb": {
+                "description": "Media file IDs published on gmb, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "linkedin": {
+                "description": "Media file IDs published on linkedin, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "mastodon": {
+                "description": "Media file IDs published on mastodon, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "discord": {
+                "description": "Media file IDs published on discord, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "telegram": {
+                "description": "Media file IDs published on telegram, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "tumblr": {
+                "description": "Media file IDs published on tumblr, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "snapchat": {
+                "description": "Media file IDs published on snapchat, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              }
+            }
+          },
           "timezone": {
             "description": "IANA timezone (e.g. \"America/New_York\"). Defaults to UTC.",
             "type": "string"
@@ -11629,6 +12885,162 @@
             "type": "array",
             "items": {
               "type": "number"
+            }
+          },
+          "platformMediaFileIds": {
+            "description": "Optional. Which of mediaFileIds each platform gets on every run, keyed by platform, e.g. { \"x\": [12] }. A platform that is not listed gets all of them; an empty list posts it without media; every id must also be in the schedule's mediaFileIds. Sending it replaces the stored choice. When it is omitted but mediaFileIds changes, files no longer attached are dropped from each list, and a platform left with none of the files it named goes back to all of them.",
+            "type": "object",
+            "properties": {
+              "facebook": {
+                "description": "Media file IDs published on facebook, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "instagram": {
+                "description": "Media file IDs published on instagram, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "x": {
+                "description": "Media file IDs published on x, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "tiktok": {
+                "description": "Media file IDs published on tiktok, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "youtube": {
+                "description": "Media file IDs published on youtube, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "threads": {
+                "description": "Media file IDs published on threads, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "bluesky": {
+                "description": "Media file IDs published on bluesky, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "pinterest": {
+                "description": "Media file IDs published on pinterest, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "gmb": {
+                "description": "Media file IDs published on gmb, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "linkedin": {
+                "description": "Media file IDs published on linkedin, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "mastodon": {
+                "description": "Media file IDs published on mastodon, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "discord": {
+                "description": "Media file IDs published on discord, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "telegram": {
+                "description": "Media file IDs published on telegram, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "tumblr": {
+                "description": "Media file IDs published on tumblr, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "snapchat": {
+                "description": "Media file IDs published on snapchat, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              }
             }
           },
           "timezone": {

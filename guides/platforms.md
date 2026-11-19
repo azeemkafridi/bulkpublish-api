@@ -314,7 +314,7 @@ inside a platform key, so it applies to every channel on the post.
 | `feed_video` | Single video post |
 | `reel` | Short-form vertical video |
 | `story` | Photo or video story (disappears after 24h) |
-| `carousel` | Up to 10 photos/videos in a swipeable post |
+| `carousel` | 2 to 20 photos/videos in a swipeable post |
 
 ### Options
 
@@ -342,6 +342,7 @@ inside a platform key, so it applies to every channel on the post.
 | `userTags` | array | People tagged in the post: `[{ "username": "name", "x": 0.4, "y": 0.6, "mediaIndex": 0 }]`. See below |
 | `shareToFeed` | boolean | **Reels only.** `false` shows the Reel only in the Reels tab; `true` also shows it in the main feed. Omit for Instagram's own default (feed and Reels tab). Ignored on other post types |
 | `locationId` | string | Digits only: the numeric ID of a Facebook Page that has a location (shown in the Page's About section). Photos, videos, Reels and carousels; not Stories. Instagram refuses the post if it does not recognise the ID as a place |
+| `isAiGenerated` | boolean | `true` shows Instagram's "AI info" label, disclosing that the post contains AI-generated content. Every post type; on a carousel it is set on the carousel itself, not on its items. Only `true` is sent: `false` or omitting it adds no label, and Instagram may still label a post on its own. A non-boolean is rejected with `400 VALIDATION_ERROR` |
 
 **`userTags`.** `username` is a public Instagram account (letters, numbers,
 periods, underscores, up to 30 characters; a leading `@` is optional). `x` and
@@ -361,7 +362,7 @@ or a `locationId` that is not digits is too.
 ### Notes
 
 - Instagram requires JPEG images. BulkPublish auto-converts PNG/WebP to JPEG before publishing.
-- Carousels support up to 10 items (images or videos).
+- Carousels support 2 to 20 items (images, videos or a mix).
 - Reels must be vertical video.
 - **A video cover, two ways.** `thumbnailTimestamp` names a moment in the video;
   `coverUrl` supplies a separate image. Instagram accepts one or the other and
@@ -700,6 +701,7 @@ Both apply to the root post of a thread, never to its replies.
 | `replyControl` | string | Who can reply: `everyone` (default, not sent), `accounts_you_follow`, `mentioned_only`, `parent_post_author_only` (only you) or `followers_only`. Applies to the post itself (text, image, video, carousel and the first part of a thread), never to later replies in a thread; ignored on a repost. Another value is rejected with `400 VALIDATION_ERROR`, with a "did you mean" hint for upper-case spellings |
 | `pollOptions` | string[] | 2 to 4 poll choices of 1 to 25 characters each (empty strings are ignored; an array with none filled means no poll). Threads only allows polls on text-only posts, so on an image, video or carousel post the poll is left out; in a thread it goes on the first part when that part has no media |
 | `linkAttachment` | string | An `http(s)` URL on a public host that Threads shows as the preview card on a text post; left out on other post types. When omitted, Threads shows a card for the first link in the text. Threads refuses a post with more than 5 links in total, and a link here that differs from every link in the text counts as one more |
+| `isAiGenerated` | boolean | `true` shows Threads' "AI info" label on a text, image, video or carousel post, and on every part of a thread (on a carousel it is set on the carousel itself). Only `true` is sent: `false` or omitting it adds no label, and Threads may still label a post on its own. A non-boolean is rejected with `400 VALIDATION_ERROR` |
 
 ### Notes
 
