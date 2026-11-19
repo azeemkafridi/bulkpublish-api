@@ -237,7 +237,8 @@ class PostsResource:
                   it is applied after the video publishes and lands a moment after the post. A cover
                   that cannot be fetched, or that Facebook rejects, leaves the video published with
                   Facebook's own chosen frame rather than failing the post.
-                - **tiktok**: Optional: ``privacyLevel`` (SELF_ONLY|PUBLIC|FRIENDS), ``disableDuet``, ``disableStitch``, ``autoAddMusic`` (photo posts), ``sendToDrafts``,
+                - **tiktok**: Optional: ``privacyLevel`` (PUBLIC_TO_EVERYONE|MUTUAL_FOLLOW_FRIENDS|FOLLOWER_OF_CREATOR|SELF_ONLY;
+                  when omitted the post is published as PUBLIC_TO_EVERYONE, so pass SELF_ONLY to keep it private), ``disableDuet``, ``disableStitch``, ``autoAddMusic`` (photo posts), ``sendToDrafts``,
                   ``photoCoverIndex``. ``sendToDrafts=True`` sends a ``video`` or ``photo_slideshow``
                   post to the creator's TikTok drafts instead of publishing it: ``privacyLevel`` is then
                   not required and the direct-post settings are ignored; a video draft carries no

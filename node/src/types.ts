@@ -679,7 +679,8 @@ export interface CreatePostParams {
    *   or Reel; Facebook only accepts one once the video exists, so it is applied after the video
    *   publishes and lands a moment after the post. A cover that cannot be fetched, or that Facebook
    *   rejects, leaves the video published with Facebook's own chosen frame rather than failing the post.
-   * - **tiktok**: Optional: `privacyLevel` (SELF_ONLY|PUBLIC|FRIENDS), `disableDuet`, `disableStitch`, `disableComment`, `isAigc`, `autoAddMusic` (photo posts), `sendToDrafts`, `photoCoverIndex`.
+   * - **tiktok**: Optional: `privacyLevel` (PUBLIC_TO_EVERYONE|MUTUAL_FOLLOW_FRIENDS|FOLLOWER_OF_CREATOR|SELF_ONLY; when omitted the post is published as
+   *   PUBLIC_TO_EVERYONE, so pass SELF_ONLY to keep it private), `disableDuet`, `disableStitch`, `disableComment`, `isAigc`, `autoAddMusic` (photo posts), `sendToDrafts`, `photoCoverIndex`.
    *   `sendToDrafts: true` sends a `video` or `photo_slideshow` post to the creator's TikTok drafts instead of publishing it:
    *   `privacyLevel` is then not required and the direct-post settings (`privacyLevel`, `disableDuet`, `disableStitch`, `disableComment`, `isAigc`,
    *   brand toggles, `autoAddMusic`, `thumbnailTimestamp`) are ignored; a video draft carries no caption, a photo draft does. Once delivered the

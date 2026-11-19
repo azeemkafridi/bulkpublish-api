@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-19 — TikTok privacy: the default is documented, and the listed values are right
+
+Node SDK **1.46.1** · Python **0.47.1** · spec
+
+### Fixed
+
+- **The Node and Python docs listed TikTok privacy values the API refuses.** `platformSpecific.tiktok.privacyLevel` was described as `SELF_ONLY|PUBLIC|FRIENDS`; `PUBLIC` and `FRIENDS` are rejected with `400 VALIDATION_ERROR`. The values are `PUBLIC_TO_EVERYONE`, `MUTUAL_FOLLOW_FRIENDS`, `FOLLOWER_OF_CREATOR` and `SELF_ONLY`.
+- **What happens when it is left out is now stated everywhere.** A TikTok post with no privacy level (or an empty one) is published as `PUBLIC_TO_EVERYONE`. This has always been the behaviour; the spec now gives it as the field's `default`, and the Node and Python docs say so. Pass `SELF_ONLY` to keep a post private. The MCP tool already described it, so it is unchanged.
+- The spec's `POST /api/posts` `platformContent` description says which text each platform's character limit is measured against: its own override when it has one, `content` otherwise.
+
 ## 2026-11-18 — MCP create_post no longer spends API calls looking up media
 
 MCP **1.56.1**
