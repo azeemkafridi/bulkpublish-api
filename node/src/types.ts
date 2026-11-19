@@ -661,7 +661,7 @@ export interface CreatePostParams {
    *   `boardSectionId` (numeric section of the chosen board, for `pin`, `video_pin` and `carousel`; list sections with
    *   `GET /api/channels/{id}/options?boardId=<boardId>`; ignored when no board was chosen), `coverKeyFrameTime` (`video_pin` only: whole seconds, 0 or more, used as the cover frame; `coverImageUrl` wins when both are sent)
    * - **instagram**: Optional: `collaborators`, `shareToStory`, `trialReel`, `graduationStrategy`
-   *   (`'manual'|'auto'`), `thumbnailTimestamp`, `coverUrl`, `userTags`, `shareToFeed`, `locationId`. `collaborators` is a comma-separated
+   *   (`'manual'|'auto'`), `thumbnailTimestamp`, `coverUrl`, `userTags`, `shareToFeed`, `locationId`, `isAiGenerated`. `collaborators` is a comma-separated
    *   list of usernames (no leading @) tagged as co-authors; it applies to post types
    *   `feed_photo`, `feed_video`, `reel` and `carousel` — on a carousel the co-authors go on the
    *   carousel itself, not on its individual items — and is ignored on `story`, which has no
@@ -672,7 +672,8 @@ export interface CreatePostParams {
    *   counts from 0 in attachment order, default 0). On a photo, and each photo of a carousel, a tag needs `x` and `y` or it is left out; on a
    *   Reel or video post people are tagged by username only. Carousel videos and Stories carry no tags. `shareToFeed` (Reels only): `false`
    *   shows the Reel only in the Reels tab, `true` also in the main feed; omitted keeps Instagram's default. `locationId` (digits) is the numeric
-   *   ID of a Facebook Page that has a location (photos, videos, Reels, carousels; not Stories).
+   *   ID of a Facebook Page that has a location (photos, videos, Reels, carousels; not Stories). `isAiGenerated` (boolean) shows Instagram's
+   *   "AI info" label on any post type (on a carousel, on the carousel itself); only `true` is sent, and Instagram may still label a post on its own.
    * - **facebook**: Optional: `shareToStory`, `thumbnailUrl`, `textFormatPresetId`. `textFormatPresetId` (digits, a Facebook background ID) shows a short
    *   text post on a coloured background; used only on a Page feed post with no photo, video or link card and at most 130 characters,
    *   otherwise left out, and dropped (published as plain text) if Facebook refuses it. `thumbnailUrl` is the cover for a video
@@ -683,7 +684,7 @@ export interface CreatePostParams {
    *   PUBLIC_TO_EVERYONE, so pass SELF_ONLY to keep it private), `disableDuet`, `disableStitch`, `disableComment`, `isAigc`, `autoAddMusic` (photo posts), `sendToDrafts`, `photoCoverIndex`.
    *   `sendToDrafts: true` sends a `video` or `photo_slideshow` post to the creator's TikTok drafts instead of publishing it:
    *   `privacyLevel` is then not required and the direct-post settings (`privacyLevel`, `disableDuet`, `disableStitch`, `disableComment`, `isAigc`,
-   *   brand toggles, `autoAddMusic`, `thumbnailTimestamp`) are ignored; a video draft carries no caption, a photo draft does. Once delivered the
+   *   brand toggles, `autoAddMusic`, `thumbnailTimestamp`) are ignored; a video draft carries no caption (TikTok may show its own default description on it until the creator replaces it), a photo draft does. Once delivered the
    *   destination is `published` with no `platformUrl`; if the creator posts it within about a week, `platformPostId` becomes the video id,
    *   `platformUrl` is filled in and analytics are collected. `photoCoverIndex` (whole number 0 to 34, default 0)
    *   picks the cover image of a `photo_slideshow` (past the last image falls back to the first).
@@ -707,7 +708,8 @@ export interface CreatePostParams {
    *   (URL or status ID on your own server; needs a server running Mastodon 4.5 or later). `poll` and `quoteId` apply to the first post of a thread; `sensitive` to every part
    * - **threads**: Optional: `repostId` (with post type `repost`: the numeric Threads post ID to repost), `quotePostId`, `topicTag` (one topic, no leading '#', no periods or ampersands), `locationId` (numeric place ID from `GET /api/channels/{id}/options?q=<place>`; needs location tagging granted on the channel),
    *   `replyControl` (`'everyone'|'accounts_you_follow'|'mentioned_only'|'parent_post_author_only'|'followers_only'`; default `everyone`; the post itself and the first part of a thread, never later replies),
-   *   `pollOptions` (2-4 strings of 1-25 chars; text-only posts, left out on image/video/carousel), `linkAttachment` (public http(s) URL shown as the preview card on a text post; Threads refuses more than 5 links in total)
+   *   `pollOptions` (2-4 strings of 1-25 chars; text-only posts, left out on image/video/carousel), `linkAttachment` (public http(s) URL shown as the preview card on a text post; Threads refuses more than 5 links in total),
+   *   `isAiGenerated` (boolean: shows Threads' "AI info" label on a text, image, video or carousel post and on every part of a thread; only `true` is sent)
    * - **discord**: Optional: `silent`, `buttons` (up to 5 `{ label, url }`), `startThread`, `threadName`, `embed` (`{ title, color }`), `poll` (`{ question, answers: 2-10, durationHours?, multiselect? }`), `pin`, `tags` (up to 5 forum tag IDs). Polls and pins need the Send Polls and Pin Messages permissions. `{ channelId }` (required) — the target Discord *text channel* snowflake inside the connected
    *   server, which is not the BulkPublish channel id. Publishing uses a global bot token, so failures are
    *   permission problems rather than a reconnect issue.

@@ -85,9 +85,9 @@ const PLATFORM_GUIDES: Record<string, PlatformGuide> = {
   instagram: {
     label: "Instagram",
     guide: () =>
-      "Post types (postTypeOverrides.instagram): feed_photo (the default), feed_video, reel, story, carousel (2 or more files). Instagram needs media. " +
+      "Post types (postTypeOverrides.instagram): feed_photo (the default), feed_video, reel, story, carousel (2 to 20 files, images and videos may be mixed). Instagram needs media. " +
       "platformSpecific.instagram: `collaborators` (comma-separated usernames without @, not on stories); `userTags` (up to 20 per photo or video; on a photo each tag needs x and y from 0 to 1, on a reel or video only the username counts; carousel videos and stories carry none); " +
-      "`locationId` (digits: a Facebook Page that has a location); `shareToFeed` (reels); `trialReel` with `graduationStrategy` 'manual' or 'auto' (reel only); a cover via `coverUrl` or `thumbnailTimestamp` (coverUrl wins); `shareToStory`.",
+      "`locationId` (digits: a Facebook Page that has a location); `shareToFeed` (reels); `trialReel` with `graduationStrategy` 'manual' or 'auto' (reel only); a cover via `coverUrl` or `thumbnailTimestamp` (coverUrl wins); `shareToStory`; `isAiGenerated` true for Instagram's AI info label, only when the user says it was made with AI.",
   },
   x: {
     label: "X",
@@ -115,7 +115,7 @@ const PLATFORM_GUIDES: Record<string, PlatformGuide> = {
     guide: (ctx) =>
       "Post types (postTypeOverrides.threads): text, image, video, carousel, repost; it also takes thread posts. Video up to 5 minutes. " +
       "platformSpecific.threads: `topicTag` (one tag, no #, no periods or ampersands); `replyControl` (everyone, accounts_you_follow, mentioned_only, parent_post_author_only, followers_only); " +
-      "`pollOptions` (2 to 4, each 1 to 25 characters, text posts only); `linkAttachment` (preview card on a text post; more than 5 links in total is refused); `quotePostId`; `repostId` (numeric ID) with type 'repost'; " +
+      "`pollOptions` (2 to 4, each 1 to 25 characters, text posts only); `linkAttachment` (preview card on a text post; more than 5 links in total is refused); `quotePostId`; `repostId` (numeric ID) with type 'repost'; `isAiGenerated` true for Threads' AI info label on every part, only when the user says it was made with AI; " +
       (ctx.has("get_channel_options")
         ? "`locationId` from get_channel_options with a `q` search (only once the channel has granted location tagging)."
         : "`locationId` (a numeric place ID, only once the channel has granted location tagging)."),

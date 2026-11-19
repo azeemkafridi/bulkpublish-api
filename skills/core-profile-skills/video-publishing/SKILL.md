@@ -39,7 +39,8 @@ Instagram defaults to `feed_photo`, so a video there always needs a type.
   `PUBLIC_TO_EVERYONE`. Also `disableDuet`, `disableStitch`, `disableComment`,
   `isAigc` for AI-made content, `thumbnailTimestamp` (cover frame, seconds),
   and `sendToDrafts: true` to deliver it to the creator's TikTok drafts instead
-  (a video draft carries no caption).
+  (a video draft carries no caption, and TikTok may show its own default
+  description on it).
 - **Instagram**: `shareToFeed` (Reels), `trialReel` (shown to non-followers
   first, Reels only) with `graduationStrategy`, a cover with `coverUrl` or
   `thumbnailTimestamp` (`coverUrl` wins).

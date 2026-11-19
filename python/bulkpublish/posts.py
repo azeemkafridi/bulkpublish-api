@@ -209,7 +209,9 @@ class PostsResource:
                   as the cover frame; ``coverImageUrl`` wins when both are sent)
                 - **instagram**: Optional: ``collaborators``, ``shareToStory``, ``trialReel``,
                   ``graduationStrategy`` (``"manual"``/``"auto"``), ``thumbnailTimestamp``,
-                  ``coverUrl``, ``userTags``, ``shareToFeed``, ``locationId``. ``collaborators`` is a comma-separated list of usernames (no
+                  ``coverUrl``, ``userTags``, ``shareToFeed``, ``locationId``, ``isAiGenerated``.
+                  ``isAiGenerated`` (bool) shows Instagram's "AI info" label on any post type (on a
+                  carousel, on the carousel itself); only ``True`` is sent. ``collaborators`` is a comma-separated list of usernames (no
                   leading @) tagged as co-authors; it applies to post types ``feed_photo``,
                   ``feed_video``, ``reel`` and ``carousel`` -- on a carousel the co-authors go
                   on the carousel itself, not on its individual items -- and is ignored on
@@ -242,7 +244,8 @@ class PostsResource:
                   ``photoCoverIndex``. ``sendToDrafts=True`` sends a ``video`` or ``photo_slideshow``
                   post to the creator's TikTok drafts instead of publishing it: ``privacyLevel`` is then
                   not required and the direct-post settings are ignored; a video draft carries no
-                  caption, a photo draft does. Once delivered the destination is ``published`` with no
+                  caption (TikTok may show its own default description on it until the creator
+                  replaces it), a photo draft does. Once delivered the destination is ``published`` with no
                   ``platformUrl``; if the creator posts it within about a week, ``platformPostId``
                   becomes the video id, ``platformUrl`` is filled in and analytics are collected. ``photoCoverIndex`` (whole number
                   0 to 34, default 0) picks the cover image of a ``photo_slideshow``.
@@ -280,7 +283,9 @@ class PostsResource:
                   ``everyone``; the post itself and first part of a thread), ``pollOptions`` (2-4 strings
                   of 1-25 chars; text-only posts), ``linkAttachment`` (public http(s) URL shown as the
                   preview card on a text post; Threads refuses more than 5 links in total), plus
-                  ``topicTag``, ``locationId``, ``quotePostId``
+                  ``topicTag``, ``locationId``, ``quotePostId``, ``isAiGenerated`` (bool: shows
+                  Threads' "AI info" label on a text, image, video or carousel post and on every
+                  part of a thread; only ``True`` is sent)
                 - **discord**: Optional: ``silent``, ``buttons`` (up to 5 ``{label, url}``), ``startThread``,
                   ``threadName``, ``embed`` (``{title, color}``), ``poll`` (``{question, answers: 2-10,
                   durationHours, multiselect}``), ``pin``, ``tags`` (up to 5 forum tag IDs); polls and pins

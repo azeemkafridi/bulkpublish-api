@@ -85,7 +85,7 @@ Every value `postTypeOverrides` accepts; the first is the default.
 | `feed_video` | 1 video required | Single video post |
 | `reel` | 1 video required | Short-form video, 9:16 recommended |
 | `story` | 1 image OR 1 video required | Disappears after 24h |
-| `carousel` | 2-10 images/videos required | Mixed media OK |
+| `carousel` | 2-20 images/videos required | Mixed media OK |
 
 **Media specs:** Image max 8MB (jpg/jpeg only). Video max 1GB (mp4/mov). Reel and feed video 3s–15min, Story video 3–60s; carousel videos are not length-checked.
 
@@ -99,6 +99,7 @@ Every value `postTypeOverrides` accepts; the first is the default.
 - `shareToFeed` — boolean, Reels only: `false` shows the Reel only in the Reels tab, `true` also in the main feed
 - `locationId` — digits only: the numeric ID of a Facebook Page that has a location (not for Stories)
 - `coverUrl` — string, cover image URL for a video or Reel. Instagram accepts a cover image or a cover moment, never both, so this wins over `thumbnailTimestamp`
+- `isAiGenerated` — boolean, `true` shows Instagram's "AI info" label (any post type; on a carousel it goes on the carousel itself). Set it only when the user says the content was made with AI
 
 **IMPORTANT:** If you have video and don't set `postTypeOverrides.instagram`, it defaults to `feed_photo` and FAILS. Always set to `reel` or `feed_video` for video.
 
@@ -191,7 +192,7 @@ Every value `postTypeOverrides` accepts; the first is the default.
 - `disableComment` — boolean
 - `isAigc` — boolean (AI-generated content disclosure)
 - `thumbnailTimestamp` — number (seconds into the video) for the cover frame
-- `sendToDrafts` — boolean (default false): send a video or photo slideshow to the creator's TikTok drafts instead of publishing; `privacyLevel` is then not required and the direct-post settings are ignored. A video draft carries no caption; the destination ends up `published` with no `platformUrl`
+- `sendToDrafts` — boolean (default false): send a video or photo slideshow to the creator's TikTok drafts instead of publishing; `privacyLevel` is then not required and the direct-post settings are ignored. A video draft carries no caption (TikTok may show its own default description on it); the destination ends up `published` with no `platformUrl`
 - `photoCoverIndex` — slideshow cover image, whole number 0-34 counting from 0 in attachment order (default 0; an index past the last image falls back to the first)
 - `autoAddMusic` — boolean (default false), slideshows published directly only: lets TikTok add a recommended track
 
@@ -293,7 +294,7 @@ A chain of posts is not a post type here: send `postFormat: "thread"` with `thre
 
 **Media specs:** Image max 8MB (jpg/png), max 20. Video max 500MB (mp4/mov), max 20, each up to 5 min.
 
-**platformSpecific options:** `quotePostId` — quote another Threads post; `topicTag` — one topic, no leading `#`, no periods/ampersands; `locationId` — numeric place ID from `get_channel_options` with `q` (only once the channel has granted location tagging); `replyControl` — `everyone` (default), `accounts_you_follow`, `mentioned_only`, `parent_post_author_only`, `followers_only`; `pollOptions` — 2-4 strings of 1-25 chars (text-only posts); `linkAttachment` — public http(s) URL for the preview card on a text post (Threads allows at most 5 links in total)
+**platformSpecific options:** `quotePostId` — quote another Threads post; `topicTag` — one topic, no leading `#`, no periods/ampersands; `locationId` — numeric place ID from `get_channel_options` with `q` (only once the channel has granted location tagging); `replyControl` — `everyone` (default), `accounts_you_follow`, `mentioned_only`, `parent_post_author_only`, `followers_only`; `pollOptions` — 2-4 strings of 1-25 chars (text-only posts); `linkAttachment` — public http(s) URL for the preview card on a text post (Threads allows at most 5 links in total); `isAiGenerated` — `true` shows Threads' "AI info" label on every part of the post, set only when the user says the content was made with AI
 
 ---
 

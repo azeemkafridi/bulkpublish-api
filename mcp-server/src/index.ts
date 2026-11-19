@@ -474,7 +474,7 @@ const PLATFORM_SPECIFIC_SCHEMA = z
         sendToDrafts: z
           .boolean()
           .optional()
-          .describe("Send a video or photo_slideshow post to the creator's TikTok drafts instead of publishing it (default false). privacyLevel is then not required, and the direct-post settings (privacyLevel, disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, autoAddMusic, thumbnailTimestamp) are ignored. A video draft carries no caption; a photo draft sends it. Once delivered the destination becomes published with no platformUrl; if the creator posts it within about a week, platformPostId becomes the video id, platformUrl is filled in and analytics are collected."),
+          .describe("Send a video or photo_slideshow post to the creator's TikTok drafts instead of publishing it (default false). privacyLevel is then not required, and the direct-post settings (privacyLevel, disableDuet, disableStitch, disableComment, isAigc, brandContentToggle, brandOrganicToggle, autoAddMusic, thumbnailTimestamp) are ignored. A video draft carries no caption (TikTok may show its own default description on it until the creator replaces it); a photo draft sends it. Once delivered the destination becomes published with no platformUrl; if the creator posts it within about a week, platformPostId becomes the video id, platformUrl is filled in and analytics are collected."),
         photoCoverIndex: z.number().optional().describe("photo_slideshow only: which image is the cover, a whole number 0 to 34 counting from 0 in attachment order (default 0). An index past the last image falls back to the first."),
         autoAddMusic: z.boolean().optional().describe("Photo posts published directly only: lets TikTok add a recommended track (default false). Ignored with sendToDrafts."),
       })
@@ -562,6 +562,12 @@ const PLATFORM_SPECIFIC_SCHEMA = z
           .describe(
             "Cover image URL for a video or Reel. Takes precedence over thumbnailTimestamp: Instagram accepts one or the other and rejects a request carrying both, so only this one is forwarded when both are sent."
           ),
+        isAiGenerated: z
+          .boolean()
+          .optional()
+          .describe(
+            "true shows Instagram's \"AI info\" label, disclosing that the post contains AI-generated content. Any post type; on a carousel it goes on the carousel itself. Only set it when the user says the content was made with AI. false or omitted adds no label, though Instagram may still label a post on its own."
+          ),
       })
       .passthrough()
       .optional()
@@ -590,6 +596,12 @@ const PLATFORM_SPECIFIC_SCHEMA = z
           .string()
           .optional()
           .describe("An http(s) URL on a public host shown as the preview card on a text post; left out on other post types. Threads refuses a post with more than 5 links in total, and a link here that differs from every link in the text counts as one more."),
+        isAiGenerated: z
+          .boolean()
+          .optional()
+          .describe(
+            "true shows Threads' \"AI info\" label on a text, image, video or carousel post, and on every part of a thread. Only set it when the user says the content was made with AI. false or omitted adds no label, though Threads may still label a post on its own."
+          ),
       })
       .passthrough()
       .optional()
@@ -978,6 +990,39 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
     expiresIn: sNum().describe("Seconds until uploadUrl stops working."),
   },
   finalize_media_upload: { file: sObj(MEDIA_SHAPE).describe("The new media file. Its id is what mediaFileIds takes.") },
+  get_account_analytics: {
+    metrics: sArr({
+      channelId: sNum().describe("The channel this snapshot belongs to."),
+      date: sStr().describe("The day of the snapshot, YYYY-MM-DD."),
+      followers: sNum().describe("Followers on that day."),
+      impressions: sNum().describe("Impressions that day."),
+      reach: sNum().describe("Reach that day."),
+      profileViews: sNum().describe("Profile views that day (Facebook only; 0 elsewhere means not reported)."),
+      websiteClicks: sNum().describe("Website clicks that day (Google Business only; 0 elsewhere means not reported)."),
+      engagementRate: z.any().nullish().describe("Always null: no account-level rate is measured."),
+    }).describe("Daily account snapshots, one per channel per day."),
+    channels: sArr({
+      id: sNum().describe("Channel id."),
+      platform: sStr().describe("Platform key."),
+      accountName: sStr().describe("The account's name on the platform."),
+    }).describe("The channels the snapshots belong to."),
+  },
+  get_engagement_analytics: {
+    totalImpressions: sNum().describe("Impressions across matching posts."),
+    totalReach: sNum().describe("Reach across matching posts."),
+    totalLikes: sNum().describe("Likes."),
+    totalComments: sNum().describe("Comments."),
+    totalShares: sNum().describe("Shares."),
+    totalSaves: sNum().describe("Saves."),
+    totalClicks: sNum().describe("Clicks."),
+    totalVideoViews: sNum().describe("Video views."),
+    avgEngagementRate: sNum().describe("Average post engagement rate."),
+    byPlatform: sMap().describe("Totals per platform key."),
+    byDay: z.array(z.any()).nullish().describe("Totals per day."),
+    topPosts: z.array(z.any()).nullish().describe("Best posts by topBy (impressions unless set)."),
+    allPosts: z.array(z.any()).nullish().describe("Every matching post with its per-platform metrics; empty when top is set."),
+    unmeasuredPlatforms: z.array(z.any()).nullish().describe("Platforms in the window that cannot report per-post metrics; their zeros mean not reported."),
+  },
   get_analytics: {
     totalPosts: sNum().describe("Posts in the date range."), published: sNum().describe("How many of them published."), failed: sNum().describe("How many failed."), scheduled: sNum().describe("Posts currently waiting to publish, whatever the date range."), partial: sNum().describe("How many published to only some destinations."),
     from: sStr().describe("Start of the date range."), to: sStr().describe("End of the date range."),
@@ -1102,7 +1147,7 @@ function attachStructured(result: unknown, toolName: string): unknown {
 // Tool profiles
 // ---------------------------------------------------------------------------
 // The hosted server (mcp.bulkpublish.com) is what the Anthropic and OpenAI
-// directories review, and 80 tools is more surface than a reviewer can verify
+// directories review, and 82 tools is more surface than a reviewer can verify
 // or a chat model can pick from well. `core` is the publishing workflow only:
 // channels, posts, media, analytics, labels, approvals, post comments and the panels — 26 tools. Everything a
 // panel calls back through the host bridge (create_post, publish_post,
@@ -1211,6 +1256,8 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   list_calendar_notes: { title: "List calendar notes", ...READ, why: "GET /api/calendar-notes for a date range." },
   list_schedules: { title: "List recurring schedules", ...READ, why: "GET /api/schedules." },
   get_analytics: { title: "Get analytics", ...READ, why: "GET /api/analytics/summary; aggregates already-stored metrics." },
+  get_account_analytics: { title: "Get account analytics", ...READ, why: "GET /api/analytics/account; reads stored daily account snapshots, fetches nothing from a platform." },
+  get_engagement_analytics: { title: "Get engagement analytics", ...READ, why: "GET /api/analytics/engagement; aggregates already-stored post metrics." },
   get_quota_usage: { title: "Get quota usage", ...READ, why: "GET /api/quotas/usage; reads plan limits and current counters." },
   get_queue_slot: { title: "Get next queue slot", ...READ, why: "GET /api/posts/queue-slot; computes the next free slot and reserves nothing." },
   get_channel_health: { title: "Get channel health", ...READ, why: "GET /api/channels/{id}/health; reports stored token state, does not refresh or reconnect." },
@@ -1389,6 +1436,8 @@ export function createServer(opts: { profile?: ToolProfile; hosted?: boolean } =
     delete_client_connect_link: "the user wants to stop a client-connect link from working before it has been used. Any account it already connected is unaffected.",
     list_schedules: "the user wants their recurring posting schedules.",
     get_analytics: "the user asks how their content performed overall, across channels and over a date range.",
+    get_account_analytics: "the user asks how an account is doing: followers, reach, impressions or profile views over time.",
+    get_engagement_analytics: "the user asks which posts did best, or for likes, comments, shares, views or engagement rate across posts in a date range.",
     get_quota_usage: "the user asks about plan limits or current usage.",
     get_queue_slot: "the user asks when the next available scheduling slot is, or wants a post moved to the top or bottom of the queue (then update_post with the returned scheduledAt).",
     get_channel_health: "the user asks whether a channel's connection/token is healthy.",
@@ -2341,6 +2390,68 @@ server.tool(
 );
 
 // ---------------------------------------------------------------------------
+// Tools: account and engagement analytics
+// ---------------------------------------------------------------------------
+
+server.tool(
+  "get_account_analytics",
+  "Daily account snapshots per connected channel: followers, impressions, reach and profile views, for a date range of up to the last 30 days. Use it for how an account is growing; use get_engagement_analytics for how posts performed. engagementRate is always null here (no platform reports one per account), profileViews is reported by Facebook only and websiteClicks by Google Business only, so a 0 for those elsewhere means not reported.",
+  {
+    from: z.string().optional().describe("Start date, YYYY-MM-DD. Defaults to 30 days ago; earlier dates are raised to 30 days ago."),
+    to: z.string().optional().describe("End date, YYYY-MM-DD. Defaults to today."),
+    channelIds: z.string().optional().describe("Comma-separated channel ids to include, e.g. \"12,15\". Ids come from list_channels."),
+    platforms: z.string().optional().describe("Comma-separated platform keys to include, e.g. \"instagram,linkedin\"."),
+  },
+  async ({ from, to, channelIds, platforms }) => {
+    const params = new URLSearchParams();
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    if (channelIds) params.set("channelIds", channelIds);
+    if (platforms) params.set("platforms", platforms);
+    const qs = params.toString();
+    const res = await api("GET", `/api/analytics/account${qs ? `?${qs}` : ""}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.tool(
+  "get_engagement_analytics",
+  "Engagement across posts in a date range (at most 30 days): impressions, reach, likes, comments, shares, saves, clicks and video views, with totals per platform and per day and a ranked list of top posts. Pass top=true for just the leaderboard. Platforms listed in unmeasuredPlatforms cannot report per-post metrics, so their zeros mean not reported, not measured zero.",
+  {
+    from: z.string().describe("Start date, YYYY-MM-DD. Clamped to at most 30 days before `to`."),
+    to: z.string().describe("End date, YYYY-MM-DD."),
+    tz: z.string().optional().describe("IANA timezone (e.g. \"Asia/Karachi\") that sets where each day starts and how byDay is grouped. Defaults to UTC; pass the same zone as to get_analytics so the two agree."),
+    channelIds: z.string().optional().describe("Comma-separated channel ids to include. Ids come from list_channels."),
+    platforms: z.string().optional().describe("Comma-separated platform keys to include."),
+    labelIds: z.string().optional().describe("Comma-separated label ids (from list_labels); a post matches when it carries ANY of them."),
+    postFormat: z.enum(["post", "thread"]).optional().describe("Only single posts or only threads."),
+    mediaType: z.enum(["text", "image", "video"]).optional().describe("By the post's first media file: text (no media), image or video."),
+    top: z.boolean().optional().describe("true returns only topPosts (allPosts comes back empty), which is much smaller for a long window."),
+    topBy: z
+      .enum(["impressions", "reach", "likes", "comments", "shares", "saves", "clicks", "videoViews", "linkClicks", "engagements", "engagementRate"])
+      .optional()
+      .describe("What topPosts is ranked by (default impressions). engagements = likes + comments + shares + clicks."),
+    topOrder: z.enum(["asc", "desc"]).optional().describe("desc (default) for the best posts, asc for the worst."),
+    compare: z.boolean().optional().describe("Also return the previous equal-length window as `previous` / `previousWindow`."),
+  },
+  async ({ from, to, tz, channelIds, platforms, labelIds, postFormat, mediaType, top, topBy, topOrder, compare }) => {
+    const params = new URLSearchParams({ from, to });
+    if (tz) params.set("tz", tz);
+    if (channelIds) params.set("channelIds", channelIds);
+    if (platforms) params.set("platforms", platforms);
+    if (labelIds) params.set("labelIds", labelIds);
+    if (postFormat) params.set("postFormat", postFormat);
+    if (mediaType) params.set("mediaType", mediaType);
+    if (top) params.set("top", "1");
+    if (topBy) params.set("topBy", topBy);
+    if (topOrder) params.set("topOrder", topOrder);
+    if (compare) params.set("compare", "1");
+    const res = await api("GET", `/api/analytics/engagement?${params}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// ---------------------------------------------------------------------------
 // Tool: list_labels
 // ---------------------------------------------------------------------------
 
@@ -2819,7 +2930,7 @@ server.tool(
       .nullable()
       .optional()
       .describe(
-        "Optional. Attach the post to a recurring schedule by id, or null to detach it. Omit to leave it unchanged."
+        "Optional. Attach the post to a recurring schedule by id, or null to detach it. Omit to leave it unchanged. The schedule must belong to the same organization (another id is refused with 422 VALIDATION_ERROR), and the value must be a positive integer or null."
       ),
     status: z
       .enum(["draft", "scheduled"])
