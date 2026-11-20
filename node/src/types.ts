@@ -1557,10 +1557,19 @@ export interface UpdateScheduleParams {
 // ---------- API Keys ----------
 
 /** An API key (listing view — does not include the full key). */
+/**
+ * What an API key may do. `full` can do anything its owner's team role allows;
+ * `read_only` can read but every write is refused with 403
+ * `INSUFFICIENT_SCOPE`, and account administration with 403 `FORBIDDEN`.
+ */
+export type ApiKeyAccess = 'full' | 'read_only';
+
 export interface ApiKeyInfo {
   id: number;
   name: string;
   keyPreview: string;
+  /** The key's access level. Keys made before access levels existed are `full`. */
+  access: ApiKeyAccess;
   lastUsedAt: string | null;
   expiresAt: string | null;
   isActive: boolean | null;
@@ -1575,6 +1584,8 @@ export interface CreateApiKeyParams {
   expiresAt?: string;
   /** Optional: number of days until expiration. */
   expires_in_days?: number;
+  /** What the key may do. Defaults to `full`; any other value is a 400. */
+  access?: ApiKeyAccess;
 }
 
 /** Response from creating an API key — includes the full key (shown only once). */
@@ -1584,6 +1595,7 @@ export interface CreateApiKeyResponse {
   /** The full API key. Store this securely — it is only shown once. */
   key: string;
   keyPrefix: string;
+  access: ApiKeyAccess;
   expiresAt: string | null;
   createdAt: string;
 }

@@ -5,11 +5,14 @@ BulkPublish uses API keys for authentication. Every API request must include a v
 ## Getting an API Key
 
 1. Log in to your dashboard at [app.bulkpublish.com](https://app.bulkpublish.com)
-2. Go to **Settings > Developer**
-3. Click **Create API Key**
+2. Go to the **API** page
+3. Click **Generate New Key**
 4. Give it a name (e.g., "Production", "CI/CD", "Testing")
-5. Optionally set an expiration date or number of days until expiry
-6. Copy the key immediately -- it is shown only once and cannot be retrieved later
+5. Choose its **Access**: **Full access** or **Read-only** (see [Access levels](#access-levels))
+6. Choose when it expires
+7. Copy the key immediately -- it is shown only once and cannot be retrieved later
+
+Keys are created and revoked in the app only. An API key cannot create or revoke keys, so a leaked key can never mint itself a replacement.
 
 API keys start with the prefix `bp_` followed by 64 hex characters:
 
@@ -56,21 +59,39 @@ If the key is missing, invalid, expired, or revoked, the API returns:
 
 **Status code:** `401`
 
-## Key Expiration
+## Access levels
 
-When creating a key, you can set expiration in two ways:
+Every key has one of two access levels, chosen when it is created and shown in the key list:
 
-- **Specific date**: Pass `expiresAt` as an ISO 8601 date string
-- **Days from now**: Pass `expires_in_days` as a number
+| Access | What it can do |
+|--------|----------------|
+| **Full access** (default) | Anything its owner's team role allows: create, schedule, publish and delete posts, upload media, reply in the Inbox, manage the account. |
+| **Read-only** | Read posts, schedules, labels, templates, media, analytics, quota usage, channels and the Inbox. Nothing else. |
 
-```bash
-curl -X POST https://app.bulkpublish.com/api/api-keys \
-  -H "Authorization: Bearer bp_your_key_here" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Short-lived key", "expires_in_days": 30}'
+Use a read-only key for reporting, dashboards, spreadsheets and AI agents that should only look. Keys made before access levels existed are full access.
+
+A read-only key that tries to change something gets:
+
+```json
+{
+  "error": {
+    "message": "This API key is read-only and cannot make changes (needs the \"posts:write\" scope)",
+    "code": "INSUFFICIENT_SCOPE",
+    "required": "posts:write",
+    "granted": ["posts:read", "media:read", "analytics:read", "channels:read", "inbox:read"]
+  }
+}
 ```
 
-If neither is set, the key has no expiration and remains valid until manually revoked.
+**Status code:** `403`
+
+Account administration (team, organizations, billing, API keys, webhooks) answers `403` with code `FORBIDDEN` for a read-only key, even to read. A read-only key reaches exactly what an OAuth token holding every `:read` scope reaches.
+
+To check before trying a write, read `capabilities` from `GET /api/channels`: `canCreatePosts`, `canPublishPosts` and `canApprovePosts` are all `false` for a read-only key.
+
+## Key Expiration
+
+When creating a key you choose 30 days, 90 days, 1 year or never. A key set to never expire remains valid until it is revoked.
 
 Expired keys return `401 Unauthorized` on every request. The key's `expiresAt` is checked on each API call -- there is no grace period.
 
@@ -87,14 +108,7 @@ Both keys will work simultaneously during the transition period.
 
 ## Revoking Keys
 
-To revoke a key, send a DELETE request:
-
-```bash
-curl -X DELETE https://app.bulkpublish.com/api/api-keys/KEY_ID \
-  -H "Authorization: Bearer bp_your_key_here"
-```
-
-You can also revoke keys from the dashboard under **Settings > Developer**.
+Revoke a key from the **API** page in the app: click **Revoke** next to it. The key's creator or a team admin can revoke it.
 
 Revocation is immediate. Any in-flight requests using the revoked key will fail.
 
@@ -154,6 +168,7 @@ The rest of the API follows the same roles. A **viewer** key can read but cannot
 - Never commit API keys to version control
 - Use environment variables to store keys
 - Set expiration dates on keys, especially for CI/CD or temporary access
+- Give a key **Read-only** access when it only needs to read, such as for reports, dashboards and agents that should not post
 - Use separate keys for development and production
 - Revoke keys immediately if they may have been exposed
-- Monitor key usage in the dashboard under **Settings > Developer**
+- Monitor key usage on the **API** page in the app

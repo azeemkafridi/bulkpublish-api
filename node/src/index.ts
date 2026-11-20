@@ -124,6 +124,10 @@ export class BulkPublish {
    *
    * The full key is returned ONCE, in `key` — it is not retrievable
    * afterwards, so store it before discarding the response.
+   *
+   * Keys can only be created from a signed-in session in the app: called
+   * with an API key (as this client always is) the server answers 403.
+   * Pass `access: 'read_only'` there for a key that can read but not write.
    */
   createApiKey(params: CreateApiKeyParams): Promise<CreateApiKeyResponse> {
     return this.http.post('/api/api-keys', params);

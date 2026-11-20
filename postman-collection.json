@@ -15566,7 +15566,10 @@
           "name": "Create API key",
           "request": {
             "name": "Create API key",
-            "description": {},
+            "description": {
+              "content": "Keys are created from a signed-in session in the app (the API page); a request authenticated with an API key or OAuth token gets 403. `access` is `full` (default) or `read_only`: a read-only key can read but every write gets 403 INSUFFICIENT_SCOPE, and account administration gets 403 FORBIDDEN.",
+              "type": "text/plain"
+            },
             "url": {
               "path": [
                 "api",
@@ -15587,7 +15590,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"<string>\",\n  \"expiresAt\": \"<dateTime>\"\n}",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"access\": \"read_only\",\n  \"expires_in_days\": 90\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -15646,7 +15649,7 @@
                 "method": "POST",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"<string>\",\n  \"expiresAt\": \"<dateTime>\"\n}",
+                  "raw": "{\n  \"name\": \"<string>\",\n  \"access\": \"read_only\",\n  \"expires_in_days\": 90\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",

@@ -903,7 +903,7 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
       canCreatePosts: sBool().describe("Whether the caller may create and edit posts."),
       canPublishPosts: sBool().describe("Whether the caller may publish or schedule without approval."),
       canApprovePosts: sBool().describe("Whether the caller may approve or reject posts."),
-    }).describe("Whether the caller may create, publish or approve posts."),
+    }).describe("Whether the caller may create, publish or approve posts, from its team role and its API key: a read-only key is false for all three."),
   },
   list_posts: {
     posts: sArr(POST_SHAPE).describe("The posts on this page."),
@@ -1354,7 +1354,7 @@ const SERVER_VERSION: string = (() => {
 // tools every profile serves (the core set).
 const SERVER_INSTRUCTIONS =
   "BulkPublish schedules and publishes social media posts to the user's connected accounts. " +
-  "Start with list_channels: it returns the channel IDs every post needs, plus a capabilities object saying whether the caller may create, publish or approve posts. " +
+  "Start with list_channels: it returns the channel IDs every post needs, plus a capabilities object saying whether the caller may create, publish or approve posts (all false for a read-only API key, which can only read). " +
   "To post: upload_media for any attachment, then create_post with those channel IDs. A post is saved as a draft unless status is \"scheduled\" with a scheduledAt time. " +
   "publish_post sends a post to public platforms immediately and cannot be undone, so confirm with the user before calling it. " +
   "YouTube needs a video; TikTok needs a video or images. Use get_channel_options for per-channel choices such as Pinterest boards or YouTube playlists. " +
@@ -1592,7 +1592,7 @@ export function createServer(
 server.registerTool(
   "list_channels",
   {
-    description: "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status, plus a `capabilities` object saying whether the caller may create, publish or approve posts. Check that before attempting a write rather than discovering the permission from a 403.",
+    description: "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status, plus a `capabilities` object saying whether the caller may create, publish or approve posts. Check that before attempting a write rather than discovering the permission from a 403. A read-only API key reports false for all three: it can read everything here but every change is refused.",
     inputSchema: {
       active: z
         .boolean()

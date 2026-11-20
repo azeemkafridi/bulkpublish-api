@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-11-20 — Read-only API keys
+
+Node SDK **1.47.0** · Python **0.48.0** · MCP **1.58.1** · spec + Postman
+
+### Added
+
+- **Read-only API keys.** When you generate a key on the API page you now choose its **Access**: **Full access** (the default, and what every existing key is) or **Read-only**. A read-only key can read posts, schedules, labels, templates, media, analytics, quota usage, channels and the Inbox, and nothing else: every write is refused with `403 INSUFFICIENT_SCOPE`, and account administration (team, organizations, billing, API keys, webhooks) with `403 FORBIDDEN`, even to read. It reaches exactly what an OAuth token holding every `:read` scope reaches. Use it for reports, dashboards, spreadsheets and agents that should only look.
+- **`access`** (`"full"` or `"read_only"`) on each key in `GET /api/api-keys` and on the `POST /api/api-keys` request and response. In the spec, the Postman request, `ApiKeyInfo` / `CreateApiKeyParams` / `CreateApiKeyResponse` and the new `ApiKeyAccess` type in Node, and `ApiKey` in Python.
+
+### Changed
+
+- **`capabilities` on `GET /api/channels`** now reflects the credential as well as the team role: a read-only key, or an OAuth token without `posts:write`, reports `canCreatePosts`, `canPublishPosts` and `canApprovePosts` as `false`. The MCP `list_channels` description, its output schema, the server instructions and the manage-channels skill say so, so an assistant on a read-only key knows not to try a write.
+
+### Fixed
+
+- **The authentication guide showed creating and revoking keys with curl and an API key.** Both are refused with `403`: keys are created and revoked in the app only, so a leaked key can never mint itself a replacement. The guide, the spec and the `createApiKey` docs in Node now say so, and the spec documents `expires_in_days`, which it had left out.
+
 ## 2026-11-19 — MCP server: protocol 2026-07-28, tasks for long uploads and publishes, a check before a risky retry
 
 MCP **1.58.0**

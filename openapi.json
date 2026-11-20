@@ -3,7 +3,7 @@
   "info": {
     "title": "BulkPublish API",
     "version": "1.0.0",
-    "description": "Publish to 15 social media platforms from a single API.\n\n## Using this API from an AI agent\n\nBulkPublish is also an [MCP](https://modelcontextprotocol.io) server, so Claude, ChatGPT, Cursor and other agents can drive it directly. The two servers below expose different amounts of what is documented here.\n\n**Hosted (web-based hosts):** add `https://mcp.bulkpublish.com/mcp` as a custom connector. It supports OAuth 2.1 \u2014 you paste your API key once on the consent screen \u2014 or a key in the URL (`?key=bp_...`) for hosts without OAuth. It exposes a focused set of tools \u2014 channels, posts, media, analytics, and the interactive panels \u2014 not one per endpoint below.\n\n**Local (Claude Code, Cursor, Codex, Windsurf):** `npx -y @bulkpublish/mcp-server`, with `BULKPUBLISH_API_KEY` in the environment. This one exposes the full tool set, including schedules, RSS feeds, labels and quotas.\n\nPer-client config and the full tool list: [BulkPublish AI Toolkit](https://github.com/azeemkafridi/bulkpublish-ai-toolkit). Get an API key at [/developer](https://app.bulkpublish.com/developer).\n\n## Team roles and seats\n\nEvery write request runs with the role of the member who owns the API key or authorized the app. A role that does not allow an action gets **403** `FORBIDDEN` (or `APPROVAL_REQUIRED` when the post must go through approval instead). When a workspace has more members than its plan includes (for example after a downgrade), the members who joined most recently beyond the plan's seats are read-only: their write requests get **403** `SEAT_LIMIT` until the owner upgrades or frees a seat. The owner always keeps full access, and removing a member or leaving still work."
+    "description": "Publish to 15 social media platforms from a single API.\n\n## Using this API from an AI agent\n\nBulkPublish is also an [MCP](https://modelcontextprotocol.io) server, so Claude, ChatGPT, Cursor and other agents can drive it directly. The two servers below expose different amounts of what is documented here.\n\n**Hosted (web-based hosts):** add `https://mcp.bulkpublish.com/mcp` as a custom connector. It supports OAuth 2.1 \u2014 you paste your API key once on the consent screen \u2014 or a key in the URL (`?key=bp_...`) for hosts without OAuth. It exposes a focused set of tools \u2014 channels, posts, media, analytics, and the interactive panels \u2014 not one per endpoint below.\n\n**Local (Claude Code, Cursor, Codex, Windsurf):** `npx -y @bulkpublish/mcp-server`, with `BULKPUBLISH_API_KEY` in the environment. This one exposes the full tool set, including schedules, RSS feeds, labels and quotas.\n\nPer-client config and the full tool list: [BulkPublish AI Toolkit](https://github.com/azeemkafridi/bulkpublish-ai-toolkit). Get an API key at [/developer](https://app.bulkpublish.com/developer).\n\n## Team roles and seats\n\nEvery write request runs with the role of the member who owns the API key or authorized the app. A role that does not allow an action gets **403** `FORBIDDEN` (or `APPROVAL_REQUIRED` when the post must go through approval instead). When a workspace has more members than its plan includes (for example after a downgrade), the members who joined most recently beyond the plan's seats are read-only: their write requests get **403** `SEAT_LIMIT` until the owner upgrades or frees a seat. The owner always keeps full access, and removing a member or leaving still work.\n\n## Read-only API keys\n\nAn API key created as **Read-only** can read but never change anything, whatever its owner's role: every write gets **403** `INSUFFICIENT_SCOPE`, and account administration gets **403** `FORBIDDEN`. `GET /api/channels` reports this in `capabilities`, so a client can check before it tries a write."
   },
   "servers": [
     {
@@ -22,11 +22,11 @@
         "type": "apiKey",
         "in": "header",
         "name": "Authorization",
-        "description": "API key from Settings > API Keys. Pass as `Bearer bp_your_key_here`"
+        "description": "API key from the API page in the app. Pass as `Bearer bp_your_key_here`. A key is either **Full access** (anything its owner's team role allows) or **Read-only**, chosen when it is created. A read-only key reaches exactly what an OAuth token with every `:read` scope reaches: writes get **403** `INSUFFICIENT_SCOPE` and account administration gets **403** `FORBIDDEN`."
       },
       "oauth2": {
         "type": "oauth2",
-        "description": "**Beta.** For products that embed BulkPublish and do not want their users pasting an API key. The user approves your app on BulkPublish and you receive a scoped token bound to the workspace they chose. PKCE (S256) is required for every client, `scope` is required (there is no implicit default), authorization codes are single-use, and refresh tokens rotate. Pass the token as `Bearer bpat_...`.\n\nOAuth tokens reach posts, schedules, labels, media, the Inbox, analytics, quota usage and read-only channel data \u2014 and nothing else. Grants made before the Inbox scopes existed do not cover it unless they hold `full`; `posts:write` never does. Account administration (team, organizations, billing and credit purchases, API keys, OAuth app management) returns 403 for **any** OAuth token, including `full`, because those actions would outlive the user disconnecting the app. Use an API key (`Bearer bp_...`) for those; keys are unaffected by this and remain the default for server-to-server use.",
+        "description": "**Beta.** For products that embed BulkPublish and do not want their users pasting an API key. The user approves your app on BulkPublish and you receive a scoped token bound to the workspace they chose. PKCE (S256) is required for every client, `scope` is required (there is no implicit default), authorization codes are single-use, and refresh tokens rotate. Pass the token as `Bearer bpat_...`.\n\nOAuth tokens reach posts, schedules, labels, media, the Inbox, analytics, quota usage and read-only channel data \u2014 and nothing else. Grants made before the Inbox scopes existed do not cover it unless they hold `full`; `posts:write` never does. Account administration (team, organizations, billing and credit purchases, API keys, OAuth app management) returns 403 for **any** OAuth token, including `full`, because those actions would outlive the user disconnecting the app. Use an API key (`Bearer bp_...`) for those; full-access keys are unaffected by this and remain the default for server-to-server use.",
         "flows": {
           "authorizationCode": {
             "authorizationUrl": "https://app.bulkpublish.com/oauth/authorize",
@@ -4628,7 +4628,7 @@
                     },
                     "capabilities": {
                       "type": "object",
-                      "description": "What the CALLING member may do in this organization, resolved from their team role. Returned alongside the channel list so a client does not have to re-derive permissions from a role string.",
+                      "description": "What the CALLER may do in this organization, resolved from their team role AND the credential: a read-only API key, or an OAuth token without `posts:write`, gets false for all three whatever the role. Returned alongside the channel list so a client does not have to re-derive permissions.",
                       "properties": {
                         "canCreatePosts": {
                           "type": "boolean"
@@ -8714,9 +8714,30 @@
           "API Keys"
         ],
         "summary": "List API keys",
+        "description": "Lists the workspace's keys with their secrets masked. Each key reports its `access` level. Read-only keys cannot call this endpoint.",
         "responses": {
           "200": {
-            "description": "API keys (secrets masked)"
+            "description": "API keys (secrets masked)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "name": { "type": "string" },
+                      "keyPreview": { "type": "string", "description": "The first characters of the key followed by `...`." },
+                      "access": { "type": "string", "enum": ["full", "read_only"], "description": "The key's access level. Keys created before access levels existed are `full`." },
+                      "lastUsedAt": { "type": ["string", "null"], "format": "date-time" },
+                      "expiresAt": { "type": ["string", "null"], "format": "date-time" },
+                      "isActive": { "type": "boolean" },
+                      "createdAt": { "type": "string", "format": "date-time" }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "operationId": "listApiKeys",
@@ -8731,6 +8752,7 @@
           "API Keys"
         ],
         "summary": "Create API key",
+        "description": "Keys are created from a signed-in session in the app (the API page). A request authenticated with an API key or OAuth token gets **403**, so a key can never mint its own replacement. Documented here for the shape of the key it returns.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -8741,11 +8763,25 @@
                 ],
                 "properties": {
                   "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "access": {
+                    "type": "string",
+                    "enum": ["full", "read_only"],
+                    "default": "full",
+                    "description": "What the key may do. `full` (the default) can do anything its owner's team role allows. `read_only` can read posts, schedules, labels, templates, media, analytics, quota usage, channels and the Inbox, and nothing else: every write is refused with **403** `INSUFFICIENT_SCOPE`, and account administration (team, organizations, billing, API keys, webhooks) is refused with **403** `FORBIDDEN`, even to read. Choose it for reporting, dashboards and agents that should only look. Any other value is a **400**, never a full-access key."
                   },
                   "expiresAt": {
                     "type": "string",
-                    "format": "date-time"
+                    "format": "date-time",
+                    "description": "Must be in the future. Takes precedence over `expires_in_days`."
+                  },
+                  "expires_in_days": {
+                    "type": ["integer", "null"],
+                    "minimum": 1,
+                    "maximum": 3650,
+                    "description": "Days from now until the key expires. Omit both this and `expiresAt` (or send null) for a key that never expires."
                   }
                 }
               }
@@ -8754,8 +8790,26 @@
         },
         "responses": {
           "201": {
-            "description": "Created (full key shown once)"
-          }
+            "description": "Created (full key shown once)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "integer" },
+                    "name": { "type": "string" },
+                    "key": { "type": "string", "description": "The full key. It is shown only in this response." },
+                    "keyPrefix": { "type": "string" },
+                    "access": { "type": "string", "enum": ["full", "read_only"] },
+                    "expiresAt": { "type": ["string", "null"], "format": "date-time" },
+                    "createdAt": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid name, expiry or access level" },
+          "403": { "description": "Not called from a signed-in session" }
         },
         "operationId": "createApiKey",
         "security": [

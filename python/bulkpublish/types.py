@@ -580,6 +580,11 @@ class ApiKey(TypedDict, total=False):
     id: str
     name: str
     prefix: str
+    #: ``"full"`` (anything the owner's team role allows) or ``"read_only"``
+    #: (reads only: every write is refused with 403 ``INSUFFICIENT_SCOPE``,
+    #: and account administration with 403 ``FORBIDDEN``). Keys made before
+    #: access levels existed report ``"full"``.
+    access: str
     lastUsedAt: Optional[str]
     expiresAt: Optional[str]
     createdAt: str

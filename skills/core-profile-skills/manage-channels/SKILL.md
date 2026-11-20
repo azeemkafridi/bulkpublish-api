@@ -27,7 +27,9 @@ Each channel: `id`, `platform`, `accountName`, `accountId`, `accountType`,
 
 The response also carries a `capabilities` object saying whether this caller may
 create, publish or approve posts. Check it before attempting a write, rather
-than discovering the limit from a 403.
+than discovering the limit from a 403. A read-only API key reports `false` for
+all three: it can read posts, media, analytics and channels, but every change
+is refused. Tell the user they need a Full access key instead of retrying.
 
 Platform keys: `facebook`, `instagram`, `x`, `linkedin`, `tiktok`, `youtube`,
 `pinterest`, `threads`, `bluesky`, `gmb`, `mastodon`, `discord`, `telegram`,
