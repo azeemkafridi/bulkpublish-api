@@ -16,6 +16,12 @@ Node SDK **1.47.0** · Python **0.48.0** · MCP **1.58.1** · spec + Postman
 ### Fixed
 
 - **The authentication guide showed creating and revoking keys with curl and an API key.** Both are refused with `403`: keys are created and revoked in the app only, so a leaked key can never mint itself a replacement. The guide, the spec and the `createApiKey` docs in Node now say so, and the spec documents `expires_in_days`, which it had left out.
+- **Node `listApiKeys()` returned an array typed as `{ keys: ApiKeyInfo[] }`**, so `.keys` was always `undefined`. It is now typed `ApiKeyInfo[]`, which is what the server has always sent. Code that read `.keys` never worked; read the array directly.
+- **Python `ApiKey` described fields the server does not send** (`id` as a string, `prefix`). It now matches the list response: `id` (int), `name`, `keyPreview`, `access`, `lastUsedAt`, `expiresAt`, `isActive`, `createdAt`. The `list_api_keys()` example printed `key['prefix']`, a `KeyError`; it now prints `keyPreview` and `access`.
+
+### Deprecated
+
+- **Node `createApiKey()` / `deleteApiKey()` and Python `create_api_key()` / `delete_api_key()`** (sync and async). Both routes only accept a signed-in session in the app, so these always failed with `403` for an SDK client. They are kept so existing code still builds and imports; Python now also emits a `DeprecationWarning`. They will be removed in the next major version (Node) and in 1.0 (Python).
 
 ## 2026-11-19 — MCP server: protocol 2026-07-28, tasks for long uploads and publishes, a check before a risky retry
 

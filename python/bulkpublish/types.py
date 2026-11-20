@@ -575,11 +575,12 @@ class Schedule(TypedDict, total=False):
 
 
 class ApiKey(TypedDict, total=False):
-    """An API key."""
+    """An API key, as listed by ``GET /api/api-keys``. Secrets are masked."""
 
-    id: str
+    id: int
     name: str
-    prefix: str
+    #: The first characters of the key followed by ``...``.
+    keyPreview: str
     #: ``"full"`` (anything the owner's team role allows) or ``"read_only"``
     #: (reads only: every write is refused with 403 ``INSUFFICIENT_SCOPE``,
     #: and account administration with 403 ``FORBIDDEN``). Keys made before
@@ -587,6 +588,7 @@ class ApiKey(TypedDict, total=False):
     access: str
     lastUsedAt: Optional[str]
     expiresAt: Optional[str]
+    isActive: Optional[bool]
     createdAt: str
 
 

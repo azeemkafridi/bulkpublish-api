@@ -114,26 +114,35 @@ export class BulkPublish {
   // link previews, or the activity log.
   // ---------------------------------------------------------------------
 
-  /** List this organization's API keys. Secrets are masked. */
-  listApiKeys(): Promise<{ keys: ApiKeyInfo[] }> {
+  /**
+   * List this organization's API keys, newest first. Secrets are masked;
+   * each key reports its `access` level.
+   *
+   * The server answers with a plain array. Before 1.47.0 this was typed as
+   * `{ keys: ApiKeyInfo[] }`, so `.keys` was always undefined at runtime.
+   * A read-only key cannot call this (403 FORBIDDEN).
+   */
+  listApiKeys(): Promise<ApiKeyInfo[]> {
     return this.http.get('/api/api-keys');
   }
 
   /**
-   * Create an API key.
-   *
-   * The full key is returned ONCE, in `key` — it is not retrievable
-   * afterwards, so store it before discarding the response.
-   *
-   * Keys can only be created from a signed-in session in the app: called
-   * with an API key (as this client always is) the server answers 403.
-   * Pass `access: 'read_only'` there for a key that can read but not write.
+   * @deprecated Always fails with 403 for this client. Keys are created on
+   * the API page in the app, from a signed-in session, so that a leaked key
+   * can never mint itself a replacement; this client authenticates with an
+   * API key, which the server refuses here. Kept so existing code compiles;
+   * it will be removed in the next major version.
    */
   createApiKey(params: CreateApiKeyParams): Promise<CreateApiKeyResponse> {
     return this.http.post('/api/api-keys', params);
   }
 
-  /** Revoke an API key. Requests using it fail immediately afterwards. */
+  /**
+   * @deprecated Always fails with 403 for this client. Keys are revoked on
+   * the API page in the app, by the key's creator or a team admin, from a
+   * signed-in session. Kept so existing code compiles; it will be removed in
+   * the next major version.
+   */
   deleteApiKey(id: number): Promise<{ success: boolean }> {
     return this.http.delete(`/api/api-keys/${id}`);
   }

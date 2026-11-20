@@ -22,6 +22,7 @@ Example (async)::
 from __future__ import annotations
 
 import os
+import warnings
 from typing import Any, Dict, List, Optional, Union
 
 import httpx
@@ -80,6 +81,13 @@ def _user_agent() -> str:
 # ---------------------------------------------------------------------------
 # Base class with shared config
 # ---------------------------------------------------------------------------
+
+
+_KEY_ADMIN_DEPRECATION = (
+    "API keys can only be created and revoked on the API page in the app; "
+    "the server refuses this call from an API key with 403. This method "
+    "will be removed in 1.0."
+)
 
 
 class _BaseClient:
@@ -329,49 +337,40 @@ class BulkPublish(_BaseClient):
     # -- Convenience methods for non-resource endpoints ----------------------
 
     def list_api_keys(self) -> List[ApiKey]:
-        """List all API keys on your account.
+        """List the organization's API keys, newest first.
 
         Returns:
-            List of API key objects (secrets are masked).
+            List of API key objects (secrets are masked). Each reports its
+            ``access`` level. A read-only key cannot call this (403).
 
         Example::
 
             keys = bp.list_api_keys()
             for key in keys:
-                print(f"{key['name']} ({key['prefix']}...)")
+                print(f"{key['name']} ({key['keyPreview']}, {key['access']})")
         """
         return self._request("GET", "/api/api-keys")
 
-    def create_api_key(self, **fields: Any) -> ApiKey:
-        """Create a new API key.
+    def create_api_key(self, **fields: Any) -> Dict[str, Any]:
+        """Deprecated: always raises a 403 error for this client.
 
-        Args:
-            **fields: Key configuration (e.g. ``name``, ``expiresAt``).
-
-        Returns:
-            The new API key object.  The full key value is only returned
-            once — store it securely.
-
-        Example::
-
-            key = bp.create_api_key(name="CI/CD Key")
-            print(f"Save this key: {key.get('key', key.get('token'))}")
+        Keys are created on the API page in the app, from a signed-in
+        session, so that a leaked key can never mint itself a replacement.
+        This client authenticates with an API key, which the server refuses
+        here. Kept so existing code still imports; it will be removed in
+        1.0.
         """
+        warnings.warn(_KEY_ADMIN_DEPRECATION, DeprecationWarning, stacklevel=2)
         return self._request("POST", "/api/api-keys", json=fields)
 
-    def delete_api_key(self, key_id: str) -> Dict[str, Any]:
-        """Delete an API key.
+    def delete_api_key(self, key_id: Union[int, str]) -> Dict[str, Any]:
+        """Deprecated: always raises a 403 error for this client.
 
-        Args:
-            key_id: The key's unique identifier.
-
-        Returns:
-            Confirmation dict.
-
-        Example::
-
-            bp.delete_api_key("key_abc123")
+        Keys are revoked on the API page in the app, by the key's creator or
+        a team admin, from a signed-in session. Kept so existing code still
+        imports; it will be removed in 1.0.
         """
+        warnings.warn(_KEY_ADMIN_DEPRECATION, DeprecationWarning, stacklevel=2)
         return self._request("DELETE", f"/api/api-keys/{key_id}")
 
     def api_key_usage(self) -> ApiKeyUsage:
@@ -641,12 +640,14 @@ class AsyncBulkPublish(_BaseClient):
         """List API keys — see :meth:`BulkPublish.list_api_keys`."""
         return await self._request("GET", "/api/api-keys")
 
-    async def create_api_key(self, **fields: Any) -> ApiKey:
-        """Create API key — see :meth:`BulkPublish.create_api_key`."""
+    async def create_api_key(self, **fields: Any) -> Dict[str, Any]:
+        """Deprecated — see :meth:`BulkPublish.create_api_key`. Always a 403."""
+        warnings.warn(_KEY_ADMIN_DEPRECATION, DeprecationWarning, stacklevel=2)
         return await self._request("POST", "/api/api-keys", json=fields)
 
-    async def delete_api_key(self, key_id: str) -> Dict[str, Any]:
-        """Delete API key — see :meth:`BulkPublish.delete_api_key`."""
+    async def delete_api_key(self, key_id: Union[int, str]) -> Dict[str, Any]:
+        """Deprecated — see :meth:`BulkPublish.delete_api_key`. Always a 403."""
+        warnings.warn(_KEY_ADMIN_DEPRECATION, DeprecationWarning, stacklevel=2)
         return await self._request("DELETE", f"/api/api-keys/{key_id}")
 
     async def api_key_usage(self) -> ApiKeyUsage:
