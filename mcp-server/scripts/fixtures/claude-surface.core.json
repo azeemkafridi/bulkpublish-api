@@ -15,7 +15,7 @@
     "websiteUrl": "https://www.bulkpublish.com",
     "description": "Schedule and publish social media posts to your connected accounts, manage media, and read post analytics and comments."
   },
-  "instructions": "BulkPublish schedules and publishes social media posts to the user's connected accounts. Start with list_channels: it returns the channel IDs every post needs, plus a capabilities object saying whether the caller may create, publish or approve posts. To post: upload_media for any attachment, then create_post with those channel IDs. A post is saved as a draft unless status is \"scheduled\" with a scheduledAt time. publish_post sends a post to public platforms immediately and cannot be undone, so confirm with the user before calling it. YouTube needs a video; TikTok needs a video or images. Use get_channel_options for per-channel choices such as Pinterest boards or YouTube playlists. For results, use get_post, get_post_metrics and get_analytics.",
+  "instructions": "BulkPublish schedules and publishes social media posts to the user's connected accounts. Start with list_channels: it returns the channel IDs every post needs, plus a capabilities object saying whether the caller may create, publish or approve posts (all false for a read-only API key, which can only read). To post: upload_media for any attachment, then create_post with those channel IDs. A post is saved as a draft unless status is \"scheduled\" with a scheduledAt time. publish_post sends a post to public platforms immediately and cannot be undone, so confirm with the user before calling it. YouTube needs a video; TikTok needs a video or images. Use get_channel_options for per-channel choices such as Pinterest boards or YouTube playlists. For results, use get_post, get_post_metrics and get_analytics.",
   "capabilities": {
     "prompts": {
       "listChanged": true
@@ -31,7 +31,7 @@
     {
       "name": "list_channels",
       "title": "List channels",
-      "description": "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status, plus a `capabilities` object saying whether the caller may create, publish or approve posts. Check that before attempting a write rather than discovering the permission from a 403. Use this when the user wants to see which social accounts are connected.",
+      "description": "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status, plus a `capabilities` object saying whether the caller may create, publish or approve posts. Check that before attempting a write rather than discovering the permission from a 403. A read-only API key reports false for all three: it can read everything here but every change is refused. Use this when the user wants to see which social accounts are connected.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -147,7 +147,7 @@
             ]
           },
           "capabilities": {
-            "description": "Whether the caller may create, publish or approve posts.",
+            "description": "Whether the caller may create, publish or approve posts, from its team role and its API key: a read-only key is false for all three.",
             "anyOf": [
               {
                 "type": "object",
@@ -2618,7 +2618,7 @@
       },
       "annotations": {
         "readOnlyHint": false,
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": true
       },
@@ -6313,7 +6313,7 @@
       },
       "annotations": {
         "readOnlyHint": false,
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": true,
         "openWorldHint": false
       },

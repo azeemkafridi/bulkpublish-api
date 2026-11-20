@@ -756,21 +756,40 @@ async function api<T = unknown>(
   return { ok: res.ok, status: res.status, data };
 }
 
+// The API's refusals are written for the web app and often end in an upgrade
+// remedy ("Upgrade to Pro to use it.", "Upgrade to Pro or Business to post to
+// it."). OpenAI's plugin guidelines say a plugin "must not display subscription
+// plans, initiate new subscriptions, or promote upgrades", and both directories
+// read this one server, so every sentence that starts with "Upgrade" is dropped
+// here. A sentence that offers another way out keeps it: "Upgrade to Pro for
+// more storage, or free space by removing unused media" becomes "Free space by
+// removing unused media". Saying which plan a feature is on stays: that tells
+// the user why the call failed, it does not sell anything.
+export function withoutUpsell(text: string): string {
+  return text
+    .replace(/\bUpgrade\b[^,.!?]*, or (\w)/g, (_m, c: string) => c.toUpperCase())
+    .replace(/(^|\s)Upgrade\b[^.!?]*[.!?]?/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 function formatResponse(res: ApiResponse): string {
   if (!res.ok) {
     // The API answers with either { error: { message, code } } or a bare
     // { error: "text" }. The bare form used to fall through to "HTTP 400
     // error" — the generic error the directory review rejects.
     const err = res.data as { error?: string | { message?: string; hint?: string }; message?: string };
-    const msg =
+    const raw =
       (typeof err?.error === "string" ? err.error : err?.error?.message) ||
       err?.message ||
       `HTTP ${res.status} error`;
-    // A coded refusal can carry a remedy ("Upgrade to Pro to use it."). Append
-    // it after the message — never instead of it — so the text still starts
-    // with "Error: <message>" and attachStructured still flags it as isError.
-    const hint = typeof err?.error === "object" ? err.error?.hint : undefined;
-    if (typeof hint === "string" && hint.trim() && !msg.includes(hint)) return `Error: ${msg} ${hint.trim()}`;
+    const msg = withoutUpsell(raw) || "This is not available on your current plan.";
+    // A coded refusal can carry a remedy. Append it after the message — never
+    // instead of it — so the text still starts with "Error: <message>" and
+    // attachStructured still flags it as isError.
+    const rawHint = typeof err?.error === "object" ? err.error?.hint : undefined;
+    const hint = typeof rawHint === "string" ? withoutUpsell(rawHint) : "";
+    if (hint && !msg.includes(hint)) return `Error: ${msg} ${hint}`;
     return `Error: ${msg}`;
   }
   return JSON.stringify(res.data, null, 2);
@@ -1110,6 +1129,103 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
   },
   reply_to_comment: { success: sBool().describe("true when the reply was posted."), replyId: sStr().describe("The platform's id for the new reply."), accountName: sStr().describe("The account the reply was posted as.") },
   moderate_comment: { success: sBool().describe("true when the action was applied."), action: sStr().describe("The action that was applied.") },
+  // ---- Management tools joined to the hosted profile 2026-11-20 -----------
+  // Shapes traced from the webapp routes (pages/api/...), all lenient.
+  get_channel_health: {
+    healthy: sBool().describe("true when the connection works."),
+    tokenStatus: sStr().describe("valid, expired, error, or unknown (the live check was skipped)."),
+    message: sStr().describe("What is wrong and what to do; absent when healthy."),
+  },
+  get_media: {
+    file: sObj({
+      id: sNum().describe("The file's ID, as passed in mediaFileIds."),
+      fileName: sStr().describe("The original file name."),
+      mimeType: sStr().describe("The file type, e.g. image/jpeg or video/mp4."),
+      sizeBytes: sNum().describe("Size in bytes."),
+      width: sNum().describe("Width in pixels."),
+      height: sNum().describe("Height in pixels."),
+      duration: sNum().describe("Length of a video in seconds, or null."),
+      altText: sStr().describe("The file's alt text, or null."),
+      originalUrl: sStr().describe("Address of the full-size file."),
+      thumbnailUrl: sStr().describe("Address of a small preview, or null."),
+      previewUrl: sStr().describe("Address of a medium preview, or null."),
+      largeUrl: sStr().describe("Address of a large preview, or null."),
+      isOriginalDeleted: sBool().describe("true when only the previews remain (the original was removed after publishing)."),
+      createdAt: sStr().describe("When it was uploaded."),
+    }).describe("The media file."),
+  },
+  update_media: {
+    file: sObj({
+      id: sNum().describe("The file's ID."),
+      altText: sStr().describe("The alt text now saved, or null when cleared."),
+    }).describe("The updated media file."),
+  },
+  delete_media: {
+    success: sBool().describe("true when the file was deleted."),
+    deletedId: sNum().describe("The ID of the deleted file."),
+  },
+  list_templates: {
+    templates: sArr({
+      id: sNum().describe("The template's ID."),
+      name: sStr().describe("The template's name."),
+      content: sStr().describe("The saved text."),
+      kind: sStr().describe("caption (a whole post) or snippet (text to insert)."),
+      channelIds: z.array(z.any()).nullish().describe("Channels a caption template targets, or null."),
+      postFormat: sStr().describe("The post format a caption template keeps, or null."),
+      postTypeOverrides: sMap().describe("Per-platform post types a caption template keeps, or null."),
+      mediaFileIds: z.array(z.any()).nullish().describe("Media a caption template keeps, or null."),
+      media: z.array(z.any()).nullish().describe("Those media files with their preview addresses."),
+      updatedAt: sStr().describe("When it was last changed."),
+    }).describe("The workspace's saved templates."),
+  },
+  list_hashtag_groups: {
+    groups: sArr({
+      id: sNum().describe("The group's ID."),
+      name: sStr().describe("The group's name."),
+      hashtags: sStrArr().describe("The hashtags in the group."),
+    }).describe("The workspace's hashtag groups, sorted by name."),
+  },
+  list_schedules: {
+    items: sArr({
+      id: sNum().describe("The schedule's ID, as update_schedule and delete_schedule take."),
+      name: sStr().describe("The schedule's name."),
+      frequency: sStr().describe("daily, weekly, biweekly or monthly."),
+      timeOfDay: sStr().describe("Time it posts, HH:MM."),
+      dayOfWeek: z.any().optional().describe("Weekly and biweekly: the day or days it posts on."),
+      dayOfMonth: sNum().describe("Monthly: the day of the month."),
+      timezone: sStr().describe("The timezone timeOfDay is in."),
+      channelIds: z.array(z.any()).nullish().describe("The channels it posts to."),
+      contentTemplate: sStr().describe("The text each run posts."),
+      isActive: sBool().describe("false when the schedule is paused."),
+      nextRunAt: sStr().describe("When it next posts, or null."),
+      lastRunAt: sStr().describe("When it last posted, or null."),
+    }).describe("The recurring schedules, newest first."),
+  },
+  update_schedule: {
+    id: sNum().describe("The schedule's ID."),
+    name: sStr().describe("The schedule's name."),
+    frequency: sStr().describe("daily, weekly, biweekly or monthly."),
+    timeOfDay: sStr().describe("Time it posts, HH:MM."),
+    timezone: sStr().describe("The timezone timeOfDay is in."),
+    isActive: sBool().describe("false when the schedule is paused."),
+    nextRunAt: sStr().describe("When it next posts, recomputed after a timing change, or null."),
+  },
+  delete_schedule: { success: sBool().describe("true when the schedule was deleted.") },
+  share_post: {
+    shareToken: sStr().describe("The link's token."),
+    url: sStr().describe("The review link. Anyone who has it can open the post without signing in."),
+    created: sBool().describe("true when this call made the link; false when an existing one was returned."),
+  },
+  unshare_post: {
+    success: sBool().describe("true when the call succeeded."),
+    revoked: sBool().describe("true when a link existed and now no longer works; false when there was none."),
+  },
+  create_label: {
+    id: sNum().describe("The new label's ID, as create_post and update_post take in labels."),
+    name: sStr().describe("The label's name."),
+    color: sStr().describe("The label's colour, as a hex value."),
+    type: sStr().describe("What the label is for, e.g. post or media."),
+  },
 };
 
 // Turns a plain tool's text-only result into one carrying structuredContent,
@@ -1157,9 +1273,19 @@ function attachStructured(result: unknown, toolName: string): unknown {
 // the panel's buttons break. `full` is every tool; the npm/stdio server
 // defaults to it so existing local setups lose nothing.
 //
-// `inbox` is core plus the six Inbox and comment-reply tools (INBOX_TOOLS). Core's
-// own tools are byte-identical in both: the parity fixtures pin each profile,
-// and check-annotations fails if a core tool differs between them.
+// `inbox` is what mcp.bulkpublish.com/mcp serves (BULKPUBLISH_TOOL_PROFILE=inbox
+// on the hosted server), so it is the surface both directories list. It is core plus
+// INBOX_TOOLS: the six Inbox and comment-reply tools, and since 2026-11-20 the
+// day-to-day management tools a chat user asks for (account analytics, channel
+// health, templates, hashtag groups, repeat posts, media upkeep, review links,
+// labels). The name stays `inbox` so the deployed setting does not have to change.
+// Left out of it on purpose, and of /mcp with it: quota tools (OpenAI does not
+// allow showing plans or upgrades), the multipart upload trio (a hosted chat
+// cannot upload the chunks), and tools that duplicate a served one or reach
+// further than chat needs (publish_story, create_schedule, bulk_posts, RSS
+// feeds, client connect links, batch review links). /mcp/full serves them.
+// Core's own tools are byte-identical in both: the parity fixtures pin each
+// profile, and check-annotations fails if a core tool differs between them.
 //
 // BULKPUBLISH_TOOL_PROFILE=core|inbox|full overrides either default.
 export type ToolProfile = "core" | "inbox" | "full";
@@ -1198,6 +1324,20 @@ export const INBOX_TOOLS: ReadonlySet<string> = new Set([
   "update_conversation",
   "reply_to_comment",
   "moderate_comment",
+  "get_account_analytics",
+  "get_engagement_analytics",
+  "get_channel_health",
+  "get_media",
+  "update_media",
+  "delete_media",
+  "list_templates",
+  "list_hashtag_groups",
+  "list_schedules",
+  "update_schedule",
+  "delete_schedule",
+  "share_post",
+  "unshare_post",
+  "create_label",
 ]);
 export function resolveToolProfile(fallback: ToolProfile): ToolProfile {
   const v = process.env.BULKPUBLISH_TOOL_PROFILE;
@@ -1261,7 +1401,7 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   get_engagement_analytics: { title: "Get engagement analytics", ...READ, why: "GET /api/analytics/engagement; aggregates already-stored post metrics." },
   get_quota_usage: { title: "Get quota usage", ...READ, why: "GET /api/quotas/usage; reads plan limits and current counters." },
   get_queue_slot: { title: "Get next queue slot", ...READ, why: "GET /api/posts/queue-slot; computes the next free slot and reserves nothing." },
-  get_channel_health: { title: "Get channel health", ...READ, why: "GET /api/channels/{id}/health; reports stored token state, does not refresh or reconnect." },
+  get_channel_health: { title: "Get channel health", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true, why: "GET /api/channels/{id}/health. Verifies the token live with the platform, so open world. Not read-only: an expired token that can be renewed is renewed in place, and a check the platform refuses marks the channel as needing reconnection. Neither loses anything (the old token had already expired; the flag records what the platform said), so not destructive. On X the live check uses the workspace's paid X read budget, cached for 60 seconds. Repeating it leaves the same state." },
   get_channel_options: { title: "Get channel post-type options", ...READ, why: "GET /api/channels/{id}/options; static capability data." },
   list_channel_sets: { title: "List channel sets", ...READ, why: "GET /api/channel-sets." },
   list_rss_feeds: { title: "List RSS feeds", ...READ, why: "GET /api/rss-feeds; lists configured feeds, fetches none of them." },
@@ -1277,17 +1417,17 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   view_analytics: { title: "View analytics", ...READ, why: "GET /api/analytics/summary to render the analytics panel." },
   view_quota: { title: "View quota", ...READ, why: "GET /api/quotas/usage to render the usage panel." },
   // ---- Creates: add a record, overwrite nothing --------------------------
-  create_post: { title: "Create post", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true, why: "POST /api/posts. Adds a draft or scheduled post; overwrites nothing and can be deleted, so not destructive. Not idempotent: each call creates another post. Open-world: with status 'scheduled' the post will publish to the named public platforms at scheduledAt, so the call's effect reaches outside BulkPublish." },
+  create_post: { title: "Create post", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts. Destructive in some modes, though a draft is purely additive: with status 'scheduled' the post publishes to public platforms at scheduledAt with no further call, and a live post cannot be recalled from BulkPublish; deleteMediaAfterPublish=true removes the attached files from the media library once it publishes; autoRepost and autoPlug repost or comment publicly by themselves. Not idempotent: each call creates another post. Open world: scheduled posts publish to public platforms." },
   create_label: { title: "Create label", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/labels; adds an internal label. Repeating creates a duplicate." },
   create_hashtag_group: { title: "Create hashtag group", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/hashtag-groups; adds an internal record." },
   create_template: { title: "Create post template", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/templates; adds an internal record." },
   create_calendar_note: { title: "Create calendar note", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/calendar-notes; adds an internal note, publishes nothing." },
   create_channel_set: { title: "Create channel set", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/channel-sets; adds an internal grouping." },
-  create_schedule: { title: "Create recurring schedule", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true, why: "POST /api/schedules. Adds a rule that will create and publish posts to public platforms on a cadence, so its effect is open-world; the rule itself can be deleted, so not destructive." },
-  create_rss_feed: { title: "Add RSS feed", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true, why: "POST /api/rss-feeds. BulkPublish will fetch the given public feed URL and publish new items to the chosen channels, so the effect is open-world. The feed record can be paused or deleted." },
+  create_schedule: { title: "Create recurring schedule", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/schedules. Adds a rule that creates and publishes posts to public platforms on a cadence with no further call; a published post cannot be recalled from BulkPublish, so destructive even though the rule itself can be deleted. Open world for the same reason. Each call adds another rule." },
+  create_rss_feed: { title: "Add RSS feed", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/rss-feeds. BulkPublish will fetch the given public feed URL and publish new items to the chosen channels with no further call; a published post cannot be recalled from BulkPublish, so destructive even though the feed can be paused or deleted. Open world: it fetches a public URL and publishes to public platforms." },
   create_review_link: { title: "Create client review link", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/review-links; mints a link that a client can open. Nothing is sent to anyone; the caller decides where to share it." },
   create_client_connect_link: { title: "Create client connect link", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/client-connect-links; mints a one-time link. Nothing is sent to anyone." },
-  share_post: { title: "Create post review link", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false, why: "POST /api/posts/{id}/share returns the post's review link, creating it on first call; repeating returns the same link unless regenerate=true. Nothing is sent to anyone." },
+  share_post: { title: "Create post review link", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "POST /api/posts/{id}/share returns the post's review link, creating it on first call; repeating returns the same link, so idempotent. Open world: anyone holding the link can open the post without signing in. Nothing is sent to anyone, but regenerate=true replaces the link and the old one stops working for whoever has it, so destructive in that mode." },
   // ---- Media uploads -----------------------------------------------------
   upload_media: { title: "Upload media", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true, why: "Downloads the file from the given public URL (or reads a local path) and stores it in the caller's library — fetching an arbitrary URL is an open-world read. Adds a file, overwrites nothing; each call stores another copy." },
   create_media_upload: { title: "Start media upload", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/media/presign; reserves an upload slot and returns a signed URL. Stores no file yet, overwrites nothing." },
@@ -1312,12 +1452,12 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   publish_post: { title: "Publish post now", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/publish. Sends the post to the connected public platforms immediately; a live post cannot be recalled from BulkPublish, so destructive. Not idempotent: the server refuses to re-publish a live post, but a retry after a lost response can duplicate it." },
   retry_post: { title: "Retry failed post", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/retry. Re-sends to the platforms that failed; with republish=true it can also re-send 'unconfirmed' platforms and create a duplicate. Same reasoning as publish_post." },
   approve_post: { title: "Approve pending post", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "POST /api/posts/{id}/approve. Releases a post held for team approval so it publishes at its scheduled time (or now, if that time passed less than 15 minutes ago, or later with whenLate 'publish' / publishWhenApproved) to public platforms. Approving twice changes nothing: the second call is refused." },
-  reject_post: { title: "Reject pending post", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false, why: "POST /api/posts/{id}/reject. Returns the post to draft with a reason; nothing is published, nothing is deleted, and it can be resubmitted. Rejecting twice changes nothing: the second call is refused." },
+  reject_post: { title: "Reject pending post", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "POST /api/posts/{id}/reject. Cancels the pending approval and returns the post to draft with a reason, so the post no longer publishes at its scheduled time; that cancellation is destructive even though the post can be resubmitted. Nothing is published or deleted. Rejecting twice changes nothing: the second call is refused." },
   publish_story: { title: "Publish story", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/story. Publishes an Instagram/Facebook story immediately; cannot be recalled from here, and each call posts another story." },
   bulk_posts: { title: "Bulk post actions", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/bulk with action delete | retry | reschedule over many posts. 'delete' removes posts permanently and 'retry' re-publishes to public platforms, so the tool's widest reach is destructive and open-world. Not idempotent because 'retry' can duplicate." },
   // ---- Deletes / revokes ---------------------------------------------------
   delete_post: { title: "Delete post", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/posts/{id}. Permanently removes a draft or failed post (published posts are refused, so nothing is removed from a platform). Deleting twice leaves the same state." },
-  delete_media: { title: "Delete media", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/media/{id}; the file leaves the library. Posts that used it keep a preview picture; an unpublished post that uses it will fail to publish." },
+  delete_media: { title: "Delete media", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/media/{id}; the file leaves the library and cannot be restored. Posts that used it keep a preview picture; an unpublished post that uses it will fail to publish. Deleting twice leaves the same state (the second call answers not found)." },
   delete_label: { title: "Delete label", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/labels/{id}." },
   delete_hashtag_group: { title: "Delete hashtag group", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/hashtag-groups/{id}." },
   delete_template: { title: "Delete post template", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/templates/{id}." },
@@ -1331,7 +1471,7 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   list_conversations: { title: "List Inbox conversations", ...READ, why: "GET /api/inbox/conversations; reads the workspace's stored conversations. Calls no platform and does not mark anything read." },
   get_conversation: { title: "Get Inbox conversation", ...READ, why: "GET /api/inbox/conversations/{id}/messages; reads stored messages. Reading does not mark the conversation read." },
   list_post_comments: { title: "List post comments", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true, why: "GET /api/posts/{id}/engagement. Reads comments and reactions live from the social platforms, so open world; changes nothing in BulkPublish or on the platform, and only reads the caller's own published posts." },
-  update_conversation: { title: "Update Inbox conversation", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true, why: "PATCH /api/inbox/conversations/{id}. Marks read/unread, archives, reopens, snoozes or assigns; every change is reversible with another call and nothing is sent to the other person or changed on the platform. Open world because assigning notifies the teammate, which can reach them by email. Same payload twice leaves the same state." },
+  update_conversation: { title: "Update Inbox conversation", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "PATCH /api/inbox/conversations/{id}. Marks read/unread, archives, reopens, snoozes or assigns. Each change overwrites the conversation's previous status or assignee, which is not kept, so destructive under the review definition even though another call can set it back; nothing is sent to the other person or changed on the platform. Open world because assigning notifies the teammate, which can reach them by email. Same payload twice leaves the same state." },
   reply_to_conversation: { title: "Reply in Inbox conversation", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/inbox/conversations/{id}/messages. Sends a message to a person on a public platform immediately; it cannot be unsent from BulkPublish, so destructive. Each call sends another message." },
   reply_to_comment: { title: "Reply to comment", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/comments/reply. Posts a public reply on the platform immediately; it cannot be taken back from BulkPublish, so destructive. Each call posts another reply." },
   moderate_comment: { title: "Like, hide or delete comment", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/comments/moderate. Acts on a comment on the platform: delete is permanent and hiding changes what others see, so destructive. Not idempotent: some platforms refuse a repeated like or hide rather than ignoring it." },
@@ -2813,7 +2953,7 @@ server.registerTool(
 server.registerTool(
   "share_post",
   {
-    description: "Create (or fetch) a post's read-only review link that anyone can open without signing in — for client approval outside the app. Returns { shareToken, url, created }. regenerate=true mints a new link and kills the old one. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+    description: "Create (or fetch) a post's read-only review link that anyone can open without signing in — for client approval outside the app. Returns { shareToken, url, created }. regenerate=true mints a new link and kills the old one. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan.",
     inputSchema: {
       postId: z.number().describe("The post ID."),
       regenerate: z.boolean().optional().describe("Mint a new token, invalidating the previous link."),
@@ -2828,7 +2968,7 @@ server.registerTool(
 server.registerTool(
   "unshare_post",
   {
-    description: "Revoke a post's review link so the URL stops working. Idempotent. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+    description: "Revoke a post's review link so the URL stops working. Idempotent. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan.",
     inputSchema: { postId: z.number().describe("The post ID.") },
   },
   async ({ postId }) => {
@@ -2844,7 +2984,7 @@ server.registerTool(
 server.registerTool(
   "list_review_links",
   {
-    description: "List the organization's client review links (batch review links), newest first, with how many posts each one covers. Paged: returns { reviewLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+    description: "List the organization's client review links (batch review links), newest first, with how many posts each one covers. Paged: returns { reviewLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan.",
     inputSchema: {
       page: z.number().optional().describe("Page number (default 1)."),
       limit: z.number().optional().describe("Links per page (default 50, max 100)."),
@@ -2863,7 +3003,7 @@ server.registerTool(
 server.registerTool(
   "create_review_link",
   {
-    description: "Create a read-only review link covering several posts at once — the multi-post counterpart of share_post. Anyone with the link can open it without signing in. Every postId must belong to the organization. Unlike share_post this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns { reviewLink, url }. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+    description: "Create a read-only review link covering several posts at once — the multi-post counterpart of share_post. Anyone with the link can open it without signing in. Every postId must belong to the organization. Unlike share_post this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns { reviewLink, url }. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan.",
     inputSchema: {
       postIds: z.array(z.number()).min(1).max(50).describe("Post IDs to cover, up to 50 per link."),
       name: z.string().max(150).optional().describe("Optional label shown only to your team (e.g. the client's name) — never shown on the public page."),
@@ -2880,7 +3020,7 @@ server.registerTool(
 server.registerTool(
   "delete_review_link",
   {
-    description: "Revoke a client review link. The posts it covered are untouched. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+    description: "Revoke a client review link. The posts it covered are untouched. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan.",
     inputSchema: { reviewLinkId: z.number().describe("The review link ID.") },
   },
   async ({ reviewLinkId }) => {
@@ -2901,7 +3041,7 @@ const CLIENT_CONNECT_PLATFORMS = [
 server.registerTool(
   "list_client_connect_links",
   {
-    description: "List the organization's client-connect links, newest first — one-time links a client can open, with no BulkPublish account, to connect their own platform account. Paged: returns { clientConnectLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+    description: "List the organization's client-connect links, newest first — one-time links a client can open, with no BulkPublish account, to connect their own platform account. Paged: returns { clientConnectLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan.",
     inputSchema: {
       page: z.number().optional().describe("Page number (default 1)."),
       limit: z.number().optional().describe("Links per page (default 50, max 100)."),
@@ -2920,7 +3060,7 @@ server.registerTool(
 server.registerTool(
   "create_client_connect_link",
   {
-    description: `Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (telegram asks for a bot token instead of a plain sign-in, and stays a manual connect by your own team): ${CLIENT_CONNECT_PLATFORMS.join(", ")}. For bluesky, the client enters their handle and approves access on Bluesky; they are never asked for a password. For facebook, the client signs in to Facebook and then picks which one of their Pages to connect. For mastodon, they first enter the address of the server their account is on. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.`,
+    description: `Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (telegram asks for a bot token instead of a plain sign-in, and stays a manual connect by your own team): ${CLIENT_CONNECT_PLATFORMS.join(", ")}. For bluesky, the client enters their handle and approves access on Bluesky; they are never asked for a password. For facebook, the client signs in to Facebook and then picks which one of their Pages to connect. For mastodon, they first enter the address of the server their account is on. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan.`,
     inputSchema: {
       name: z.string().max(150).describe("Your own label for the client (e.g. \"Acme Corp\"). Never shown to the client — only applied to the resulting channel so you can tell whose account it is."),
     },
@@ -2934,7 +3074,7 @@ server.registerTool(
 server.registerTool(
   "delete_client_connect_link",
   {
-    description: "Revoke a client-connect link before it has been used. Idempotent; an account it already connected is untouched. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint.",
+    description: "Revoke a client-connect link before it has been used. Idempotent; an account it already connected is untouched. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan.",
     inputSchema: { clientConnectLinkId: z.number().describe("The client-connect link ID.") },
   },
   async ({ clientConnectLinkId }) => {
@@ -3293,7 +3433,8 @@ server.registerTool(
 server.registerTool(
   "get_channel_health",
   {
-    description: "Check the health status of a connected channel. Returns token validity, connection status, and any issues.",
+    description: "Check a connected channel's connection by verifying its token live with the platform. Returns { healthy, tokenStatus, message }: tokenStatus is valid, expired, error or unknown, and message says what to do when it is not healthy. " +
+      "Side effects: an expired token that can be renewed is renewed in place, and a token the platform refuses marks the channel as needing reconnection (it then shows needsReconnect in list_channels). On X the check uses the workspace's monthly X read budget and its result is reused for 60 seconds.",
     inputSchema: {
       channelId: z.number().describe("The channel ID to check health for."),
     },
@@ -3405,7 +3546,7 @@ server.registerTool(
 server.registerTool(
   "delete_media",
   {
-    description: "Delete a media file by ID. Removes the file from storage and detaches it from any posts.",
+    description: "Delete a media file from the library by ID. It cannot be restored. Posts that already used it keep a small preview picture; a draft or scheduled post that still uses it will fail to publish, so check before deleting a file a scheduled post needs.",
     inputSchema: {
       mediaId: z.number().describe("The media file ID to delete."),
     },

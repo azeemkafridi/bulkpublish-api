@@ -15,7 +15,7 @@
     "websiteUrl": "https://www.bulkpublish.com",
     "description": "Schedule and publish social media posts to your connected accounts, manage media, and read post analytics and comments."
   },
-  "instructions": "BulkPublish schedules and publishes social media posts to the user's connected accounts. Start with list_channels: it returns the channel IDs every post needs, plus a capabilities object saying whether the caller may create, publish or approve posts. To post: upload_media for any attachment, then create_post with those channel IDs. A post is saved as a draft unless status is \"scheduled\" with a scheduledAt time. publish_post sends a post to public platforms immediately and cannot be undone, so confirm with the user before calling it. YouTube needs a video; TikTok needs a video or images. Use get_channel_options for per-channel choices such as Pinterest boards or YouTube playlists. For results, use get_post, get_post_metrics and get_analytics.",
+  "instructions": "BulkPublish schedules and publishes social media posts to the user's connected accounts. Start with list_channels: it returns the channel IDs every post needs, plus a capabilities object saying whether the caller may create, publish or approve posts (all false for a read-only API key, which can only read). To post: upload_media for any attachment, then create_post with those channel IDs. A post is saved as a draft unless status is \"scheduled\" with a scheduledAt time. publish_post sends a post to public platforms immediately and cannot be undone, so confirm with the user before calling it. YouTube needs a video; TikTok needs a video or images. Use get_channel_options for per-channel choices such as Pinterest boards or YouTube playlists. For results, use get_post, get_post_metrics and get_analytics.",
   "capabilities": {
     "prompts": {
       "listChanged": true
@@ -31,7 +31,7 @@
     {
       "name": "list_channels",
       "title": "List channels",
-      "description": "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status, plus a `capabilities` object saying whether the caller may create, publish or approve posts. Check that before attempting a write rather than discovering the permission from a 403. Use this when the user wants to see which social accounts are connected.",
+      "description": "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status, plus a `capabilities` object saying whether the caller may create, publish or approve posts. Check that before attempting a write rather than discovering the permission from a 403. A read-only API key reports false for all three: it can read everything here but every change is refused. Use this when the user wants to see which social accounts are connected.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -147,7 +147,7 @@
             ]
           },
           "capabilities": {
-            "description": "Whether the caller may create, publish or approve posts.",
+            "description": "Whether the caller may create, publish or approve posts, from its team role and its API key: a read-only key is false for all three.",
             "anyOf": [
               {
                 "type": "object",
@@ -2637,7 +2637,7 @@
       },
       "annotations": {
         "readOnlyHint": false,
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": true
       },
@@ -6332,7 +6332,7 @@
       },
       "annotations": {
         "readOnlyHint": false,
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": true,
         "openWorldHint": false
       },
@@ -8142,6 +8142,64 @@
         ],
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "The new label's ID, as create_post and update_post take in labels.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "description": "The label's name.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "color": {
+            "description": "The label's colour, as a hex value.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "type": {
+            "description": "What the label is for, e.g. post or media.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -8160,6 +8218,73 @@
         "type": "object",
         "properties": {},
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "groups": {
+            "description": "The workspace's hashtag groups, sorted by name.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "The group's ID.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "description": "The group's name.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "hashtags": {
+                      "description": "The hashtags in the group.",
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": true,
@@ -8294,6 +8419,154 @@
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "templates": {
+            "description": "The workspace's saved templates.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "The template's ID.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "description": "The template's name.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "content": {
+                      "description": "The saved text.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "kind": {
+                      "description": "caption (a whole post) or snippet (text to insert).",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "channelIds": {
+                      "description": "Channels a caption template targets, or null.",
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {}
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "postFormat": {
+                      "description": "The post format a caption template keeps, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "postTypeOverrides": {
+                      "description": "Per-platform post types a caption template keeps, or null.",
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "mediaFileIds": {
+                      "description": "Media a caption template keeps, or null.",
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {}
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "media": {
+                      "description": "Those media files with their preview addresses.",
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {}
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "updatedAt": {
+                      "description": "When it was last changed.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": true,
@@ -8721,7 +8994,7 @@
     {
       "name": "share_post",
       "title": "Create post review link",
-      "description": "Create (or fetch) a post's read-only review link that anyone can open without signing in — for client approval outside the app. Returns { shareToken, url, created }. regenerate=true mints a new link and kills the old one. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user wants a link a client or colleague can open to review a post without an account.",
+      "description": "Create (or fetch) a post's read-only review link that anyone can open without signing in — for client approval outside the app. Returns { shareToken, url, created }. regenerate=true mints a new link and kills the old one. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan. Use this when the user wants a link a client or colleague can open to review a post without an account.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -8739,11 +9012,51 @@
         ],
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "shareToken": {
+            "description": "The link's token.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "url": {
+            "description": "The review link. Anyone who has it can open the post without signing in.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created": {
+            "description": "true when this call made the link; false when an existing one was returned.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
       "annotations": {
         "readOnlyHint": false,
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": false
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -8752,7 +9065,7 @@
     {
       "name": "unshare_post",
       "title": "Revoke post review link",
-      "description": "Revoke a post's review link so the URL stops working. Idempotent. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user wants to stop a shared review link from working.",
+      "description": "Revoke a post's review link so the URL stops working. Idempotent. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan. Use this when the user wants to stop a shared review link from working.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -8765,6 +9078,35 @@
           "postId"
         ],
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "description": "true when the call succeeded.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revoked": {
+            "description": "true when a link existed and now no longer works; false when there was none.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -8779,7 +9121,7 @@
     {
       "name": "list_review_links",
       "title": "List client review links",
-      "description": "List the organization's client review links (batch review links), newest first, with how many posts each one covers. Paged: returns { reviewLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user wants to see the client review links they have created for batches of posts.",
+      "description": "List the organization's client review links (batch review links), newest first, with how many posts each one covers. Paged: returns { reviewLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan. Use this when the user wants to see the client review links they have created for batches of posts.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -8807,7 +9149,7 @@
     {
       "name": "create_review_link",
       "title": "Create client review link",
-      "description": "Create a read-only review link covering several posts at once — the multi-post counterpart of share_post. Anyone with the link can open it without signing in. Every postId must belong to the organization. Unlike share_post this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns { reviewLink, url }. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user wants one link a client can open to review several posts at once, e.g. a week's worth of scheduled content, instead of sharing each post separately.",
+      "description": "Create a read-only review link covering several posts at once — the multi-post counterpart of share_post. Anyone with the link can open it without signing in. Every postId must belong to the organization. Unlike share_post this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns { reviewLink, url }. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan. Use this when the user wants one link a client can open to review several posts at once, e.g. a week's worth of scheduled content, instead of sharing each post separately.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -8844,7 +9186,7 @@
     {
       "name": "delete_review_link",
       "title": "Revoke client review link",
-      "description": "Revoke a client review link. The posts it covered are untouched. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user wants to stop a batch review link from working. The posts it covered are unaffected.",
+      "description": "Revoke a client review link. The posts it covered are untouched. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan. Use this when the user wants to stop a batch review link from working. The posts it covered are unaffected.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -8871,7 +9213,7 @@
     {
       "name": "list_client_connect_links",
       "title": "List client connect links",
-      "description": "List the organization's client-connect links, newest first — one-time links a client can open, with no BulkPublish account, to connect their own platform account. Paged: returns { clientConnectLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user wants to see the client-connect links they have created and whether each has been used yet.",
+      "description": "List the organization's client-connect links, newest first — one-time links a client can open, with no BulkPublish account, to connect their own platform account. Paged: returns { clientConnectLinks, page, limit, total }, 50 per page by default (max 100); `total` counts every link, so request the next page while page × limit < total. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan. Use this when the user wants to see the client-connect links they have created and whether each has been used yet.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -8899,7 +9241,7 @@
     {
       "name": "create_client_connect_link",
       "title": "Create client connect link",
-      "description": "Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (telegram asks for a bot token instead of a plain sign-in, and stays a manual connect by your own team): bluesky, facebook, instagram, x, tiktok, youtube, threads, pinterest, gmb, linkedin, mastodon, discord, tumblr, snapchat. For bluesky, the client enters their handle and approves access on Bluesky; they are never asked for a password. For facebook, the client signs in to Facebook and then picks which one of their Pages to connect. For mastodon, they first enter the address of the server their account is on. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user (an agency) wants a client to connect their own platform account without giving the agency their login, and without the client needing a BulkPublish account.",
+      "description": "Create a one-time link a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. The client picks which platform when they open it — only these are supported (telegram asks for a bot token instead of a plain sign-in, and stays a manual connect by your own team): bluesky, facebook, instagram, x, tiktok, youtube, threads, pinterest, gmb, linkedin, mastodon, discord, tumblr, snapchat. For bluesky, the client enters their handle and approves access on Bluesky; they are never asked for a password. For facebook, the client signs in to Facebook and then picks which one of their Pages to connect. For mastodon, they first enter the address of the server their account is on. Expires in 7 days or the moment an account is connected through it, whichever comes first — creating again always makes a new link. Returns { clientConnectLink, url }. The url is shown only this once: it cannot be recovered later, so save it when you get it. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan. Use this when the user (an agency) wants a client to connect their own platform account without giving the agency their login, and without the client needing a BulkPublish account.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -8927,7 +9269,7 @@
     {
       "name": "delete_client_connect_link",
       "title": "Revoke client connect link",
-      "description": "Revoke a client-connect link before it has been used. Idempotent; an account it already connected is untouched. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED with the plan and an upgrade hint. Use this when the user wants to stop a client-connect link from working before it has been used. Any account it already connected is unaffected.",
+      "description": "Revoke a client-connect link before it has been used. Idempotent; an account it already connected is untouched. Pro and Business only: on the single-seat Free and Lifetime plans this answers 403 FEATURE_DISABLED naming the plan. Use this when the user wants to stop a client-connect link from working before it has been used. Any account it already connected is unaffected.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -8973,6 +9315,56 @@
           "altText"
         ],
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "description": "The updated media file.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "The file's ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "altText": {
+                    "description": "The alt text now saved, or null when cleared.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -12131,7 +12523,7 @@
     {
       "name": "get_channel_health",
       "title": "Get channel health",
-      "description": "Check the health status of a connected channel. Returns token validity, connection status, and any issues. Use this when the user asks whether a channel's connection/token is healthy.",
+      "description": "Check a connected channel's connection by verifying its token live with the platform. Returns { healthy, tokenStatus, message }: tokenStatus is valid, expired, error or unknown, and message says what to do when it is not healthy. Side effects: an expired token that can be renewed is renewed in place, and a token the platform refuses marks the channel as needing reconnection (it then shows needsReconnect in list_channels). On X the check uses the workspace's monthly X read budget and its result is reused for 60 seconds. Use this when the user asks whether a channel's connection/token is healthy.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -12145,11 +12537,51 @@
         ],
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "healthy": {
+            "description": "true when the connection works.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tokenStatus": {
+            "description": "valid, expired, error, or unknown (the live check was skipped).",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "description": "What is wrong and what to do; absent when healthy.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
       "annotations": {
-        "readOnlyHint": true,
+        "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": false
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -12475,6 +12907,216 @@
         ],
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "description": "The media file.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "The file's ID, as passed in mediaFileIds.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "fileName": {
+                    "description": "The original file name.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "mimeType": {
+                    "description": "The file type, e.g. image/jpeg or video/mp4.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "sizeBytes": {
+                    "description": "Size in bytes.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "width": {
+                    "description": "Width in pixels.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "height": {
+                    "description": "Height in pixels.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "duration": {
+                    "description": "Length of a video in seconds, or null.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "altText": {
+                    "description": "The file's alt text, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "originalUrl": {
+                    "description": "Address of the full-size file.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "thumbnailUrl": {
+                    "description": "Address of a small preview, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "previewUrl": {
+                    "description": "Address of a medium preview, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "largeUrl": {
+                    "description": "Address of a large preview, or null.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "isOriginalDeleted": {
+                    "description": "true when only the previews remain (the original was removed after publishing).",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "createdAt": {
+                    "description": "When it was uploaded.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -12488,7 +13130,7 @@
     {
       "name": "delete_media",
       "title": "Delete media",
-      "description": "Delete a media file by ID. Removes the file from storage and detaches it from any posts. Use this when the user wants to delete a media file.",
+      "description": "Delete a media file from the library by ID. It cannot be restored. Posts that already used it keep a small preview picture; a draft or scheduled post that still uses it will fail to publish, so check before deleting a file a scheduled post needs. Use this when the user wants to delete a media file.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -12501,6 +13143,42 @@
           "mediaId"
         ],
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "description": "true when the file was deleted.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "deletedId": {
+            "description": "The ID of the deleted file.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -12582,6 +13260,169 @@
         "type": "object",
         "properties": {},
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "The recurring schedules, newest first.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "The schedule's ID, as update_schedule and delete_schedule take.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "description": "The schedule's name.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "frequency": {
+                      "description": "daily, weekly, biweekly or monthly.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "timeOfDay": {
+                      "description": "Time it posts, HH:MM.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "dayOfWeek": {
+                      "description": "Weekly and biweekly: the day or days it posts on."
+                    },
+                    "dayOfMonth": {
+                      "description": "Monthly: the day of the month.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "timezone": {
+                      "description": "The timezone timeOfDay is in.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "channelIds": {
+                      "description": "The channels it posts to.",
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {}
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "contentTemplate": {
+                      "description": "The text each run posts.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "isActive": {
+                      "description": "false when the schedule is paused.",
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "nextRunAt": {
+                      "description": "When it next posts, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "lastRunAt": {
+                      "description": "When it last posted, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": true,
@@ -12827,7 +13668,7 @@
       },
       "annotations": {
         "readOnlyHint": false,
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": true
       },
@@ -13061,6 +13902,97 @@
         ],
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "The schedule's ID.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "description": "The schedule's name.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "frequency": {
+            "description": "daily, weekly, biweekly or monthly.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timeOfDay": {
+            "description": "Time it posts, HH:MM.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "description": "The timezone timeOfDay is in.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isActive": {
+            "description": "false when the schedule is paused.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "nextRunAt": {
+            "description": "When it next posts, recomputed after a timing change, or null.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
@@ -13087,6 +14019,24 @@
           "scheduleId"
         ],
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "description": "true when the schedule was deleted.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
       },
       "annotations": {
         "readOnlyHint": false,
@@ -13368,7 +14318,7 @@
       },
       "annotations": {
         "readOnlyHint": false,
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": true
       },
@@ -15741,7 +16691,7 @@
       },
       "annotations": {
         "readOnlyHint": false,
-        "destructiveHint": false,
+        "destructiveHint": true,
         "idempotentHint": true,
         "openWorldHint": true
       },

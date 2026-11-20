@@ -60,6 +60,20 @@ const OUTPUT_FIXTURES = {
   list_post_comments: { postId: 9, platforms: [{ postPlatformId: 4, platform: "x", accountName: "Acme", platformPostId: "1", platformUrl: null, engagement: { comments: [{ id: "c1", text: "nice" }], reactions: [], commentActions: ["like"] } }, { platform: "tiktok", accountName: null, platformPostId: null, platformUrl: null, engagement: null, error: "Could not load engagement for this platform." }] },
   reply_to_comment: { success: true, replyId: null, accountName: null },
   moderate_comment: { success: true, action: "hide" },
+  // Joined the hosted profile 2026-11-20; shapes from the webapp routes.
+  get_channel_health: { healthy: false, tokenStatus: "expired", message: "Access was revoked or expired. Please reconnect this channel." },
+  get_media: { file: { id: 3056, fileName: "a.jpg", mimeType: "image/jpeg", sizeBytes: 127085, width: 1200, height: 630, duration: null, isOriginalDeleted: false, altText: null, originalUrl: "https://media.example/a.jpg", thumbnailUrl: null, previewUrl: null, largeUrl: null, createdAt: "2026-11-01T10:00:00.000Z" } },
+  update_media: { file: { id: 3056, organizationId: 10, altText: "A red bicycle", variants: {}, createdAt: "2026-11-01T10:00:00.000Z" } },
+  delete_media: { success: true, deletedId: 3056 },
+  list_templates: { templates: [{ id: 4, organizationId: 10, createdBy: "u1", name: "Launch", content: "New: {{product}}", kind: "caption", channelIds: [143], postFormat: null, postTypeOverrides: null, mediaFileIds: [3056], platformMediaFileIds: null, platformContent: null, media: [{ id: 3056, url: "https://media.example/a.jpg" }], createdAt: "2026-11-01T10:00:00.000Z", updatedAt: "2026-11-01T10:00:00.000Z" }] },
+  list_hashtag_groups: { groups: [{ id: 2, organizationId: 10, createdBy: "u1", name: "Brand", hashtags: ["acme", "studio"], createdAt: "2026-11-01T10:00:00.000Z", updatedAt: "2026-11-01T10:00:00.000Z" }] },
+  // GET /api/schedules answers a bare array; attachStructured wraps it as { items }.
+  list_schedules: { items: [{ id: 9, name: "Tips", frequency: "weekly", dayOfWeek: [1, 3], dayOfMonth: null, timeOfDay: "09:00", timezone: "UTC", channelIds: [143], mediaFileIds: [], contentTemplate: "Tip of the week", isActive: true, lastRunAt: null, nextRunAt: "2026-11-23T09:00:00.000Z", createdAt: "2026-11-01T10:00:00.000Z" }] },
+  update_schedule: { id: 9, name: "Tips", frequency: "weekly", dayOfWeek: [1], timeOfDay: "09:00", timezone: "UTC", isActive: false, nextRunAt: null },
+  delete_schedule: { success: true },
+  share_post: { shareToken: "abc", url: "https://app.example/p/abc", created: true },
+  unshare_post: { success: true, revoked: false },
+  create_label: { id: 12, userId: "u1", organizationId: 10, name: "Promo", color: "#6366f1", type: "post", createdAt: "2026-11-01T10:00:00.000Z" },
 };
 for (const [tool, fixture] of Object.entries(OUTPUT_FIXTURES)) {
   const shape = TOOL_OUTPUT_SCHEMAS[tool];

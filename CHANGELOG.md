@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-11-20 — Hosted MCP server: 14 more tools, safety hints that match what each tool does
+
+MCP **1.59.0**
+
+### Added
+
+- **The hosted connector at `https://mcp.bulkpublish.com/mcp` serves 14 more tools**, the ones people ask for while working on posts: `get_account_analytics`, `get_engagement_analytics`, `get_channel_health`, `get_media`, `update_media` (alt text), `delete_media`, `list_templates`, `list_hashtag_groups`, `list_schedules`, `update_schedule` (pause, resume or change a repeating post), `delete_schedule`, `share_post` and `unshare_post` (a review link for one post), and `create_label`. Every tool keeps its existing name and arguments. `https://mcp.bulkpublish.com/mcp/full` and the npm package already serve every tool; the changes below apply to them too.
+
+### Changed
+
+- **Safety hints now say "destructive" wherever a tool can do something that cannot be taken back in any of its modes**, so Claude and ChatGPT ask before calling it: `create_post` (a scheduled post publishes on its own, and `deleteMediaAfterPublish` removes the files once it does), `create_schedule` and `create_rss_feed` (they publish on their own), `reject_post` (it cancels a pending approval), `update_conversation` (it replaces the status or assignee), and `share_post` (`regenerate` stops the old link working; it is also marked as reaching outside the workspace, since anyone with the link can open the post).
+- **`get_channel_health` describes what it really does.** It checks the connection live with the network, renews an expired token when it can, and marks a channel that the network refuses as needing reconnection; on X it uses the workspace's monthly X read allowance. It is no longer marked read-only.
+- **Refusals no longer end with an upgrade suggestion.** An error still says why the call failed, including which plan a feature is on.
+
+### Fixed
+
+- **`delete_media` said it detaches the file from posts.** It does not: posts that used it keep a small preview, and a draft or scheduled post that still uses it will fail to publish. The description now says so.
+
 ## 2026-11-20 — Read-only API keys
 
 Node SDK **1.47.0** · Python **0.48.0** · MCP **1.58.1** · spec + Postman

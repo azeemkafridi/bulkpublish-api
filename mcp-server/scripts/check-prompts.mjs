@@ -20,7 +20,9 @@ const ALL_TOOLS = Object.keys(TOOL_ANNOTATIONS);
 const ABSENT = [
   [/\brss\b|autopost|feed item/i, "RSS automation", "create_rss_feed"],
   [/\bquota\b|plan usage|storage this frees/i, "quota lookup", "get_quota_usage"],
-  [/recurring schedule/i, "recurring schedules", "create_schedule"],
+  // Not create_schedule: create_post's `repeat` makes one, and the hosted
+  // profile serves list/update/delete_schedule to manage them (2026-11-20).
+  [/recurring schedule/i, "recurring schedules", "list_schedules"],
   [/channel sets?\b/i, "channel sets", "create_channel_set"],
   [/hashtag group/i, "hashtag groups", "create_hashtag_group"],
   [/saved template|caption template|first-comment snippet/i, "templates", "create_template"],
