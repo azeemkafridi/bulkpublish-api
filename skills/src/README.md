@@ -8,12 +8,17 @@ The one place a skill is written. Every published copy is generated from here:
 | `../inbox-profile-skills` | `inbox` | beside core, for a connector running the Inbox profile |
 | `../social-media-content-skills` | `full` | the npm/stdio server and `/mcp/full` |
 | `bulkpublish-ai-toolkit/skills` | `full` | the Claude Code, Cursor and Gemini plugins and `npx skills add` |
+| `../bundled-skill` | `core` + `inbox` | ONE skill for marketplaces that cap skills per account (OpenBot allows 5): `_bundle/SKILL.md` as the root, every other skill as `references/<name>.md` |
 
 ```bash
 cd mcp-server
 npm run build && npm run build:skills   # write every copy
 npm run check:skills                    # fail on drift, absent tools, wrong facts
+npm run pack:bundled-skill              # zip the bundle to dist/bulkpublish-skill.zip
 ```
+
+Folders starting with `_` are not skills. `_bundle/SKILL.md` is the bundled
+skill's root file; `{{skill-index}}` in it becomes the table of guides.
 
 The toolkit copy is written only when that repository is checked out beside this
 one. Commit it there separately.

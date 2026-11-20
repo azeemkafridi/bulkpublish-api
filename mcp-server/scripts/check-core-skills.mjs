@@ -10,6 +10,11 @@
 // because that one shipped into a submission zip before it was caught.
 //
 //   cd mcp-server && node scripts/check-core-skills.mjs [--profile core|inbox|full] [dir]
+//   cd mcp-server && node scripts/check-core-skills.mjs --profile inbox --bundle ../skills/bundled-skill
+//
+// --bundle checks one skill whose guides live in references/*.md: the root
+// SKILL.md needs a name and description, and every file gets the tool, promise,
+// fact and stack checks.
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import path from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -20,7 +25,8 @@ import { factProblems } from "./lib/facts.mjs";
 const pi = process.argv.indexOf("--profile");
 const PROFILE = pi > -1 ? process.argv[pi + 1] : "core";
 const DIRS = { core: "core-profile-skills", inbox: "inbox-profile-skills", full: "social-media-content-skills" };
-const positional = process.argv.slice(2).filter((a, i, all) => a !== "--profile" && all[i - 1] !== "--profile");
+const BUNDLE = process.argv.includes("--bundle");
+const positional = process.argv.slice(2).filter((a, i, all) => !["--profile", "--bundle"].includes(a) && all[i - 1] !== "--profile");
 const DIR = positional[0]
   ? path.resolve(positional[0])
   : path.resolve(import.meta.dirname, `../../skills/${DIRS[PROFILE]}`);
@@ -58,17 +64,24 @@ const STACK = /\b(r2|cloudflare|bullmq|redis|postgres|drizzle|astro|resend|polar
 
 let failed = 0;
 const fail = (m) => { failed++; console.error("FAIL " + m); };
-const dirs = readdirSync(DIR).filter((d) => existsSync(path.join(DIR, d, "SKILL.md")));
+const files = BUNDLE
+  ? ["SKILL.md", ...readdirSync(path.join(DIR, "references")).map((f) => `references/${f}`)]
+  : readdirSync(DIR).filter((d) => existsSync(path.join(DIR, d, "SKILL.md"))).map((d) => `${d}/SKILL.md`);
+if (BUNDLE && !existsSync(path.join(DIR, "SKILL.md"))) fail(`${DIR}: no SKILL.md at the root`);
 
-for (const d of dirs) {
-  const file = path.join(DIR, d, "SKILL.md");
-  const txt = readFileSync(file, "utf8");
-  const fm = txt.match(/^---\n([\s\S]*?)\n---/);
+for (const rel of files) {
+  const d = BUNDLE ? rel : path.dirname(rel);
+  const txt = readFileSync(path.join(DIR, rel), "utf8");
+  const fm = txt.match(/^---\n([\s\S]*?)\n---/) ?? (BUNDLE && rel !== "SKILL.md" ? ["", ""] : null);
   if (!fm) { fail(`${d}: no frontmatter`); continue; }
-  const name = (fm[1].match(/^name:\s*(.+)$/m) || [])[1]?.trim();
-  const desc = (fm[1].match(/^description:\s*(.+)$/m) || [])[1]?.trim();
-  if (name !== d) fail(`${d}: frontmatter name "${name}" != folder`);
-  if (!desc || desc.length < 20) fail(`${d}: description too short`);
+  if (!BUNDLE || rel === "SKILL.md") {
+    const name = (fm[1].match(/^name:\s*(.+)$/m) || [])[1]?.trim();
+    const desc = (fm[1].match(/^description:\s*(.+)$/m) || [])[1]?.trim();
+    if (!BUNDLE && name !== d) fail(`${d}: frontmatter name "${name}" != folder`);
+    if (!name || name.length > 80) fail(`${d}: name missing or over 80 characters`);
+    if (!desc || desc.length < 20) fail(`${d}: description too short`);
+    if (desc && desc.length > 1024) fail(`${d}: description over 1024 characters`);
+  }
 
   for (const t of all) {
     // r2Key is a required parameter name, not prose — allow that one token.
@@ -80,5 +93,5 @@ for (const d of dirs) {
   const stack = body.replace(/`r2Key`/g, "").match(STACK);
   if (stack) fail(`${d}: names "${stack[0]}" (stack disclosure)`);
 }
-console.log(`${PROFILE}-profile-skills: ${dirs.length} skills checked against ${core.size} ${PROFILE} tools`);
+console.log(`${BUNDLE ? path.basename(DIR) : `${PROFILE}-profile-skills`}: ${files.length} ${BUNDLE ? "files" : "skills"} checked against ${core.size} ${PROFILE} tools`);
 process.exit(failed ? 1 : 0);

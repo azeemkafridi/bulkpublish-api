@@ -20,7 +20,11 @@
 //
 // Outputs: skills/core-profile-skills (core), skills/inbox-profile-skills
 // (inbox, minus what core already has), skills/social-media-content-skills
-// (full), and the AI toolkit's skills/ (full) when that repo is beside this one.
+// (full), the AI toolkit's skills/ (full) when that repo is beside this one,
+// and skills/bundled-skill: core + inbox as ONE skill, for skill marketplaces
+// that cap how many skills an account may list. Its root SKILL.md is
+// skills/src/_bundle/SKILL.md with {{skill-index}} filled in; every other skill
+// becomes references/<name>.md. `npm run pack:bundled-skill` zips it.
 //
 //   npm run build && node scripts/build-skills.mjs           write every copy
 //   node scripts/build-skills.mjs --check                    fail if any copy differs
@@ -107,7 +111,7 @@ function parse(file) {
   if (!fm) throw new Error(`${file}: no frontmatter`);
   const meta = {};
   for (const line of fm[1].split("\n")) {
-    const m = line.match(/^([\w.]+):\s*(.*)$/);
+    const m = line.match(/^([\w.-]+):\s*(.*)$/);
     if (m) meta[m[1]] = m[2].trim();
   }
   return { meta, body: txt.slice(fm[0].length) };
@@ -150,6 +154,29 @@ for (const name of sources) {
 }
 // The inbox folder ships beside core, so it holds only what core lacks.
 for (const n of Object.keys(built.inbox)) if (built.core[n]) delete built.inbox[n];
+
+// ---- The bundled skill: what the hosted connector serves (core + inbox) ----
+const BUNDLE = path.join(ROOT, "bundled-skill");
+/** relative path -> text */
+const bundle = {};
+{
+  const hosted = { ...built.core, ...built.inbox };
+  const descOf = (t) => t.match(/^description: (.*)$/m)[1];
+  const index = ["| Guide | Read it when |", "|---|---|",
+    ...Object.entries(hosted).sort().map(([n, t]) => `| [\`${n}\`](references/${n}.md) | ${descOf(t).replace(/\|/g, "\\|")} |`)].join("\n");
+  for (const [n, t] of Object.entries(hosted)) {
+    // A reference is read on demand, not discovered, so it drops the frontmatter
+    // and keeps the description as its opening line.
+    const body = t.replace(/^---\n[\s\S]*?\n---\n/, "");
+    bundle[`references/${n}.md`] = body.replace(NOTICE + "\n", `${NOTICE}\n\n> ${descOf(t)}\n`);
+  }
+  const { meta, body } = parse(path.join(SRC, "_bundle", "SKILL.md"));
+  const out = body.replace("{{skill-index}}", index);
+  if (/\{\{[^}]+\}\}/.test(out)) throw new Error("_bundle: unresolved placeholder");
+  // JSON strings are valid YAML scalars, so a colon in a value cannot break the frontmatter.
+  const fm = ["name", "description", "example-prompt"].filter((k) => meta[k]).map((k) => `${k}: ${JSON.stringify(meta[k])}`);
+  bundle["SKILL.md"] = `---\n${fm.join("\n")}\n---\n${NOTICE}\n${out.replace(/^\n?/, "\n")}`;
+}
 
 // Each folder in this repo gets a README listing what it holds, written from the
 // skills' own descriptions so the list cannot drift either.
@@ -199,5 +226,22 @@ for (const [profile, dir, withReadme] of targets) {
     }
   }
   console.log(`${profile} -> ${path.relative(path.resolve(ROOT, ".."), dir) || dir}: ${Object.keys(want).length} skills`);
+}
+{
+  const have = existsSync(path.join(BUNDLE, "references"))
+    ? readdirSync(path.join(BUNDLE, "references")).map((f) => `references/${f}`)
+    : [];
+  for (const stale of have.filter((f) => !bundle[f])) {
+    if (CHECK) { drift++; console.error(`DRIFT ${BUNDLE}/${stale}: not in the bundle`); }
+    else rmSync(path.join(BUNDLE, stale));
+  }
+  for (const [rel, text] of Object.entries(bundle)) {
+    const file = path.join(BUNDLE, rel);
+    const cur = existsSync(file) ? readFileSync(file, "utf8") : null;
+    if (cur === text) continue;
+    if (CHECK) { drift++; console.error(`DRIFT ${file}: differs from skills/src (run npm run build:skills)`); }
+    else { mkdirSync(path.dirname(file), { recursive: true }); writeFileSync(file, text); }
+  }
+  console.log(`core+inbox -> skills/bundled-skill: 1 skill, ${Object.keys(bundle).length - 1} references`);
 }
 process.exit(drift ? 1 : 0);
