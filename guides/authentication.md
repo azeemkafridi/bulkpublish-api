@@ -65,8 +65,8 @@ Every key has one of two access levels, chosen when it is created and shown in t
 
 | Access | What it can do |
 |--------|----------------|
-| **Full access** (default) | Anything its owner's team role allows: create, schedule, publish and delete posts, upload media, reply in the Inbox, manage the account. |
-| **Read-only** | Read posts, schedules, labels, templates, media, analytics, quota usage, channels and the Inbox. Nothing else. |
+| **Full access** (default) | Anything its owner's team role allows through the API: create, schedule, publish and delete posts, upload media, reply in the Inbox, manage the account. |
+| **Read-only** | Read posts, schedules, RSS feeds, labels, templates, hashtag groups, review links, calendar notes, media, analytics, quota usage, channels and channel sets, and the Inbox. Nothing else. |
 
 Use a read-only key for reporting, dashboards, spreadsheets and AI agents that should only look. Keys made before access levels existed are full access.
 
@@ -85,7 +85,9 @@ A read-only key that tries to change something gets:
 
 **Status code:** `403`
 
-Account administration (team, organizations, billing, API keys, webhooks) answers `403` with code `FORBIDDEN` for a read-only key, even to read. A read-only key reaches exactly what an OAuth token holding every `:read` scope reaches.
+Some surfaces answer `403` with code `FORBIDDEN` instead, because a read-only key may not reach them at all, even to read: account administration (team, organizations, billing, API keys, webhooks) and channel settings. A read-only key reaches exactly what an OAuth token holding every `:read` scope reaches.
+
+A few reads fetch live data from a network, such as mention search and the channel health check. Like any key, a read-only key can make them, and on X they count against the workspace's X read allowance.
 
 To check before trying a write, read `capabilities` from `GET /api/channels`: `canCreatePosts`, `canPublishPosts` and `canApprovePosts` are all `false` for a read-only key.
 

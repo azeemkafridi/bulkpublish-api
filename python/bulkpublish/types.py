@@ -582,8 +582,9 @@ class ApiKey(TypedDict, total=False):
     #: The first characters of the key followed by ``...``.
     keyPreview: str
     #: ``"full"`` (anything the owner's team role allows) or ``"read_only"``
-    #: (reads only: every write is refused with 403 ``INSUFFICIENT_SCOPE``,
-    #: and account administration with 403 ``FORBIDDEN``). Keys made before
+    #: (reads only: a change is refused with 403 ``INSUFFICIENT_SCOPE``, or
+    #: 403 ``FORBIDDEN`` on surfaces a read-only key may not reach at all,
+    #: such as account administration and channel settings). Keys made before
     #: access levels existed report ``"full"``.
     access: str
     lastUsedAt: Optional[str]

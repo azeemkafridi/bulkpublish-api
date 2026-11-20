@@ -1559,8 +1559,10 @@ export interface UpdateScheduleParams {
 /** An API key (listing view — does not include the full key). */
 /**
  * What an API key may do. `full` can do anything its owner's team role allows;
- * `read_only` can read but every write is refused with 403
- * `INSUFFICIENT_SCOPE`, and account administration with 403 `FORBIDDEN`.
+ * `read_only` can read but never change anything: a change is refused with
+ * 403 `INSUFFICIENT_SCOPE`, or 403 `FORBIDDEN` on surfaces a read-only key
+ * may not reach at all (account administration and channel settings, which
+ * are refused even to read).
  */
 export type ApiKeyAccess = 'full' | 'read_only';
 
