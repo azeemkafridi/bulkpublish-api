@@ -10,13 +10,14 @@ MCP **1.59.0**
 
 ### Changed
 
-- **Safety hints now say "destructive" wherever a tool can do something that cannot be taken back in any of its modes**, so Claude and ChatGPT ask before calling it: `create_post` (a scheduled post publishes on its own, and `deleteMediaAfterPublish` removes the files once it does), `create_schedule` and `create_rss_feed` (they publish on their own), `reject_post` (it cancels a pending approval), `update_conversation` (it replaces the status or assignee), and `share_post` (`regenerate` stops the old link working; it is also marked as reaching outside the workspace, since anyone with the link can open the post).
+- **Safety hints now say "destructive" wherever a tool can do something that cannot be taken back in any of its modes**, so Claude and ChatGPT ask before calling it: `create_post` (a scheduled post publishes on its own, and `deleteMediaAfterPublish` removes the files once it does), `create_schedule` and `create_rss_feed` (they publish on their own), `reject_post` (it cancels a pending approval), `update_conversation` (it replaces the status or assignee), and `share_post` (`regenerate` stops the old link working, so it is also no longer marked idempotent; it is marked as reaching outside the workspace, since anyone with the link can open the post).
 - **`get_channel_health` describes what it really does.** It checks the connection live with the network, renews an expired token when it can, and marks a channel that the network refuses as needing reconnection; on X it uses the workspace's monthly X read allowance. It is no longer marked read-only.
-- **Refusals no longer end with an upgrade suggestion.** An error still says why the call failed, including which plan a feature is on.
+- **Refusals no longer end with an upgrade suggestion.** An error still says why the call failed, including which plan a feature is on. A network's own advice (for example Hashnode's about its billing) is kept. The Inbox and comment skills now name the plans that include a feature instead of suggesting an upgrade.
 
 ### Fixed
 
 - **`delete_media` said it detaches the file from posts.** It does not: posts that used it keep a small preview, and a draft or scheduled post that still uses it will fail to publish. The description now says so.
+- **`get_media` said it returns labels.** It does not; the description now lists what it returns.
 
 ## 2026-11-20 — Read-only API keys
 

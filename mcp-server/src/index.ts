@@ -760,15 +760,21 @@ async function api<T = unknown>(
 // remedy ("Upgrade to Pro to use it.", "Upgrade to Pro or Business to post to
 // it."). OpenAI's plugin guidelines say a plugin "must not display subscription
 // plans, initiate new subscriptions, or promote upgrades", and both directories
-// read this one server, so every sentence that starts with "Upgrade" is dropped
-// here. A sentence that offers another way out keeps it: "Upgrade to Pro for
-// more storage, or free space by removing unused media" becomes "Free space by
+// read this one server, so our upgrade sentences are dropped here. Only OUR
+// phrasings are matched ("Upgrade to <plan>", "Upgrade to resume/enable/unlock",
+// "Upgrade for …", "Upgrade, or …"), so a network's own advice such as
+// Hashnode's "Upgrade the publication in its Hashnode dashboard" survives.
+// A sentence that offers another way out keeps it: "Upgrade to Pro for more
+// storage, or free space by removing unused media" becomes "Free space by
 // removing unused media". Saying which plan a feature is on stays: that tells
 // the user why the call failed, it does not sell anything.
+const OUR_UPGRADE = String.raw`Upgrade(?: to (?:Pro|Business|Lifetime|Free|resume|enable|unlock)\b| for\b|,)`;
 export function withoutUpsell(text: string): string {
   return text
-    .replace(/\bUpgrade\b[^,.!?]*, or (\w)/g, (_m, c: string) => c.toUpperCase())
-    .replace(/(^|\s)Upgrade\b[^.!?]*[.!?]?/g, "")
+    // "Upgrade, or turn off another feed, to resume it." -> "Turn off another feed to resume it."
+    .replace(/(^|\s)Upgrade, or ([^,.!?]+), (to [^.!?]+[.!?])/g, (_m, sp: string, alt: string, rest: string) => `${sp}${alt.charAt(0).toUpperCase()}${alt.slice(1)} ${rest}`)
+    .replace(new RegExp(String.raw`(^|\s)${OUR_UPGRADE}[^,.!?]*, or (\w)`, "g"), (_m, sp: string, c: string) => sp + c.toUpperCase())
+    .replace(new RegExp(String.raw`(^|\s)${OUR_UPGRADE}[^.!?]*[.!?]?`, "g"), "")
     .replace(/\s{2,}/g, " ")
     .trim();
 }
@@ -1169,7 +1175,7 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
       id: sNum().describe("The template's ID."),
       name: sStr().describe("The template's name."),
       content: sStr().describe("The saved text."),
-      kind: sStr().describe("caption (a whole post) or snippet (text to insert)."),
+      kind: sStr().describe("caption (a whole post) or first_comment (text for a post's first comment)."),
       channelIds: z.array(z.any()).nullish().describe("Channels a caption template targets, or null."),
       postFormat: sStr().describe("The post format a caption template keeps, or null."),
       postTypeOverrides: sMap().describe("Per-platform post types a caption template keeps, or null."),
@@ -1401,7 +1407,7 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   get_engagement_analytics: { title: "Get engagement analytics", ...READ, why: "GET /api/analytics/engagement; aggregates already-stored post metrics." },
   get_quota_usage: { title: "Get quota usage", ...READ, why: "GET /api/quotas/usage; reads plan limits and current counters." },
   get_queue_slot: { title: "Get next queue slot", ...READ, why: "GET /api/posts/queue-slot; computes the next free slot and reserves nothing." },
-  get_channel_health: { title: "Get channel health", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true, why: "GET /api/channels/{id}/health. Verifies the token live with the platform, so open world. Not read-only: an expired token that can be renewed is renewed in place, and a check the platform refuses marks the channel as needing reconnection. Neither loses anything (the old token had already expired; the flag records what the platform said), so not destructive. On X the live check uses the workspace's paid X read budget, cached for 60 seconds. Repeating it leaves the same state." },
+  get_channel_health: { title: "Get channel health", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true, why: "GET /api/channels/{id}/health. Verifies the token live with the platform, so open world. Not read-only: a check the platform refuses marks the channel as needing reconnection, which changes what list_channels reports and holds its posts until it is reconnected (renewing an expired token on the way is housekeeping, the same as list_post_comments does, and changes nothing the user sees). Not destructive: the flag records what the platform said and nothing the user set is overwritten; reconnecting clears it. On X the live check uses the workspace's paid X read budget, cached for 60 seconds. Repeating it leaves the same state." },
   get_channel_options: { title: "Get channel post-type options", ...READ, why: "GET /api/channels/{id}/options; static capability data." },
   list_channel_sets: { title: "List channel sets", ...READ, why: "GET /api/channel-sets." },
   list_rss_feeds: { title: "List RSS feeds", ...READ, why: "GET /api/rss-feeds; lists configured feeds, fetches none of them." },
@@ -1427,7 +1433,7 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   create_rss_feed: { title: "Add RSS feed", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/rss-feeds. BulkPublish will fetch the given public feed URL and publish new items to the chosen channels with no further call; a published post cannot be recalled from BulkPublish, so destructive even though the feed can be paused or deleted. Open world: it fetches a public URL and publishes to public platforms." },
   create_review_link: { title: "Create client review link", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/review-links; mints a link that a client can open. Nothing is sent to anyone; the caller decides where to share it." },
   create_client_connect_link: { title: "Create client connect link", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/client-connect-links; mints a one-time link. Nothing is sent to anyone." },
-  share_post: { title: "Create post review link", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "POST /api/posts/{id}/share returns the post's review link, creating it on first call; repeating returns the same link, so idempotent. Open world: anyone holding the link can open the post without signing in. Nothing is sent to anyone, but regenerate=true replaces the link and the old one stops working for whoever has it, so destructive in that mode." },
+  share_post: { title: "Create post review link", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/share returns the post's review link, creating it on first call; repeating without regenerate returns the same link, but regenerate=true makes a new one on every call, so not idempotent. Open world: anyone holding the link can open the post without signing in. Nothing is sent to anyone, but regenerate=true replaces the link and the old one stops working for whoever has it, so destructive in that mode." },
   // ---- Media uploads -----------------------------------------------------
   upload_media: { title: "Upload media", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true, why: "Downloads the file from the given public URL (or reads a local path) and stores it in the caller's library — fetching an arbitrary URL is an open-world read. Adds a file, overwrites nothing; each call stores another copy." },
   create_media_upload: { title: "Start media upload", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false, why: "POST /api/media/presign; reserves an upload slot and returns a signed URL. Stores no file yet, overwrites nothing." },
@@ -1470,7 +1476,7 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   // ---- Inbox and comments -------------------------------------------------
   list_conversations: { title: "List Inbox conversations", ...READ, why: "GET /api/inbox/conversations; reads the workspace's stored conversations. Calls no platform and does not mark anything read." },
   get_conversation: { title: "Get Inbox conversation", ...READ, why: "GET /api/inbox/conversations/{id}/messages; reads stored messages. Reading does not mark the conversation read." },
-  list_post_comments: { title: "List post comments", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true, why: "GET /api/posts/{id}/engagement. Reads comments and reactions live from the social platforms, so open world; changes nothing in BulkPublish or on the platform, and only reads the caller's own published posts." },
+  list_post_comments: { title: "List post comments", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true, why: "GET /api/posts/{id}/engagement. Reads comments and reactions live from the social platforms, so open world; changes nothing in BulkPublish or on the platform, and only reads the caller's own published posts. A short-lived platform token may be renewed on the way, which changes nothing the user sees." },
   update_conversation: { title: "Update Inbox conversation", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true, why: "PATCH /api/inbox/conversations/{id}. Marks read/unread, archives, reopens, snoozes or assigns. Each change overwrites the conversation's previous status or assignee, which is not kept, so destructive under the review definition even though another call can set it back; nothing is sent to the other person or changed on the platform. Open world because assigning notifies the teammate, which can reach them by email. Same payload twice leaves the same state." },
   reply_to_conversation: { title: "Reply in Inbox conversation", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/inbox/conversations/{id}/messages. Sends a message to a person on a public platform immediately; it cannot be unsent from BulkPublish, so destructive. Each call sends another message." },
   reply_to_comment: { title: "Reply to comment", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/comments/reply. Posts a public reply on the platform immediately; it cannot be taken back from BulkPublish, so destructive. Each call posts another reply." },
@@ -3528,7 +3534,7 @@ server.registerTool(
 server.registerTool(
   "get_media",
   {
-    description: "Get details of a single media file by ID. Returns metadata, URL, dimensions, and labels.",
+    description: "Get details of a single media file by ID. Returns its name, type, size, dimensions, video length, alt text, and the addresses of the file and its previews.",
     inputSchema: {
       mediaId: z.number().describe("The media file ID."),
     },

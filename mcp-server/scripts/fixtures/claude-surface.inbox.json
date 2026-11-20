@@ -8347,7 +8347,7 @@
                       ]
                     },
                     "kind": {
-                      "description": "caption (a whole post) or snippet (text to insert).",
+                      "description": "caption (a whole post) or first_comment (text for a post's first comment).",
                       "anyOf": [
                         {
                           "type": "string"
@@ -8517,7 +8517,7 @@
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": true,
-        "idempotentHint": true,
+        "idempotentHint": false,
         "openWorldHint": true
       },
       "execution": {
@@ -12047,7 +12047,7 @@
     {
       "name": "get_media",
       "title": "Get media file",
-      "description": "Get details of a single media file by ID. Returns metadata, URL, dimensions, and labels. Use this when the user references one specific media file by ID.",
+      "description": "Get details of a single media file by ID. Returns its name, type, size, dimensions, video length, alt text, and the addresses of the file and its previews. Use this when the user references one specific media file by ID.",
       "inputSchema": {
         "type": "object",
         "properties": {

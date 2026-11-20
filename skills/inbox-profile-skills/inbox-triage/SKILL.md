@@ -49,7 +49,7 @@ Use `update_conversation` to archive what is done, snooze what has to wait, and 
 
 Explain it in plain words and say what the user can do. Do not repeat error codes or technical wording.
 
-- **Plan.** The Inbox is part of the Pro and Business plans. If a call is refused for the plan, say so and suggest upgrading.
+- **Plan.** The Inbox is part of the Pro and Business plans. If a call is refused for the plan, say so and name the plans that include it.
 - **Reconnect needed.** The account was connected before message access was granted. Ask the user to reconnect that channel from the Channels page, then try again.
 - **Not available on that network.** Some networks do not allow replies through BulkPublish yet. Tell the user to answer on the network itself.
 - **Too fast.** Sending is limited to 30 messages a minute. Wait a minute and continue; never retry in a tight loop.

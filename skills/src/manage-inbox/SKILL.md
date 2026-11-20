@@ -78,7 +78,7 @@ codes or technical wording back to them.
 
 - **Plan.** The Inbox is part of the Pro and Business plans; replying to or
   moderating comments on a post is on every plan except Free. When a call is
-  refused for the plan, say so and suggest upgrading. Reading a post's
+  refused for the plan, say so and name the plans that include it. Reading a post's
   comments works on every plan.
 - **Reconnect needed** (`RECONNECT_REQUIRED`). The account was connected before
   message or comment access was granted. Ask the user to reconnect that channel

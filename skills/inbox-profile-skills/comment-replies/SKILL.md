@@ -37,7 +37,7 @@ Liking, hiding and unhiding can be undone, but still say what you are about to d
 
 Explain it in plain words and say what the user can do.
 
-- **Plan.** Replying to and moderating comments is on every plan except Free. If a call is refused for the plan, say so and suggest upgrading. Reading comments works on every plan.
+- **Plan.** Replying to and moderating comments is on every plan except Free. If a call is refused for the plan, say so and name the plans that include it. Reading comments works on every plan.
 - **Reconnect needed.** Ask the user to reconnect that channel from the Channels page, then try again.
 - **Not available on that network.** Some networks do not allow replies or moderation through BulkPublish. Tell the user to act on the network itself.
 - **Role.** Deleting a comment needs an owner, admin or approver on the workspace.
