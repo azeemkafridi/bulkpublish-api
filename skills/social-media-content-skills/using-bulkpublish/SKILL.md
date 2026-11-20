@@ -229,10 +229,9 @@ The platform key for Google Business is `gmb`, not `google_business`.
 `upload_media` takes either a public `url` or an absolute `filePath`, not
 both. `filePath` only works when the server runs on the user's own computer;
 on a hosted server it is refused. To upload a local file there, call
-`create_media_upload` (`contentType`, `sizeBytes`), PUT the file's bytes to the
-returned `uploadUrl` with that same `Content-Type` (for example
-`curl -X PUT -H "Content-Type: image/png" --data-binary @photo.png "<uploadUrl>"`),
-then call `finalize_media_upload` with the returned `r2Key`, `fileName`,
+`create_media_upload` (`contentType`, `sizeBytes`), send the file's bytes to the
+returned `uploadUrl` in an HTTP PUT whose `Content-Type` header is that same
+type, then call `finalize_media_upload` with the returned `r2Key`, `fileName`,
 `mimeType` and `sizeBytes`. Attach the returned id through `mediaFileIds`.
 
 Uploaded media is kept by default. `deleteMediaAfterPublish` defaults to
