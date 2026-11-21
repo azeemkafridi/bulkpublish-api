@@ -258,6 +258,14 @@ export type {
   SendConversationMessageParams,
   SendConversationMessageResponse,
   UpdateConversationParams,
+  ConversationLabel,
+  AddConversationNoteParams,
+  AddConversationNoteResponse,
+  SetConversationLabelsResponse,
+  SavedReply,
+  SavedReplyParams,
+  SavedReplyVariableKey,
+  ListSavedRepliesResponse,
 } from './inbox.js';
 export {
   BulkPublishError,

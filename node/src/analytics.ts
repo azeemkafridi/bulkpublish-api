@@ -83,6 +83,19 @@ export interface EngagementParams extends AnalyticsFilterParams {
    * engagement-weighted best-time-to-post views.
    */
   heatmap?: '1';
+  /**
+   * Set to `'1'` to include `bestTimes`: the window's published posts grouped by
+   * weekday and hour in `tz`, with average engagements and impressions per slot
+   * and up to 5 best slots (each holding at least 3 posts). When no slot has
+   * enough posts, `best` is empty and `enoughData` is `false`.
+   */
+  bestTimes?: '1';
+  /**
+   * Set to `'1'` to add `vsMedian` to every `platformMetrics[]` entry: the
+   * figure divided by the same channel's median in the window (`1` typical,
+   * `2` twice typical). `null` means no comparison is possible, not zero.
+   */
+  vsMedian?: '1';
 }
 
 export interface AccountMetricsParams {

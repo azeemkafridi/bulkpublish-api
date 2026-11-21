@@ -8723,6 +8723,24 @@
                 {
                   "disabled": false,
                   "description": {
+                    "content": "**optional** — Set to `1` to include `bestTimes`: the window's published posts grouped by weekday and hour in `tz`, with the average engagements and impressions per slot and the best slots ranked. Respects every filter and the 30-day window. A slot is only recommended in `best` once it holds at least `minPosts` (3) posts, so a single lucky post never becomes advice; when no slot gets there, `best` is empty and `enoughData` is `false`. Posts whose network cannot report engagements (YouTube, which does not allow combined figures; networks or LinkedIn profiles without post statistics; X channels with statistics turned off) and posts whose figures have not been read yet are left out of the averages and counted in `excludedPosts`. Independent of `heatmap`.",
+                    "type": "text/plain"
+                  },
+                  "key": "bestTimes",
+                  "value": "1"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — Set to `1` to add `vsMedian` `{impressions, engagements, basis}` to every `platformMetrics[]` entry of `topPosts` and `allPosts`: this destination's figure divided by the median of the same channel's posts in the window (respecting every filter), rounded to 2 decimals. `1` is a typical post for that account, `0.5` half of typical, `2` twice. `basis` is how many of the channel's posts in the window have figures to compare against. A value is `null` when no comparison is possible, which is not the same as zero: the network does not report that figure, fewer than 3 of the channel's posts report it, the median is 0, or this post's figures have not been read yet. YouTube is always `null` for both, because YouTube does not allow derived figures. Posts not yet measured are left out of the medians.",
+                    "type": "text/plain"
+                  },
+                  "key": "vsMedian",
+                  "value": "1"
+                },
+                {
+                  "disabled": false,
+                  "description": {
                     "content": "**optional** — Comma-separated channel ids. Only post_platform rows on these channels are counted. Combines with `platforms`, `labelIds`, `postFormat` and `mediaType` (all must match).",
                     "type": "text/plain"
                   },
@@ -8905,6 +8923,24 @@
                     {
                       "disabled": false,
                       "description": {
+                        "content": "**optional** — Set to `1` to include `bestTimes`: the window's published posts grouped by weekday and hour in `tz`, with the average engagements and impressions per slot and the best slots ranked. Respects every filter and the 30-day window. A slot is only recommended in `best` once it holds at least `minPosts` (3) posts, so a single lucky post never becomes advice; when no slot gets there, `best` is empty and `enoughData` is `false`. Posts whose network cannot report engagements (YouTube, which does not allow combined figures; networks or LinkedIn profiles without post statistics; X channels with statistics turned off) and posts whose figures have not been read yet are left out of the averages and counted in `excludedPosts`. Independent of `heatmap`.",
+                        "type": "text/plain"
+                      },
+                      "key": "bestTimes",
+                      "value": "1"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — Set to `1` to add `vsMedian` `{impressions, engagements, basis}` to every `platformMetrics[]` entry of `topPosts` and `allPosts`: this destination's figure divided by the median of the same channel's posts in the window (respecting every filter), rounded to 2 decimals. `1` is a typical post for that account, `0.5` half of typical, `2` twice. `basis` is how many of the channel's posts in the window have figures to compare against. A value is `null` when no comparison is possible, which is not the same as zero: the network does not report that figure, fewer than 3 of the channel's posts report it, the median is 0, or this post's figures have not been read yet. YouTube is always `null` for both, because YouTube does not allow derived figures. Posts not yet measured are left out of the medians.",
+                        "type": "text/plain"
+                      },
+                      "key": "vsMedian",
+                      "value": "1"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
                         "content": "**optional** — Comma-separated channel ids. Only post_platform rows on these channels are counted. Combines with `platforms`, `labelIds`, `postFormat` and `mediaType` (all must match).",
                         "type": "text/plain"
                       },
@@ -9080,6 +9116,24 @@
                         "type": "text/plain"
                       },
                       "key": "heatmap",
+                      "value": "1"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — Set to `1` to include `bestTimes`: the window's published posts grouped by weekday and hour in `tz`, with the average engagements and impressions per slot and the best slots ranked. Respects every filter and the 30-day window. A slot is only recommended in `best` once it holds at least `minPosts` (3) posts, so a single lucky post never becomes advice; when no slot gets there, `best` is empty and `enoughData` is `false`. Posts whose network cannot report engagements (YouTube, which does not allow combined figures; networks or LinkedIn profiles without post statistics; X channels with statistics turned off) and posts whose figures have not been read yet are left out of the averages and counted in `excludedPosts`. Independent of `heatmap`.",
+                        "type": "text/plain"
+                      },
+                      "key": "bestTimes",
+                      "value": "1"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — Set to `1` to add `vsMedian` `{impressions, engagements, basis}` to every `platformMetrics[]` entry of `topPosts` and `allPosts`: this destination's figure divided by the median of the same channel's posts in the window (respecting every filter), rounded to 2 decimals. `1` is a typical post for that account, `0.5` half of typical, `2` twice. `basis` is how many of the channel's posts in the window have figures to compare against. A value is `null` when no comparison is possible, which is not the same as zero: the network does not report that figure, fewer than 3 of the channel's posts report it, the median is 0, or this post's figures have not been read yet. YouTube is always `null` for both, because YouTube does not allow derived figures. Posts not yet measured are left out of the medians.",
+                        "type": "text/plain"
+                      },
+                      "key": "vsMedian",
                       "value": "1"
                     },
                     {
@@ -10022,7 +10076,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** — Filter by label type. Omitted: every label the caller may see. Labels are org-wide and one quota counts every type together (see `GET /api/quotas/usage`).",
+                    "content": "**optional** — Filter by label type: `post`, `media` or `inbox` (labels for Inbox conversations). Omitted, or an unknown value: every label. Labels are org-wide and one quota counts every type together (see `GET /api/quotas/usage`).",
                     "type": "text/plain"
                   },
                   "key": "type",
@@ -10068,7 +10122,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** — Filter by label type. Omitted: every label the caller may see. Labels are org-wide and one quota counts every type together (see `GET /api/quotas/usage`).",
+                        "content": "**optional** — Filter by label type: `post`, `media` or `inbox` (labels for Inbox conversations). Omitted, or an unknown value: every label. Labels are org-wide and one quota counts every type together (see `GET /api/quotas/usage`).",
                         "type": "text/plain"
                       },
                       "key": "type",
@@ -16719,7 +16773,7 @@
           "request": {
             "name": "List conversations",
             "description": {
-              "content": "Direct messages, reviews and comment threads across your connected channels, newest activity first.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence. Comment threads (`kind: \"comment\"`) are included only once comment replies are available to your account; until then they are left out of every view, including `kind=comment`.\n\n**What API keys and OAuth apps do not see.** Internal notes your team leaves on a conversation are never returned and search does not match on them; inbox labels are not returned (and the label filters are ignored); WhatsApp conversations are not included.\n\n**Paging.** Pass `nextCursor` back as `cursor` to get the next page; `nextCursor` is `null` on the last page. Treat it as opaque.\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
+              "content": "Direct messages, reviews, comment threads and mentions across your connected channels, newest activity first.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence. Comment threads (`kind: \"comment\"`) are included only once comment replies are available to your account; until then they are left out of every view, including `kind=comment`. Mentions (`kind: \"mention\"`) work the same way: they appear only once mentions are available to your account, and only from networks that report them, so which networks deliver mentions depends on the network and on your workspace's plan.\n\n**Search** (`q`) also matches the internal notes your team has left on a conversation. WhatsApp conversations are not included for API keys and OAuth apps.\n\n**Paging.** Pass `nextCursor` back as `cursor` to get the next page; `nextCursor` is `null` on the last page. Treat it as opaque.\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
               "type": "text/plain"
             },
             "url": {
@@ -16744,7 +16798,7 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** — `dm`, `review` or `comment`. Omit for all kinds.",
+                    "content": "**optional** — `dm`, `review`, `comment` or `mention`. Omit for all kinds. Asking for a kind that is not yet available to your account (see Availability) is ignored, as if `kind` were omitted; that kind is still left out.",
                     "type": "text/plain"
                   },
                   "key": "kind",
@@ -16789,7 +16843,25 @@
                 {
                   "disabled": false,
                   "description": {
-                    "content": "**optional** — Search the participant's name and handle and the message text (2 to 100 characters; shorter is ignored).",
+                    "content": "**optional** — Only conversations carrying this inbox label (`GET /api/labels?type=inbox`). Combined with `labelIds`, both must match.",
+                    "type": "text/plain"
+                  },
+                  "key": "labelId",
+                  "value": "<integer>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — Comma-separated inbox label ids; matches conversations carrying ANY of them. At most 50 ids are used; anything that is not a positive whole number is ignored.",
+                    "type": "text/plain"
+                  },
+                  "key": "labelIds",
+                  "value": "<string>"
+                },
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "**optional** — Search the participant's name and handle and the message text, including your team's internal notes (2 to 100 characters; shorter is ignored).",
                     "type": "text/plain"
                   },
                   "key": "q",
@@ -16878,7 +16950,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** — `dm`, `review` or `comment`. Omit for all kinds.",
+                        "content": "**optional** — `dm`, `review`, `comment` or `mention`. Omit for all kinds. Asking for a kind that is not yet available to your account (see Availability) is ignored, as if `kind` were omitted; that kind is still left out.",
                         "type": "text/plain"
                       },
                       "key": "kind",
@@ -16923,7 +16995,25 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** — Search the participant's name and handle and the message text (2 to 100 characters; shorter is ignored).",
+                        "content": "**optional** — Only conversations carrying this inbox label (`GET /api/labels?type=inbox`). Combined with `labelIds`, both must match.",
+                        "type": "text/plain"
+                      },
+                      "key": "labelId",
+                      "value": "<integer>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — Comma-separated inbox label ids; matches conversations carrying ANY of them. At most 50 ids are used; anything that is not a positive whole number is ignored.",
+                        "type": "text/plain"
+                      },
+                      "key": "labelIds",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — Search the participant's name and handle and the message text, including your team's internal notes (2 to 100 characters; shorter is ignored).",
                         "type": "text/plain"
                       },
                       "key": "q",
@@ -17014,7 +17104,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** — `dm`, `review` or `comment`. Omit for all kinds.",
+                        "content": "**optional** — `dm`, `review`, `comment` or `mention`. Omit for all kinds. Asking for a kind that is not yet available to your account (see Availability) is ignored, as if `kind` were omitted; that kind is still left out.",
                         "type": "text/plain"
                       },
                       "key": "kind",
@@ -17059,7 +17149,25 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** — Search the participant's name and handle and the message text (2 to 100 characters; shorter is ignored).",
+                        "content": "**optional** — Only conversations carrying this inbox label (`GET /api/labels?type=inbox`). Combined with `labelIds`, both must match.",
+                        "type": "text/plain"
+                      },
+                      "key": "labelId",
+                      "value": "<integer>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — Comma-separated inbox label ids; matches conversations carrying ANY of them. At most 50 ids are used; anything that is not a positive whole number is ignored.",
+                        "type": "text/plain"
+                      },
+                      "key": "labelIds",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — Search the participant's name and handle and the message text, including your team's internal notes (2 to 100 characters; shorter is ignored).",
                         "type": "text/plain"
                       },
                       "key": "q",
@@ -17140,7 +17248,7 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** — `dm`, `review` or `comment`. Omit for all kinds.",
+                        "content": "**optional** — `dm`, `review`, `comment` or `mention`. Omit for all kinds. Asking for a kind that is not yet available to your account (see Availability) is ignored, as if `kind` were omitted; that kind is still left out.",
                         "type": "text/plain"
                       },
                       "key": "kind",
@@ -17185,7 +17293,25 @@
                     {
                       "disabled": false,
                       "description": {
-                        "content": "**optional** — Search the participant's name and handle and the message text (2 to 100 characters; shorter is ignored).",
+                        "content": "**optional** — Only conversations carrying this inbox label (`GET /api/labels?type=inbox`). Combined with `labelIds`, both must match.",
+                        "type": "text/plain"
+                      },
+                      "key": "labelId",
+                      "value": "<integer>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — Comma-separated inbox label ids; matches conversations carrying ANY of them. At most 50 ids are used; anything that is not a positive whole number is ignored.",
+                        "type": "text/plain"
+                      },
+                      "key": "labelIds",
+                      "value": "<string>"
+                    },
+                    {
+                      "disabled": false,
+                      "description": {
+                        "content": "**optional** — Search the participant's name and handle and the message text, including your team's internal notes (2 to 100 characters; shorter is ignored).",
                         "type": "text/plain"
                       },
                       "key": "q",
@@ -17685,7 +17811,7 @@
           "request": {
             "name": "Get a conversation's messages",
             "description": {
-              "content": "The newest 500 messages of one conversation, oldest first. Reading does not mark the conversation read; use `PATCH /api/inbox/conversations/{id}` with `read: true` for that.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\n**What API keys and OAuth apps do not see.** Internal notes your team leaves on a conversation are never returned and search does not match on them; inbox labels are not returned (and the label filters are ignored); WhatsApp conversations are not included.\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
+              "content": "The newest 500 messages of one conversation, oldest first. Reading does not mark the conversation read; use `PATCH /api/inbox/conversations/{id}` with `read: true` for that.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\n**Internal notes** your team leaves on the conversation are returned inline, in time order, with `direction: \"note\"` and their `author`. They are never sent to the other person. Add one with `POST /api/inbox/conversations/{id}/notes`. WhatsApp conversations are not available to API keys and OAuth apps (404).\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
               "type": "text/plain"
             },
             "url": {
@@ -17893,7 +18019,7 @@
           "request": {
             "name": "Reply in a conversation",
             "description": {
-              "content": "Sends a reply to the person on the platform, immediately, from the channel the conversation belongs to. It cannot be unsent from here. In a comment thread the reply answers the newest comment from the other person, or the one given in `replyToMessageId`.\n\nSend `text` (up to 4,000 characters), `mediaIds` (up to 4 files from your media library), or both. Whether a platform accepts attachments, and which kinds, is in the conversation's `attachments`; reviews and comments are text only.\n\nSome platforms only accept a reply within 24 hours of the person's last message (Facebook Messenger and Instagram); after that this returns 422 and `canReply` is false on the conversation.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor). Limited to 30 replies per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
+              "content": "Sends a reply to the person on the platform, immediately, from the channel the conversation belongs to. It cannot be unsent from here. In a comment thread the reply answers the newest comment from the other person, or the one given in `replyToMessageId`. In a mention, the reply answers the post that mentioned you.\n\nSend `text` (up to 4,000 characters), `mediaIds` (up to 4 files from your media library), or both. Whether a platform accepts attachments, and which kinds, is in the conversation's `attachments`; reviews, comments and mentions are text only. To leave a note for your team instead, use `POST /api/inbox/conversations/{id}/notes`.\n\nSome platforms only accept a reply within 24 hours of the person's last message (Facebook Messenger and Instagram); after that this returns 422 and `canReply` is false on the conversation.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor). Limited to 30 replies per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
               "type": "text/plain"
             },
             "url": {
@@ -18428,6 +18554,760 @@
                 }
               ],
               "body": "{\n  \"error\": \"<string>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "9c68f6d8-b8f4-4158-8dff-691ceaf19a38",
+          "name": "Add an internal note to a conversation",
+          "request": {
+            "name": "Add an internal note to a conversation",
+            "description": {
+              "content": "Leaves a note in the conversation for your team. It is never sent to the other person and nothing changes on the platform. Notes come back inline in `GET /api/inbox/conversations/{id}/messages` with `direction: \"note\"`, and `q` on the conversation list searches them.\n\nThe note's author is the person the API key or OAuth app acts for.\n\n**Mentioning a teammate.** Write `@[Display Name](user:USER_ID)` in `text` to mention a member of the workspace; when note mentions are available to your account they are notified (at most 10 people per note, never the author, and only real members of the workspace). The name is for display only; the user id decides who is told. The teammate the conversation is assigned to is told about every note, unless a mention already told them.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 `FORBIDDEN`. Limited to 60 Inbox changes per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`); a read-only API key gets 403 `INSUFFICIENT_SCOPE`.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "inbox",
+                "conversations",
+                ":id",
+                "notes"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Conversation id",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Refund approved, @[Sam](user:USER_ID) please reply.\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "bec94514-9911-4b37-994e-58ce80e2cdd3",
+              "name": "Note added",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "inbox",
+                    "conversations",
+                    ":id",
+                    "notes"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"text\": \"Refund approved, @[Sam](user:USER_ID) please reply.\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": {\n    \"id\": \"<integer>\",\n    \"direction\": \"note\",\n    \"text\": \"<string>\",\n    \"sentAt\": \"<dateTime>\",\n    \"authorUserId\": \"<string>\",\n    \"author\": {\n      \"id\": \"<string>\",\n      \"name\": \"<string>\",\n      \"image\": \"<string,null>\"\n    }\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "1f4c4788-446d-4b6f-8411-ef285a15d77b",
+          "name": "Set a conversation's labels",
+          "request": {
+            "name": "Set a conversation's labels",
+            "description": {
+              "content": "Replaces the conversation's inbox labels with exactly the ids sent; `[]` removes them all. Every id must be a label of type `inbox` in this workspace (list them with `GET /api/labels?type=inbox`, create one with `POST /api/labels` and `type: \"inbox\"`); if any is not, nothing changes and you get 422. A conversation carries at most 20 labels. Duplicate ids are counted once. Labels are your workspace's own organization: nothing is sent to the other person.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 `FORBIDDEN`. Limited to 60 Inbox changes per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`); a read-only API key gets 403 `INSUFFICIENT_SCOPE`.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "inbox",
+                "conversations",
+                ":id",
+                "labels"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Conversation id",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"labelIds\": [\n    \"<integer>\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "54019baa-df34-483a-b485-3bb29f50f25c",
+              "name": "Labels set",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "inbox",
+                    "conversations",
+                    ":id",
+                    "labels"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"labelIds\": [\n    \"<integer>\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"labelIds\": [\n    \"<integer>\"\n  ]\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "0171c2bc-89ed-4673-b764-8cea500813d6",
+          "name": "List saved replies",
+          "request": {
+            "name": "List saved replies",
+            "description": {
+              "content": "Your workspace's saved replies (reusable answer text), sorted by name; a workspace holds at most 200. `variables` lists the placeholders a reply may contain. They are returned exactly as written: fill them in yourself before sending the text with `POST /api/inbox/conversations/{id}/messages`.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "inbox",
+                "saved-replies"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "body": {},
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "3f98266f-1e16-45e4-8d19-866e6179b8d9",
+              "name": "Saved replies",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "inbox",
+                    "saved-replies"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"savedReplies\": [\n    {\n      \"id\": \"<integer>\",\n      \"name\": \"<string>\",\n      \"body\": \"Hi {{first_name}}, thanks for reaching out.\",\n      \"createdBy\": \"<string,null>\",\n      \"updatedAt\": \"<dateTime>\"\n    }\n  ],\n  \"variables\": [\n    {\n      \"key\": \"first_name\",\n      \"description\": \"<string>\"\n    }\n  ]\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "5245ed0c-97b0-4987-9cf7-d318f44e3434",
+          "name": "Create a saved reply",
+          "request": {
+            "name": "Create a saved reply",
+            "description": {
+              "content": "Adds a saved reply for the whole workspace. At most 200 per workspace (400 beyond that).\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 `FORBIDDEN`. Limited to 60 Inbox changes per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`); a read-only API key gets 403 `INSUFFICIENT_SCOPE`.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "inbox",
+                "saved-replies"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"body\": \"Hi {{first_name}}, thanks for reaching out.\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "602ac819-69a7-494d-a678-be6ce392aef8",
+              "name": "Created",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "inbox",
+                    "saved-replies"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"<string>\",\n  \"body\": \"Hi {{first_name}}, thanks for reaching out.\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"<integer>\",\n  \"name\": \"<string>\",\n  \"body\": \"<string>\",\n  \"createdBy\": \"<string,null>\",\n  \"updatedAt\": \"<dateTime>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "1b594739-a831-4c0f-8bd9-ffa703ea393e",
+          "name": "Update a saved reply",
+          "request": {
+            "name": "Update a saved reply",
+            "description": {
+              "content": "Replaces a saved reply's name and text; send both.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 `FORBIDDEN`. Limited to 60 Inbox changes per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`); a read-only API key gets 403 `INSUFFICIENT_SCOPE`.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "inbox",
+                "saved-replies",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Saved reply id",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"<string>\",\n  \"body\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "b1259e1b-8fc0-4db9-a5be-2f48e34f56e6",
+              "name": "Updated",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "inbox",
+                    "saved-replies",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "PUT",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"<string>\",\n  \"body\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"<integer>\",\n  \"name\": \"<string>\",\n  \"body\": \"<string>\",\n  \"createdBy\": \"<string,null>\",\n  \"updatedAt\": \"<dateTime>\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "7a082697-b114-475a-81f5-735aa1e08dda",
+          "name": "Delete a saved reply",
+          "request": {
+            "name": "Delete a saved reply",
+            "description": {
+              "content": "Deletes a saved reply for the whole workspace. Replies already sent with its text are not affected.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 `FORBIDDEN`. Limited to 60 Inbox changes per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`); a read-only API key gets 403 `INSUFFICIENT_SCOPE`.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "api",
+                "inbox",
+                "saved-replies",
+                ":id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "type": "any",
+                  "value": "<integer>",
+                  "key": "id",
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Saved reply id",
+                    "type": "text/plain"
+                  }
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "DELETE",
+            "body": {},
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Authorization"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "d7942ce5-07ce-4962-8231-600b2554fb5a",
+              "name": "Deleted",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "api",
+                    "inbox",
+                    "saved-replies",
+                    ":id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true\n}",
               "cookie": [],
               "_postman_previewlanguage": "json"
             }

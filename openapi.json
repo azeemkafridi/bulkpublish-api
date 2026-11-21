@@ -582,8 +582,10 @@
             "type": "string",
             "enum": [
               "post",
-              "media"
-            ]
+              "media",
+              "inbox"
+            ],
+            "description": "What the label is for: `post` labels go on posts, `media` labels on files in your media library, `inbox` labels on Inbox conversations (set with `PUT /api/inbox/conversations/{id}/labels`)."
           },
           "createdAt": {
             "type": "string",
@@ -1109,7 +1111,11 @@
               },
               "linkStickerPosition": {
                 "type": "string",
-                "enum": ["top", "middle", "bottom"],
+                "enum": [
+                  "top",
+                  "middle",
+                  "bottom"
+                ],
                 "description": "Where the link sticker sits. Ignored without a link. Snapchat centres it when omitted."
               },
               "overlayText": {
@@ -1119,12 +1125,21 @@
               },
               "overlayPosition": {
                 "type": "string",
-                "enum": ["top", "middle", "bottom"],
+                "enum": [
+                  "top",
+                  "middle",
+                  "bottom"
+                ],
                 "description": "Where the on-screen text sits. Snapchat's default when omitted."
               },
               "storyDurationDays": {
                 "type": "integer",
-                "enum": [1, 2, 3, 7],
+                "enum": [
+                  1,
+                  2,
+                  3,
+                  7
+                ],
                 "default": 1,
                 "description": "Story only. How many days the story stays up: 1 (24 hours, Snapchat's default), 2, 3 or 7. Ignored on saved_story and spotlight."
               },
@@ -1474,7 +1489,7 @@
       },
       "ClientConnectLink": {
         "type": "object",
-        "description": "The raw token is shown once, in the `url` alongside this object on creation (POST /api/client-connect-links), and never again — the stored token_hash cannot be reversed back into a URL, so GET /api/client-connect-links lists status only, with no url or token field.",
+        "description": "The raw token is shown once, in the `url` alongside this object on creation (POST /api/client-connect-links), and never again \u2014 the stored token_hash cannot be reversed back into a URL, so GET /api/client-connect-links lists status only, with no url or token field.",
         "properties": {
           "id": {
             "type": "integer"
@@ -1796,7 +1811,14 @@
             "name": "order",
             "in": "query",
             "required": false,
-            "schema": { "type": "string", "enum": ["asc", "desc"], "default": "desc" },
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
             "description": "Direction of the timeline sort. Posts are ordered by the timestamp that matters for each one \u2014 when it published, else when it is due, else when it was created. `desc` (the default) returns the most recent first. `asc` returns the earliest first, which is what you want when reading the next few scheduled posts rather than the furthest-out ones. Any other value answers 400 rather than quietly falling back to `desc`."
           }
         ],
@@ -2801,13 +2823,13 @@
         ],
         "operationId": "listConversations",
         "summary": "List conversations",
-        "description": "Direct messages, reviews and comment threads across your connected channels, newest activity first.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence. Comment threads (`kind: \"comment\"`) are included only once comment replies are available to your account; until then they are left out of every view, including `kind=comment`.\n\n**What API keys and OAuth apps do not see.** Internal notes your team leaves on a conversation are never returned and search does not match on them; inbox labels are not returned (and the label filters are ignored); WhatsApp conversations are not included.\n\n**Paging.** Pass `nextCursor` back as `cursor` to get the next page; `nextCursor` is `null` on the last page. Treat it as opaque.\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
+        "description": "Direct messages, reviews, comment threads and mentions across your connected channels, newest activity first.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence. Comment threads (`kind: \"comment\"`) are included only once comment replies are available to your account; until then they are left out of every view, including `kind=comment`. Mentions (`kind: \"mention\"`) work the same way: they appear only once mentions are available to your account, and only from networks that report them, so which networks deliver mentions depends on the network and on your workspace's plan.\n\n**Search** (`q`) also matches the internal notes your team has left on a conversation. WhatsApp conversations are not included for API keys and OAuth apps.\n\n**Paging.** Pass `nextCursor` back as `cursor` to get the next page; `nextCursor` is `null` on the last page. Treat it as opaque.\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
         "parameters": [
           {
             "name": "status",
             "in": "query",
             "required": false,
-            "description": "**optional** — `open` (default), `archived` or `snoozed`. An unknown value is treated as `open`.",
+            "description": "**optional** \u2014 `open` (default), `archived` or `snoozed`. An unknown value is treated as `open`.",
             "schema": {
               "type": "string",
               "enum": [
@@ -2822,13 +2844,14 @@
             "name": "kind",
             "in": "query",
             "required": false,
-            "description": "**optional** — `dm`, `review` or `comment`. Omit for all kinds.",
+            "description": "**optional** \u2014 `dm`, `review`, `comment` or `mention`. Omit for all kinds. Asking for a kind that is not yet available to your account (see Availability) is ignored, as if `kind` were omitted; that kind is still left out.",
             "schema": {
               "type": "string",
               "enum": [
                 "dm",
                 "review",
-                "comment"
+                "comment",
+                "mention"
               ]
             }
           },
@@ -2836,7 +2859,7 @@
             "name": "platforms",
             "in": "query",
             "required": false,
-            "description": "**optional** — Comma-separated platforms; matches any of them. Unknown names are ignored.",
+            "description": "**optional** \u2014 Comma-separated platforms; matches any of them. Unknown names are ignored.",
             "schema": {
               "type": "string"
             }
@@ -2845,7 +2868,7 @@
             "name": "platform",
             "in": "query",
             "required": false,
-            "description": "**optional** — Single platform (older form of `platforms`).",
+            "description": "**optional** \u2014 Single platform (older form of `platforms`).",
             "schema": {
               "type": "string"
             }
@@ -2854,7 +2877,7 @@
             "name": "channelId",
             "in": "query",
             "required": false,
-            "description": "**optional** — Only this channel.",
+            "description": "**optional** \u2014 Only this channel.",
             "schema": {
               "type": "integer"
             }
@@ -2863,7 +2886,25 @@
             "name": "assigned",
             "in": "query",
             "required": false,
-            "description": "**optional** — `me`, `unassigned`, or a teammate's user id.",
+            "description": "**optional** \u2014 `me`, `unassigned`, or a teammate's user id.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelId",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Only conversations carrying this inbox label (`GET /api/labels?type=inbox`). Combined with `labelIds`, both must match.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "labelIds",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Comma-separated inbox label ids; matches conversations carrying ANY of them. At most 50 ids are used; anything that is not a positive whole number is ignored.",
             "schema": {
               "type": "string"
             }
@@ -2872,7 +2913,7 @@
             "name": "q",
             "in": "query",
             "required": false,
-            "description": "**optional** — Search the participant's name and handle and the message text (2 to 100 characters; shorter is ignored).",
+            "description": "**optional** \u2014 Search the participant's name and handle and the message text, including your team's internal notes (2 to 100 characters; shorter is ignored).",
             "schema": {
               "type": "string"
             }
@@ -2881,7 +2922,7 @@
             "name": "cursor",
             "in": "query",
             "required": false,
-            "description": "**optional** — `nextCursor` from the previous page.",
+            "description": "**optional** \u2014 `nextCursor` from the previous page.",
             "schema": {
               "type": "string"
             }
@@ -2890,7 +2931,7 @@
             "name": "offset",
             "in": "query",
             "required": false,
-            "description": "**optional** — Skip this many conversations, for numbered pages (0 to 100000, default 0). Ignored when `cursor` is sent; prefer `cursor` for walking the whole list, since new messages reorder it between requests.",
+            "description": "**optional** \u2014 Skip this many conversations, for numbered pages (0 to 100000, default 0). Ignored when `cursor` is sent; prefer `cursor` for walking the whole list, since new messages reorder it between requests.",
             "schema": {
               "type": "integer",
               "minimum": 0,
@@ -2902,7 +2943,7 @@
             "name": "limit",
             "in": "query",
             "required": false,
-            "description": "**optional** — Page size, 1 to 100 (default 50).",
+            "description": "**optional** \u2014 Page size, 1 to 100 (default 50).",
             "schema": {
               "type": "integer",
               "minimum": 1,
@@ -2936,9 +2977,38 @@
                             "enum": [
                               "dm",
                               "review",
-                              "comment"
+                              "comment",
+                              "mention"
                             ],
-                            "description": "`dm` is a direct-message thread, `review` a single review (Facebook Page recommendations, Google Business reviews), `comment` the comment thread on one of your published posts."
+                            "description": "`dm` is a direct-message thread, `review` a single review (Facebook Page recommendations, Google Business reviews), `comment` the comment thread on one of your published posts, `mention` a post by someone else that mentions your account (a reply answers that post). Whether mentions are delivered depends on the network and on your workspace's plan."
+                          },
+                          "url": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "description": "Mentions only (absent on other kinds): a link to the post the mention was made in, when the network provides one."
+                          },
+                          "labels": {
+                            "type": "array",
+                            "description": "The inbox labels on this conversation, by name. Set them with `PUT /api/inbox/conversations/{id}/labels`.",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "integer"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "color": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                }
+                              }
+                            }
                           },
                           "rating": {
                             "type": [
@@ -3321,7 +3391,7 @@
         ],
         "operationId": "getConversationMessages",
         "summary": "Get a conversation's messages",
-        "description": "The newest 500 messages of one conversation, oldest first. Reading does not mark the conversation read; use `PATCH /api/inbox/conversations/{id}` with `read: true` for that.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\n**What API keys and OAuth apps do not see.** Internal notes your team leaves on a conversation are never returned and search does not match on them; inbox labels are not returned (and the label filters are ignored); WhatsApp conversations are not included.\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
+        "description": "The newest 500 messages of one conversation, oldest first. Reading does not mark the conversation read; use `PATCH /api/inbox/conversations/{id}` with `read: true` for that.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\n**Internal notes** your team leaves on the conversation are returned inline, in time order, with `direction: \"note\"` and their `author`. They are never sent to the other person. Add one with `POST /api/inbox/conversations/{id}/notes`. WhatsApp conversations are not available to API keys and OAuth apps (404).\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
         "parameters": [
           {
             "name": "id",
@@ -3358,9 +3428,10 @@
                             "type": "string",
                             "enum": [
                               "in",
-                              "out"
+                              "out",
+                              "note"
                             ],
-                            "description": "`in` from the other person, `out` sent by your workspace."
+                            "description": "`in` from the other person, `out` sent by your workspace, `note` an internal note for your team (never sent; `author` says who wrote it)."
                           },
                           "text": {
                             "type": [
@@ -3417,7 +3488,7 @@
                               "string",
                               "null"
                             ],
-                            "description": "The teammate who sent an `out` message from BulkPublish, when known."
+                            "description": "The teammate who sent an `out` message from BulkPublish, or wrote a `note`, when known."
                           },
                           "author": {
                             "type": [
@@ -3528,7 +3599,7 @@
         ],
         "operationId": "sendConversationMessage",
         "summary": "Reply in a conversation",
-        "description": "Sends a reply to the person on the platform, immediately, from the channel the conversation belongs to. It cannot be unsent from here. In a comment thread the reply answers the newest comment from the other person, or the one given in `replyToMessageId`.\n\nSend `text` (up to 4,000 characters), `mediaIds` (up to 4 files from your media library), or both. Whether a platform accepts attachments, and which kinds, is in the conversation's `attachments`; reviews and comments are text only.\n\nSome platforms only accept a reply within 24 hours of the person's last message (Facebook Messenger and Instagram); after that this returns 422 and `canReply` is false on the conversation.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor). Limited to 30 replies per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
+        "description": "Sends a reply to the person on the platform, immediately, from the channel the conversation belongs to. It cannot be unsent from here. In a comment thread the reply answers the newest comment from the other person, or the one given in `replyToMessageId`. In a mention, the reply answers the post that mentioned you.\n\nSend `text` (up to 4,000 characters), `mediaIds` (up to 4 files from your media library), or both. Whether a platform accepts attachments, and which kinds, is in the conversation's `attachments`; reviews, comments and mentions are text only. To leave a note for your team instead, use `POST /api/inbox/conversations/{id}/notes`.\n\nSome platforms only accept a reply within 24 hours of the person's last message (Facebook Messenger and Instagram); after that this returns 422 and `canReply` is false on the conversation.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor). Limited to 30 replies per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`). `posts:write` does **not** cover this: answering people is a separate consent from publishing posts.",
         "parameters": [
           {
             "name": "id",
@@ -3706,6 +3777,919 @@
                 }
               }
             }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "inbox:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/inbox/conversations/{id}/notes": {
+      "post": {
+        "tags": [
+          "Inbox"
+        ],
+        "operationId": "addConversationNote",
+        "summary": "Add an internal note to a conversation",
+        "description": "Leaves a note in the conversation for your team. It is never sent to the other person and nothing changes on the platform. Notes come back inline in `GET /api/inbox/conversations/{id}/messages` with `direction: \"note\"`, and `q` on the conversation list searches them.\n\nThe note's author is the person the API key or OAuth app acts for.\n\n**Mentioning a teammate.** Write `@[Display Name](user:USER_ID)` in `text` to mention a member of the workspace; when note mentions are available to your account they are notified (at most 10 people per note, never the author, and only real members of the workspace). The name is for display only; the user id decides who is told. The teammate the conversation is assigned to is told about every note, unless a mention already told them.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 `FORBIDDEN`. Limited to 60 Inbox changes per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`); a read-only API key gets 403 `INSUFFICIENT_SCOPE`.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Conversation id",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "text"
+                ],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "maxLength": 4000,
+                    "description": "1 to 4,000 characters, trimmed."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Note added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "direction": {
+                          "type": "string",
+                          "enum": [
+                            "note"
+                          ]
+                        },
+                        "text": {
+                          "type": "string"
+                        },
+                        "sentAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "authorUserId": {
+                          "type": "string"
+                        },
+                        "author": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "image": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id, invalid JSON, or `text` missing or longer than 4,000 characters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Not available: `FEATURE_DISABLED` (see Availability above), or `FORBIDDEN` when your role cannot do this, or `INSUFFICIENT_SCOPE` for an OAuth app or read-only API key without the scope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "feature": {
+                          "type": "string"
+                        },
+                        "plan": {
+                          "type": "string"
+                        },
+                        "upgrade": {
+                          "type": "boolean"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Conversation not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "inbox:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/inbox/conversations/{id}/labels": {
+      "put": {
+        "tags": [
+          "Inbox"
+        ],
+        "operationId": "setConversationLabels",
+        "summary": "Set a conversation's labels",
+        "description": "Replaces the conversation's inbox labels with exactly the ids sent; `[]` removes them all. Every id must be a label of type `inbox` in this workspace (list them with `GET /api/labels?type=inbox`, create one with `POST /api/labels` and `type: \"inbox\"`); if any is not, nothing changes and you get 422. A conversation carries at most 20 labels. Duplicate ids are counted once. Labels are your workspace's own organization: nothing is sent to the other person.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 `FORBIDDEN`. Limited to 60 Inbox changes per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`); a read-only API key gets 403 `INSUFFICIENT_SCOPE`.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Conversation id",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "labelIds"
+                ],
+                "properties": {
+                  "labelIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "maxItems": 20,
+                    "description": "The complete set of inbox label ids the conversation should carry."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Labels set",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "labelIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      },
+                      "description": "The ids now on the conversation, duplicates removed."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id, invalid JSON, `labelIds` not an array of positive whole numbers, or more than 20 labels",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Not available: `FEATURE_DISABLED` (see Availability above), or `FORBIDDEN` when your role cannot do this, or `INSUFFICIENT_SCOPE` for an OAuth app or read-only API key without the scope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "feature": {
+                          "type": "string"
+                        },
+                        "plan": {
+                          "type": "string"
+                        },
+                        "upgrade": {
+                          "type": "boolean"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Conversation not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "One or more ids are not inbox labels of this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "inbox:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/inbox/saved-replies": {
+      "get": {
+        "tags": [
+          "Inbox"
+        ],
+        "operationId": "listSavedReplies",
+        "summary": "List saved replies",
+        "description": "Your workspace's saved replies (reusable answer text), sorted by name; a workspace holds at most 200. `variables` lists the placeholders a reply may contain. They are returned exactly as written: fill them in yourself before sending the text with `POST /api/inbox/conversations/{id}/messages`.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
+        "responses": {
+          "200": {
+            "description": "Saved replies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "savedReplies": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "body": {
+                            "type": "string",
+                            "description": "The reply text, with any `{{variable}}` placeholders left as written."
+                          },
+                          "createdBy": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "description": "User id of the teammate who created it."
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    },
+                    "variables": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string",
+                            "enum": [
+                              "name",
+                              "first_name",
+                              "handle",
+                              "account",
+                              "platform"
+                            ],
+                            "description": "Written in a reply as `{{key}}`."
+                          },
+                          "description": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Not available: `FEATURE_DISABLED` (see Availability above), or `FORBIDDEN` when your role cannot do this, or `INSUFFICIENT_SCOPE` for an OAuth app or read-only API key without the scope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "feature": {
+                          "type": "string"
+                        },
+                        "plan": {
+                          "type": "string"
+                        },
+                        "upgrade": {
+                          "type": "boolean"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "inbox:read"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Inbox"
+        ],
+        "operationId": "createSavedReply",
+        "summary": "Create a saved reply",
+        "description": "Adds a saved reply for the whole workspace. At most 200 per workspace (400 beyond that).\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 `FORBIDDEN`. Limited to 60 Inbox changes per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`); a read-only API key gets 403 `INSUFFICIENT_SCOPE`.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "body"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "description": "1 to 100 characters, trimmed. Unique within the workspace (409 otherwise)."
+                  },
+                  "body": {
+                    "type": "string",
+                    "maxLength": 4000,
+                    "description": "1 to 4,000 characters, trimmed. May contain the placeholders listed in `variables` of `GET /api/inbox/saved-replies`, e.g. `Hi {{first_name}}`."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "type": "string",
+                      "description": "The reply text, with any `{{variable}}` placeholders left as written."
+                    },
+                    "createdBy": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "User id of the teammate who created it."
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON, `name` or `body` missing or too long, or the workspace already has 200 saved replies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Not available: `FEATURE_DISABLED` (see Availability above), or `FORBIDDEN` when your role cannot do this, or `INSUFFICIENT_SCOPE` for an OAuth app or read-only API key without the scope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "feature": {
+                          "type": "string"
+                        },
+                        "plan": {
+                          "type": "string"
+                        },
+                        "upgrade": {
+                          "type": "boolean"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A saved reply with this name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "inbox:write"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/inbox/saved-replies/{id}": {
+      "put": {
+        "tags": [
+          "Inbox"
+        ],
+        "operationId": "updateSavedReply",
+        "summary": "Update a saved reply",
+        "description": "Replaces a saved reply's name and text; send both.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 `FORBIDDEN`. Limited to 60 Inbox changes per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`); a read-only API key gets 403 `INSUFFICIENT_SCOPE`.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Saved reply id",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "body"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "description": "1 to 100 characters, trimmed. Unique within the workspace (409 otherwise)."
+                  },
+                  "body": {
+                    "type": "string",
+                    "maxLength": 4000,
+                    "description": "1 to 4,000 characters, trimmed. May contain the placeholders listed in `variables` of `GET /api/inbox/saved-replies`, e.g. `Hi {{first_name}}`."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "type": "string",
+                      "description": "The reply text, with any `{{variable}}` placeholders left as written."
+                    },
+                    "createdBy": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "User id of the teammate who created it."
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id, invalid JSON, or `name` or `body` missing or too long",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Not available: `FEATURE_DISABLED` (see Availability above), or `FORBIDDEN` when your role cannot do this, or `INSUFFICIENT_SCOPE` for an OAuth app or read-only API key without the scope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "feature": {
+                          "type": "string"
+                        },
+                        "plan": {
+                          "type": "string"
+                        },
+                        "upgrade": {
+                          "type": "boolean"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Saved reply not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Another saved reply already has this name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          },
+          {
+            "oauth2": [
+              "inbox:write"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Inbox"
+        ],
+        "operationId": "deleteSavedReply",
+        "summary": "Delete a saved reply",
+        "description": "Deletes a saved reply for the whole workspace. Replies already sent with its text are not affected.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\nRequires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 `FORBIDDEN`. Limited to 60 Inbox changes per minute per user, after which you get 429. OAuth apps need the `inbox:write` scope (or `full`); a read-only API key gets 403 `INSUFFICIENT_SCOPE`.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Saved reply id",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Not available: `FEATURE_DISABLED` (see Availability above), or `FORBIDDEN` when your role cannot do this, or `INSUFFICIENT_SCOPE` for an OAuth app or read-only API key without the scope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "feature": {
+                          "type": "string"
+                        },
+                        "plan": {
+                          "type": "string"
+                        },
+                        "upgrade": {
+                          "type": "boolean"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Saved reply not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited"
           }
         },
         "security": [
@@ -4275,7 +5259,13 @@
                                 "type": "array",
                                 "items": {
                                   "type": "string",
-                                  "enum": ["like", "unlike", "hide", "unhide", "delete"]
+                                  "enum": [
+                                    "like",
+                                    "unlike",
+                                    "hide",
+                                    "unhide",
+                                    "delete"
+                                  ]
                                 },
                                 "description": "The moderation actions this channel accepts on these comments. Absent or empty when the platform offers none; `POST /api/posts/{id}/comments/moderate` refuses any action not listed here with 422."
                               },
@@ -5066,8 +6056,8 @@
               "type": "string",
               "enum": [
                 "image",
-              "video",
-              "document"
+                "video",
+                "document"
               ]
             }
           }
@@ -5693,7 +6683,7 @@
             "name": "tz",
             "in": "query",
             "required": false,
-            "description": "**optional** — IANA timezone (e.g. `Asia/Karachi`) that sets where each day of `from`..`to` starts and ends, and how `byDay` is bucketed. Defaults to `UTC`. Pass the same zone as to `/api/analytics/summary` so the two agree. A name that is not a timezone returns 400.",
+            "description": "**optional** \u2014 IANA timezone (e.g. `Asia/Karachi`) that sets where each day of `from`..`to` starts and ends, and how `byDay` is bucketed. Defaults to `UTC`. Pass the same zone as to `/api/analytics/summary` so the two agree. A name that is not a timezone returns 400.",
             "schema": {
               "type": "string",
               "default": "UTC"
@@ -5808,6 +6798,30 @@
             }
           },
           {
+            "name": "bestTimes",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Set to `1` to include `bestTimes`: the window's published posts grouped by weekday and hour in `tz`, with the average engagements and impressions per slot and the best slots ranked. Respects every filter and the 30-day window. A slot is only recommended in `best` once it holds at least `minPosts` (3) posts, so a single lucky post never becomes advice; when no slot gets there, `best` is empty and `enoughData` is `false`. Posts whose network cannot report engagements (YouTube, which does not allow combined figures; networks or LinkedIn profiles without post statistics; X channels with statistics turned off) and posts whose figures have not been read yet are left out of the averages and counted in `excludedPosts`. Independent of `heatmap`.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
+          },
+          {
+            "name": "vsMedian",
+            "in": "query",
+            "required": false,
+            "description": "**optional** \u2014 Set to `1` to add `vsMedian` `{impressions, engagements, basis}` to every `platformMetrics[]` entry of `topPosts` and `allPosts`: this destination's figure divided by the median of the same channel's posts in the window (respecting every filter), rounded to 2 decimals. `1` is a typical post for that account, `0.5` half of typical, `2` twice. `basis` is how many of the channel's posts in the window have figures to compare against. A value is `null` when no comparison is possible, which is not the same as zero: the network does not report that figure, fewer than 3 of the channel's posts report it, the median is 0, or this post's figures have not been read yet. YouTube is always `null` for both, because YouTube does not allow derived figures. Posts not yet measured are left out of the medians.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
+          },
+          {
             "name": "channelIds",
             "in": "query",
             "required": false,
@@ -5879,7 +6893,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts, allPosts, and unmeasuredPlatforms.\n\n`unmeasuredPlatforms` lists platforms present in the window that cannot report per-post metrics at all \u2014 either the platform has no readable metrics API (Google Business, Telegram, Tumblr) or, for LinkedIn, the channel is a personal/profile account (share statistics are exposed only for organization pages). Their rows still appear in every total with zeroes, so a zero for one of these platforms means \"not reported\", not \"measured zero\". Each entry in a post's `platformMetrics` carries the same signal as `metricsSupported`, which is also `false` (with `supportedMetrics` reduced to `linkClicks`) for an X post that has no snapshot because its channel has not opted into metrics sync.\n\nAll figures come from the stored `post_metrics` snapshot, synced every 6 hours (or on demand via `POST /api/analytics/refresh`) \u2014 not a live read of the platform.\n\n`metricSupport` maps each platform present in the window to the list of metric keys its API can actually report (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `engagementRate`). Anything not listed is stored as 0 by the metrics sync because the platform has no such field \u2014 it is NOT a measurement. For example X reports impressions/likes/comments/shares/saves (bookmarks), so `reach`, `clicks` and `videoViews` are always 0 for X rows; Bluesky and Mastodon report no impressions, so `engagementRate` is always 0 for them; Pinterest reports no reach; YouTube reports no shares, reach or impressions (its views are `videoViews`), so it has no `engagementRate` and adds 0 to every `engagements` figure, because YouTube's API policies do not allow figures derived from its data; Discord reports likes (reaction counts) and comments (thread replies) only.\n\n`supportedTotals` is the union of `metricSupport` across the window \u2014 the org-wide `total*` fields are only measurements for keys listed here. A key absent from `supportedTotals` should be rendered as \u201cnot available\u201d (a dash), never as 0. `partialTotals` maps a supported metric key to the platforms in the window that do NOT report it, so a consumer can note that the total covers only a subset of posts.\n\nEach entry of a post's `platformMetrics` also carries `supportedMetrics` (same per-platform list) alongside `metricsSupported`. `supportedMetrics` can also depend on the post type: an Instagram story lists only `impressions`, `reach`, `comments` (story replies) and `engagementRate`, because story insights have no likes, saves or shares.\n\nFacebook's `impressions`, `reach`, `clicks` and `engagementRate` come from the Page Insights edge and require the `read_insights` permission; without it they stay 0 even though the metric is listed as supported.\n\n`metricsDisabledChannels` lists channels published to in the window whose metrics sync is switched off, so their posts contribute zeroes to every total. X is the only platform this applies to today: its reads are billed, so per-post metrics sync is opt-in per channel (`metadata.metricsSyncEnabled`, toggled on the Channels page) and runs at most once every 7 days. `POST /api/analytics/refresh` will not produce X figures for a channel that has not opted in.\n\n`conditionalMetrics` maps a platform in the window to metrics that are supported but permission-gated \u2014 a 0 there means \"may not be readable\", not \"no such metric\". Today Facebook appears for `impressions`, `reach`, `clicks` and `engagementRate`, and TikTok for `reach`, `saves` and `clicks`, which only accounts that have granted TikTok insights report.\n\nEach post in `topPosts`/`allPosts` carries both a post-level `engagementRate` and, inside `platformMetrics[]`, a per-channel `engagementRate`. They are NOT the same number: the post-level value is the mean of the post's channels that reported a non-zero rate, while `platformMetrics[].engagementRate` is that one channel's own rate (engagements \u00f7 impressions). Render the per-channel value next to per-channel counters \u2014 using the post-level average there shows one network's percentage beside another network's zeros. Both are basis points (325 = 3.25%).\n\n`totalLinkClicks` (and `linkClicks` on each entry of `byPlatform`, `byDay`, `topPosts`, `allPosts` and `platformMetrics`) counts clicks on bulkpubli.sh short links, measured by BulkPublish rather than reported by the platform. It is deliberately NOT folded into `totalClicks`/`clicks`, which are the platform's own click figures: one visit can register in both, so adding them would double-count. Because we measure it ourselves it is available on every platform, including those listed in `unmeasuredPlatforms`, and it appears in `supportedTotals`/`metricSupport` for all of them. Bot and link-preview traffic is excluded. Zero for organizations that have not enabled Link Tracking.\n\n**Added 2026-09-03.** `byDay[]` entries now carry every metric (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `linkClicks`, `engagements`, `posts`) plus `platforms`: the same bucket per platform for that day. `byPlatform` entries carry the same full set. `byChannel[]` lists `{channelId, platform, accountName, \u2026same metrics\u2026}` per channel. Each post in `topPosts`/`allPosts` also has `reach`, `engagements`, `postFormat` (`post`|`thread`), `mediaType` (`text`|`image`|`video`) and `labels[] {id, name, color}`; each `platformMetrics[]` entry has `channelId`, `accountName`, `reach`, `engagements` and `fetchedAt`. `publishedCount` is the number of published post_platform rows in the window. `filters` echoes the parsed filter set. With `compare=1`, `previous` holds the `total*`/`avgEngagementRate`/`publishedCount` fields and `byDay` for the preceding window (or `null` if unavailable) and `previousWindow` says which window that is."
+            "description": "Engagement data including totalImpressions, totalReach, totalLikes, totalComments, totalShares, totalSaves, totalClicks, totalVideoViews, avgEngagementRate, byPlatform, byDay, topPosts, allPosts, and unmeasuredPlatforms.\n\n`unmeasuredPlatforms` lists platforms present in the window that cannot report per-post metrics at all \u2014 either the platform has no readable metrics API (Google Business, Telegram, Tumblr) or, for LinkedIn, the channel is a personal/profile account (share statistics are exposed only for organization pages). Their rows still appear in every total with zeroes, so a zero for one of these platforms means \"not reported\", not \"measured zero\". Each entry in a post's `platformMetrics` carries the same signal as `metricsSupported`, which is also `false` (with `supportedMetrics` reduced to `linkClicks`) for an X post that has no snapshot because its channel has not opted into metrics sync.\n\nAll figures come from the stored `post_metrics` snapshot, synced every 6 hours (or on demand via `POST /api/analytics/refresh`) \u2014 not a live read of the platform.\n\n`metricSupport` maps each platform present in the window to the list of metric keys its API can actually report (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `engagementRate`). Anything not listed is stored as 0 by the metrics sync because the platform has no such field \u2014 it is NOT a measurement. For example X reports impressions/likes/comments/shares/saves (bookmarks), so `reach`, `clicks` and `videoViews` are always 0 for X rows; Bluesky and Mastodon report no impressions, so `engagementRate` is always 0 for them; Pinterest reports no reach; YouTube reports no shares, reach or impressions (its views are `videoViews`), so it has no `engagementRate` and adds 0 to every `engagements` figure, because YouTube's API policies do not allow figures derived from its data; Discord reports likes (reaction counts) and comments (thread replies) only.\n\n`supportedTotals` is the union of `metricSupport` across the window \u2014 the org-wide `total*` fields are only measurements for keys listed here. A key absent from `supportedTotals` should be rendered as \u201cnot available\u201d (a dash), never as 0. `partialTotals` maps a supported metric key to the platforms in the window that do NOT report it, so a consumer can note that the total covers only a subset of posts.\n\nEach entry of a post's `platformMetrics` also carries `supportedMetrics` (same per-platform list) alongside `metricsSupported`. `supportedMetrics` can also depend on the post type: an Instagram story lists only `impressions`, `reach`, `comments` (story replies) and `engagementRate`, because story insights have no likes, saves or shares.\n\nFacebook's `impressions`, `reach`, `clicks` and `engagementRate` come from the Page Insights edge and require the `read_insights` permission; without it they stay 0 even though the metric is listed as supported.\n\n`metricsDisabledChannels` lists channels published to in the window whose metrics sync is switched off, so their posts contribute zeroes to every total. X is the only platform this applies to today: its reads are billed, so per-post metrics sync is opt-in per channel (`metadata.metricsSyncEnabled`, toggled on the Channels page) and runs at most once every 7 days. `POST /api/analytics/refresh` will not produce X figures for a channel that has not opted in.\n\n`conditionalMetrics` maps a platform in the window to metrics that are supported but permission-gated \u2014 a 0 there means \"may not be readable\", not \"no such metric\". Today Facebook appears for `impressions`, `reach`, `clicks` and `engagementRate`, and TikTok for `reach`, `saves` and `clicks`, which only accounts that have granted TikTok insights report.\n\nEach post in `topPosts`/`allPosts` carries both a post-level `engagementRate` and, inside `platformMetrics[]`, a per-channel `engagementRate`. They are NOT the same number: the post-level value is the mean of the post's channels that reported a non-zero rate, while `platformMetrics[].engagementRate` is that one channel's own rate (engagements \u00f7 impressions). Render the per-channel value next to per-channel counters \u2014 using the post-level average there shows one network's percentage beside another network's zeros. Both are basis points (325 = 3.25%).\n\n`totalLinkClicks` (and `linkClicks` on each entry of `byPlatform`, `byDay`, `topPosts`, `allPosts` and `platformMetrics`) counts clicks on bulkpubli.sh short links, measured by BulkPublish rather than reported by the platform. It is deliberately NOT folded into `totalClicks`/`clicks`, which are the platform's own click figures: one visit can register in both, so adding them would double-count. Because we measure it ourselves it is available on every platform, including those listed in `unmeasuredPlatforms`, and it appears in `supportedTotals`/`metricSupport` for all of them. Bot and link-preview traffic is excluded. Zero for organizations that have not enabled Link Tracking.\n\n**Added 2026-09-03.** `byDay[]` entries now carry every metric (`impressions`, `reach`, `likes`, `comments`, `shares`, `saves`, `clicks`, `videoViews`, `linkClicks`, `engagements`, `posts`) plus `platforms`: the same bucket per platform for that day. `byPlatform` entries carry the same full set. `byChannel[]` lists `{channelId, platform, accountName, \u2026same metrics\u2026}` per channel. Each post in `topPosts`/`allPosts` also has `reach`, `engagements`, `postFormat` (`post`|`thread`), `mediaType` (`text`|`image`|`video`) and `labels[] {id, name, color}`; each `platformMetrics[]` entry has `channelId`, `accountName`, `reach`, `engagements` and `fetchedAt`. `publishedCount` is the number of published post_platform rows in the window. `filters` echoes the parsed filter set. With `compare=1`, `previous` holds the `total*`/`avgEngagementRate`/`publishedCount` fields and `byDay` for the preceding window (or `null` if unavailable) and `previousWindow` says which window that is.\n\nWith `bestTimes=1`, `bestTimes` is `{timezone, postCount, excludedPosts, minPosts, slots[], best[], enoughData}`. Each slot is `{weekday, hour, posts, avgEngagements, avgImpressions}`: `weekday` is `monday`..`sunday` and `hour` 0..23, both in `timezone`; `slots` lists only slots with at least one post, Monday 00:00 first; `avgImpressions` is `null` when no post in the slot reports impressions. `best` is up to 5 slots with at least `minPosts` (3) posts, highest `avgEngagements` first. `posts` counts each network a post went to separately.\n\nWith `vsMedian=1`, each `platformMetrics[]` entry carries `vsMedian: {impressions: number|null, engagements: number|null, basis: integer}`; see the `vsMedian` parameter for when a value is `null`."
           },
           "400": {
             "description": "Invalid `from`/`to` date, or `tz` is not an IANA timezone name"
@@ -6132,7 +7146,7 @@
             "name": "tz",
             "in": "query",
             "required": false,
-            "description": "**optional** — IANA timezone (e.g. `Asia/Karachi`) that sets where each day of `from`..`to` starts and ends. Defaults to `UTC`. A name that is not a timezone returns 400.",
+            "description": "**optional** \u2014 IANA timezone (e.g. `Asia/Karachi`) that sets where each day of `from`..`to` starts and ends. Defaults to `UTC`. A name that is not a timezone returns 400.",
             "schema": {
               "type": "string",
               "default": "UTC"
@@ -6240,12 +7254,13 @@
             "name": "type",
             "in": "query",
             "required": false,
-            "description": "**optional** \u2014 Filter by label type. Omitted: every label the caller may see. Labels are org-wide and one quota counts every type together (see `GET /api/quotas/usage`).",
+            "description": "**optional** \u2014 Filter by label type: `post`, `media` or `inbox` (labels for Inbox conversations). Omitted, or an unknown value: every label. Labels are org-wide and one quota counts every type together (see `GET /api/quotas/usage`).",
             "schema": {
               "type": "string",
               "enum": [
                 "post",
-                "media"
+                "media",
+                "inbox"
               ]
             }
           }
@@ -6266,7 +7281,7 @@
             ]
           }
         ],
-        "description": "Sorted by name (ties by `id`) and capped at 500 labels; a workspace with more gets the first 500 alphabetically. Response is `Cache-Control: private, no-store`. Each label: `{ id, name, color, type, createdAt }`. Add `?counts=1` to include `usageCount` (posts or media files carrying the label) on each row."
+        "description": "Sorted by name (ties by `id`) and capped at 500 labels; a workspace with more gets the first 500 alphabetically. Response is `Cache-Control: private, no-store`. Each label: `{ id, name, color, type, createdAt }`. Add `?counts=1` to include `usageCount` (posts, media files or conversations carrying the label) on each row. Labels are read with the `posts:read` scope whatever their type, so an OAuth app that only has `inbox:read` sees a conversation's labels on the conversation itself (`labels` in `GET /api/inbox/conversations`) rather than here."
       },
       "post": {
         "tags": [
@@ -6297,10 +7312,11 @@
                     "type": "string",
                     "enum": [
                       "post",
-                      "media"
+                      "media",
+                      "inbox"
                     ],
                     "default": "post",
-                    "description": "Which surface the label organizes. Default `post`. Any value outside this list is rejected with 400."
+                    "description": "Which surface the label organizes: `post`, `media`, or `inbox` for Inbox conversations. Default `post`. Any value outside this list is rejected with 400."
                   }
                 }
               }
@@ -8381,31 +9397,31 @@
         ],
         "summary": "Approve a pending post",
         "description": "Requires a role with post:approve (owner, admin, approver). Releases a post with approvalStatus 'pending': it publishes at its scheduled time, or immediately if that time passed less than 15 minutes ago. If the scheduled time passed more than 15 minutes ago, the optional body field whenLate decides: 'publish' publishes it immediately (the response has status 'publishing'); 'hold' approves it but does not publish it: it comes back with status 'draft' (approvalStatus 'approved', scheduledAt unchanged) and the author is notified to choose a new time. When whenLate is omitted it follows the post's publishWhenApproved: true means 'publish', false means 'hold'. whenLate has no effect on a post whose time is still ahead or passed less than 15 minutes ago. The author is notified in-app either way. The body is optional; an empty body behaves like {}. Approving sets publishWhenApproved to false. Send ifUnmodifiedSince to make sure you approve the version you reviewed.",
-          "requestBody": {
-            "required": false,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "whenLate": {
-                      "type": "string",
-                      "enum": [
-                        "publish",
-                        "hold"
-                      ],
-                      "description": "What to do if the post's scheduled time passed more than 15 minutes ago: 'publish' = publish now, 'hold' = approve and return it to draft for the author to pick a new time. Defaults to 'publish' when the post's publishWhenApproved is true, otherwise 'hold'. Any other value is rejected with 400 VALIDATION_ERROR."
-                    },
-                    "ifUnmodifiedSince": {
-                      "type": "string",
-                      "format": "date-time",
-                      "description": "Optional. The post's updatedAt as you last loaded it. When sent, the post is approved only if it has not changed since; otherwise nothing is written and you get 409 CONFLICT with the current updatedAt in error.updatedAt, so you never approve (and publish) an edit you have not seen. Must be an ISO 8601 timestamp (400 VALIDATION_ERROR otherwise). Omit it to approve whatever version is current."
-                    }
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "whenLate": {
+                    "type": "string",
+                    "enum": [
+                      "publish",
+                      "hold"
+                    ],
+                    "description": "What to do if the post's scheduled time passed more than 15 minutes ago: 'publish' = publish now, 'hold' = approve and return it to draft for the author to pick a new time. Defaults to 'publish' when the post's publishWhenApproved is true, otherwise 'hold'. Any other value is rejected with 400 VALIDATION_ERROR."
+                  },
+                  "ifUnmodifiedSince": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Optional. The post's updatedAt as you last loaded it. When sent, the post is approved only if it has not changed since; otherwise nothing is written and you get 409 CONFLICT with the current updatedAt in error.updatedAt, so you never approve (and publish) an edit you have not seen. Must be an ISO 8601 timestamp (400 VALIDATION_ERROR otherwise). Omit it to approve whatever version is current."
                   }
                 }
               }
             }
-          },
+          }
+        },
         "operationId": "approvePost",
         "responses": {
           "200": {
@@ -8728,14 +9744,45 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "id": { "type": "integer" },
-                      "name": { "type": "string" },
-                      "keyPreview": { "type": "string", "description": "The first characters of the key followed by `...`." },
-                      "access": { "type": "string", "enum": ["full", "read_only"], "description": "The key's access level. Keys created before access levels existed are `full`." },
-                      "lastUsedAt": { "type": ["string", "null"], "format": "date-time" },
-                      "expiresAt": { "type": ["string", "null"], "format": "date-time" },
-                      "isActive": { "type": "boolean" },
-                      "createdAt": { "type": "string", "format": "date-time" }
+                      "id": {
+                        "type": "integer"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "keyPreview": {
+                        "type": "string",
+                        "description": "The first characters of the key followed by `...`."
+                      },
+                      "access": {
+                        "type": "string",
+                        "enum": [
+                          "full",
+                          "read_only"
+                        ],
+                        "description": "The key's access level. Keys created before access levels existed are `full`."
+                      },
+                      "lastUsedAt": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date-time"
+                      },
+                      "expiresAt": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "date-time"
+                      },
+                      "isActive": {
+                        "type": "boolean"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
                     }
                   }
                 }
@@ -8771,7 +9818,10 @@
                   },
                   "access": {
                     "type": "string",
-                    "enum": ["full", "read_only"],
+                    "enum": [
+                      "full",
+                      "read_only"
+                    ],
                     "default": "full",
                     "description": "What the key may do. `full` (the default) can do anything its owner's team role allows. `read_only` can read posts, schedules, RSS feeds, labels, templates, hashtag groups, review links, calendar notes, media, analytics, quota usage, channels and channel sets, and the Inbox, and nothing else: every change is refused with **403**: `INSUFFICIENT_SCOPE` where a full-access key could make it, and `FORBIDDEN` on surfaces a read-only key may not reach at all (account administration such as team, organizations, billing, API keys and webhooks, plus channel settings), even to read. A few reads fetch live data from a network, such as mention search and the channel health check; like any key, a read-only key can make them, and on X they count against the workspace's X read allowance. Choose it for reporting, dashboards and agents that should only look. Any other value is a **400**, never a full-access key."
                   },
@@ -8781,7 +9831,10 @@
                     "description": "Must be in the future. Takes precedence over `expires_in_days`."
                   },
                   "expires_in_days": {
-                    "type": ["integer", "null"],
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
                     "minimum": 1,
                     "maximum": 3650,
                     "description": "Days from now until the key expires. Omit both this and `expiresAt` (or send null) for a key that never expires."
@@ -8799,20 +9852,48 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "id": { "type": "integer" },
-                    "name": { "type": "string" },
-                    "key": { "type": "string", "description": "The full key. It is shown only in this response." },
-                    "keyPrefix": { "type": "string" },
-                    "access": { "type": "string", "enum": ["full", "read_only"] },
-                    "expiresAt": { "type": ["string", "null"], "format": "date-time" },
-                    "createdAt": { "type": "string", "format": "date-time" }
+                    "id": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "key": {
+                      "type": "string",
+                      "description": "The full key. It is shown only in this response."
+                    },
+                    "keyPrefix": {
+                      "type": "string"
+                    },
+                    "access": {
+                      "type": "string",
+                      "enum": [
+                        "full",
+                        "read_only"
+                      ]
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
                   }
                 }
               }
             }
           },
-          "400": { "description": "Invalid name, expiry or access level" },
-          "403": { "description": "Not called from a signed-in session" }
+          "400": {
+            "description": "Invalid name, expiry or access level"
+          },
+          "403": {
+            "description": "Not called from a signed-in session"
+          }
         },
         "operationId": "createApiKey",
         "security": [
@@ -9275,7 +10356,7 @@
           "Review Links"
         ],
         "summary": "Create a client review link for a batch of posts",
-        "description": "Returns a read-only review link (https://app.bulkpublish.com/p/schedule/<token>) covering every post in `postIds` at once — the multi-post counterpart of POST /api/posts/{id}/share. Every id must belong to the caller's organization (404 otherwise). Unlike a single post's link, this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns 201 { reviewLink, url }. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
+        "description": "Returns a read-only review link (https://app.bulkpublish.com/p/schedule/<token>) covering every post in `postIds` at once \u2014 the multi-post counterpart of POST /api/posts/{id}/share. Every id must belong to the caller's organization (404 otherwise). Unlike a single post's link, this is never regenerated in place: each call mints a new link and a new token, even for the same posts. Returns 201 { reviewLink, url }. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -9298,7 +10379,7 @@
                   "name": {
                     "type": "string",
                     "maxLength": 150,
-                    "description": "Optional label shown only to your team (e.g. the client's name) — never shown on the public page."
+                    "description": "Optional label shown only to your team (e.g. the client's name) \u2014 never shown on the public page."
                   }
                 }
               }
@@ -9335,7 +10416,7 @@
           "Review Links"
         ],
         "summary": "Revoke a client review link",
-        "description": "The posts it covered are untouched — only the link stops working. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
+        "description": "The posts it covered are untouched \u2014 only the link stops working. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "parameters": [
           {
             "name": "id",
@@ -9373,7 +10454,7 @@
           "Client Connect Links"
         ],
         "summary": "List client connect links",
-        "description": "The organization's client-connect links, newest first. Paged: `limit` (default 50, max 100) and `page`; `total` counts every link across all pages, so keep requesting the next page while page \u00d7 limit < total. Returns { clientConnectLinks: [{ id, name, status, expiresAt, usedAt, connectedChannelId, connectedPlatform, createdAt }], page, limit, total }. `status` is 'pending' | 'used' | 'revoked' | 'expired' — a stale pending row reads as expired on the way out. The raw token is never returned again after creation. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
+        "description": "The organization's client-connect links, newest first. Paged: `limit` (default 50, max 100) and `page`; `total` counts every link across all pages, so keep requesting the next page while page \u00d7 limit < total. Returns { clientConnectLinks: [{ id, name, status, expiresAt, usedAt, connectedChannelId, connectedPlatform, createdAt }], page, limit, total }. `status` is 'pending' | 'used' | 'revoked' | 'expired' \u2014 a stale pending row reads as expired on the way out. The raw token is never returned again after creation. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "parameters": [
           {
             "name": "page",
@@ -9421,7 +10502,7 @@
           "Client Connect Links"
         ],
         "summary": "Create a client connect link",
-        "description": "Mints a one-time link (https://app.bulkpublish.com/connect/<token>) a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. Expires after 7 days and stops working the moment an account is connected through it — creating again always makes a new link, it does not extend or reuse an existing one. Only these platforms are supported (telegram asks for a bot token instead of a plain sign-in, and is connected by your own team instead): bluesky, facebook, instagram, x, tiktok, youtube, threads, pinterest, gmb, linkedin, mastodon, discord, tumblr, snapchat. For bluesky, the client enters their handle and then approves access on Bluesky; they are never asked for a password. For facebook, the client signs in to Facebook and then chooses which one of their Pages to connect. For mastodon, the client first enters the address of the server their account is on. Returns 201 { clientConnectLink, url }. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
+        "description": "Mints a one-time link (https://app.bulkpublish.com/connect/<token>) a client can open, with no BulkPublish account of their own, to connect one of their platform accounts into this organization. Expires after 7 days and stops working the moment an account is connected through it \u2014 creating again always makes a new link, it does not extend or reuse an existing one. Only these platforms are supported (telegram asks for a bot token instead of a plain sign-in, and is connected by your own team instead): bluesky, facebook, instagram, x, tiktok, youtube, threads, pinterest, gmb, linkedin, mastodon, discord, tumblr, snapchat. For bluesky, the client enters their handle and then approves access on Bluesky; they are never asked for a password. For facebook, the client signs in to Facebook and then chooses which one of their Pages to connect. For mastodon, the client first enters the address of the server their account is on. Returns 201 { clientConnectLink, url }. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN. Not available on the Free and Lifetime plans (single-seat, no client collaboration): those answer 403 FEATURE_DISABLED with `plan` and `upgrade: true`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -9435,7 +10516,7 @@
                   "name": {
                     "type": "string",
                     "maxLength": 150,
-                    "description": "Your own label for this client (e.g. \"Acme Corp\"). Never shown to the client — only applied to the resulting channel's metadata (`clientConnectLabel`) so you can tell whose account it is."
+                    "description": "Your own label for this client (e.g. \"Acme Corp\"). Never shown to the client \u2014 only applied to the resulting channel's metadata (`clientConnectLabel`) so you can tell whose account it is."
                   }
                 }
               }
@@ -9546,7 +10627,7 @@
           "Templates"
         ],
         "summary": "Create post template",
-        "description": "Up to 200 per organization, per kind — captions and first-comment snippets each get their own 200 (400 LIMIT_REACHED beyond that). Returns 201 { template }. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
+        "description": "Up to 200 per organization, per kind \u2014 captions and first-comment snippets each get their own 200 (400 LIMIT_REACHED beyond that). Returns 201 { template }. Requires a role that can edit posts (owner, admin, approver, contributor); viewers get 403 FORBIDDEN.",
         "requestBody": {
           "required": true,
           "content": {

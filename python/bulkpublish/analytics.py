@@ -165,6 +165,8 @@ class AnalyticsResource:
         top_by: Optional[str] = None,
         top_order: Optional[str] = None,
         heatmap: Optional[bool] = None,
+        best_times: Optional[bool] = None,
+        vs_median: Optional[bool] = None,
         channel_ids: Optional[str] = None,
         platforms: Optional[str] = None,
         label_ids: Optional[str] = None,
@@ -201,6 +203,20 @@ class AnalyticsResource:
             heatmap: Include ``postTimes`` — one ``{t, e, i}`` (publish
                 instant, engagements, impressions) per published post_platform,
                 for engagement-weighted best-time-to-post views.
+            best_times: Include ``bestTimes`` — ``{timezone, postCount,
+                excludedPosts, minPosts, slots, best, enoughData}``. Each slot
+                is ``{weekday, hour, posts, avgEngagements, avgImpressions}``
+                in ``tz``; ``best`` is up to 5 slots holding at least
+                ``minPosts`` (3) posts, highest ``avgEngagements`` first. When
+                no slot has enough posts, ``best`` is empty and ``enoughData``
+                is ``False``. Posts whose network cannot report engagements
+                are counted in ``excludedPosts``.
+            vs_median: Add ``vsMedian`` ``{impressions, engagements, basis}``
+                to every ``platformMetrics[]`` entry: the figure divided by the
+                same channel's median in the window (``1`` typical, ``2``
+                twice typical). ``None`` means no comparison is possible (not
+                reported, fewer than 3 of the channel's posts, a zero median,
+                or not measured yet), never zero. Always ``None`` on YouTube.
             group_by: Deprecated and ignored by the server — ``byDay`` is
                 always daily buckets, and passing ``"week"``/``"month"``
                 silently returned daily data. Aggregate client-side.
@@ -290,6 +306,10 @@ class AnalyticsResource:
             params["topOrder"] = top_order
         if heatmap:
             params["heatmap"] = "1"
+        if best_times:
+            params["bestTimes"] = "1"
+        if vs_median:
+            params["vsMedian"] = "1"
         if channel_ids is not None:
             params["channelIds"] = channel_ids
         if platforms is not None:
@@ -486,6 +506,8 @@ class AsyncAnalyticsResource:
         top_by: Optional[str] = None,
         top_order: Optional[str] = None,
         heatmap: Optional[bool] = None,
+        best_times: Optional[bool] = None,
+        vs_median: Optional[bool] = None,
         channel_ids: Optional[str] = None,
         platforms: Optional[str] = None,
         label_ids: Optional[str] = None,
@@ -517,6 +539,10 @@ class AsyncAnalyticsResource:
             params["topOrder"] = top_order
         if heatmap:
             params["heatmap"] = "1"
+        if best_times:
+            params["bestTimes"] = "1"
+        if vs_median:
+            params["vsMedian"] = "1"
         if channel_ids is not None:
             params["channelIds"] = channel_ids
         if platforms is not None:

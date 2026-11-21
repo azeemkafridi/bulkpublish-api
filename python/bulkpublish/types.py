@@ -516,7 +516,8 @@ class HashtagGroup(TypedDict, total=False):
 class Label(TypedDict, total=False):
     """A label (tag) for organizing posts and media.
 
-    ``type`` is ``post`` or ``media``. ``color`` defaults to ``#6366f1``.
+    ``type`` is ``post``, ``media`` or ``inbox`` (Inbox conversations).
+    ``color`` defaults to ``#6366f1``.
     """
 
     id: int

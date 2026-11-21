@@ -85,7 +85,7 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 | `bp.rssFeeds` | `list`, `create`, `update`, `delete` — RSS/Atom autopost feeds (new items become posts; optional `fieldMapping` controls caption template, media, truncation, per-channel overrides) |
 | `bp.organizations` | `list`, `create` — the organizations this key's user belongs to, and the role held in each. API key only: not reachable with an OAuth token |
 | `bp.notifications` | `list`, `markRead`, `delete`, `preferences`, `updatePreferences` — publish failures, expiring connections. API key only |
-| `bp.inbox` | `listConversations`, `updateConversation`, `listMessages`, `sendMessage` — direct messages, reviews and comment threads (Pro and Business plans). See the [Inbox guide](../guides/inbox.md) |
+| `bp.inbox` | `listConversations`, `updateConversation`, `listMessages`, `sendMessage`, `addNote`, `setLabels`, `listSavedReplies`, `createSavedReply`, `updateSavedReply`, `deleteSavedReply` — direct messages, reviews, comment threads and mentions, with team notes, labels and saved replies (Pro and Business plans). See the [Inbox guide](../guides/inbox.md) |
 
 ## Platform Requirements
 

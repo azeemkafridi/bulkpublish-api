@@ -156,8 +156,8 @@ export type NotificationType =
   | 'daily_digest'
   | 'system';
 
-/** Label type — either for posts or media. */
-export type LabelType = 'post' | 'media';
+/** Label type: for posts, media, or Inbox conversations. */
+export type LabelType = 'post' | 'media' | 'inbox';
 
 /** Bulk action types for posts. */
 export type BulkAction = 'delete' | 'retry' | 'reschedule';
@@ -1167,6 +1167,19 @@ export interface AnalyticsEngagementParams extends AnalyticsDateParams, Analytic
   /** `'1'` to include `postTimes` for best-time-to-post views. */
   heatmap?: '1';
   /**
+   * Set to `'1'` to include `bestTimes`: the window's published posts grouped by
+   * weekday and hour in `tz`, with average engagements and impressions per slot
+   * and up to 5 best slots (each holding at least 3 posts). When no slot has
+   * enough posts, `best` is empty and `enoughData` is `false`.
+   */
+  bestTimes?: '1';
+  /**
+   * Set to `'1'` to add `vsMedian` to every `platformMetrics[]` entry: the
+   * figure divided by the same channel's median in the window (`1` typical,
+   * `2` twice typical). `null` means no comparison is possible, not zero.
+   */
+  vsMedian?: '1';
+  /**
    * Set to `'1'` to return only the ranked `topPosts` leaderboard; `allPosts`
    * comes back empty. Use it when you render a short list and don't want to
    * download every post in the window.
@@ -1249,7 +1262,54 @@ export interface TopPost {
     metricsSupported: boolean;
     supportedMetrics: string[];
     fetchedAt: string | null;
+    /** Present with `vsMedian=1`. */
+    vsMedian?: EngagementVsMedian;
   }>;
+}
+
+/**
+ * One destination's figures over the median of the same channel's posts in the
+ * window (`vsMedian=1`), rounded to 2 decimals. `null` means no comparison is
+ * possible: the network does not report the figure, fewer than 3 of the
+ * channel's posts report it, the median is 0, or the post has not been measured
+ * yet. YouTube is always `null`.
+ */
+export interface EngagementVsMedian {
+  impressions: number | null;
+  engagements: number | null;
+  /** How many of the channel's posts in the window have figures to compare against. */
+  basis: number;
+}
+
+export type Weekday = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+
+/** One weekday-and-hour slot of `bestTimes`. */
+export interface BestTimeSlot {
+  /** In `bestTimes.timezone`. */
+  weekday: Weekday;
+  /** 0..23, in `bestTimes.timezone`. */
+  hour: number;
+  /** Destinations published in this slot (each network a post went to counts once). */
+  posts: number;
+  avgEngagements: number;
+  /** `null` when no post in the slot reports impressions. */
+  avgImpressions: number | null;
+}
+
+/** `bestTimes` on the engagement response (`bestTimes=1`). */
+export interface EngagementBestTimes {
+  timezone: string;
+  postCount: number;
+  /** Posts left out because their network cannot report engagements or they have not been measured yet. */
+  excludedPosts: number;
+  /** Posts a slot needs before it can be recommended (3). */
+  minPosts: number;
+  /** Every slot with at least one post, Monday 00:00 first. */
+  slots: BestTimeSlot[];
+  /** Up to 5 slots with at least `minPosts` posts, highest `avgEngagements` first. */
+  best: BestTimeSlot[];
+  /** `false` when no slot reached `minPosts`; `best` is then empty. */
+  enoughData: boolean;
 }
 
 /** Response from the engagement analytics endpoint. */
@@ -1288,6 +1348,8 @@ export interface AnalyticsEngagementResponse {
   allPosts: TopPost[];
   /** `{t, e, i}` per published post_platform when `heatmap=1`; empty otherwise. */
   postTimes: Array<{ t: string; e: number; i: number }>;
+  /** Present with `bestTimes=1`. */
+  bestTimes?: EngagementBestTimes;
   /** Totals (and `byDay`) for the previous window when `compare=1` and it is available. */
   previous?: (Pick<AnalyticsEngagementResponse,
     'totalImpressions' | 'totalEngagements' | 'totalLikes' | 'totalComments' | 'totalShares' | 'totalClicks' |
@@ -1413,7 +1475,7 @@ export interface AnalyticsAccountResponse {
 
 /** Parameters for listing labels. */
 export interface ListLabelsParams {
-  /** Filter by label type: 'post' or 'media'. */
+  /** Filter by label type: 'post', 'media' or 'inbox'. */
   type?: LabelType;
 }
 
@@ -1423,7 +1485,7 @@ export interface CreateLabelParams {
   name: string;
   /** Hex color (e.g. '#6366f1'). Default: '#6366f1'. */
   color?: string;
-  /** Label type: 'post' or 'media'. Default: 'post'. */
+  /** Label type: 'post', 'media' or 'inbox' (Inbox conversations). Default: 'post'. */
   type?: LabelType;
 }
 
