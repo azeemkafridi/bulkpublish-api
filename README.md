@@ -265,7 +265,7 @@ More examples in [`examples/`](examples/) — including [Python automation scrip
 
 - **15 platforms** — Facebook, Instagram, X/Twitter, TikTok, YouTube, Threads, Bluesky, Pinterest, Google Business Profile, LinkedIn, Mastodon, Discord, Telegram, Tumblr, Snapchat
 - **Scheduling** — Schedule posts for any future time with timezone support, or let queue slots pick optimal times
-- **Media uploads** — Images (JPEG, PNG, WebP, GIF) and videos (MP4, MOV, WebM) up to 100 MB
+- **Media uploads** — Images (JPEG, PNG, WebP, GIF) up to 100 MB, and videos (MP4, MOV, WebM) up to 1 GB through resumable multipart uploads
 - **Recurring schedules** — Repeat posts daily, weekly, biweekly, or monthly at a set time of day
 - **Analytics** — Track impressions, likes, comments, shares, and engagement. Each platform reports a different subset of metrics, and the response says which (`supportedMetrics` / `supportedTotals`) so a `0` is never mistaken for a measurement — see [Metrics by Platform](guides/platforms.md#metrics-by-platform)
 - **Link tracking** — Opt in per organization, or per post via `linkTrackingOverride`, to rewrite links through `bulkpubli.sh` and count the clicks. Reported as `linkClicks` / `totalLinkClicks` and measured by BulkPublish rather than the platform, so it works even where the platform reports nothing — see [Character Limits](guides/platforms.md#character-limits)
@@ -277,7 +277,7 @@ More examples in [`examples/`](examples/) — including [Python automation scrip
 - **Calendar notes** — Pin campaigns, holidays and reminders to calendar days
 - **Bulk operations** — Delete or retry multiple posts in a single request
 - **Threads** — Multi-part thread posts for X, Threads, Bluesky, and Mastodon
-- **Auto first comment** — Automatically add a comment after publishing on any platform
+- **Auto first comment** — Automatically add a comment after publishing, on Facebook, Instagram, X, YouTube, Threads, Bluesky, LinkedIn, Mastodon and Telegram
 - **All post types** — Reels, Stories, Carousels, Threads, Shorts, Video — set per-platform via `postTypeOverrides`
 - **Per-platform content** — Customize text and options per platform in a single post
 - **Platform-specific options** — Instagram collaborators, TikTok privacy, YouTube categories, Pinterest boards, and more
