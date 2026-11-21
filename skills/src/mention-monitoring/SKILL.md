@@ -26,10 +26,11 @@ accounts. BulkPublish collects them into the Inbox as conversations with
 - `list_conversations` with `kind: "mention"`: newest first. Add
   `status: "open"`, `platforms`, `channelId`, `assigned`, `labelId`, or `q`
   (searches the text, the person's name and handle, and team notes). Page with
-  `cursor`.
+  `cursor`. Each row has a `url` to the original post when the network
+  provides one; keep it from here, because `get_conversation` does not
+  return it.
 - `get_conversation`: the mention itself and anything the team wrote or sent
-  in it. Each mention conversation has a `url` to the original post when the
-  network provides one.
+  in it.
 - `update_conversation`: mark read, archive, snooze, or assign to a teammate.
 - `add_conversation_note`: a note for the team; never sent to the person.
 - `set_conversation_labels` with labels of `type: "inbox"` (`list_labels` or
