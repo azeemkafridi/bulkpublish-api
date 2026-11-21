@@ -82,7 +82,6 @@ const OUTPUT_FIXTURES = {
   get_best_times: { from: "2026-11-01", to: "2026-11-21", timezone: "UTC", postCount: 12, excludedPosts: 2, minPosts: 3, slots: [{ weekday: "monday", hour: 9, posts: 3, avgEngagements: 14.3, avgImpressions: null }], best: [], enoughData: false },
   get_post_metrics_history: { postId: 9, publishedAt: "2026-11-01T10:00:00.000Z", series: [{ postPlatformId: 4, platform: "x", channelId: 143, accountName: "Acme", supportedMetrics: ["impressions"], metricsSupported: true, points: [{ fetchedAt: "2026-11-01T16:00:00.000Z", impressions: 10 }] }] },
   get_link_analytics: { from: "2026-11-01", to: "2026-11-21", totalClicks: 5, totalLinks: 1, links: [{ id: 1, shortUrl: "https://bulkpubli.sh/abc", code: "abc", originalUrl: "https://example.com", clicks: 5, lastClickAt: null, platform: "x", channelId: 143, postId: 9, postContent: "Hi" }], previous: null },
-  list_activity: { activities: [{ id: 1, userId: "u1", organizationId: 10, action: "post.published", resource: "post", resourceId: "9", details: null, level: "info", ipAddress: null, createdAt: "2026-11-21T10:00:00.000Z", actor: null }], pagination: { page: 1, limit: 20, total: 1, totalPages: 1 } },
   create_schedule: { id: 9, name: "Tips", frequency: "weekly", dayOfWeek: 1, timeOfDay: "09:00", timezone: "UTC", isActive: true, nextRunAt: "2026-11-23T09:00:00.000Z", channelIds: [143] },
   bulk_posts: { success: true, action: "delete", affected: 3, skippedInProgress: 0 },
 };

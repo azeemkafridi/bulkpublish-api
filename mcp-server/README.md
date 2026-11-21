@@ -130,8 +130,8 @@ The server ships three tool profiles, chosen with `BULKPUBLISH_TOOL_PROFILE`:
 | Profile | Tools | Default for |
 |---|---|---|
 | `core` | 26 — channels, posts, media, analytics, labels, approvals, post comments, channel sync settings, and the interactive panels | The hosted HTTP server (`dist/http.js`) when no profile is set |
-| `inbox` | 56 — everything in `core`, plus the Inbox (conversations, replies, team notes, conversation labels, saved replies), comment replies and moderation, account and engagement analytics, best times to post, post metric history, link clicks, the activity log, channel health, media upkeep, templates and hashtag groups (read), repeat posts (create, change, delete), bulk post actions, post review links and `create_label` | `https://mcp.bulkpublish.com/mcp` (`BULKPUBLISH_TOOL_PROFILE=inbox`). The `core` tools in it are identical to the `core` profile's |
-| `full` | 92 — every tool (adding label, template and hashtag-group editing, saved reply editing, calendar notes, batch review links, client-connect links, channel sets, RSS feeds, stories, mention search, chunked uploads, quota) | The local stdio server (`npx @bulkpublish/mcp-server`) and `https://mcp.bulkpublish.com/mcp/full` |
+| `inbox` | 55 — everything in `core`, plus the Inbox (conversations, replies, team notes, conversation labels, saved replies), comment replies and moderation, account and engagement analytics, best times to post, post metric history, link clicks, channel health, media upkeep, templates and hashtag groups (read), repeat posts (create, change, delete), bulk post actions, post review links and `create_label` | `https://mcp.bulkpublish.com/mcp` (`BULKPUBLISH_TOOL_PROFILE=inbox`). The `core` tools in it are identical to the `core` profile's |
+| `full` | 91 — every tool (adding label, template and hashtag-group editing, saved reply editing, calendar notes, batch review links, client-connect links, channel sets, RSS feeds, stories, mention search, chunked uploads, quota) | The local stdio server (`npx @bulkpublish/mcp-server`) and `https://mcp.bulkpublish.com/mcp/full` |
 
 Set `BULKPUBLISH_TOOL_PROFILE=full` on a hosted deployment to expose everything, or `core` locally to keep a small tool list. The panels' buttons call back into `create_post`, `publish_post`, `retry_post`, `update_post`, `delete_post`, `list_channels`, `list_media`, `get_post`, `create_media_upload` and `finalize_media_upload`, so all of those are in `core`.
 
@@ -202,7 +202,6 @@ Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles))
 | `get_best_times` ✉ | The weekdays and hours that get the most engagement (a slot needs at least 3 posts before it is recommended) |
 | `get_post_metrics_history` ✉ | One post's figures over time since it was published |
 | `get_link_analytics` ✉ | Clicks on the short links in posts published in a date range, most clicked first |
-| `list_activity` ✉ | The workspace's activity log, newest first, with who did what |
 | **Schedules** | |
 | `list_schedules` ✉ | List recurring schedules |
 | `create_schedule` ✉ | Create a recurring schedule |

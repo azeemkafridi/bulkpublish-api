@@ -1317,20 +1317,6 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
     }).describe("Links, most clicked first, at most 2,000."),
     previous: sObj({ totalClicks: sNum().describe("Clicks in the previous window."), totalLinks: sNum().describe("Links in the previous window.") }).describe("With compare: the previous window's totals, or null."),
   },
-  list_activity: {
-    activities: sArr({
-      id: sNum().describe("The entry's ID."),
-      action: sStr().describe("What happened, e.g. post.published."),
-      resource: sStr().describe("What it happened to, e.g. post or channel."),
-      resourceId: sStr().describe("That item's ID."),
-      details: z.any().optional().describe("Extra facts about the entry."),
-      createdAt: sStr().describe("When it happened."),
-      actor: sObj(USER_REF).describe("The member who did it, or null."),
-    }).describe("Entries, newest first."),
-    pagination: sObj({
-      page: sNum().describe("This page."), limit: sNum().describe("Page size."), total: sNum().describe("Entries matching the filters."), totalPages: sNum().describe("How many pages there are."),
-    }).describe("Where this page sits."),
-  },
   create_schedule: {
     id: sNum().describe("The new schedule's ID, as update_schedule and delete_schedule take."),
     name: sStr().describe("The schedule's name."),
@@ -1472,7 +1458,6 @@ export const INBOX_TOOLS: ReadonlySet<string> = new Set([
   "get_best_times",
   "get_post_metrics_history",
   "get_link_analytics",
-  "list_activity",
   // create_schedule joins update/delete_schedule, which were already served;
   // bulk_posts is what "move all of next week's posts" needs.
   "create_schedule",
@@ -1623,7 +1608,6 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   get_best_times: { title: "Get best times to post", ...READ, why: "GET /api/analytics/engagement?bestTimes=1; averages already-stored post metrics by weekday and hour. Fetches nothing from a platform." },
   get_post_metrics_history: { title: "Get post metrics history", ...READ, why: "GET /api/analytics/post-history; reads the stored metric snapshots of one post. Fetches nothing from a platform." },
   get_link_analytics: { title: "Get link click analytics", ...READ, why: "GET /api/analytics/links; reads stored short-link click counts for a date range." },
-  list_activity: { title: "List activity log", ...READ, why: "GET /api/activity; reads the workspace's activity log, newest first." },
   delete_client_connect_link: { title: "Revoke client connect link", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/client-connect-links/{id}; revokes an unused link. An account it already connected stays connected." },
 };
 
@@ -1789,7 +1773,6 @@ export function createServer(
     get_best_times: "the user asks when they should post, or which days and hours get the most engagement.",
     get_post_metrics_history: "the user asks how one post's figures grew over time since it was published.",
     get_link_analytics: "the user asks how many clicks the links in their posts got, or which links did best.",
-    list_activity: "the user asks what happened in the workspace recently, or who published, changed or deleted something.",
   };
   {
     // _createRegisteredTool's positional arguments in @modelcontextprotocol/server
@@ -2891,35 +2874,6 @@ server.registerTool(
     if (mediaType) params.set("mediaType", mediaType);
     if (compare) params.set("compare", "1");
     const res = await api("GET", `/api/analytics/links?${params}`);
-    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
-  }
-);
-
-server.registerTool(
-  "list_activity",
-  {
-    description: "The workspace's activity log, newest first: what was done (for example post.published or channel.connected), to what, when, and by which member (actor). Paged. A read-only API key cannot read it.",
-    inputSchema: {
-      page: z.number().optional().describe("Page number (default 1)."),
-      limit: z.number().optional().describe("Entries per page, 1 to 100 (default 20)."),
-      action: z.string().optional().describe("Only this action, e.g. post.published."),
-      resource: z.string().optional().describe("Only entries about this kind of item, e.g. post or channel."),
-      userId: z.string().optional().describe("Only entries recorded for this member."),
-      from: z.string().optional().describe("Earliest entry, ISO 8601; a bare date starts at its first instant."),
-      to: z.string().optional().describe("Latest entry, ISO 8601; a bare date includes the whole day."),
-    },
-  },
-  async ({ page, limit, action, resource, userId, from, to }) => {
-    const params = new URLSearchParams();
-    if (page !== undefined) params.set("page", String(page));
-    if (limit !== undefined) params.set("limit", String(limit));
-    if (action) params.set("action", action);
-    if (resource) params.set("resource", resource);
-    if (userId) params.set("userId", userId);
-    if (from) params.set("from", from);
-    if (to) params.set("to", to);
-    const qs = params.toString();
-    const res = await api("GET", `/api/activity${qs ? `?${qs}` : ""}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );
