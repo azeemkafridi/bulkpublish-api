@@ -662,6 +662,9 @@ class QuotaUsage(TypedDict, total=False):
     #: ``recurringSchedules``, ``mediaStorageMB``, ``labels``,
     #: ``orgMembers``, ``xApiSpendDcents``, ``xCreditDcents``, ``aiRunsUsed``,
     #: ``aiRunsLimit``, ``aiCreditDcents``, ``subscriptionRefundCount``.
+    #: ``xApiSpendDcents`` is the X allowance used this period; on a plan with
+    #: an included allowance it is the owner's combined use across every
+    #: workspace on the plan, since that allowance is shared.
     usage: Dict[str, Any]
     #: Purchased extra channel slots (the $2.99/month add-on, available on every plan — a
     #: seat-based subscription; unused slots are auto-canceled before renewal).

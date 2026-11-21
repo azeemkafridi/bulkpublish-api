@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-21 — One X allowance per owner, shared by their workspaces
+
+Node SDK **1.47.1**, Python SDK **0.48.1** (documentation only)
+
+### Changed
+
+- **The X allowance included in a plan is now one per owner, shared by every workspace they have on that plan.** It used to be granted again in each workspace. `GET /api/quotas/x-usage` returns the combined use in `budget.usedDcents` and says so with a new `budget.shared: true`; `usage.xApiSpendDcents` on `GET /api/quotas/usage` is the same combined figure. X credits stay per workspace and pay for that workspace's own use beyond the shared allowance.
+- **An image description (alt text) sent to X now counts against the X allowance**, at $0.005 per image, which is what X charges for it. It appears as `media_metadata` in the `costs` and per-action breakdowns of `GET /api/quotas/x-usage`.
+- **A post to X is held, not failed, while other posts on the same allowance are being sent and would leave too little for it**, and while the allowance cannot be checked. Both clear by themselves and the post goes out.
+
 ## 2026-11-21 — `GET /api/channels/{id}/options` says when a channel needs reconnecting
 
 ### Changed

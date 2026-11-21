@@ -1758,7 +1758,11 @@ export interface QuotasUsageResponse {
     mediaStorageMB: number;
     labels: number;
     orgMembers: number;
-    /** X (Twitter) API spend this month, in tenths of a cent. */
+    /**
+     * X (Twitter) allowance used this period, in tenths of a cent. On a plan
+     * with an included X allowance this is the owner's combined use across
+     * every workspace on the plan, since the allowance is shared.
+     */
     xApiSpendDcents: number;
     /** Purchased X credit balance, in tenths of a cent. */
     xCreditDcents: number;
