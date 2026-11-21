@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-21 — `GET /api/channels/{id}/options` says when a channel needs reconnecting
+
+### Changed
+
+- **A channel whose network refuses its stored access now answers `409` with `code: CHANNEL_NEEDS_RECONNECT`** and a message naming the network, instead of a `500` "Could not load options". The channel is also marked as needing a reconnect, as it already was after a failed publish. Any other failure answers as before.
+
 ## 2026-11-20 — Hosted MCP server: 14 more tools, safety hints that match what each tool does
 
 MCP **1.59.0**

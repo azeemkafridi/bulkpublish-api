@@ -4910,6 +4910,9 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "The platform refused this channel's stored access (`code: CHANNEL_NEEDS_RECONNECT`). The channel is marked as needing a reconnect, the same as after a failed publish; reconnect it to load its options again."
           }
         },
         "operationId": "getChannelOptions",
