@@ -69,6 +69,9 @@ These stay inside the workspace; nothing reaches the other person.
 
 - `add_conversation_note` leaves a note written as the user. Mention a teammate
   with `@[Name](user:USER_ID)`; they are notified, so confirm who before adding one.
+  No tool lists the team: a teammate's id shows up as `assignee.id` on
+  conversations and `author.id` on notes and sent replies. Without one, ask the
+  user to assign or mention in the app; never guess an id.
 - `set_conversation_labels` replaces the whole set: read the current `labels`
   first and send the full list you want. Only labels of type `inbox` work
   (`list_labels` / `create_label` with `type: "inbox"`).

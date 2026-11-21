@@ -12781,7 +12781,7 @@
     {
       "name": "bulk_posts",
       "title": "Bulk post actions",
-      "description": "Perform a bulk action on multiple posts. Supports deleting, retrying, or rescheduling up to 100 posts at once. Use this when the user wants to delete, retry, or reschedule many posts in a single request.",
+      "description": "Run one action on up to 100 posts at once. delete: removes them permanently; a post being published at that moment is left alone and counted in skippedInProgress. retry: re-publishes only the failed destinations of failed or partial posts, never unconfirmed ones (use retry_post with republish for those); needs a role that can publish. reschedule: moves every draft and scheduled post in the list to the SAME scheduledAt and skips other statuses. A draft in the list becomes scheduled and will publish at that time, so confirm with the user first; for a role that cannot publish, the posts go to approval instead. To give posts different times, call update_post for each one. Use this when the user wants to delete, retry, or reschedule many posts in a single request.",
       "inputSchema": {
         "type": "object",
         "properties": {

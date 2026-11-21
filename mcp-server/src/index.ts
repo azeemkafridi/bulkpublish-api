@@ -1385,8 +1385,8 @@ function attachStructured(result: unknown, toolName: string): unknown {
 // day-to-day management tools a chat user asks for (account analytics, channel
 // health, templates, hashtag groups, repeat posts, media upkeep, review links,
 // labels), and since 2026-11-21 Inbox notes, conversation labels and saved
-// replies, best posting times, post metric history, link clicks, the activity
-// log, create_schedule and bulk_posts. The name stays `inbox` so the deployed
+// replies, best posting times, post metric history, link clicks,
+// create_schedule and bulk_posts. The name stays `inbox` so the deployed
 // setting does not have to change.
 // Left out of it on purpose, and of /mcp with it: quota tools (OpenAI does not
 // allow showing plans or upgrades), the multipart upload trio (a hosted chat
@@ -3592,7 +3592,10 @@ server.registerTool(
 server.registerTool(
   "bulk_posts",
   {
-    description: "Perform a bulk action on multiple posts. Supports deleting, retrying, or rescheduling up to 100 posts at once.",
+    description: "Run one action on up to 100 posts at once. " +
+      "delete: removes them permanently; a post being published at that moment is left alone and counted in skippedInProgress. " +
+      "retry: re-publishes only the failed destinations of failed or partial posts, never unconfirmed ones (use retry_post with republish for those); needs a role that can publish. " +
+      "reschedule: moves every draft and scheduled post in the list to the SAME scheduledAt and skips other statuses. A draft in the list becomes scheduled and will publish at that time, so confirm with the user first; for a role that cannot publish, the posts go to approval instead. To give posts different times, call update_post for each one.",
     inputSchema: {
       action: z
         .enum(["delete", "retry", "reschedule"])

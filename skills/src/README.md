@@ -4,8 +4,8 @@ The one place a skill is written. Every published copy is generated from here:
 
 | Copy | Profile | Shipped as |
 |---|---|---|
-| `../core-profile-skills` | `core` | the ChatGPT plugin package, and any connector on `mcp.bulkpublish.com/mcp` |
-| `../inbox-profile-skills` | `inbox` | beside core, for a connector running the Inbox profile |
+| `../core-profile-skills` | `core` | the ChatGPT plugin package, and every connector (core tools exist in every profile) |
+| `../inbox-profile-skills` | `inbox` | beside core, for a connector running the Inbox profile, which is what `mcp.bulkpublish.com/mcp` serves |
 | `../social-media-content-skills` | `full` | the npm/stdio server and `/mcp/full` |
 | `bulkpublish-ai-toolkit/skills` | `full` | the Claude Code, Cursor and Gemini plugins and `npx skills add` |
 | `../bundled-skill` | `core` + `inbox` | ONE skill for marketplaces that cap skills per account (OpenBot allows 5): `_bundle/SKILL.md` as the root, every other skill as `references/<name>.md` |

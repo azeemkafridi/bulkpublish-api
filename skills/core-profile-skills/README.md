@@ -2,7 +2,7 @@
 
 <!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
-The skill set for the hosted connector at `mcp.bulkpublish.com/mcp`, which serves the `core` tool profile. Every skill here uses only tools that profile serves. The ChatGPT plugin package is built from this folder.
+Skills that use only the `core` tool profile, so they work on every connector, including the hosted one at `mcp.bulkpublish.com/mcp` (which serves the larger `inbox` profile). The ChatGPT plugin package is built from this folder.
 
 Every file here is generated from `../src`. Edit the source and run `cd mcp-server && npm run build:skills`; `npm run check:skills` fails on a copy that differs, on a tool the profile does not serve, and on a post type or parameter the server does not accept.
 

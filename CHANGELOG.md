@@ -18,6 +18,12 @@ Node SDK **1.48.0** · Python **0.49.0** · MCP **1.60.0** · spec + Postman
 
 - **API keys and OAuth apps now see what the app sees in the Inbox**: team notes, labels and mentions are no longer withheld. OAuth apps reach notes, labels and saved replies with the existing `inbox:read` / `inbox:write` scopes; a read-only API key can read them and change nothing.
 - The Inbox guide, the SDK READMEs and the MCP README describe all of the above. The MCP README's tool table now marks every tool the hosted connector serves.
+- **MCP `bulk_posts` says what each action really does**: `reschedule` moves every post to the same time and turns drafts in the list into scheduled posts (or approval requests for a role that cannot publish), `retry` never touches unconfirmed destinations, and `delete` leaves a post that is mid-publish alone. The behaviour is unchanged; only the description was too thin to use safely.
+- **Five new skills** for connectors on the Inbox profile (which `https://mcp.bulkpublish.com/mcp` serves) and the full set: `performance-review`, `best-time-scheduling`, `next-week-plan`, `mention-monitoring` and `saved-replies-library`. Each was written against calls made to a running server. The skill folder READMEs now say the hosted connector serves the Inbox profile.
+
+### Fixed
+
+- **A note or assignment made with an API key now names the key's owner.** Teammates' notifications for an Inbox note or a post or conversation assigned through an API key (and so through the MCP server) showed a blank name. OAuth apps and the app itself were not affected.
 
 ## 2026-11-21 — One X allowance per owner, shared by their workspaces
 

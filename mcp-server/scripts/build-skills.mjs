@@ -181,8 +181,8 @@ const bundle = {};
 // Each folder in this repo gets a README listing what it holds, written from the
 // skills' own descriptions so the list cannot drift either.
 const INTROS = {
-  core: "The skill set for the hosted connector at `mcp.bulkpublish.com/mcp`, which serves the `core` tool profile. Every skill here uses only tools that profile serves. The ChatGPT plugin package is built from this folder.",
-  inbox: "Skills that need the Inbox and comment tools, served under the `inbox` profile (`BULKPUBLISH_TOOL_PROFILE=inbox`). Ship them beside `../core-profile-skills` to a connector running that profile, never to one running `core`.",
+  core: "Skills that use only the `core` tool profile, so they work on every connector, including the hosted one at `mcp.bulkpublish.com/mcp` (which serves the larger `inbox` profile). The ChatGPT plugin package is built from this folder.",
+  inbox: "Skills that need tools the `inbox` profile adds to core: the Inbox and comment replies, best posting times, compared-with-usual figures, metric history, link clicks, saved replies, repeat posts and bulk actions. The hosted connector at `mcp.bulkpublish.com/mcp` serves this profile (`BULKPUBLISH_TOOL_PROFILE=inbox`). Ship them beside `../core-profile-skills` to a connector running it, never to one running `core`.",
   full: "The skill set for the full tool profile: the npm/stdio server and `mcp.bulkpublish.com/mcp/full`. The AI toolkit's `skills/` folder is a copy of this one.",
 };
 function readme(profile, want) {

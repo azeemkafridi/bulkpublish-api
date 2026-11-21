@@ -25,6 +25,7 @@ Never send in bulk. If the user asks you to answer everything, draft every reply
 - `update_conversation`: mark read or unread, archive or reopen, snooze until a time (at most 90 days ahead), assign to a teammate or unassign. Every change can be undone with another call.
 - `reply_to_conversation`: sends `text` (up to 4,000 characters). In a direct message it can attach up to 4 `mediaIds` from `upload_media`. In a comment thread it answers the newest comment from the other person, or the one given as `replyToMessageId`. In a mention it answers the post that mentioned the account, publicly.
 - `add_conversation_note`: a note for the team, never sent to the person. `@[Name](user:USER_ID)` mentions and notifies a teammate, so confirm who first.
+- Teammate ids: no tool lists the team. A teammate's user id shows up as `assignee.id` on conversations and `author.id` on notes and sent replies. Without one, ask the user to assign or mention in the app; never guess an id.
 - `set_conversation_labels`: replaces the conversation's whole label set with the ids given. Only labels of type `inbox` work: `list_labels` with `type: "inbox"`, or `create_label` with `type: "inbox"`.
 - `list_saved_replies` / `create_saved_reply`: the team's reusable answers. Placeholders (such as `first_name`, written in double curly braces) come back as written; fill them in and show the finished text before sending it with `reply_to_conversation`.
 
