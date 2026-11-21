@@ -14,7 +14,22 @@ description: Pull analytics, engagement metrics, and performance data from BulkP
 | `get_post_metrics` | Single post engagement | `postId` |
 | `view_analytics` | The same summary as an interactive dashboard | `from`, `to` |
 | `get_quota_usage` | Plan limits and current usage | none |
+| `get_engagement_analytics` | Per-post figures across a date range, ranked; `vsMedian: true` compares each post with that account's usual | `from`, `to`; optional `topBy`, `bestTimes`, `vsMedian` |
+| `get_best_times` | Weekdays and hours that get the most engagement | `from`, `to`, `tz` |
+| `get_post_metrics_history` | How one post's figures grew since it was published | `postId` |
+| `get_link_analytics` | Clicks on the short links in posts | `from`, `to` |
 | `list_posts` | Find posts to analyze | `status`, `approvalStatus`, `from`, `to`, `channelId`, `search` |
+
+## Best times and "compared with usual"
+
+`get_best_times` only recommends a slot that holds at least 3 posts. When
+`enoughData` is `false`, tell the user there is not enough history yet and
+offer to look again later; never name a time from one or two posts. Weekdays
+and hours are in the `tz` you passed, so pass the user's zone.
+
+`vsMedian` on a destination is its figure divided by the same account's median
+in the window: `1` is a typical post, `0.5` half, `2` twice. `null` means no
+comparison is possible (too few posts, not reported, or YouTube), not zero.
 
 ## get_analytics response shape
 

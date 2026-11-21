@@ -9,4 +9,4 @@ Every file here is generated from `../src`. Edit the source and run `cd mcp-serv
 | Skill | What it is for |
 |---|---|
 | [`comment-replies`](comment-replies/SKILL.md) | Read the comments on a published BulkPublish post and reply to, like, hide or delete them, with a confirmation before anything is posted or removed. Use when the user asks who commented on a post, wants to answer comments, or wants to clear spam from a post. |
-| [`inbox-triage`](inbox-triage/SKILL.md) | Read, sort and answer the BulkPublish Inbox (direct messages, reviews and comment threads) with a confirmation before every reply. Use when the user asks about messages, DMs, reviews, what is waiting for a reply, or wants to clear, snooze, archive or assign conversations. |
+| [`inbox-triage`](inbox-triage/SKILL.md) | Read, sort and answer the BulkPublish Inbox (direct messages, reviews, comment threads and mentions) with a confirmation before every reply, and keep team notes, labels and saved replies. Use when the user asks about messages, DMs, reviews, mentions, what is waiting for a reply, or wants to clear, snooze, archive, label or assign conversations. |

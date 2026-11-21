@@ -7752,6 +7752,14 @@
           "compare": {
             "description": "Also return the previous equal-length window as `previous` / `previousWindow`.",
             "type": "boolean"
+          },
+          "bestTimes": {
+            "description": "true adds bestTimes: the window's published posts grouped by weekday and hour (in tz), with average engagements and impressions per slot and up to 5 best slots, each holding at least 3 posts. When no slot has 3 posts, best is empty and enoughData is false: say there is not enough data yet rather than naming a time. get_best_times returns only this part.",
+            "type": "boolean"
+          },
+          "vsMedian": {
+            "description": "true adds vsMedian { impressions, engagements, basis } to each platformMetrics entry of topPosts and allPosts: the figure divided by the median of the same account's posts in the window, so 1 is typical for that account, 0.5 half and 2 twice. basis is how many of the account's posts the median comes from. null means no comparison is possible (the network does not report the figure, fewer than 3 posts report it, the median is 0, or the post has not been measured yet), not zero. Always null on YouTube.",
+            "type": "boolean"
           }
         },
         "required": [
@@ -7987,6 +7995,1410 @@
                 "type": "null"
               }
             ]
+          },
+          "bestTimes": {
+            "description": "With bestTimes: average engagements and impressions by weekday and hour, and the best slots.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "timezone": {
+                    "description": "The timezone weekday and hour are in.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "postCount": {
+                    "description": "Destinations counted in the averages.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "excludedPosts": {
+                    "description": "Destinations left out because their network cannot report engagements or they have not been measured yet.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "minPosts": {
+                    "description": "Posts a slot needs before it can be recommended (3).",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "slots": {
+                    "description": "Every weekday-and-hour slot with at least one post, Monday 00:00 first.",
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "weekday": {
+                              "description": "monday to sunday, in the summary's timezone.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "hour": {
+                              "description": "0 to 23, in the summary's timezone.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "posts": {
+                              "description": "Destinations published in this slot.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "avgEngagements": {
+                              "description": "Average likes, comments, shares and clicks per destination.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "avgImpressions": {
+                              "description": "Average impressions, or null when no post in the slot reports them.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "best": {
+                    "description": "Up to 5 slots with at least minPosts posts, highest avgEngagements first. Empty when enoughData is false.",
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "weekday": {
+                              "description": "monday to sunday, in the summary's timezone.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "hour": {
+                              "description": "0 to 23, in the summary's timezone.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "posts": {
+                              "description": "Destinations published in this slot.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "avgEngagements": {
+                              "description": "Average likes, comments, shares and clicks per destination.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "avgImpressions": {
+                              "description": "Average impressions, or null when no post in the slot reports them.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "enoughData": {
+                    "description": "false when no slot has enough posts to recommend; say so rather than guessing.",
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "get_best_times",
+      "title": "Get best times to post",
+      "description": "When posts get the most engagement: the published posts in a date range (at most 30 days) grouped by weekday and hour, with average engagements (likes, comments, shares and clicks) and impressions per slot, and up to 5 best slots. A slot is recommended only once it holds at least 3 posts; when none does, best is empty and enoughData is false, so say there is not enough data yet instead of naming a time. Posts on networks that cannot report engagements, and posts not measured yet, are left out and counted in excludedPosts. The same figures as get_engagement_analytics with bestTimes. Use this when the user asks when they should post, or which days and hours get the most engagement.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "description": "Start date, YYYY-MM-DD. Clamped to at most 30 days before `to`."
+          },
+          "to": {
+            "type": "string",
+            "description": "End date, YYYY-MM-DD."
+          },
+          "tz": {
+            "description": "IANA timezone (e.g. \"Asia/Karachi\") the weekdays and hours are given in. Defaults to UTC; pass the user's zone.",
+            "type": "string"
+          },
+          "channelIds": {
+            "description": "Comma-separated channel ids to include. Ids come from list_channels.",
+            "type": "string"
+          },
+          "platforms": {
+            "description": "Comma-separated platform keys to include, e.g. \"instagram,linkedin\".",
+            "type": "string"
+          },
+          "labelIds": {
+            "description": "Comma-separated label ids (from list_labels); a post matches when it carries ANY of them.",
+            "type": "string"
+          },
+          "postFormat": {
+            "description": "Only single posts or only threads.",
+            "type": "string",
+            "enum": [
+              "post",
+              "thread"
+            ]
+          },
+          "mediaType": {
+            "description": "By the post's first media file: text (no media), image or video.",
+            "type": "string",
+            "enum": [
+              "text",
+              "image",
+              "video"
+            ]
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "description": "Start of the window.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "to": {
+            "description": "End of the window.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "description": "The timezone weekday and hour are in.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "postCount": {
+            "description": "Destinations counted in the averages.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "excludedPosts": {
+            "description": "Destinations left out because their network cannot report engagements or they have not been measured yet.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "minPosts": {
+            "description": "Posts a slot needs before it can be recommended (3).",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "slots": {
+            "description": "Every weekday-and-hour slot with at least one post, Monday 00:00 first.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "weekday": {
+                      "description": "monday to sunday, in the summary's timezone.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "hour": {
+                      "description": "0 to 23, in the summary's timezone.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "posts": {
+                      "description": "Destinations published in this slot.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "avgEngagements": {
+                      "description": "Average likes, comments, shares and clicks per destination.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "avgImpressions": {
+                      "description": "Average impressions, or null when no post in the slot reports them.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "best": {
+            "description": "Up to 5 slots with at least minPosts posts, highest avgEngagements first. Empty when enoughData is false.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "weekday": {
+                      "description": "monday to sunday, in the summary's timezone.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "hour": {
+                      "description": "0 to 23, in the summary's timezone.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "posts": {
+                      "description": "Destinations published in this slot.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "avgEngagements": {
+                      "description": "Average likes, comments, shares and clicks per destination.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "avgImpressions": {
+                      "description": "Average impressions, or null when no post in the slot reports them.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "enoughData": {
+            "description": "false when no slot has enough posts to recommend; say so rather than guessing.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "get_post_metrics_history",
+      "title": "Get post metrics history",
+      "description": "How one published post's figures changed over time: the stored readings per destination, oldest first (at most one per hour, from the last 30 days). Figures are read about every 6 hours, at most weekly on X channels that turned metrics on. Each series carries metricsSupported and supportedMetrics; a figure not in supportedMetrics is a stored zero, not a measurement. Use get_post_metrics for the latest figures only. Use this when the user asks how one post's figures grew over time since it was published.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "number",
+            "description": "The post ID."
+          }
+        },
+        "required": [
+          "postId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "description": "The post.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedAt": {
+            "description": "When it was published.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "series": {
+            "description": "One series per destination.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "postPlatformId": {
+                      "description": "The destination.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platform": {
+                      "description": "The network.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "channelId": {
+                      "description": "The connected account.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "accountName": {
+                      "description": "The account's name.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "metricsSupported": {
+                      "description": "false when this destination's figures are stored zeros, not measurements.",
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "supportedMetrics": {
+                      "description": "The figures this network reports; others are stored zeros.",
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "points": {
+                      "description": "Readings, oldest first: { fetchedAt, impressions, reach, likes, comments, shares, saves, clicks, videoViews, engagementRate }.",
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {}
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "get_link_analytics",
+      "title": "Get link click analytics",
+      "description": "Clicks on the bulkpubli.sh short links in posts published in a date range (at most 30 days): totalClicks, totalLinks and the links, most clicked first (at most 2,000), each with where it leads, its clicks, the network and the post it is in. BulkPublish counts these clicks itself, so they exist on every network; bot and link-preview visits are excluded and totals update every 15 minutes. Empty when the workspace has not turned on link tracking. Use this when the user asks how many clicks the links in their posts got, or which links did best.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "description": "Start date, YYYY-MM-DD."
+          },
+          "to": {
+            "type": "string",
+            "description": "End date, YYYY-MM-DD."
+          },
+          "tz": {
+            "description": "IANA timezone that sets where each day starts and ends. Defaults to UTC.",
+            "type": "string"
+          },
+          "channelIds": {
+            "description": "Comma-separated channel ids to include. Ids come from list_channels.",
+            "type": "string"
+          },
+          "platforms": {
+            "description": "Comma-separated platform keys to include.",
+            "type": "string"
+          },
+          "labelIds": {
+            "description": "Comma-separated label ids (from list_labels); a post matches when it carries ANY of them.",
+            "type": "string"
+          },
+          "postFormat": {
+            "description": "Only single posts or only threads.",
+            "type": "string",
+            "enum": [
+              "post",
+              "thread"
+            ]
+          },
+          "mediaType": {
+            "description": "By the post's first media file: text (no media), image or video.",
+            "type": "string",
+            "enum": [
+              "text",
+              "image",
+              "video"
+            ]
+          },
+          "compare": {
+            "description": "Also return totalClicks and totalLinks for the previous equal-length window as `previous` (windows of 15 days or fewer).",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "description": "Start of the window.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "to": {
+            "description": "End of the window.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totalClicks": {
+            "description": "Clicks on every tracked link in the window.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totalLinks": {
+            "description": "Tracked links in the window.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "links": {
+            "description": "Links, most clicked first, at most 2,000.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "shortUrl": {
+                      "description": "The short link.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "originalUrl": {
+                      "description": "Where it leads.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "clicks": {
+                      "description": "Clicks, bots and link previews excluded.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "lastClickAt": {
+                      "description": "Time of the latest click, or null.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "platform": {
+                      "description": "The network the post went to.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "postId": {
+                      "description": "The post the link is in.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "postContent": {
+                      "description": "The start of that post's text.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "previous": {
+            "description": "With compare: the previous window's totals, or null.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "totalClicks": {
+                    "description": "Clicks in the previous window.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "totalLinks": {
+                    "description": "Links in the previous window.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "list_activity",
+      "title": "List activity log",
+      "description": "The workspace's activity log, newest first: what was done (for example post.published or channel.connected), to what, when, and by which member (actor). Paged. A read-only API key cannot read it. Use this when the user asks what happened in the workspace recently, or who published, changed or deleted something.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "description": "Page number (default 1).",
+            "type": "number"
+          },
+          "limit": {
+            "description": "Entries per page, 1 to 100 (default 20).",
+            "type": "number"
+          },
+          "action": {
+            "description": "Only this action, e.g. post.published.",
+            "type": "string"
+          },
+          "resource": {
+            "description": "Only entries about this kind of item, e.g. post or channel.",
+            "type": "string"
+          },
+          "userId": {
+            "description": "Only entries recorded for this member.",
+            "type": "string"
+          },
+          "from": {
+            "description": "Earliest entry, ISO 8601; a bare date starts at its first instant.",
+            "type": "string"
+          },
+          "to": {
+            "description": "Latest entry, ISO 8601; a bare date includes the whole day.",
+            "type": "string"
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "activities": {
+            "description": "Entries, newest first.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "The entry's ID.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "action": {
+                      "description": "What happened, e.g. post.published.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "resource": {
+                      "description": "What it happened to, e.g. post or channel.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "resourceId": {
+                      "description": "That item's ID.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Extra facts about the entry."
+                    },
+                    "createdAt": {
+                      "description": "When it happened.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "actor": {
+                      "description": "The member who did it, or null.",
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "description": "The member's user ID.",
+                              "anyOf": [
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "name": {
+                              "description": "The member's display name.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "image": {
+                              "description": "Address of the member's avatar, or null.",
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "additionalProperties": {}
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pagination": {
+            "description": "Where this page sits.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "description": "This page.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "limit": {
+                    "description": "Page size.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "total": {
+                    "description": "Entries matching the filters.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "totalPages": {
+                    "description": "How many pages there are.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -8005,16 +9417,17 @@
     {
       "name": "list_labels",
       "title": "List labels",
-      "description": "List the labels available for tagging posts and media, sorted by name. Returns at most 500 (the first 500 alphabetically). Use this when the user wants their post labels/tags.",
+      "description": "List the labels available for tagging posts, media and Inbox conversations, sorted by name. Returns at most 500 (the first 500 alphabetically). Use this when the user wants their labels/tags for posts, media or Inbox conversations.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "type": {
-            "description": "Filter by label type: \"post\" or \"media\". Returns all if omitted.",
+            "description": "Filter by label type: \"post\", \"media\" or \"inbox\" (Inbox conversations). Returns all if omitted.",
             "type": "string",
             "enum": [
               "post",
-              "media"
+              "media",
+              "inbox"
             ]
           }
         },
@@ -8097,7 +9510,7 @@
     {
       "name": "create_label",
       "title": "Create label",
-      "description": "Create a new label for organizing posts or media files. Use this when the user wants a new label/tag.",
+      "description": "Create a new label for organizing posts, media files or Inbox conversations. Use this when the user wants a new label/tag.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -8110,11 +9523,12 @@
             "type": "string"
           },
           "type": {
-            "description": "Label type: \"post\" (default) or \"media\".",
+            "description": "Label type: \"post\" (default), \"media\", or \"inbox\" for Inbox conversations.",
             "type": "string",
             "enum": [
               "post",
-              "media"
+              "media",
+              "inbox"
             ]
           }
         },
@@ -8167,7 +9581,7 @@
             ]
           },
           "type": {
-            "description": "What the label is for, e.g. post or media.",
+            "description": "What the label is for: post, media or inbox.",
             "anyOf": [
               {
                 "type": "string"
@@ -11642,6 +13056,117 @@
       }
     },
     {
+      "name": "bulk_posts",
+      "title": "Bulk post actions",
+      "description": "Perform a bulk action on multiple posts. Supports deleting, retrying, or rescheduling up to 100 posts at once. Use this when the user wants to delete, retry, or reschedule many posts in a single request.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "delete",
+              "retry",
+              "reschedule"
+            ],
+            "description": "Bulk action: \"delete\", \"retry\", or \"reschedule\"."
+          },
+          "postIds": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "description": "Array of post IDs to perform the action on, at most 100 per call. Split a larger selection into batches of 100."
+          },
+          "scheduledAt": {
+            "description": "New ISO 8601 datetime. Required when action is \"reschedule\".",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action",
+          "postIds"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "description": "true when the action ran.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "action": {
+            "description": "The action that ran.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "affected": {
+            "description": "How many posts it applied to.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "skippedInProgress": {
+            "description": "delete: posts left alone because they were being published.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
       "name": "get_queue_slot",
       "title": "Get next queue slot",
       "description": "Get the organization's next available queue slot. Useful for finding the next optimal scheduling time. Returns scheduledAt (an ISO timestamp) and dayLabel (a readable day). Use this when the user asks when the next available scheduling slot is, or wants a post moved to the top or bottom of the queue (then update_post with the returned scheduledAt).",
@@ -12521,6 +14046,339 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "create_schedule",
+      "title": "Create recurring schedule",
+      "description": "Create a new recurring post schedule. Posts are automatically created and published on the chosen frequency. The schedule is visible in the web app (Repeat Posts page, with upcoming runs on the Calendar); a post record exists only once an occurrence fires, carrying recurringScheduleId. Use this when the user wants a recurring posting schedule.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Schedule name."
+          },
+          "channelIds": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "description": "Array of channel IDs to post to."
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "daily",
+              "weekly",
+              "biweekly",
+              "monthly"
+            ],
+            "description": "How often the schedule runs."
+          },
+          "timeOfDay": {
+            "type": "string",
+            "description": "Time of day to post, 24h \"HH:MM\" (e.g. \"09:00\")."
+          },
+          "dayOfWeek": {
+            "description": "Day of week (0=Sunday..6=Saturday). Required for weekly/biweekly.",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 6
+          },
+          "dayOfMonth": {
+            "description": "Day of month (1-31). Required for monthly.",
+            "type": "number",
+            "minimum": 1,
+            "maximum": 31
+          },
+          "contentTemplate": {
+            "description": "Post content template. Defaults to empty.",
+            "type": "string"
+          },
+          "mediaFileIds": {
+            "description": "Media file IDs re-used for every generated post.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "platformMediaFileIds": {
+            "description": "Which of mediaFileIds each platform gets on every run, keyed by platform, e.g. { \"instagram\": [12], \"linkedin\": [] }. A platform that is not listed gets all of mediaFileIds; a listed one gets exactly those files, in that order; an empty list posts it without media. Every id must also be in mediaFileIds, or the request is refused with 400 VALIDATION_ERROR. Each run's post carries the same choice.",
+            "type": "object",
+            "properties": {
+              "facebook": {
+                "description": "Media file IDs published on facebook, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "instagram": {
+                "description": "Media file IDs published on instagram, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "x": {
+                "description": "Media file IDs published on x, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "tiktok": {
+                "description": "Media file IDs published on tiktok, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "youtube": {
+                "description": "Media file IDs published on youtube, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "threads": {
+                "description": "Media file IDs published on threads, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "bluesky": {
+                "description": "Media file IDs published on bluesky, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "pinterest": {
+                "description": "Media file IDs published on pinterest, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "gmb": {
+                "description": "Media file IDs published on gmb, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "linkedin": {
+                "description": "Media file IDs published on linkedin, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "mastodon": {
+                "description": "Media file IDs published on mastodon, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "discord": {
+                "description": "Media file IDs published on discord, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "telegram": {
+                "description": "Media file IDs published on telegram, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "tumblr": {
+                "description": "Media file IDs published on tumblr, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "snapchat": {
+                "description": "Media file IDs published on snapchat, in this order. [] publishes it without media.",
+                "maxItems": 35,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              }
+            }
+          },
+          "timezone": {
+            "description": "IANA timezone (e.g. \"America/New_York\"). Defaults to UTC.",
+            "type": "string"
+          },
+          "isActive": {
+            "description": "Whether the schedule starts active. Defaults to true.",
+            "type": "boolean"
+          },
+          "requireApproval": {
+            "description": "Hold every occurrence this schedule generates for team approval — each generated post lands with approvalStatus 'pending' and does not publish until an approver releases it via approve_post. Defaults to false. Forced to true for API keys whose role cannot publish (contributors), regardless of what is sent here and on every update, so reporting it as off would be wrong.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "channelIds",
+          "frequency",
+          "timeOfDay"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "The new schedule's ID, as update_schedule and delete_schedule take.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "description": "The schedule's name.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "frequency": {
+            "description": "daily, weekly, biweekly or monthly.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timeOfDay": {
+            "description": "Time it posts, HH:MM.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "description": "The timezone timeOfDay is in.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isActive": {
+            "description": "false when the schedule is paused.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "nextRunAt": {
+            "description": "When it first posts, or null.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -14068,7 +15926,7 @@
     {
       "name": "list_conversations",
       "title": "List Inbox conversations",
-      "description": "List Inbox conversations: direct messages, reviews and comment threads across the connected channels, newest activity first. Each conversation has its platform, kind (dm, review or comment), the other person, unread count, a preview of the last message, and canReply with replyNotice saying why a reply cannot be sent now. Internal team notes are not included. Results are paged: pass nextCursor back as cursor for the next page. The Inbox is part of the Pro and Business plans; on other plans, or before it is available to the account, the call is refused with a message saying so. Use this when the user asks about their direct messages, reviews or comment threads, or what is waiting for a reply.",
+      "description": "List Inbox conversations: direct messages, reviews, comment threads and mentions across the connected channels, newest activity first. Each conversation has its platform, kind (dm, review, comment or mention), the other person, its labels, unread count, a preview of the last message, and canReply with replyNotice saying why a reply cannot be sent now. Mentions appear only from networks that deliver them on the workspace's plan. Search also matches the team's internal notes. Results are paged: pass nextCursor back as cursor for the next page. The Inbox is part of the Pro and Business plans; on other plans, or before it is available to the account, the call is refused with a message saying so. Use this when the user asks about their direct messages, reviews or comment threads, or what is waiting for a reply.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -14082,12 +15940,13 @@
             ]
           },
           "kind": {
-            "description": "Only direct messages, reviews or comment threads. Omit for all.",
+            "description": "Only direct messages, reviews, comment threads, or mentions (posts by others that mention the account). Omit for all.",
             "type": "string",
             "enum": [
               "dm",
               "review",
-              "comment"
+              "comment",
+              "mention"
             ]
           },
           "platforms": {
@@ -14105,8 +15964,19 @@
             "description": "me, unassigned, or a teammate's user id.",
             "type": "string"
           },
+          "labelId": {
+            "description": "Only conversations carrying this Inbox label (list_labels with type inbox). Combined with labelIds, both must match.",
+            "type": "number"
+          },
+          "labelIds": {
+            "description": "Only conversations carrying ANY of these Inbox labels.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
           "q": {
-            "description": "Search the person's name and handle and the message text (2 to 100 characters).",
+            "description": "Search the person's name and handle, the message text and the team's internal notes (2 to 100 characters).",
             "type": "string"
           },
           "cursor": {
@@ -14161,10 +16031,78 @@
                       ]
                     },
                     "kind": {
-                      "description": "dm, review or comment.",
+                      "description": "dm, review, comment or mention.",
                       "anyOf": [
                         {
                           "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "url": {
+                      "description": "Mentions only: a link to the post the mention was made in, when the network provides one.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "labels": {
+                      "description": "The conversation's Inbox labels. Change them with set_conversation_labels.",
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "description": "The label's ID. This is what the labels input of create_post takes.",
+                                "anyOf": [
+                                  {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "string"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "name": {
+                                "description": "The label's name.",
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "color": {
+                                "description": "The label's colour as a hex code.",
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "additionalProperties": {}
+                          }
                         },
                         {
                           "type": "null"
@@ -14497,7 +16435,7 @@
     {
       "name": "get_conversation",
       "title": "Get Inbox conversation",
-      "description": "Get the messages of one Inbox conversation: the newest 500, oldest first, each with its direction (in from the other person, out sent by the workspace), text, attachments and time. Reading does not mark the conversation read. The Inbox is part of the Pro and Business plans; on other plans, or before it is available to the account, the call is refused with a message saying so. Use this when the user wants to read one Inbox conversation in full.",
+      "description": "Get the messages of one Inbox conversation: the newest 500, oldest first, each with its direction (in from the other person, out sent by the workspace, note an internal note for the team that was never sent), text, attachments, time and author. Reading does not mark the conversation read. The Inbox is part of the Pro and Business plans; on other plans, or before it is available to the account, the call is refused with a message saying so. Use this when the user wants to read one Inbox conversation in full.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -14559,7 +16497,7 @@
                       ]
                     },
                     "direction": {
-                      "description": "in (from the other person) or out (sent by the workspace).",
+                      "description": "in (from the other person), out (sent by the workspace) or note (an internal note for the team, never sent).",
                       "anyOf": [
                         {
                           "type": "string"
@@ -14624,7 +16562,7 @@
                       "description": "Files on the message as { name, type, url }, or null."
                     },
                     "author": {
-                      "description": "For a sent message: the member who wrote it; otherwise null.",
+                      "description": "For a sent message or a note: the member who wrote it; otherwise null.",
                       "anyOf": [
                         {
                           "type": "object",
@@ -14703,7 +16641,7 @@
     {
       "name": "reply_to_conversation",
       "title": "Reply in Inbox conversation",
-      "description": "Send a reply in an Inbox conversation. The message goes to the person on the platform right away, from the channel the conversation belongs to, and it cannot be unsent. Send text (up to 4,000 characters), up to 4 media library files, or both; reviews and comment threads take text only. Facebook Messenger and Instagram accept a reply only within 24 hours of the person's last message; after that the call is refused. If the channel's connection has stopped working, the call is refused and the channel needs reconnecting from the Channels page. The Inbox is part of the Pro and Business plans; on other plans, or before it is available to the account, the call is refused with a message saying so. Use this when the user wants to answer a direct message, review or comment thread in their Inbox.",
+      "description": "Send a reply in an Inbox conversation. The message goes to the person on the platform right away, from the channel the conversation belongs to, and it cannot be unsent. In a mention, the reply answers the post that mentioned the account. Send text (up to 4,000 characters), up to 4 media library files, or both; reviews, comment threads and mentions take text only. To leave a note for the team instead, use add_conversation_note. Facebook Messenger and Instagram accept a reply only within 24 hours of the person's last message; after that the call is refused. If the channel's connection has stopped working, the call is refused and the channel needs reconnecting from the Channels page. The Inbox is part of the Pro and Business plans; on other plans, or before it is available to the account, the call is refused with a message saying so. Use this when the user wants to answer a direct message, review or comment thread in their Inbox.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -14847,6 +16785,501 @@
         "destructiveHint": true,
         "idempotentHint": true,
         "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "add_conversation_note",
+      "title": "Add Inbox note",
+      "description": "Leave an internal note on an Inbox conversation for the team. It is never sent to the other person and nothing changes on the platform; it shows up in get_conversation as a note. The note is written as the person the connection belongs to. To mention a teammate, write @[Display Name](user:USER_ID): they are notified (at most 10 per note), and the teammate the conversation is assigned to is told about every note. The Inbox is part of the Pro and Business plans; on other plans, or before it is available to the account, the call is refused with a message saying so. Use this when the user wants to leave a note on an Inbox conversation for their team, or tell a teammate about it, without answering the person.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "number",
+            "description": "The conversation id from list_conversations."
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "The note, 1 to 4,000 characters."
+          }
+        },
+        "required": [
+          "conversationId",
+          "text"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "description": "true when the note was saved.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "description": "The saved note.",
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "The note's ID.",
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "direction": {
+                    "description": "Always note.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "text": {
+                    "description": "The note as saved.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "sentAt": {
+                    "description": "ISO 8601 time it was added.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "author": {
+                    "description": "The member the note was written as.",
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "description": "The member's user ID.",
+                            "anyOf": [
+                              {
+                                "anyOf": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "string"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "name": {
+                            "description": "The member's display name.",
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "image": {
+                            "description": "Address of the member's avatar, or null.",
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "additionalProperties": {}
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "set_conversation_labels",
+      "title": "Set Inbox conversation labels",
+      "description": "Replace an Inbox conversation's labels with exactly the ids given; an empty list removes them all (at most 20). Every id must be an Inbox label (list_labels with type inbox, or create_label with type inbox); if any is not, nothing changes and the call is refused. Nothing is sent to the other person. The Inbox is part of the Pro and Business plans; on other plans, or before it is available to the account, the call is refused with a message saying so. Use this when the user wants to tag, re-tag or untag an Inbox conversation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "number",
+            "description": "The conversation id from list_conversations."
+          },
+          "labelIds": {
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "description": "The complete set of Inbox label ids the conversation should carry."
+          }
+        },
+        "required": [
+          "conversationId",
+          "labelIds"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "description": "true when the labels were set.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "labelIds": {
+            "description": "The label IDs now on the conversation.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "list_saved_replies",
+      "title": "List saved replies",
+      "description": "List the workspace's saved replies (reusable answers for the Inbox), sorted by name, and the placeholders they may contain, such as {{first_name}}. Placeholders are returned as written: fill them in from the conversation before sending the text with reply_to_conversation. The Inbox is part of the Pro and Business plans; on other plans, or before it is available to the account, the call is refused with a message saying so. Use this when the user wants their saved Inbox replies, or you are answering a common question their team already has a saved reply for.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "savedReplies": {
+            "description": "The workspace's saved replies, sorted by name.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "The saved reply's ID.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "description": "Its name.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "description": "The reply text, with any {{placeholder}} left as written.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdBy": {
+                      "description": "User ID of the member who created it.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "updatedAt": {
+                      "description": "When it was last changed.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "variables": {
+            "description": "Placeholders a saved reply may contain. They are not filled in for you: replace them before sending.",
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "description": "The placeholder, written in a reply as {{key}}.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "description": {
+                      "description": "What it stands for.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "create_saved_reply",
+      "title": "Create saved reply",
+      "description": "Save a reply for the whole team to reuse in the Inbox. Names are unique in the workspace, and a workspace holds at most 200. The text may contain the placeholders list_saved_replies lists, e.g. Hi {{first_name}}. Nothing is sent to anyone. The Inbox is part of the Pro and Business plans; on other plans, or before it is available to the account, the call is refused with a message saying so. Use this when the user wants to save an answer for the team to reuse in the Inbox.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "1 to 100 characters, unique in the workspace."
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "The reply text, 1 to 4,000 characters."
+          }
+        },
+        "required": [
+          "name",
+          "body"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "The saved reply's ID.",
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "description": "Its name.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "body": {
+            "description": "The reply text, with any {{placeholder}} left as written.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdBy": {
+            "description": "User ID of the member who created it.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updatedAt": {
+            "description": "When it was last changed.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": {}
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       },
       "execution": {
         "taskSupport": "forbidden"
@@ -16093,6 +18526,23 @@
         {
           "name": "source",
           "description": "The article text, script or a summary of it.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "recurring_schedule",
+      "title": "Set up a recurring schedule",
+      "description": "A rule that creates and publishes a post on a fixed cadence (tips, weekly roundups).",
+      "arguments": [
+        {
+          "name": "content",
+          "description": "What each post says.",
+          "required": true
+        },
+        {
+          "name": "cadence",
+          "description": "How often and when.",
           "required": true
         }
       ]

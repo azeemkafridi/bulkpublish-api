@@ -1,13 +1,13 @@
 ---
 name: manage-inbox
-description: Read, triage and answer BulkPublish Inbox conversations (DMs, reviews, comment threads) and comments on published posts. Use when the user asks about messages, DMs, reviews, comments, replies, or wants to clear, assign or moderate their inbox.
+description: Read, triage and answer BulkPublish Inbox conversations (DMs, reviews, comment threads, mentions) and comments on published posts, with team notes, labels and saved replies. Use when the user asks about messages, DMs, reviews, mentions, comments, replies, or wants to clear, assign, label or moderate their inbox.
 ---
 <!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # BulkPublish — Inbox and Comments
 
-The Inbox gathers direct messages, reviews and comment threads from the user's
-connected accounts. Comment tools work on the comments under a published post.
+The Inbox gathers direct messages, reviews, comment threads and mentions from
+the user's connected accounts. Comment tools work on the comments under a published post.
 
 ## The rule that matters most
 
@@ -36,6 +36,12 @@ list_conversations     list conversations
 get_conversation       messages in one conversation
 reply_to_conversation  send a DM or review reply now (cannot be unsent)
 update_conversation    mark read, archive / reopen, snooze, assign
+add_conversation_note  internal note for the team (never sent)
+set_conversation_labels replace a conversation's Inbox labels
+list_saved_replies     the team's saved replies and their placeholders
+create_saved_reply     save a reply for the team
+update_saved_reply     rename or reword a saved reply
+delete_saved_reply     remove a saved reply
 list_post_comments     comments on a published post
 reply_to_comment       public reply under a comment (cannot be unsent)
 moderate_comment       like, unlike, hide, unhide or delete a comment
@@ -44,15 +50,31 @@ moderate_comment       like, unlike, hide, unhide or delete a comment
 ### list_conversations
 
 Filters, all optional: `status` (`open`, `archived`, `snoozed`), `kind`
-(`dm`, `review`, `comment`), `platforms`, `channelId`, `assigned` (`me`,
-`unassigned`, or a teammate's user id), `q` (text search), `limit`, and
-`cursor` from the previous page.
+(`dm`, `review`, `comment`, `mention`), `platforms`, `channelId`, `assigned`
+(`me`, `unassigned`, or a teammate's user id), `labelId` / `labelIds` (Inbox
+labels), `q` (text search, which also matches team notes), `limit`, and
+`cursor` from the previous page. Mentions appear only from networks that deliver
+them on the user's plan; a reply to a mention answers the post that mentioned
+them, publicly.
 
 ### get_conversation
 
 Returns the newest 500 messages, oldest first. Reading a conversation does
 **not** mark it read; use `update_conversation` for that, and only when the user
-wants it.
+wants it. Team notes come back inline with `direction: "note"`.
+
+### Notes, labels and saved replies
+
+These stay inside the workspace; nothing reaches the other person.
+
+- `add_conversation_note` leaves a note written as the user. Mention a teammate
+  with `@[Name](user:USER_ID)`; they are notified, so confirm who before adding one.
+- `set_conversation_labels` replaces the whole set: read the current `labels`
+  first and send the full list you want. Only labels of type `inbox` work
+  (`list_labels` / `create_label` with `type: "inbox"`).
+- `list_saved_replies` returns placeholders (such as `first_name`, in double curly braces) as written.
+  Fill them in from the conversation, then show the finished text before
+  `reply_to_conversation`, like any other reply.
 
 ### reply_to_conversation
 

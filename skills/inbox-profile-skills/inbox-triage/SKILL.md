@@ -1,12 +1,12 @@
 ---
 name: inbox-triage
-description: Read, sort and answer the BulkPublish Inbox (direct messages, reviews and comment threads) with a confirmation before every reply. Use when the user asks about messages, DMs, reviews, what is waiting for a reply, or wants to clear, snooze, archive or assign conversations.
+description: Read, sort and answer the BulkPublish Inbox (direct messages, reviews, comment threads and mentions) with a confirmation before every reply, and keep team notes, labels and saved replies. Use when the user asks about messages, DMs, reviews, mentions, what is waiting for a reply, or wants to clear, snooze, archive, label or assign conversations.
 ---
 <!-- Generated from skills/src in the bulkpublish-api repository. Edit the source there, not this copy. -->
 
 # Inbox Triage
 
-The Inbox gathers direct messages, reviews and comment threads from the user's connected accounts, on the networks that allow it. This skill reads it, sorts it and helps the user answer.
+The Inbox gathers direct messages, reviews, comment threads and mentions from the user's connected accounts, on the networks that allow it. This skill reads it, sorts it and helps the user answer.
 
 ## The rule that matters most
 
@@ -20,10 +20,13 @@ Never send in bulk. If the user asks you to answer everything, draft every reply
 
 ## Tools
 
-- `list_conversations`: open, archived or snoozed conversations. Filters: `status`, `kind` (`dm`, `review`, `comment`), `platforms`, `channelId`, `assigned` (`me`, `unassigned` or a teammate's id), `q` for text search, `limit`, and `cursor` from the previous page.
-- `get_conversation`: the messages in one conversation, oldest first. Reading it does not mark it read.
+- `list_conversations`: open, archived or snoozed conversations. Filters: `status`, `kind` (`dm`, `review`, `comment`, `mention`), `platforms`, `channelId`, `assigned` (`me`, `unassigned` or a teammate's id), `labelId` / `labelIds`, `q` for text search (it also matches team notes), `limit`, and `cursor` from the previous page.
+- `get_conversation`: the messages in one conversation, oldest first, with the team's notes inline as `direction: "note"`. Reading it does not mark it read.
 - `update_conversation`: mark read or unread, archive or reopen, snooze until a time (at most 90 days ahead), assign to a teammate or unassign. Every change can be undone with another call.
-- `reply_to_conversation`: sends `text` (up to 4,000 characters). In a direct message it can attach up to 4 `mediaIds` from `upload_media`. In a comment thread it answers the newest comment from the other person, or the one given as `replyToMessageId`.
+- `reply_to_conversation`: sends `text` (up to 4,000 characters). In a direct message it can attach up to 4 `mediaIds` from `upload_media`. In a comment thread it answers the newest comment from the other person, or the one given as `replyToMessageId`. In a mention it answers the post that mentioned the account, publicly.
+- `add_conversation_note`: a note for the team, never sent to the person. `@[Name](user:USER_ID)` mentions and notifies a teammate, so confirm who first.
+- `set_conversation_labels`: replaces the conversation's whole label set with the ids given. Only labels of type `inbox` work: `list_labels` with `type: "inbox"`, or `create_label` with `type: "inbox"`.
+- `list_saved_replies` / `create_saved_reply`: the team's reusable answers. Placeholders (such as `first_name`, written in double curly braces) come back as written; fill them in and show the finished text before sending it with `reply_to_conversation`.
 
 ## Recipes
 
@@ -43,7 +46,7 @@ Never send in bulk. If the user asks you to answer everything, draft every reply
 Comment threads on the user's posts appear here with `kind: "comment"`. Read and answer them exactly like a message: the reply is public, so say so when you show the draft.
 
 **Tidy up**
-Use `update_conversation` to archive what is done, snooze what has to wait, and assign what belongs to a teammate. Say what you are about to change before you do it.
+Use `update_conversation` to archive what is done, snooze what has to wait, and assign what belongs to a teammate. Use `set_conversation_labels` to tag what needs follow-up, and `add_conversation_note` to leave context for whoever picks it up. Say what you are about to change before you do it.
 
 ## When something is refused
 

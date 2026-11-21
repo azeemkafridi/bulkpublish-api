@@ -148,7 +148,7 @@ BulkPublish ships an MCP server so AI assistants can manage your social media di
 }
 ```
 
-82 tools in the local (stdio) server: `create_post`, `list_channels`, `upload_media`, `get_analytics`, `get_engagement_analytics`, the interactive `compose_post` composer (MCP Apps), and more. The hosted server at `https://mcp.bulkpublish.com/mcp` (OAuth 2.1) serves the 26-tool `core` profile: channels, posts, media, analytics, labels, approvals, post comments and the interactive panels. The 32-tool `inbox` profile adds reading and answering direct messages, reviews and comments. See [mcp-server/README.md](mcp-server/README.md#tool-profiles).
+92 tools in the local (stdio) server: `create_post`, `list_channels`, `upload_media`, `get_analytics`, `get_engagement_analytics`, `get_best_times`, the interactive `compose_post` composer (MCP Apps), and more. The hosted server at `https://mcp.bulkpublish.com/mcp` (OAuth 2.1) serves the 56-tool `inbox` profile: channels, posts, media, analytics (including best times to post, post metric history and link clicks), labels, approvals, repeat posts, the activity log, the interactive panels, and the Inbox (direct messages, reviews, comments and mentions, with team notes, labels and saved replies). `https://mcp.bulkpublish.com/mcp/full` serves every tool. See [mcp-server/README.md](mcp-server/README.md#tool-profiles).
 
 ### Social Media Content Skills
 
@@ -327,14 +327,18 @@ Authorization: Bearer bp_your_key_here
 | `POST` | `/api/media/multipart/complete` | Assemble uploaded parts and record the media file |
 | `GET` | `/api/media` | List uploaded media |
 | `GET` | `/api/analytics/summary` | Analytics summary for a date range |
-| `GET` | `/api/analytics/engagement` | Engagement totals, per-day / per-platform / per-channel breakdowns, ranked and full post lists — filterable by channels, platforms, labels, format and media type; `compare=1` adds the previous period |
+| `GET` | `/api/analytics/engagement` | Engagement totals, per-day / per-platform / per-channel breakdowns, ranked and full post lists — filterable by channels, platforms, labels, format and media type; `compare=1` adds the previous period, `bestTimes=1` the best weekdays and hours, `vsMedian=1` each post against its account's usual |
 | `GET` | `/api/analytics/post-history` | Every stored metrics snapshot for one post, per platform (trend since publish) |
 | `GET` | `/api/analytics/links` | Tracked bulkpubli.sh links with click counts |
 | `POST` | `/api/schedules` | Create a recurring schedule |
 | `GET` | `/api/quotas/usage` | Check current plan limits and usage |
-| `GET` | `/api/inbox/conversations` | Inbox: direct messages, reviews and comment threads, with filters and cursor paging (Pro and Business) |
+| `GET` | `/api/inbox/conversations` | Inbox: direct messages, reviews, comment threads and mentions, with filters (including Inbox labels) and cursor paging (Pro and Business) |
 | `GET`/`POST` | `/api/inbox/conversations/:id/messages` | Read a conversation, or send a reply to the person on the platform |
 | `PATCH` | `/api/inbox/conversations/:id` | Mark read, archive, snooze or assign a conversation |
+| `POST` | `/api/inbox/conversations/:id/notes` | Leave an internal note for the team (never sent) |
+| `PUT` | `/api/inbox/conversations/:id/labels` | Set a conversation's Inbox labels |
+| `GET`/`POST` | `/api/inbox/saved-replies` | List or create saved replies |
+| `PUT`/`DELETE` | `/api/inbox/saved-replies/:id` | Update or delete a saved reply |
 | `GET` | `/api/posts/:id/engagement` | Comments and reactions on a published post, per channel |
 | `POST` | `/api/posts/:id/comments/reply` | Reply to a comment on a published post |
 | `POST` | `/api/posts/:id/comments/moderate` | Like, unlike, hide, unhide or delete a comment |

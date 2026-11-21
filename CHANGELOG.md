@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-11-21 — Inbox notes, labels, saved replies and mentions over the API; best times to post
+
+Node SDK **1.48.0** · Python **0.49.0** · MCP **1.60.0** · spec + Postman
+
+### Added
+
+- **Internal notes on Inbox conversations.** `POST /api/inbox/conversations/{id}/notes` leaves a note for your team; it is never sent to the other person. Notes now come back inline in `GET /api/inbox/conversations/{id}/messages` with `direction: "note"` and their `author`, and `q` on the conversation list also matches them. Write `@[Display Name](user:USER_ID)` to mention a teammate, who is notified. Node `inbox.addNote()`, Python `inbox.add_note()`.
+- **Inbox labels.** Labels gain a third type, `inbox`, on `GET`/`POST /api/labels`. `PUT /api/inbox/conversations/{id}/labels` sets a conversation's labels, each conversation carries `labels`, and the conversation list filters by `labelId` and `labelIds`. Node `inbox.setLabels()` and `LabelType` gains `'inbox'`; Python `inbox.set_labels()`, and `labels.list()` / `labels.create()` take `type`.
+- **Saved replies.** `GET`/`POST /api/inbox/saved-replies` and `PUT`/`DELETE /api/inbox/saved-replies/{id}`: reusable answers shared by the workspace, with the placeholders they may contain. Node `listSavedReplies` / `createSavedReply` / `updateSavedReply` / `deleteSavedReply`, Python `list_saved_replies` / `create_saved_reply` / `update_saved_reply` / `delete_saved_reply`.
+- **Mentions in the Inbox.** `kind: "mention"`: a post by someone else that mentions one of your accounts, with `url` linking to it when the network provides one. A reply answers that post. Mentions appear only from networks that deliver them on your plan.
+- **Best times to post and "compared with usual".** `GET /api/analytics/engagement` takes `bestTimes=1` (published posts grouped by weekday and hour in `tz`, average engagements and impressions per slot, and up to 5 best slots, each holding at least 3 posts; `enoughData: false` when none does) and `vsMedian=1` (each `platformMetrics[]` entry gets `vsMedian {impressions, engagements, basis}`, its figure over the same account's median in the window; `null` means no comparison is possible). Node `EngagementParams.bestTimes` / `vsMedian` with `EngagementBestTimes`, `BestTimeSlot` and `EngagementVsMedian` types; Python `analytics.engagement(best_times=True, vs_median=True)`.
+- **MCP: 10 new tools.** `add_conversation_note`, `set_conversation_labels`, `list_saved_replies`, `create_saved_reply`, `update_saved_reply`, `delete_saved_reply`, `get_best_times` (the best weekdays and hours, nothing else), `get_post_metrics_history` (one post's figures over time), `get_link_analytics` (short-link clicks) and `list_activity` (the activity log). `get_engagement_analytics` takes `bestTimes` and `vsMedian`; `list_conversations` takes `kind: "mention"`, `labelId` and `labelIds`; `list_labels` and `create_label` take `type: "inbox"`.
+- **The hosted connector at `https://mcp.bulkpublish.com/mcp` serves 10 more tools (46 to 56):** the eight new tools above other than `update_saved_reply` and `delete_saved_reply`, plus `create_schedule` (it already served changing and deleting repeat posts, but not making one) and `bulk_posts`. `https://mcp.bulkpublish.com/mcp/full` and the npm package serve all 92.
+
+### Changed
+
+- **API keys and OAuth apps now see what the app sees in the Inbox**: team notes, labels and mentions are no longer withheld. OAuth apps reach notes, labels and saved replies with the existing `inbox:read` / `inbox:write` scopes; a read-only API key can read them and change nothing.
+- The Inbox guide, the SDK READMEs and the MCP README describe all of the above. The MCP README's tool table now marks every tool the hosted connector serves.
+
 ## 2026-11-21 — One X allowance per owner, shared by their workspaces
 
 Node SDK **1.47.1**, Python SDK **0.48.1** (documentation only)

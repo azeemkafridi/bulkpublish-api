@@ -53,7 +53,7 @@ const OUTPUT_FIXTURES = {
   approve_post: { id: 9, status: "scheduled", approvalStatus: "approved", mediaFiles: [3056], postPlatforms: [] },
   reject_post: { id: 9, status: "draft", approvalStatus: "rejected", mediaFiles: [], postPlatforms: [] },
   // Inbox profile — shapes from the webapp's openapi.json responses.
-  list_conversations: { conversations: [{ id: 7, platform: "instagram", kind: "dm", rating: null, status: "open", snoozedUntil: null, assignee: null, channel: { id: 143, accountName: "Acme", profileImage: null }, participant: { id: "p1", name: "Sam" }, unreadCount: 2, lastMessageAt: "2026-10-05T10:00:00.000Z", lastInboundAt: "2026-10-05T10:00:00.000Z", lastMessagePreview: "Hi", canReply: true, attachments: { max: 1, kinds: ["image"] }, replyNotice: null }], nextCursor: null, offset: 0, total: 1 },
+  list_conversations: { conversations: [{ id: 7, platform: "instagram", kind: "mention", url: null, labels: [{ id: 3, name: "VIP", color: null }], rating: null, status: "open", snoozedUntil: null, assignee: null, channel: { id: 143, accountName: "Acme", profileImage: null }, participant: { id: "p1", name: "Sam" }, unreadCount: 2, lastMessageAt: "2026-10-05T10:00:00.000Z", lastInboundAt: "2026-10-05T10:00:00.000Z", lastMessagePreview: "Hi", canReply: true, attachments: { max: 1, kinds: ["image"] }, replyNotice: null }], nextCursor: null, offset: 0, total: 1 },
   get_conversation: { conversationId: 7, messages: [{ id: 1, platformMessageId: "m1", direction: "in", text: null, attachments: null, rating: null, sentAt: "2026-10-05T10:00:00.000Z", readAt: null, actor: null, authorUserId: null, author: null, parentId: null, likeCount: null }] },
   reply_to_conversation: { success: true, messageId: "m2" },
   update_conversation: { success: true },
@@ -74,6 +74,17 @@ const OUTPUT_FIXTURES = {
   share_post: { shareToken: "abc", url: "https://app.example/p/abc", created: true },
   unshare_post: { success: true, revoked: false },
   create_label: { id: 12, userId: "u1", organizationId: 10, name: "Promo", color: "#6366f1", type: "post", createdAt: "2026-11-01T10:00:00.000Z" },
+  // Joined the hosted profile 2026-11-21; shapes from the webapp's openapi.json and routes.
+  add_conversation_note: { success: true, message: { id: 31, direction: "note", text: "Refund sent", sentAt: "2026-11-21T10:00:00.000Z", authorUserId: "u1", author: { id: "u1", name: "Sam", image: null } } },
+  set_conversation_labels: { success: true, labelIds: [3, 4] },
+  list_saved_replies: { savedReplies: [{ id: 2, name: "Refund", body: "Hi {{first_name}}, your refund is on its way.", createdBy: null, updatedAt: "2026-11-21T10:00:00.000Z" }], variables: [{ key: "first_name", description: "The person's first name" }] },
+  create_saved_reply: { id: 2, name: "Refund", body: "Hi {{first_name}}", createdBy: "u1", updatedAt: "2026-11-21T10:00:00.000Z" },
+  get_best_times: { from: "2026-11-01", to: "2026-11-21", timezone: "UTC", postCount: 12, excludedPosts: 2, minPosts: 3, slots: [{ weekday: "monday", hour: 9, posts: 3, avgEngagements: 14.3, avgImpressions: null }], best: [], enoughData: false },
+  get_post_metrics_history: { postId: 9, publishedAt: "2026-11-01T10:00:00.000Z", series: [{ postPlatformId: 4, platform: "x", channelId: 143, accountName: "Acme", supportedMetrics: ["impressions"], metricsSupported: true, points: [{ fetchedAt: "2026-11-01T16:00:00.000Z", impressions: 10 }] }] },
+  get_link_analytics: { from: "2026-11-01", to: "2026-11-21", totalClicks: 5, totalLinks: 1, links: [{ id: 1, shortUrl: "https://bulkpubli.sh/abc", code: "abc", originalUrl: "https://example.com", clicks: 5, lastClickAt: null, platform: "x", channelId: 143, postId: 9, postContent: "Hi" }], previous: null },
+  list_activity: { activities: [{ id: 1, userId: "u1", organizationId: 10, action: "post.published", resource: "post", resourceId: "9", details: null, level: "info", ipAddress: null, createdAt: "2026-11-21T10:00:00.000Z", actor: null }], pagination: { page: 1, limit: 20, total: 1, totalPages: 1 } },
+  create_schedule: { id: 9, name: "Tips", frequency: "weekly", dayOfWeek: 1, timeOfDay: "09:00", timezone: "UTC", isActive: true, nextRunAt: "2026-11-23T09:00:00.000Z", channelIds: [143] },
+  bulk_posts: { success: true, action: "delete", affected: 3, skippedInProgress: 0 },
 };
 for (const [tool, fixture] of Object.entries(OUTPUT_FIXTURES)) {
   const shape = TOOL_OUTPUT_SCHEMAS[tool];

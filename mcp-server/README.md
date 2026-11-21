@@ -129,9 +129,9 @@ The server ships three tool profiles, chosen with `BULKPUBLISH_TOOL_PROFILE`:
 
 | Profile | Tools | Default for |
 |---|---|---|
-| `core` | 26 — channels, posts, media, analytics, labels, approvals, post comments, channel sync settings, and the interactive panels | The hosted HTTP server (`dist/http.js`), which is what the Claude and ChatGPT directories list |
-| `inbox` | 32 — everything in `core`, plus the Inbox and comment-reply tools: `list_conversations`, `get_conversation`, `reply_to_conversation`, `update_conversation`, `reply_to_comment`, `moderate_comment` | Opt-in on a hosted deployment (`BULKPUBLISH_TOOL_PROFILE=inbox`). The `core` tools in it are identical to the `core` profile's |
-| `full` | Every tool (including the Inbox and comment tools; label management, hashtag groups, templates, calendar notes, review links, client-connect links, recurring schedules, channel sets, RSS feeds, chunked uploads, quota) | The local stdio server (`npx @bulkpublish/mcp-server`) |
+| `core` | 26 — channels, posts, media, analytics, labels, approvals, post comments, channel sync settings, and the interactive panels | The hosted HTTP server (`dist/http.js`) when no profile is set |
+| `inbox` | 56 — everything in `core`, plus the Inbox (conversations, replies, team notes, conversation labels, saved replies), comment replies and moderation, account and engagement analytics, best times to post, post metric history, link clicks, the activity log, channel health, media upkeep, templates and hashtag groups (read), repeat posts (create, change, delete), bulk post actions, post review links and `create_label` | `https://mcp.bulkpublish.com/mcp` (`BULKPUBLISH_TOOL_PROFILE=inbox`). The `core` tools in it are identical to the `core` profile's |
+| `full` | 92 — every tool (adding label, template and hashtag-group editing, saved reply editing, calendar notes, batch review links, client-connect links, channel sets, RSS feeds, stories, mention search, chunked uploads, quota) | The local stdio server (`npx @bulkpublish/mcp-server`) and `https://mcp.bulkpublish.com/mcp/full` |
 
 Set `BULKPUBLISH_TOOL_PROFILE=full` on a hosted deployment to expose everything, or `core` locally to keep a small tool list. The panels' buttons call back into `create_post`, `publish_post`, `retry_post`, `update_post`, `delete_post`, `list_channels`, `list_media`, `get_post`, `create_media_upload` and `finalize_media_upload`, so all of those are in `core`.
 
@@ -156,11 +156,13 @@ Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles))
 | `reject_post` ★ | Reject a pending post back to draft, with an optional reason |
 | `get_post_metrics` ★ | Get engagement metrics (impressions, likes, comments, shares). Each platform entry carries `supportedMetrics` — a key not in that list is a stored `0`, not a measurement |
 | `publish_story` | Publish as a story to Facebook or Instagram |
-| `bulk_posts` | Bulk delete, retry or reschedule up to 100 posts |
+| `bulk_posts` ✉ | Bulk delete, retry or reschedule up to 100 posts |
+| `share_post` ✉ | Get a review link for one post that anyone with it can open without an account |
+| `unshare_post` ✉ | Stop a post's review link from working |
 | `get_queue_slot` ★ | Get the next optimal time slot for a channel |
 | **Channels** | |
 | `list_channels` ★ | List all connected social media channels |
-| `get_channel_health` | Check channel token health |
+| `get_channel_health` ✉ | Check channel token health |
 | `get_channel_options` ★ | Get platform-specific options (boards, playlists) |
 | `update_channel` ★ | Turn an X channel's analytics sync or DM/reply reading on or off |
 | `search_mentions` | Search users for @mention (X, Bluesky, Mastodon, LinkedIn Pages — LinkedIn results carry the `vanityName` slug they matched on) |
@@ -176,36 +178,50 @@ Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles))
 | `delete_rss_feed` | Stop and remove a feed |
 | **Media** | |
 | `upload_media` ★ | Upload a media file from a URL (or local path on the stdio server) |
-| `get_media` | Get a media file by ID |
+| `get_media` ✉ | Get a media file by ID |
+| `update_media` ✉ | Set or clear a file's alt text |
 | `list_media` ★ | List uploaded media files |
-| `delete_media` | Delete a media file |
-| `create_media_upload` ★ | Reserve a presigned R2 URL for a direct browser upload (used by the composer) |
+| `delete_media` ✉ | Delete a media file |
+| `create_media_upload` ★ | Reserve a one-time upload URL for a direct browser upload (used by the composer) |
 | `finalize_media_upload` ★ | Record an uploaded object as a media file after the browser PUT (used by the composer) |
 | `create_multipart_upload` | Start a chunked upload for large media (videos up to 1GB) — presigned URLs for fixed 10MB parts |
 | `complete_multipart_upload` | Assemble the uploaded parts (partNumber + ETag each) and record the media file |
 | `abort_multipart_upload` | Cancel an in-progress chunked upload and free its stored parts |
 | **Labels** | |
-| `create_label` | Create a new label |
+| `create_label` ✉ | Create a new label for posts, media or Inbox conversations |
 | `list_labels` ★ | List all labels |
 | `update_label` | Update a label name or color |
 | `delete_label` | Delete a label |
+| **Templates and hashtag groups** | |
+| `list_templates` ✉ | List saved post templates |
+| `list_hashtag_groups` ✉ | List saved hashtag groups |
 | **Analytics** | |
 | `get_analytics` ★ | Get analytics summary for a date range |
-| `get_account_analytics` | Daily follower, impression, reach and profile-view snapshots per channel, up to the last 30 days |
-| `get_engagement_analytics` | Likes, comments, shares, views and reach across posts in a date range, per platform and per day, with a ranked top-posts list |
+| `get_account_analytics` ✉ | Daily follower, impression, reach and profile-view snapshots per channel, up to the last 30 days |
+| `get_engagement_analytics` ✉ | Likes, comments, shares, views and reach across posts in a date range, per platform and per day, with a ranked top-posts list; `bestTimes` adds the best weekdays and hours, `vsMedian` compares each post with that account's usual |
+| `get_best_times` ✉ | The weekdays and hours that get the most engagement (a slot needs at least 3 posts before it is recommended) |
+| `get_post_metrics_history` ✉ | One post's figures over time since it was published |
+| `get_link_analytics` ✉ | Clicks on the short links in posts published in a date range, most clicked first |
+| `list_activity` ✉ | The workspace's activity log, newest first, with who did what |
 | **Schedules** | |
-| `list_schedules` | List recurring schedules |
-| `create_schedule` | Create a recurring schedule |
-| `update_schedule` | Update a schedule |
-| `delete_schedule` | Delete a schedule |
+| `list_schedules` ✉ | List recurring schedules |
+| `create_schedule` ✉ | Create a recurring schedule |
+| `update_schedule` ✉ | Update a schedule |
+| `delete_schedule` ✉ | Delete a schedule |
 | **Inbox and comments** | |
-| `list_conversations` ✉ | List direct messages, reviews and comment threads, newest activity first, with filters and paging (Pro and Business plans) |
+| `list_conversations` ✉ | List direct messages, reviews, comment threads and mentions, filterable by Inbox label, newest activity first, with filters and paging (Pro and Business plans) |
 | `get_conversation` ✉ | Read one conversation's messages, oldest first; does not mark it read |
 | `reply_to_conversation` ✉ | Send a reply to the person on the platform right away; it cannot be unsent |
 | `update_conversation` ✉ | Mark read or unread, archive or reopen, snooze, or assign a conversation; nothing is sent |
 | `list_post_comments` ★ | List the comments and reactions on a published post, per channel, with the ids the reply and moderate tools take |
 | `reply_to_comment` ✉ | Post a public reply to a comment right away, as the channel the post went out on |
 | `moderate_comment` ✉ | Like, unlike, hide, unhide or delete a comment on the platform (delete is permanent) |
+| `add_conversation_note` ✉ | Leave an internal note on a conversation for the team (never sent); can mention a teammate |
+| `set_conversation_labels` ✉ | Replace a conversation's Inbox labels |
+| `list_saved_replies` ✉ | The team's saved replies and the placeholders they may contain |
+| `create_saved_reply` ✉ | Save a reply for the team to reuse |
+| `update_saved_reply` | Rename or reword a saved reply |
+| `delete_saved_reply` | Delete a saved reply |
 | **Account** | |
 | `get_quota_usage` | Check current account usage (hidden when `BULKPUBLISH_HIDE_BILLING=1`) |
 | **Interactive UI (MCP Apps)** | |
@@ -226,7 +242,7 @@ Several tools render UIs — `compose_post` (composer), `view_analytics`, `view_
 
 The server also lists ready-made prompts: starting points your MCP client shows in its prompt or slash menu (for example `/schedule_post` or `/weekly_report`). Each one tells the assistant which tools to call, the limits that apply, and to ask before anything is published, sent or deleted.
 
-A prompt is listed only when every tool it needs is available, so what you see depends on the tool profile: **all** means every profile, including the hosted `core` server; **inbox, full** needs the `inbox` or `full` profile; **full** needs the `full` profile (the npm server's default). `plan_usage` is also left out when `BULKPUBLISH_HIDE_BILLING=1`. Prompts read nothing from your account until the assistant follows them.
+A prompt is listed only when every tool it needs is available, so what you see depends on the tool profile: **all** means every profile, including the `core` profile; **inbox, full** needs the `inbox` or `full` profile; **full** needs the `full` profile (the npm server's default). `plan_usage` is also left out when `BULKPUBLISH_HIDE_BILLING=1`. Prompts read nothing from your account until the assistant follows them.
 
 | Prompt | What it does | Profiles |
 |---|---|---|
@@ -377,7 +393,7 @@ Draft post created (ID: 43) with the product launch image attached. You can revi
 |----------|----------|---------|-------------|
 | `BULKPUBLISH_API_KEY` | Yes | — | Your API key (starts with `bp_`) |
 | `BULKPUBLISH_BASE_URL` | No | `https://app.bulkpublish.com` | API base URL (for self-hosted instances) |
-| `BULKPUBLISH_TOOL_PROFILE` | No | `full` (stdio) / `core` (hosted HTTP) | `core`, `inbox` or `full` — see [Tool profiles](#tool-profiles) |
+| `BULKPUBLISH_TOOL_PROFILE` | No | `full` (stdio) / `core` (hosted HTTP; `https://mcp.bulkpublish.com/mcp` sets `inbox`) | `core`, `inbox` or `full` — see [Tool profiles](#tool-profiles) |
 | `BULKPUBLISH_HIDE_BILLING` | No | — | `1` drops `get_quota_usage` and `view_quota` (only relevant with `full`; `core` never includes them) |
 
 ## License

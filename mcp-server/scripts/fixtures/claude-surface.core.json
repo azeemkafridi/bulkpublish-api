@@ -7430,16 +7430,17 @@
     {
       "name": "list_labels",
       "title": "List labels",
-      "description": "List the labels available for tagging posts and media, sorted by name. Returns at most 500 (the first 500 alphabetically). Use this when the user wants their post labels/tags.",
+      "description": "List the labels available for tagging posts, media and Inbox conversations, sorted by name. Returns at most 500 (the first 500 alphabetically). Use this when the user wants their labels/tags for posts, media or Inbox conversations.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "type": {
-            "description": "Filter by label type: \"post\" or \"media\". Returns all if omitted.",
+            "description": "Filter by label type: \"post\", \"media\" or \"inbox\" (Inbox conversations). Returns all if omitted.",
             "type": "string",
             "enum": [
               "post",
-              "media"
+              "media",
+              "inbox"
             ]
           }
         },

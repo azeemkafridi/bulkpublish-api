@@ -913,6 +913,31 @@ const METRIC_FIGURES: Record<string, z.ZodTypeAny> = {
   shares: sNum().describe("Shares or reposts."),
 };
 
+// One weekday-and-hour slot of the best-times summary.
+const BEST_TIME_SLOT: Record<string, z.ZodTypeAny> = {
+  weekday: sStr().describe("monday to sunday, in the summary's timezone."),
+  hour: sNum().describe("0 to 23, in the summary's timezone."),
+  posts: sNum().describe("Destinations published in this slot."),
+  avgEngagements: sNum().describe("Average likes, comments, shares and clicks per destination."),
+  avgImpressions: sNum().describe("Average impressions, or null when no post in the slot reports them."),
+};
+const BT_FIELDS: Record<string, z.ZodTypeAny> = {
+  timezone: sStr().describe("The timezone weekday and hour are in."),
+  postCount: sNum().describe("Destinations counted in the averages."),
+  excludedPosts: sNum().describe("Destinations left out because their network cannot report engagements or they have not been measured yet."),
+  minPosts: sNum().describe("Posts a slot needs before it can be recommended (3)."),
+  slots: sArr(BEST_TIME_SLOT).describe("Every weekday-and-hour slot with at least one post, Monday 00:00 first."),
+  best: sArr(BEST_TIME_SLOT).describe("Up to 5 slots with at least minPosts posts, highest avgEngagements first. Empty when enoughData is false."),
+  enoughData: sBool().describe("false when no slot has enough posts to recommend; say so rather than guessing."),
+};
+const SAVED_REPLY_SHAPE: Record<string, z.ZodTypeAny> = {
+  id: sNum().describe("The saved reply's ID."),
+  name: sStr().describe("Its name."),
+  body: sStr().describe("The reply text, with any {{placeholder}} left as written."),
+  createdBy: sStr().describe("User ID of the member who created it."),
+  updatedAt: sStr().describe("When it was last changed."),
+};
+
 export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> = {
   list_channels: {
     channels: sArr({
@@ -1048,6 +1073,7 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
     topPosts: z.array(z.any()).nullish().describe("Best posts by topBy (impressions unless set)."),
     allPosts: z.array(z.any()).nullish().describe("Every matching post with its per-platform metrics; empty when top is set."),
     unmeasuredPlatforms: z.array(z.any()).nullish().describe("Platforms in the window that cannot report per-post metrics; their zeros mean not reported."),
+    bestTimes: sObj(BT_FIELDS).describe("With bestTimes: average engagements and impressions by weekday and hour, and the best slots."),
   },
   get_analytics: {
     totalPosts: sNum().describe("Posts in the date range."), published: sNum().describe("How many of them published."), failed: sNum().describe("How many failed."), scheduled: sNum().describe("Posts currently waiting to publish, whatever the date range."), partial: sNum().describe("How many published to only some destinations."),
@@ -1075,7 +1101,9 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
     conversations: sArr({
       id: sNum().describe("The conversation's ID, used by get_conversation, reply_to_conversation and update_conversation."),
       platform: sStr().describe("The network the conversation is on."),
-      kind: sStr().describe("dm, review or comment."),
+      kind: sStr().describe("dm, review, comment or mention."),
+      url: sStr().describe("Mentions only: a link to the post the mention was made in, when the network provides one."),
+      labels: sArr(LABEL_SHAPE).describe("The conversation's Inbox labels. Change them with set_conversation_labels."),
       status: sStr().describe("open, archived or snoozed."),
       unreadCount: sNum().describe("Messages not yet read."),
       lastMessageAt: sStr().describe("ISO 8601 time of the newest message."),
@@ -1103,13 +1131,13 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
     conversationId: sNum().describe("The conversation these messages belong to."),
     messages: sArr({
       id: sNum().describe("The message's ID."),
-      direction: sStr().describe("in (from the other person) or out (sent by the workspace)."),
+      direction: sStr().describe("in (from the other person), out (sent by the workspace) or note (an internal note for the team, never sent)."),
       text: sStr().describe("The message text."),
       sentAt: sStr().describe("ISO 8601 time the message was sent."),
       readAt: sStr().describe("ISO 8601 time the message was read, or null."),
       rating: sNum().describe("For a review: its star rating; otherwise null."),
       attachments: z.any().optional().describe("Files on the message as { name, type, url }, or null."),
-      author: sObj(USER_REF).describe("For a sent message: the member who wrote it; otherwise null."),
+      author: sObj(USER_REF).describe("For a sent message or a note: the member who wrote it; otherwise null."),
     }).describe("The messages in the conversation, oldest first."),
   },
   reply_to_conversation: { success: sBool().describe("true when the reply was sent."), messageId: sStr().describe("The platform's id for the sent message.") },
@@ -1230,7 +1258,93 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
     id: sNum().describe("The new label's ID, as create_post and update_post take in labels."),
     name: sStr().describe("The label's name."),
     color: sStr().describe("The label's colour, as a hex value."),
-    type: sStr().describe("What the label is for, e.g. post or media."),
+    type: sStr().describe("What the label is for: post, media or inbox."),
+  },
+  // ---- Joined the hosted profile 2026-11-21 (shapes from openapi.json) ----
+  add_conversation_note: {
+    success: sBool().describe("true when the note was saved."),
+    message: sObj({
+      id: sNum().describe("The note's ID."),
+      direction: sStr().describe("Always note."),
+      text: sStr().describe("The note as saved."),
+      sentAt: sStr().describe("ISO 8601 time it was added."),
+      author: sObj(USER_REF).describe("The member the note was written as."),
+    }).describe("The saved note."),
+  },
+  set_conversation_labels: {
+    success: sBool().describe("true when the labels were set."),
+    labelIds: z.array(z.union([z.number(), z.string()])).nullish().describe("The label IDs now on the conversation."),
+  },
+  list_saved_replies: {
+    savedReplies: sArr(SAVED_REPLY_SHAPE).describe("The workspace's saved replies, sorted by name."),
+    variables: sArr({
+      key: sStr().describe("The placeholder, written in a reply as {{key}}."),
+      description: sStr().describe("What it stands for."),
+    }).describe("Placeholders a saved reply may contain. They are not filled in for you: replace them before sending."),
+  },
+  create_saved_reply: SAVED_REPLY_SHAPE,
+  get_best_times: {
+    from: sStr().describe("Start of the window."),
+    to: sStr().describe("End of the window."),
+    ...BT_FIELDS,
+  },
+  get_post_metrics_history: {
+    postId: sNum().describe("The post."),
+    publishedAt: sStr().describe("When it was published."),
+    series: sArr({
+      postPlatformId: sNum().describe("The destination."),
+      platform: sStr().describe("The network."),
+      channelId: sNum().describe("The connected account."),
+      accountName: sStr().describe("The account's name."),
+      metricsSupported: sBool().describe("false when this destination's figures are stored zeros, not measurements."),
+      supportedMetrics: sStrArr().describe("The figures this network reports; others are stored zeros."),
+      points: z.array(z.any()).nullish().describe("Readings, oldest first: { fetchedAt, impressions, reach, likes, comments, shares, saves, clicks, videoViews, engagementRate }."),
+    }).describe("One series per destination."),
+  },
+  get_link_analytics: {
+    from: sStr().describe("Start of the window."),
+    to: sStr().describe("End of the window."),
+    totalClicks: sNum().describe("Clicks on every tracked link in the window."),
+    totalLinks: sNum().describe("Tracked links in the window."),
+    links: sArr({
+      shortUrl: sStr().describe("The short link."),
+      originalUrl: sStr().describe("Where it leads."),
+      clicks: sNum().describe("Clicks, bots and link previews excluded."),
+      lastClickAt: sStr().describe("Time of the latest click, or null."),
+      platform: sStr().describe("The network the post went to."),
+      postId: sNum().describe("The post the link is in."),
+      postContent: sStr().describe("The start of that post's text."),
+    }).describe("Links, most clicked first, at most 2,000."),
+    previous: sObj({ totalClicks: sNum().describe("Clicks in the previous window."), totalLinks: sNum().describe("Links in the previous window.") }).describe("With compare: the previous window's totals, or null."),
+  },
+  list_activity: {
+    activities: sArr({
+      id: sNum().describe("The entry's ID."),
+      action: sStr().describe("What happened, e.g. post.published."),
+      resource: sStr().describe("What it happened to, e.g. post or channel."),
+      resourceId: sStr().describe("That item's ID."),
+      details: z.any().optional().describe("Extra facts about the entry."),
+      createdAt: sStr().describe("When it happened."),
+      actor: sObj(USER_REF).describe("The member who did it, or null."),
+    }).describe("Entries, newest first."),
+    pagination: sObj({
+      page: sNum().describe("This page."), limit: sNum().describe("Page size."), total: sNum().describe("Entries matching the filters."), totalPages: sNum().describe("How many pages there are."),
+    }).describe("Where this page sits."),
+  },
+  create_schedule: {
+    id: sNum().describe("The new schedule's ID, as update_schedule and delete_schedule take."),
+    name: sStr().describe("The schedule's name."),
+    frequency: sStr().describe("daily, weekly, biweekly or monthly."),
+    timeOfDay: sStr().describe("Time it posts, HH:MM."),
+    timezone: sStr().describe("The timezone timeOfDay is in."),
+    isActive: sBool().describe("false when the schedule is paused."),
+    nextRunAt: sStr().describe("When it first posts, or null."),
+  },
+  bulk_posts: {
+    success: sBool().describe("true when the action ran."),
+    action: sStr().describe("The action that ran."),
+    affected: sNum().describe("How many posts it applied to."),
+    skippedInProgress: sNum().describe("delete: posts left alone because they were being published."),
   },
 };
 
@@ -1284,12 +1398,17 @@ function attachStructured(result: unknown, toolName: string): unknown {
 // INBOX_TOOLS: the six Inbox and comment-reply tools, and since 2026-11-20 the
 // day-to-day management tools a chat user asks for (account analytics, channel
 // health, templates, hashtag groups, repeat posts, media upkeep, review links,
-// labels). The name stays `inbox` so the deployed setting does not have to change.
+// labels), and since 2026-11-21 Inbox notes, conversation labels and saved
+// replies, best posting times, post metric history, link clicks, the activity
+// log, create_schedule and bulk_posts. The name stays `inbox` so the deployed
+// setting does not have to change.
 // Left out of it on purpose, and of /mcp with it: quota tools (OpenAI does not
 // allow showing plans or upgrades), the multipart upload trio (a hosted chat
-// cannot upload the chunks), and tools that duplicate a served one or reach
-// further than chat needs (publish_story, create_schedule, bulk_posts, RSS
-// feeds, client connect links, batch review links). /mcp/full serves them.
+// cannot upload the chunks), editing or removing shared library items (saved
+// replies, templates, hashtag groups, labels: list and create are served, update
+// and delete are not), and tools that duplicate a served one or reach further
+// than chat needs (publish_story, RSS feeds, client connect links, batch review
+// links). /mcp/full serves them.
 // Core's own tools are byte-identical in both: the parity fixtures pin each
 // profile, and check-annotations fails if a core tool differs between them.
 //
@@ -1344,6 +1463,20 @@ export const INBOX_TOOLS: ReadonlySet<string> = new Set([
   "share_post",
   "unshare_post",
   "create_label",
+  // Joined 2026-11-21: the Inbox team workflow (notes, labels, saved replies),
+  // best posting times, and three published reads that had no tool.
+  "add_conversation_note",
+  "set_conversation_labels",
+  "list_saved_replies",
+  "create_saved_reply",
+  "get_best_times",
+  "get_post_metrics_history",
+  "get_link_analytics",
+  "list_activity",
+  // create_schedule joins update/delete_schedule, which were already served;
+  // bulk_posts is what "move all of next week's posts" needs.
+  "create_schedule",
+  "bulk_posts",
 ]);
 export function resolveToolProfile(fallback: ToolProfile): ToolProfile {
   const v = process.env.BULKPUBLISH_TOOL_PROFILE;
@@ -1481,6 +1614,16 @@ export const TOOL_ANNOTATIONS: Record<string, ToolAnn> = {
   reply_to_conversation: { title: "Reply in Inbox conversation", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/inbox/conversations/{id}/messages. Sends a message to a person on a public platform immediately; it cannot be unsent from BulkPublish, so destructive. Each call sends another message." },
   reply_to_comment: { title: "Reply to comment", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/comments/reply. Posts a public reply on the platform immediately; it cannot be taken back from BulkPublish, so destructive. Each call posts another reply." },
   moderate_comment: { title: "Like, hide or delete comment", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true, why: "POST /api/posts/{id}/comments/moderate. Acts on a comment on the platform: delete is permanent and hiding changes what others see, so destructive. Not idempotent: some platforms refuse a repeated like or hide rather than ignoring it." },
+  add_conversation_note: { title: "Add Inbox note", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true, why: "POST /api/inbox/conversations/{id}/notes. Adds an internal note for the team; it is never sent to the other person and nothing changes on the platform, and it overwrites nothing, so not destructive. Open world because a mentioned teammate, and the assignee, are notified, which can reach them by email. Each call adds another note." },
+  set_conversation_labels: { title: "Set Inbox conversation labels", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PUT /api/inbox/conversations/{id}/labels. Replaces the conversation's labels with exactly the ids sent; the previous set is not kept, so destructive under the review definition even though another call can restore it. Internal only: nothing is sent to anyone. Same ids twice leaves the same state." },
+  list_saved_replies: { title: "List saved replies", ...READ, why: "GET /api/inbox/saved-replies; reads the workspace's saved reply texts." },
+  create_saved_reply: { title: "Create saved reply", readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false, why: "POST /api/inbox/saved-replies; adds a reusable reply text for the workspace and sends nothing. Names are unique, so repeating the call is refused rather than adding a second copy: the state is the same as after one call." },
+  update_saved_reply: { title: "Update saved reply", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "PUT /api/inbox/saved-replies/{id}; overwrites the reply's name and text for the whole workspace (previous value not kept). Sends nothing. Same values twice is a no-op." },
+  delete_saved_reply: { title: "Delete saved reply", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/inbox/saved-replies/{id}; removes it for the whole workspace and it cannot be restored. Replies already sent are unaffected. Deleting twice leaves the same state." },
+  get_best_times: { title: "Get best times to post", ...READ, why: "GET /api/analytics/engagement?bestTimes=1; averages already-stored post metrics by weekday and hour. Fetches nothing from a platform." },
+  get_post_metrics_history: { title: "Get post metrics history", ...READ, why: "GET /api/analytics/post-history; reads the stored metric snapshots of one post. Fetches nothing from a platform." },
+  get_link_analytics: { title: "Get link click analytics", ...READ, why: "GET /api/analytics/links; reads stored short-link click counts for a date range." },
+  list_activity: { title: "List activity log", ...READ, why: "GET /api/activity; reads the workspace's activity log, newest first." },
   delete_client_connect_link: { title: "Revoke client connect link", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false, why: "DELETE /api/client-connect-links/{id}; revokes an unused link. An account it already connected stays connected." },
 };
 
@@ -1561,7 +1704,7 @@ export function createServer(
     get_post_metrics: "the user asks how a specific post performed (likes, views, engagement).",
     list_media: "the user wants a list of their uploaded media files.",
     get_media: "the user references one specific media file by ID.",
-    list_labels: "the user wants their post labels/tags.",
+    list_labels: "the user wants their labels/tags for posts, media or Inbox conversations.",
     list_hashtag_groups: "the user wants their saved hashtag sets, or you need hashtags to add to a post.",
     create_hashtag_group: "the user wants to save a set of hashtags for reuse.",
     update_hashtag_group: "the user wants to rename a hashtag group or change its hashtags.",
@@ -1637,6 +1780,16 @@ export function createServer(
     list_post_comments: "the user asks who commented on one of their published posts, or needs a comment's id to reply to or moderate it.",
     reply_to_comment: "the user wants to answer a comment on one of their published posts.",
     moderate_comment: "the user wants to like, hide or delete a comment on one of their published posts.",
+    add_conversation_note: "the user wants to leave a note on an Inbox conversation for their team, or tell a teammate about it, without answering the person.",
+    set_conversation_labels: "the user wants to tag, re-tag or untag an Inbox conversation.",
+    list_saved_replies: "the user wants their saved Inbox replies, or you are answering a common question their team already has a saved reply for.",
+    create_saved_reply: "the user wants to save an answer for the team to reuse in the Inbox.",
+    update_saved_reply: "the user wants to rename or reword a saved Inbox reply.",
+    delete_saved_reply: "the user wants to remove a saved Inbox reply.",
+    get_best_times: "the user asks when they should post, or which days and hours get the most engagement.",
+    get_post_metrics_history: "the user asks how one post's figures grew over time since it was published.",
+    get_link_analytics: "the user asks how many clicks the links in their posts got, or which links did best.",
+    list_activity: "the user asks what happened in the workspace recently, or who published, changed or deleted something.",
   };
   {
     // _createRegisteredTool's positional arguments in @modelcontextprotocol/server
@@ -2641,9 +2794,11 @@ server.registerTool(
         .describe("What topPosts is ranked by (default impressions). engagements = likes + comments + shares + clicks."),
       topOrder: z.enum(["asc", "desc"]).optional().describe("desc (default) for the best posts, asc for the worst."),
       compare: z.boolean().optional().describe("Also return the previous equal-length window as `previous` / `previousWindow`."),
+      bestTimes: z.boolean().optional().describe("true adds bestTimes: the window's published posts grouped by weekday and hour (in tz), with average engagements and impressions per slot and up to 5 best slots, each holding at least 3 posts. When no slot has 3 posts, best is empty and enoughData is false: say there is not enough data yet rather than naming a time. get_best_times returns only this part."),
+      vsMedian: z.boolean().optional().describe("true adds vsMedian { impressions, engagements, basis } to each platformMetrics entry of topPosts and allPosts: the figure divided by the median of the same account's posts in the window, so 1 is typical for that account, 0.5 half and 2 twice. basis is how many of the account's posts the median comes from. null means no comparison is possible (the network does not report the figure, fewer than 3 posts report it, the median is 0, or the post has not been measured yet), not zero. Always null on YouTube."),
     },
   },
-  async ({ from, to, tz, channelIds, platforms, labelIds, postFormat, mediaType, top, topBy, topOrder, compare }) => {
+  async ({ from, to, tz, channelIds, platforms, labelIds, postFormat, mediaType, top, topBy, topOrder, compare, bestTimes, vsMedian }) => {
     const params = new URLSearchParams({ from, to });
     if (tz) params.set("tz", tz);
     if (channelIds) params.set("channelIds", channelIds);
@@ -2655,7 +2810,116 @@ server.registerTool(
     if (topBy) params.set("topBy", topBy);
     if (topOrder) params.set("topOrder", topOrder);
     if (compare) params.set("compare", "1");
+    if (bestTimes) params.set("bestTimes", "1");
+    if (vsMedian) params.set("vsMedian", "1");
     const res = await api("GET", `/api/analytics/engagement?${params}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+// A thin wrapper over the same read with bestTimes=1 and top=1, returning only
+// the window and the bestTimes summary: "when should I post?" is the question
+// agents ask, and the full engagement payload is far larger than the answer.
+server.registerTool(
+  "get_best_times",
+  {
+    description: "When posts get the most engagement: the published posts in a date range (at most 30 days) grouped by weekday and hour, with average engagements (likes, comments, shares and clicks) and impressions per slot, and up to 5 best slots. A slot is recommended only once it holds at least 3 posts; when none does, best is empty and enoughData is false, so say there is not enough data yet instead of naming a time. Posts on networks that cannot report engagements, and posts not measured yet, are left out and counted in excludedPosts. The same figures as get_engagement_analytics with bestTimes.",
+    inputSchema: {
+      from: z.string().describe("Start date, YYYY-MM-DD. Clamped to at most 30 days before `to`."),
+      to: z.string().describe("End date, YYYY-MM-DD."),
+      tz: z.string().optional().describe("IANA timezone (e.g. \"Asia/Karachi\") the weekdays and hours are given in. Defaults to UTC; pass the user's zone."),
+      channelIds: z.string().optional().describe("Comma-separated channel ids to include. Ids come from list_channels."),
+      platforms: z.string().optional().describe("Comma-separated platform keys to include, e.g. \"instagram,linkedin\"."),
+      labelIds: z.string().optional().describe("Comma-separated label ids (from list_labels); a post matches when it carries ANY of them."),
+      postFormat: z.enum(["post", "thread"]).optional().describe("Only single posts or only threads."),
+      mediaType: z.enum(["text", "image", "video"]).optional().describe("By the post's first media file: text (no media), image or video."),
+    },
+  },
+  async ({ from, to, tz, channelIds, platforms, labelIds, postFormat, mediaType }) => {
+    const params = new URLSearchParams({ from, to, bestTimes: "1", top: "1" });
+    if (tz) params.set("tz", tz);
+    if (channelIds) params.set("channelIds", channelIds);
+    if (platforms) params.set("platforms", platforms);
+    if (labelIds) params.set("labelIds", labelIds);
+    if (postFormat) params.set("postFormat", postFormat);
+    if (mediaType) params.set("mediaType", mediaType);
+    const res = await api<Record<string, unknown>>("GET", `/api/analytics/engagement?${params}`);
+    if (!res.ok) return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    const d = (res.data ?? {}) as Record<string, unknown>;
+    const best = (d.bestTimes ?? {}) as Record<string, unknown>;
+    return { content: [{ type: "text" as const, text: formatResponse({ ...res, data: { from: d.from, to: d.to, ...best } }) }] };
+  }
+);
+
+server.registerTool(
+  "get_post_metrics_history",
+  {
+    description: "How one published post's figures changed over time: the stored readings per destination, oldest first (at most one per hour, from the last 30 days). Figures are read about every 6 hours, at most weekly on X channels that turned metrics on. Each series carries metricsSupported and supportedMetrics; a figure not in supportedMetrics is a stored zero, not a measurement. Use get_post_metrics for the latest figures only.",
+    inputSchema: {
+      postId: z.number().describe("The post ID."),
+    },
+  },
+  async ({ postId }) => {
+    const res = await api("GET", `/api/analytics/post-history?postId=${encodeURIComponent(String(postId))}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.registerTool(
+  "get_link_analytics",
+  {
+    description: "Clicks on the bulkpubli.sh short links in posts published in a date range (at most 30 days): totalClicks, totalLinks and the links, most clicked first (at most 2,000), each with where it leads, its clicks, the network and the post it is in. BulkPublish counts these clicks itself, so they exist on every network; bot and link-preview visits are excluded and totals update every 15 minutes. Empty when the workspace has not turned on link tracking.",
+    inputSchema: {
+      from: z.string().describe("Start date, YYYY-MM-DD."),
+      to: z.string().describe("End date, YYYY-MM-DD."),
+      tz: z.string().optional().describe("IANA timezone that sets where each day starts and ends. Defaults to UTC."),
+      channelIds: z.string().optional().describe("Comma-separated channel ids to include. Ids come from list_channels."),
+      platforms: z.string().optional().describe("Comma-separated platform keys to include."),
+      labelIds: z.string().optional().describe("Comma-separated label ids (from list_labels); a post matches when it carries ANY of them."),
+      postFormat: z.enum(["post", "thread"]).optional().describe("Only single posts or only threads."),
+      mediaType: z.enum(["text", "image", "video"]).optional().describe("By the post's first media file: text (no media), image or video."),
+      compare: z.boolean().optional().describe("Also return totalClicks and totalLinks for the previous equal-length window as `previous` (windows of 15 days or fewer)."),
+    },
+  },
+  async ({ from, to, tz, channelIds, platforms, labelIds, postFormat, mediaType, compare }) => {
+    const params = new URLSearchParams({ from, to });
+    if (tz) params.set("tz", tz);
+    if (channelIds) params.set("channelIds", channelIds);
+    if (platforms) params.set("platforms", platforms);
+    if (labelIds) params.set("labelIds", labelIds);
+    if (postFormat) params.set("postFormat", postFormat);
+    if (mediaType) params.set("mediaType", mediaType);
+    if (compare) params.set("compare", "1");
+    const res = await api("GET", `/api/analytics/links?${params}`);
+    return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+  }
+);
+
+server.registerTool(
+  "list_activity",
+  {
+    description: "The workspace's activity log, newest first: what was done (for example post.published or channel.connected), to what, when, and by which member (actor). Paged. A read-only API key cannot read it.",
+    inputSchema: {
+      page: z.number().optional().describe("Page number (default 1)."),
+      limit: z.number().optional().describe("Entries per page, 1 to 100 (default 20)."),
+      action: z.string().optional().describe("Only this action, e.g. post.published."),
+      resource: z.string().optional().describe("Only entries about this kind of item, e.g. post or channel."),
+      userId: z.string().optional().describe("Only entries recorded for this member."),
+      from: z.string().optional().describe("Earliest entry, ISO 8601; a bare date starts at its first instant."),
+      to: z.string().optional().describe("Latest entry, ISO 8601; a bare date includes the whole day."),
+    },
+  },
+  async ({ page, limit, action, resource, userId, from, to }) => {
+    const params = new URLSearchParams();
+    if (page !== undefined) params.set("page", String(page));
+    if (limit !== undefined) params.set("limit", String(limit));
+    if (action) params.set("action", action);
+    if (resource) params.set("resource", resource);
+    if (userId) params.set("userId", userId);
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    const qs = params.toString();
+    const res = await api("GET", `/api/activity${qs ? `?${qs}` : ""}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };
   }
 );
@@ -2667,12 +2931,12 @@ server.registerTool(
 server.registerTool(
   "list_labels",
   {
-    description: "List the labels available for tagging posts and media, sorted by name. Returns at most 500 (the first 500 alphabetically).",
+    description: "List the labels available for tagging posts, media and Inbox conversations, sorted by name. Returns at most 500 (the first 500 alphabetically).",
     inputSchema: {
       type: z
-        .enum(["post", "media"])
+        .enum(["post", "media", "inbox"])
         .optional()
-        .describe('Filter by label type: "post" or "media". Returns all if omitted.'),
+        .describe('Filter by label type: "post", "media" or "inbox" (Inbox conversations). Returns all if omitted.'),
     },
   },
   async ({ type }) => {
@@ -2691,7 +2955,7 @@ server.registerTool(
 server.registerTool(
   "create_label",
   {
-    description: "Create a new label for organizing posts or media files.",
+    description: "Create a new label for organizing posts, media files or Inbox conversations.",
     inputSchema: {
       name: z.string().describe("Label name."),
       color: z
@@ -2699,9 +2963,9 @@ server.registerTool(
         .optional()
         .describe('Hex color code (e.g. "#6366f1"). Defaults to indigo.'),
       type: z
-        .enum(["post", "media"])
+        .enum(["post", "media", "inbox"])
         .optional()
-        .describe('Label type: "post" (default) or "media".'),
+        .describe('Label type: "post" (default), "media", or "inbox" for Inbox conversations.'),
     },
   },
   async ({ name, color, type }) => {
@@ -4797,26 +5061,30 @@ if (!HIDE_BILLING_TOOLS) {
   server.registerTool(
     "list_conversations",
     {
-      description: "List Inbox conversations: direct messages, reviews and comment threads across the connected channels, newest activity first. Each conversation has its platform, kind (dm, review or comment), the other person, unread count, a preview of the last message, and canReply with replyNotice saying why a reply cannot be sent now. Internal team notes are not included. Results are paged: pass nextCursor back as cursor for the next page." +
+      description: "List Inbox conversations: direct messages, reviews, comment threads and mentions across the connected channels, newest activity first. Each conversation has its platform, kind (dm, review, comment or mention), the other person, its labels, unread count, a preview of the last message, and canReply with replyNotice saying why a reply cannot be sent now. Mentions appear only from networks that deliver them on the workspace's plan. Search also matches the team's internal notes. Results are paged: pass nextCursor back as cursor for the next page." +
         INBOX_AVAILABILITY,
       inputSchema: {
         status: z.enum(["open", "archived", "snoozed"]).optional().describe("open (default), archived or snoozed."),
-        kind: z.enum(["dm", "review", "comment"]).optional().describe("Only direct messages, reviews or comment threads. Omit for all."),
+        kind: z.enum(["dm", "review", "comment", "mention"]).optional().describe("Only direct messages, reviews, comment threads, or mentions (posts by others that mention the account). Omit for all."),
         platforms: z.array(z.string()).optional().describe("Only these platforms, e.g. [\"instagram\", \"facebook\"]."),
         channelId: z.number().optional().describe("Only conversations on this connected account. Channel IDs come from list_channels."),
         assigned: z.string().optional().describe("me, unassigned, or a teammate's user id."),
-        q: z.string().optional().describe("Search the person's name and handle and the message text (2 to 100 characters)."),
+        labelId: z.number().optional().describe("Only conversations carrying this Inbox label (list_labels with type inbox). Combined with labelIds, both must match."),
+        labelIds: z.array(z.number()).optional().describe("Only conversations carrying ANY of these Inbox labels."),
+        q: z.string().optional().describe("Search the person's name and handle, the message text and the team's internal notes (2 to 100 characters)."),
         cursor: z.string().optional().describe("nextCursor from the previous page."),
         limit: z.number().optional().describe("Page size, 1 to 100 (default 50)."),
       },
     },
-    async ({ status, kind, platforms, channelId, assigned, q, cursor, limit }) => {
+    async ({ status, kind, platforms, channelId, assigned, labelId, labelIds, q, cursor, limit }) => {
       const params = new URLSearchParams();
       if (status) params.set("status", status);
       if (kind) params.set("kind", kind);
       if (platforms?.length) params.set("platforms", platforms.join(","));
       if (channelId !== undefined) params.set("channelId", String(channelId));
       if (assigned) params.set("assigned", assigned);
+      if (labelId !== undefined) params.set("labelId", String(labelId));
+      if (labelIds?.length) params.set("labelIds", labelIds.join(","));
       if (q) params.set("q", q);
       if (cursor) params.set("cursor", cursor);
       if (limit !== undefined) params.set("limit", String(limit));
@@ -4829,7 +5097,7 @@ if (!HIDE_BILLING_TOOLS) {
   server.registerTool(
     "get_conversation",
     {
-      description: "Get the messages of one Inbox conversation: the newest 500, oldest first, each with its direction (in from the other person, out sent by the workspace), text, attachments and time. Reading does not mark the conversation read." +
+      description: "Get the messages of one Inbox conversation: the newest 500, oldest first, each with its direction (in from the other person, out sent by the workspace, note an internal note for the team that was never sent), text, attachments, time and author. Reading does not mark the conversation read." +
         INBOX_AVAILABILITY,
       inputSchema: {
         conversationId: z.number().describe("The conversation id from list_conversations."),
@@ -4844,7 +5112,7 @@ if (!HIDE_BILLING_TOOLS) {
   server.registerTool(
     "reply_to_conversation",
     {
-      description: "Send a reply in an Inbox conversation. The message goes to the person on the platform right away, from the channel the conversation belongs to, and it cannot be unsent. Send text (up to 4,000 characters), up to 4 media library files, or both; reviews and comment threads take text only. Facebook Messenger and Instagram accept a reply only within 24 hours of the person's last message; after that the call is refused." +
+      description: "Send a reply in an Inbox conversation. The message goes to the person on the platform right away, from the channel the conversation belongs to, and it cannot be unsent. In a mention, the reply answers the post that mentioned the account. Send text (up to 4,000 characters), up to 4 media library files, or both; reviews, comment threads and mentions take text only. To leave a note for the team instead, use add_conversation_note. Facebook Messenger and Instagram accept a reply only within 24 hours of the person's last message; after that the call is refused." +
         RECONNECT +
         INBOX_AVAILABILITY,
       inputSchema: {
@@ -4890,6 +5158,99 @@ if (!HIDE_BILLING_TOOLS) {
         return { content: [{ type: "text" as const, text: "Error: Provide at least one of read, status, snoozedUntil or assignedUserId." }] };
       }
       const res = await api("PATCH", `/api/inbox/conversations/${conversationId}`, body);
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+
+  server.registerTool(
+    "add_conversation_note",
+    {
+      description: "Leave an internal note on an Inbox conversation for the team. It is never sent to the other person and nothing changes on the platform; it shows up in get_conversation as a note. The note is written as the person the connection belongs to. To mention a teammate, write @[Display Name](user:USER_ID): they are notified (at most 10 per note), and the teammate the conversation is assigned to is told about every note." +
+        INBOX_AVAILABILITY,
+      inputSchema: {
+        conversationId: z.number().describe("The conversation id from list_conversations."),
+        text: z.string().min(1).max(4000).describe("The note, 1 to 4,000 characters."),
+      },
+    },
+    async ({ conversationId, text }) => {
+      const res = await api("POST", `/api/inbox/conversations/${conversationId}/notes`, { text });
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+
+  server.registerTool(
+    "set_conversation_labels",
+    {
+      description: "Replace an Inbox conversation's labels with exactly the ids given; an empty list removes them all (at most 20). Every id must be an Inbox label (list_labels with type inbox, or create_label with type inbox); if any is not, nothing changes and the call is refused. Nothing is sent to the other person." +
+        INBOX_AVAILABILITY,
+      inputSchema: {
+        conversationId: z.number().describe("The conversation id from list_conversations."),
+        labelIds: z.array(z.number()).max(20).describe("The complete set of Inbox label ids the conversation should carry."),
+      },
+    },
+    async ({ conversationId, labelIds }) => {
+      const res = await api("PUT", `/api/inbox/conversations/${conversationId}/labels`, { labelIds });
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+
+  server.registerTool(
+    "list_saved_replies",
+    {
+      description: "List the workspace's saved replies (reusable answers for the Inbox), sorted by name, and the placeholders they may contain, such as {{first_name}}. Placeholders are returned as written: fill them in from the conversation before sending the text with reply_to_conversation." +
+        INBOX_AVAILABILITY,
+      inputSchema: {},
+    },
+    async () => {
+      const res = await api("GET", "/api/inbox/saved-replies");
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+
+  server.registerTool(
+    "create_saved_reply",
+    {
+      description: "Save a reply for the whole team to reuse in the Inbox. Names are unique in the workspace, and a workspace holds at most 200. The text may contain the placeholders list_saved_replies lists, e.g. Hi {{first_name}}. Nothing is sent to anyone." +
+        INBOX_AVAILABILITY,
+      inputSchema: {
+        name: z.string().min(1).max(100).describe("1 to 100 characters, unique in the workspace."),
+        body: z.string().min(1).max(4000).describe("The reply text, 1 to 4,000 characters."),
+      },
+    },
+    async ({ name, body }) => {
+      const res = await api("POST", "/api/inbox/saved-replies", { name, body });
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+
+  server.registerTool(
+    "update_saved_reply",
+    {
+      description: "Replace a saved reply's name and text for the whole team; send both. Replies already sent are unaffected." +
+        INBOX_AVAILABILITY,
+      inputSchema: {
+        savedReplyId: z.number().describe("The saved reply id from list_saved_replies."),
+        name: z.string().min(1).max(100).describe("1 to 100 characters, unique in the workspace."),
+        body: z.string().min(1).max(4000).describe("The reply text, 1 to 4,000 characters."),
+      },
+    },
+    async ({ savedReplyId, name, body }) => {
+      const res = await api("PUT", `/api/inbox/saved-replies/${savedReplyId}`, { name, body });
+      return { content: [{ type: "text" as const, text: formatResponse(res) }] };
+    }
+  );
+
+  server.registerTool(
+    "delete_saved_reply",
+    {
+      description: "Delete a saved reply for the whole team. It cannot be restored; replies already sent are unaffected." +
+        INBOX_AVAILABILITY,
+      inputSchema: {
+        savedReplyId: z.number().describe("The saved reply id from list_saved_replies."),
+      },
+    },
+    async ({ savedReplyId }) => {
+      const res = await api("DELETE", `/api/inbox/saved-replies/${savedReplyId}`);
       return { content: [{ type: "text" as const, text: formatResponse(res) }] };
     }
   );
