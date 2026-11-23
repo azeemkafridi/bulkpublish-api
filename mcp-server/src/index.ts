@@ -233,7 +233,7 @@ const THREAD_PART_POLL_SCHEMA = z
   })
   .nullable()
   .optional()
-  .describe("Optional poll on this part. X and Threads post it on whichever part carries it, replies included; Mastodon only on the first part; Bluesky has no polls. A part with a poll cannot have mediaFileIds.");
+  .describe("Optional poll on this part. X and Threads post it on whichever part carries it, replies included; Mastodon only on the first part; Bluesky has no polls. A part with a poll cannot have mediaFileIds and needs text (its question).");
 
 const POST_TYPE_OVERRIDES_SCHEMA = z
   .object({

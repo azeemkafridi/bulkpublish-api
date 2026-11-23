@@ -242,7 +242,7 @@
                 },
                 "poll": {
                   "type": ["object", "null"],
-                  "description": "Optional. A poll on this part: 2 to 4 options of 1 to 25 characters, and durationMinutes from 5 to 10080 (default 1440, one day). X and Threads post it on whichever part carries it, including replies; Mastodon only on the first part; Bluesky has no polls and posts the part without it. A part with a poll cannot have mediaFileIds (400 VALIDATION_ERROR), and Threads polls always run 24 hours.",
+                  "description": "Optional. A poll on this part: 2 to 4 options of 1 to 25 characters, and durationMinutes from 5 to 10080 (default 1440, one day). X and Threads post it on whichever part carries it, including replies; Mastodon only on the first part; Bluesky has no polls and posts the part without it. A part with a poll cannot have mediaFileIds and must have text, its question (400 VALIDATION_ERROR otherwise), and Threads polls always run 24 hours.",
                   "properties": {
                     "options": { "type": "array", "minItems": 2, "maxItems": 4, "items": { "type": "string", "minLength": 1, "maxLength": 25 } },
                     "durationMinutes": { "type": "integer", "minimum": 5, "maximum": 10080, "default": 1440 }
@@ -2007,7 +2007,7 @@
                         },
                         "poll": {
                           "type": ["object", "null"],
-                          "description": "Optional. A poll on this part: 2 to 4 options of 1 to 25 characters, and durationMinutes from 5 to 10080 (default 1440, one day). X and Threads post it on whichever part carries it, including replies; Mastodon only on the first part; Bluesky has no polls and posts the part without it. A part with a poll cannot have mediaFileIds (400 VALIDATION_ERROR), and Threads polls always run 24 hours.",
+                          "description": "Optional. A poll on this part: 2 to 4 options of 1 to 25 characters, and durationMinutes from 5 to 10080 (default 1440, one day). X and Threads post it on whichever part carries it, including replies; Mastodon only on the first part; Bluesky has no polls and posts the part without it. A part with a poll cannot have mediaFileIds and must have text, its question (400 VALIDATION_ERROR otherwise), and Threads polls always run 24 hours.",
                           "properties": {
                             "options": { "type": "array", "minItems": 2, "maxItems": 4, "items": { "type": "string", "minLength": 1, "maxLength": 25 } },
                             "durationMinutes": { "type": "integer", "minimum": 5, "maximum": 10080, "default": 1440 }
@@ -2037,7 +2037,7 @@
                           },
                           "poll": {
                             "type": ["object", "null"],
-                            "description": "Optional. A poll on this part: 2 to 4 options of 1 to 25 characters, and durationMinutes from 5 to 10080 (default 1440, one day). X and Threads post it on whichever part carries it, including replies; Mastodon only on the first part; Bluesky has no polls and posts the part without it. A part with a poll cannot have mediaFileIds (400 VALIDATION_ERROR), and Threads polls always run 24 hours.",
+                            "description": "Optional. A poll on this part: 2 to 4 options of 1 to 25 characters, and durationMinutes from 5 to 10080 (default 1440, one day). X and Threads post it on whichever part carries it, including replies; Mastodon only on the first part; Bluesky has no polls and posts the part without it. A part with a poll cannot have mediaFileIds and must have text, its question (400 VALIDATION_ERROR otherwise), and Threads polls always run 24 hours.",
                             "properties": {
                               "options": { "type": "array", "minItems": 2, "maxItems": 4, "items": { "type": "string", "minLength": 1, "maxLength": 25 } },
                               "durationMinutes": { "type": "integer", "minimum": 5, "maximum": 10080, "default": 1440 }
@@ -2416,7 +2416,7 @@
                         },
                         "poll": {
                           "type": ["object", "null"],
-                          "description": "Optional. A poll on this part: 2 to 4 options of 1 to 25 characters, and durationMinutes from 5 to 10080 (default 1440, one day). X and Threads post it on whichever part carries it, including replies; Mastodon only on the first part; Bluesky has no polls and posts the part without it. A part with a poll cannot have mediaFileIds (400 VALIDATION_ERROR), and Threads polls always run 24 hours.",
+                          "description": "Optional. A poll on this part: 2 to 4 options of 1 to 25 characters, and durationMinutes from 5 to 10080 (default 1440, one day). X and Threads post it on whichever part carries it, including replies; Mastodon only on the first part; Bluesky has no polls and posts the part without it. A part with a poll cannot have mediaFileIds and must have text, its question (400 VALIDATION_ERROR otherwise), and Threads polls always run 24 hours.",
                           "properties": {
                             "options": { "type": "array", "minItems": 2, "maxItems": 4, "items": { "type": "string", "minLength": 1, "maxLength": 25 } },
                             "durationMinutes": { "type": "integer", "minimum": 5, "maximum": 10080, "default": 1440 }
@@ -7574,7 +7574,7 @@
                         },
                         "poll": {
                           "type": ["object", "null"],
-                          "description": "Optional. A poll on this part: 2 to 4 options of 1 to 25 characters, and durationMinutes from 5 to 10080 (default 1440, one day). X and Threads post it on whichever part carries it, including replies; Mastodon only on the first part; Bluesky has no polls and posts the part without it. A part with a poll cannot have mediaFileIds (400 VALIDATION_ERROR), and Threads polls always run 24 hours.",
+                          "description": "Optional. A poll on this part: 2 to 4 options of 1 to 25 characters, and durationMinutes from 5 to 10080 (default 1440, one day). X and Threads post it on whichever part carries it, including replies; Mastodon only on the first part; Bluesky has no polls and posts the part without it. A part with a poll cannot have mediaFileIds and must have text, its question (400 VALIDATION_ERROR otherwise), and Threads polls always run 24 hours.",
                           "properties": {
                             "options": { "type": "array", "minItems": 2, "maxItems": 4, "items": { "type": "string", "minLength": 1, "maxLength": 25 } },
                             "durationMinutes": { "type": "integer", "minimum": 5, "maximum": 10080, "default": 1440 }
@@ -7771,7 +7771,7 @@
                         },
                         "poll": {
                           "type": ["object", "null"],
-                          "description": "Optional. A poll on this part: 2 to 4 options of 1 to 25 characters, and durationMinutes from 5 to 10080 (default 1440, one day). X and Threads post it on whichever part carries it, including replies; Mastodon only on the first part; Bluesky has no polls and posts the part without it. A part with a poll cannot have mediaFileIds (400 VALIDATION_ERROR), and Threads polls always run 24 hours.",
+                          "description": "Optional. A poll on this part: 2 to 4 options of 1 to 25 characters, and durationMinutes from 5 to 10080 (default 1440, one day). X and Threads post it on whichever part carries it, including replies; Mastodon only on the first part; Bluesky has no polls and posts the part without it. A part with a poll cannot have mediaFileIds and must have text, its question (400 VALIDATION_ERROR otherwise), and Threads polls always run 24 hours.",
                           "properties": {
                             "options": { "type": "array", "minItems": 2, "maxItems": 4, "items": { "type": "string", "minLength": 1, "maxLength": 25 } },
                             "durationMinutes": { "type": "integer", "minimum": 5, "maximum": 10080, "default": 1440 }

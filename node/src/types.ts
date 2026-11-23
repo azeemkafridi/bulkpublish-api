@@ -382,7 +382,8 @@ export interface ThreadPart {
    * Optional poll on this part: 2 to 4 options of 1 to 25 characters, and
    * durationMinutes from 5 to 10080 (default 1440). X and Threads post it on
    * that part, replies included; Mastodon only on the first part; Bluesky has
-   * no polls. A part with a poll cannot have mediaFileIds.
+   * no polls. A part with a poll cannot have mediaFileIds and needs text (its
+   * question).
    */
   poll?: ThreadPartPoll | null;
 }

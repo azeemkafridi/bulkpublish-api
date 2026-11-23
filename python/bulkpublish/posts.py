@@ -355,7 +355,8 @@ class PostsResource:
                 ``{"options": [...2-4 choices of 1-25 chars], "durationMinutes": 1440}``
                 (5 to 10080 minutes, default 1440). X and Threads post it on
                 that part, replies included; Mastodon only on the first part;
-                Bluesky has no polls. A part with a poll cannot have media.
+                Bluesky has no polls. A part with a poll cannot have media
+                and needs text (its question).
             post_type_overrides: Per-platform post type. Valid types:
 
                 - facebook: ``post``, ``reel``, ``story``
