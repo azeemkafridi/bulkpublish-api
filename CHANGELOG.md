@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-23 — An Instagram feed video is a Reel
+
+MCP **1.60.2** · Python **0.49.1** · spec
+
+### Changed
+
+- **`feed_video` on Instagram now behaves exactly like `reel`.** Instagram publishes every video post as a Reel, and both post types were already sent the same way. `trialReel`, `graduationStrategy`, `shareToFeed` and licensed music now apply to `feed_video` as well, where they used to be ignored. A `feed_video` post you already send without those fields publishes exactly as before. The spec, the platforms guide, the MCP tool descriptions, the Python docstring and the platform-reference skills say so.
+
 ## 2026-11-23 — Hosted connector updates without dropping requests
 
 MCP **1.60.1**

@@ -537,13 +537,13 @@ const PLATFORM_SPECIFIC_SCHEMA = z
           )
           .optional()
           .describe("People tagged in the post, up to 20 per photo or video. On a photo (and each photo of a carousel) a tag needs x and y or it is left out; on a Reel or video post people are tagged by username only and any position is ignored. Carousel videos and Stories carry no tags."),
-        shareToFeed: z.boolean().optional().describe("Reels only. false shows the Reel only in the Reels tab; true also shows it in the main feed. Omitted: Instagram's own default (feed and Reels tab)."),
+        shareToFeed: z.boolean().optional().describe("Reels only (reel or feed_video). false shows the Reel only in the Reels tab; true also shows it in the main feed. Omitted: Instagram's own default (feed and Reels tab)."),
         locationId: z.string().optional().describe("Digits only: the numeric ID of a Facebook Page that has a location. Applies to photos, videos, Reels and carousels, not Stories. Instagram refuses the post if it does not recognise the ID as a place."),
         trialReel: z
           .boolean()
           .optional()
           .describe(
-            "Publish as a trial reel, shown to people who do not follow the account first. Only takes effect with postTypeOverrides.instagram of 'reel' \u2014 a 'feed_video' publishes as an ordinary reel and this is ignored, even though both use the same underlying reel container."
+            "Publish as a trial reel, shown to people who do not follow the account first. Takes effect with postTypeOverrides.instagram of 'reel' or 'feed_video' (Instagram publishes every video post as a Reel, so the two are the same)."
           ),
         graduationStrategy: z
           .enum(["manual", "auto"])

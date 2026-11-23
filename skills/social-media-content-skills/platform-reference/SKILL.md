@@ -82,7 +82,7 @@ Every value `postTypeOverrides` accepts; the first is the default.
 | Type | Media | Notes |
 |---|---|---|
 | `feed_photo` (default) | 1 image required | Single photo post |
-| `feed_video` | 1 video required | Single video post |
+| `feed_video` | 1 video required | Single video post, published as a Reel (same as `reel`) |
 | `reel` | 1 video required | Short-form video, 9:16 recommended |
 | `story` | 1 image OR 1 video required | Disappears after 24h |
 | `carousel` | 2-20 images/videos required | Mixed media OK |
@@ -91,7 +91,7 @@ Every value `postTypeOverrides` accepts; the first is the default.
 
 **platformSpecific options:**
 - `collaborators` — string (comma-separated) or array of usernames, without a leading `@`. Tagged as co-authors. Post types `feed_photo`, `feed_video`, `reel` and `carousel`; ignored on `story`
-- `trialReel` — boolean, trial reel shown to non-followers first. Only takes effect with `postTypeOverrides.instagram: "reel"`; ignored on `feed_video`
+- `trialReel` — boolean, trial reel shown to non-followers first. Takes effect with `postTypeOverrides.instagram` of `reel` or `feed_video` (both publish as a Reel)
 - `graduationStrategy` — `"manual"` (default) or `"auto"`; ignored unless `trialReel` is true
 - `shareToStory` — boolean, also post it as a story
 - `thumbnailTimestamp` — number (seconds into the video) for the cover frame. Applies to `reel` AND `feed_video`. Ignored when `coverUrl` is also set

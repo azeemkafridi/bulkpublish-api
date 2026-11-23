@@ -312,7 +312,7 @@ inside a platform key, so it applies to every channel on the post.
 | Value | Description |
 |-------|-------------|
 | `feed_photo` | Single photo post |
-| `feed_video` | Single video post |
+| `feed_video` | Single video post. Published as a Reel, exactly like `reel` |
 | `reel` | Short-form vertical video |
 | `story` | Photo or video story (disappears after 24h) |
 | `carousel` | 2 to 20 photos/videos in a swipeable post |
@@ -336,12 +336,12 @@ inside a platform key, so it applies to every channel on the post.
 |-------|------|-------------|
 | `collaborators` | string | Comma-separated usernames, **without a leading `@`** (the value is passed through as written). Tagged as co-authors. Post types `feed_photo`, `feed_video`, `reel` and `carousel` -- on a carousel the co-authors are set on the carousel itself, not on its individual items. Ignored on `story`, which has no co-author concept |
 | `shareToStory` | boolean | Also share the post to your story |
-| `trialReel` | boolean | Post as a trial reel, shown to non-followers first. **Post type `reel` only** -- ignored on `feed_video`, which publishes as an ordinary reel |
+| `trialReel` | boolean | Post as a trial reel, shown to non-followers first. Post types `reel` and `feed_video` -- Instagram publishes every video post as a Reel, so they are the same |
 | `graduationStrategy` | string | `"manual"` or `"auto"` -- how a trial reel graduates to the full audience. Ignored unless `trialReel` is true |
 | `thumbnailTimestamp` | number | Seconds into the video to use as the cover frame. Post types `feed_video` and `reel`. Ignored when `coverUrl` is set |
 | `coverUrl` | string | Cover image for a video or Reel, as a public image URL. Post types `feed_video` and `reel` |
 | `userTags` | array | People tagged in the post: `[{ "username": "name", "x": 0.4, "y": 0.6, "mediaIndex": 0 }]`. See below |
-| `shareToFeed` | boolean | **Reels only.** `false` shows the Reel only in the Reels tab; `true` also shows it in the main feed. Omit for Instagram's own default (feed and Reels tab). Ignored on other post types |
+| `shareToFeed` | boolean | **Reels only** (`reel` and `feed_video`). `false` shows the Reel only in the Reels tab; `true` also shows it in the main feed. Omit for Instagram's own default (feed and Reels tab). Ignored on other post types |
 | `locationId` | string | Digits only: the numeric ID of a Facebook Page that has a location (shown in the Page's About section). Photos, videos, Reels and carousels; not Stories. Instagram refuses the post if it does not recognise the ID as a place |
 | `isAiGenerated` | boolean | `true` shows Instagram's "AI info" label, disclosing that the post contains AI-generated content. Every post type; on a carousel it is set on the carousel itself, not on its items. Only `true` is sent: `false` or omitting it adds no label, and Instagram may still label a post on its own. A non-boolean is rejected with `400 VALIDATION_ERROR` |
 

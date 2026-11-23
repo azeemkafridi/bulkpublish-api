@@ -87,7 +87,7 @@ const PLATFORM_GUIDES: Record<string, PlatformGuide> = {
     guide: () =>
       "Post types (postTypeOverrides.instagram): feed_photo (the default), feed_video, reel, story, carousel (2 to 20 files, images and videos may be mixed). Instagram needs media. " +
       "platformSpecific.instagram: `collaborators` (comma-separated usernames without @, not on stories); `userTags` (up to 20 per photo or video; on a photo each tag needs x and y from 0 to 1, on a reel or video only the username counts; carousel videos and stories carry none); " +
-      "`locationId` (digits: a Facebook Page that has a location); `shareToFeed` (reels); `trialReel` with `graduationStrategy` 'manual' or 'auto' (reel only); a cover via `coverUrl` or `thumbnailTimestamp` (coverUrl wins); `shareToStory`; `isAiGenerated` true for Instagram's AI info label, only when the user says it was made with AI.",
+      "`locationId` (digits: a Facebook Page that has a location); `shareToFeed` (reels); `trialReel` with `graduationStrategy` 'manual' or 'auto' (reel or feed_video); a cover via `coverUrl` or `thumbnailTimestamp` (coverUrl wins); `shareToStory`; `isAiGenerated` true for Instagram's AI info label, only when the user says it was made with AI.",
   },
   x: {
     label: "X",

@@ -216,9 +216,8 @@ class PostsResource:
                   ``feed_video``, ``reel`` and ``carousel`` -- on a carousel the co-authors go
                   on the carousel itself, not on its individual items -- and is ignored on
                   ``story``, which has no co-author concept.
-                  ``trialReel`` applies only to the ``reel`` post type and is
-                  ignored on ``feed_video``, even though both publish through the same reel
-                  container; ``graduationStrategy`` is ignored unless ``trialReel`` is true.
+                  ``trialReel`` applies to the ``reel`` and ``feed_video`` post types, which
+                  Instagram publishes as the same Reel; ``graduationStrategy`` is ignored unless ``trialReel`` is true.
                   ``thumbnailTimestamp`` and ``coverUrl`` both set the still shown before a
                   video or Reel plays (post types ``feed_video`` and ``reel``); ``coverUrl``
                   wins when both are sent, because Instagram rejects a request carrying both.
