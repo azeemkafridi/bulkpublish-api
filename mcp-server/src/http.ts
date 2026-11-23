@@ -498,6 +498,13 @@ app.disable("x-powered-by");
 // hop: the rightmost X-Forwarded-For entry is the one the proxy wrote, so a
 // client cannot choose its own bucket by sending the header itself.
 app.set("trust proxy", 1);
+// While draining (see the SIGTERM handler at the bottom) every response asks the
+// proxy to drop its pooled connection, so the next request reaches the new container.
+let draining = false;
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  if (draining) res.setHeader("Connection", "close");
+  next();
+});
 // gzip every response — most importantly the widget HTML payloads from
 // resources/read (~350 KB each, 5 widgets = ~1.75 MB uncompressed). Compresses
 // to ~70 KB per widget, which stays well clear of any upstream/proxy payload
@@ -735,9 +742,28 @@ buildServerCard()
   })
   .catch((err) => console.error("Failed to build server card (serving fallback):", err))
   .finally(() => {
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.error(
         `BulkPublish MCP (Streamable HTTP + OAuth) on :${PORT}${MCP_PATH} — issuer ${PUBLIC_BASE}`
       );
+    });
+
+    // Zero-downtime shutdown. A deploy starts the new container, waits for its
+    // health check, then sends this one SIGTERM while the swarm is still taking
+    // it out of the load balancer. Exiting at once dropped the requests that
+    // landed in that gap (measured 2026-11-23). Keep serving for
+    // SHUTDOWN_DRAIN_MS, stop accepting, let in-flight requests finish (open
+    // SSE streams are cut at the close timeout), then exit.
+    const DRAIN_MS = Number(process.env.SHUTDOWN_DRAIN_MS ?? 5000);
+    const CLOSE_TIMEOUT_MS = Number(process.env.SHUTDOWN_CLOSE_TIMEOUT_MS ?? 20000);
+    process.on("SIGTERM", () => {
+      if (draining) return;
+      draining = true;
+      console.error(`SIGTERM: serving ${DRAIN_MS}ms more, then closing`);
+      setTimeout(() => {
+        server.close(() => process.exit(0));
+        server.closeIdleConnections();
+        setTimeout(() => process.exit(0), CLOSE_TIMEOUT_MS).unref();
+      }, DRAIN_MS);
     });
   });

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-23 — Hosted connector updates without dropping requests
+
+MCP **1.60.1**
+
+### Fixed
+
+- **The hosted connector at `https://mcp.bulkpublish.com/mcp` no longer drops a request when it updates.** A request that arrived at the moment a new version took over could time out; it is now answered by the outgoing version, which finishes the requests it already has before stopping. Nothing changes for callers.
+
 ## 2026-11-21 — Inbox notes, labels, saved replies and mentions over the API; best times to post
 
 Node SDK **1.48.0** · Python **0.49.0** · MCP **1.60.0** · spec + Postman
