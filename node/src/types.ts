@@ -378,6 +378,18 @@ export interface PostChannelEntry {
 export interface ThreadPart {
   content: string;
   mediaFileIds?: number[];
+  /**
+   * Optional poll on this part: 2 to 4 options of 1 to 25 characters, and
+   * durationMinutes from 5 to 10080 (default 1440). X and Threads post it on
+   * that part, replies included; Mastodon only on the first part; Bluesky has
+   * no polls. A part with a poll cannot have mediaFileIds.
+   */
+  poll?: ThreadPartPoll | null;
+}
+
+export interface ThreadPartPoll {
+  options: string[];
+  durationMinutes?: number;
 }
 
 /** A per-platform record of a published post. */
@@ -787,11 +799,18 @@ export interface CreatePostParams {
    */
   threadParts?: ThreadPart[];
   /**
-   * Per-platform thread part overrides.
+   * Per-platform thread parts.
    *
-   * A platform's own list replaces `threadParts` for that platform when it has
-   * entries, and those are the parts measured against that platform's limit; a
-   * platform absent from here uses `threadParts`.
+   * In a thread post (`postFormat: 'thread'`) a platform's own list replaces
+   * `threadParts` for that platform when it has entries, and those are the
+   * parts measured against that platform's limit; a platform absent from here
+   * uses `threadParts`.
+   *
+   * In any other post, a platform whose `postTypeOverrides` value is `'thread'`
+   * publishes its list here as its own thread while the other platforms publish
+   * the post as usual (an X thread and an Instagram Reel from one post). It
+   * needs at least 2 parts; its parts are measured against its own limit
+   * instead of `content`, and the shared media is not checked against it.
    */
   platformThreadParts?: Record<string, ThreadPart[]>;
   /** Enable auto-plug (reply with promo after engagement threshold). */

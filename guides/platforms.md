@@ -671,6 +671,15 @@ and `communityId` apply to the first post only. None of these applies to a `repo
   part 3 is rejected up front (400 `VALIDATION_ERROR`, naming the part) rather than
   failing mid-thread with the earlier parts already public. `platformThreadParts` lets one
   platform carry its own parts, and those are the ones checked for it.
+- **One post, X as a thread.** In a post that is not a thread, set
+  `postTypeOverrides.x` to `"thread"` and give X at least two parts in
+  `platformThreadParts.x`: X publishes those parts as a thread while every other
+  platform publishes the post as usual (an Instagram Reel, a LinkedIn post). The same
+  works for Threads, Bluesky and Mastodon.
+- **A poll on any part.** A thread part takes `poll: { options, durationMinutes }`
+  (2 to 4 choices of 1 to 25 characters; 5 to 10080 minutes, default 1440). X and
+  Threads post it on that part, replies included; Mastodon only on the first part;
+  Bluesky has no polls. A part with a poll cannot carry media.
 - X is excluded from the Free plan. Pro or Business plan required.
 
 ---

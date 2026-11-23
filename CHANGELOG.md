@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-11-24 — A poll on any thread part; one post can send X a thread
+
+Node SDK **1.49.0** · Python **0.49.2** · MCP **1.61.0** · spec + Postman
+
+### Added
+
+- **A poll on any part of a thread.** Each `threadParts[]` (and `platformThreadParts`) item takes an optional `poll: { options, durationMinutes }`: 2 to 4 choices of 1 to 25 characters, 5 to 10080 minutes, default 1440. X and Threads post it on the part that carries it, replies included; Mastodon only on the first part; Bluesky has no polls. A part with a poll cannot carry media (400 `VALIDATION_ERROR`). Node `ThreadPart.poll` / `ThreadPartPoll`; the MCP tools' thread part schemas accept it (they dropped unknown keys before, so a poll would have been stripped); Python docstring.
+- **One post, some networks as threads.** In a post that is not a thread, a platform with `postTypeOverrides[platform] = "thread"` and at least two parts in `platformThreadParts[platform]` publishes those parts as its own thread while the other platforms publish the post as usual, for example an X thread and an Instagram Reel from one post. Its parts are measured against its own limit instead of `content`, and the shared media is not checked against it. Documented on `platformThreadParts` in the spec, the Node and MCP descriptions, the platforms guide and the schedule-post skills.
+
 ## 2026-11-23 — An Instagram feed video is a Reel
 
 MCP **1.60.2** · Python **0.49.1** · spec

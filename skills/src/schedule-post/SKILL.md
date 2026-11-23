@@ -24,7 +24,8 @@ platformMediaFileIds (object)     — which attached files each platform gets:
                                     be in mediaFileIds. Ignored for threads
 postTypeOverrides (object)        — per-platform format: {"instagram": "reel", "facebook": "story"}
 postFormat     ("post"|"video"|"reel"|"story"|"carousel"|"thread") — "thread" requires threadParts
-threadParts    (array)            — [{content: string, mediaFileIds?: number[]}], min 2 parts.
+threadParts    (array)            — [{content: string, mediaFileIds?: number[], poll?: {options: string[], durationMinutes?: number}}], min 2 parts. A part's poll (2-4 choices, 1-25 chars; 5-10080 min, default 1440) posts on that part on X and Threads, only on the first part on Mastodon, never on Bluesky; a part with a poll has no media.
+platformThreadParts (object)      — {x: [parts]}: in a non-thread post, a platform with postTypeOverrides 'thread' posts these parts as its own thread while the others post normally (X thread + Instagram Reel in one post). Min 2 parts for that platform.
                                     EVERY part is length-checked against every target platform,
                                     not just the first — an over-long part 400s the whole request
 platformSpecific (object)         — per-platform options; see the

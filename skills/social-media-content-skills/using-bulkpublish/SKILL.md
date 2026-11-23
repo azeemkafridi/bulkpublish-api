@@ -125,7 +125,8 @@ platformContent    per-platform text overrides
 platformSpecific   per-platform options
 postTypeOverrides  per-platform post type, e.g. reel instead of feed_photo
 postFormat         "post" (default), "video", "reel", "story", "carousel", "thread"
-threadParts        [{ content, mediaFileIds }]; required when postFormat is "thread", minimum 2
+threadParts        [{ content, mediaFileIds, poll? }]; required when postFormat is "thread", minimum 2. poll = { options: 2-4 choices, durationMinutes? } on that part (X and Threads: any part; Mastodon: first part; Bluesky: none)
+platformThreadParts { x: [parts] }; with postTypeOverrides.x = "thread" in a non-thread post, X posts these as a thread while the others post normally
 requestApproval    true holds a scheduled post for a teammate to approve
 publishWhenApproved true publishes it the moment it is approved, even past its time
                    (set it for "post now, once approved", not for a chosen time)

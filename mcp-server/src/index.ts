@@ -221,6 +221,20 @@ const PLATFORM_ENUM = z.enum([
   "snapchat",
 ]);
 
+/**
+ * A poll on one thread part. Same rules as the REST API (2-4 options of 1-25
+ * characters, 5-10080 minutes, default 1440). Without this key the part's
+ * poll would be stripped by zod before it reached the API.
+ */
+const THREAD_PART_POLL_SCHEMA = z
+  .object({
+    options: z.array(z.string().min(1).max(25)).min(2).max(4).describe("2 to 4 choices, 1 to 25 characters each."),
+    durationMinutes: z.number().int().min(5).max(10080).optional().describe("How long the poll runs, 5 to 10080 minutes. Default 1440 (one day). X and Mastodon only; Threads polls run 24 hours."),
+  })
+  .nullable()
+  .optional()
+  .describe("Optional poll on this part. X and Threads post it on whichever part carries it, replies included; Mastodon only on the first part; Bluesky has no polls. A part with a poll cannot have mediaFileIds.");
+
 const POST_TYPE_OVERRIDES_SCHEMA = z
   .object({
     instagram: z
@@ -2082,6 +2096,7 @@ server.registerTool(
               .array(z.number())
               .optional()
               .describe("Media files for this thread part."),
+            poll: THREAD_PART_POLL_SCHEMA,
           })
         )
         .optional()
@@ -2115,12 +2130,13 @@ server.registerTool(
             z.object({
               content: z.string().describe("Thread part content."),
               mediaFileIds: z.array(z.number()).optional().describe("Media files for this thread part."),
+              poll: THREAD_PART_POLL_SCHEMA,
             })
           )
         )
         .optional()
         .describe(
-          'Optional per-platform thread overrides, keyed by platform, e.g. { "x": [{ "content": "Part 1" }, { "content": "Part 2" }] }. Part content must be a plain string.'
+          'Optional per-platform thread parts, keyed by platform, e.g. { "x": [{ "content": "Part 1" }, { "content": "Part 2" }] }. In a thread post (postFormat "thread") they replace threadParts for that platform. In any other post, a platform whose postTypeOverrides value is "thread" publishes these parts as its own thread while the other platforms publish the post as usual (an X thread and an Instagram Reel from one post); it needs at least 2 parts here, its parts are measured against its own character limit instead of content, and the shared media is not checked against it. Part content must be a plain string.'
         ),
       deleteMediaAfterPublish: z
         .boolean()
@@ -3388,6 +3404,7 @@ server.registerTool(
           z.object({
             content: z.string().describe("Thread part content."),
             mediaFileIds: z.array(z.number()).optional().describe("Media files for this thread part."),
+            poll: THREAD_PART_POLL_SCHEMA,
           })
         )
         .optional()
