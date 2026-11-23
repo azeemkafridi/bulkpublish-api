@@ -12,9 +12,10 @@ server-controlled availability state, which you can read from
 | `connect_off` | ❌ | ✅ publish normally | New connections are paused — typically while a platform app review is pending. Customers already connected are unaffected. |
 | `off` | ❌ | ⏸ posts **held** | Kill switch. Posts are held, **not failed**, and publish automatically once the platform is re-enabled. |
 
-Disabled platforms are always **included** in the response with `enabled: false`
-and a `reason` — never omitted — so you can distinguish "switched off right now"
-from "not supported".
+Platforms that are switched off are **included** in the response with
+`enabled: false` and a `reason`, so you can distinguish "switched off right now"
+from "not supported". A platform that has not been released to your account yet
+is not listed at all.
 
 ```json
 {

@@ -45,9 +45,9 @@ on real accounts.
 
 ## Tools
 
-The hosted server at `/mcp` exposes 26 tools, or 32 where it serves the Inbox
-and comment tools. `/mcp/full` (the Claude Code plugin) and the local package
-expose 82, adding
+The hosted server at `/mcp` exposes 26 tools, or 55 where it serves the Inbox
+and comment tools. `/mcp/full` (the Claude Code plugin) exposes all 91, and the local package
+exposes the full set as well, adding
 account and engagement analytics, label management, hashtag groups, templates, calendar notes, review and client-connect
 links, channel sets, schedules, RSS autopost and quota.
 

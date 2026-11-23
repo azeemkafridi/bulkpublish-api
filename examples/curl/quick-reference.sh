@@ -194,7 +194,7 @@ curl -s -X DELETE -H "$AUTH" "$BASE/api/media/15"
 curl -s -H "$AUTH" "$BASE/api/analytics/summary?from=2025-01-01&to=2025-01-31"
 
 # Get engagement data grouped by day
-curl -s -H "$AUTH" "$BASE/api/analytics/engagement?groupBy=day&from=2025-01-01&to=2025-01-31"
+curl -s -H "$AUTH" "$BASE/api/analytics/engagement?from=2025-01-01&to=2025-01-31"
 
 # Refresh analytics from platforms (trigger re-sync)
 curl -s -X POST -H "$AUTH" "$BASE/api/analytics/refresh"

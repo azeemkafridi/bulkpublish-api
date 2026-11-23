@@ -162,6 +162,7 @@ Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles))
 | `get_queue_slot` ★ | Get the next optimal time slot for a channel |
 | **Channels** | |
 | `list_channels` ★ | List all connected social media channels |
+| `list_platforms` | List which platforms can be connected right now |
 | `get_channel_health` ✉ | Check channel token health |
 | `get_channel_options` ★ | Get platform-specific options (boards, playlists) |
 | `update_channel` ★ | Turn an X channel's analytics sync or DM/reply reading on or off |
@@ -195,6 +196,24 @@ Tools marked ★ are in the `core` profile (see [Tool profiles](#tool-profiles))
 | **Templates and hashtag groups** | |
 | `list_templates` ✉ | List saved post templates |
 | `list_hashtag_groups` ✉ | List saved hashtag groups |
+| `create_template` | Save a post template |
+| `update_template` | Change a saved post template |
+| `delete_template` | Delete a saved post template |
+| `create_hashtag_group` | Save a named set of hashtags |
+| `update_hashtag_group` | Rename a hashtag group or change its hashtags |
+| `delete_hashtag_group` | Delete a hashtag group |
+| **Calendar notes** | |
+| `list_calendar_notes` | List the notes on the content calendar for a date range |
+| `create_calendar_note` | Add a note to a day on the content calendar; publishes nothing |
+| `update_calendar_note` | Change a calendar note |
+| `delete_calendar_note` | Delete a calendar note |
+| **Client review and connect links** | |
+| `list_review_links` | List the review links covering a batch of posts |
+| `create_review_link` | Create a review link a client can open without an account; nothing is sent to anyone |
+| `delete_review_link` | Revoke a review link; the posts it covered are unaffected |
+| `list_client_connect_links` | List the one-time links clients use to connect their own accounts |
+| `create_client_connect_link` | Create a one-time link for a client to connect their own account; nothing is sent to anyone |
+| `delete_client_connect_link` | Revoke an unused connect link; an account it already connected stays connected |
 | **Analytics** | |
 | `get_analytics` ★ | Get analytics summary for a date range |
 | `get_account_analytics` ✉ | Daily follower, impression, reach and profile-view snapshots per channel, up to the last 30 days |

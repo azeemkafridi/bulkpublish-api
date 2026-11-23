@@ -71,9 +71,10 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 | Resource | Methods |
 |----------|---------|
 | `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `approve`, `reject`, `bulk`, `queueSlot`, `metrics`, `story`, `share`, `unshare`, `engagement`, `replyToComment`, `moderateComment` |
-| `bp.channels` | `list`, `get`, `delete`, `health` |
+| `bp.channels` | `list`, `get`, `update`, `delete`, `health` |
 | `bp.media` | `upload`, `list`, `get`, `delete`, `getLabels`, `setLabels`, `createMultipart`, `completeMultipart`, `abortMultipart` |
-| `bp.analytics` | `summary`, `engagement`, `refresh`, `account` |
+| `bp.analytics` | `summary`, `engagement`, `refresh`, `account`, `postHistory`, `links` |
+| `bp.platforms` | `list` — which platforms can be connected right now |
 | `bp.labels` | `list`, `create`, `update`, `delete` |
 | `bp.hashtagGroups` | `list`, `get`, `create`, `update`, `delete` |
 | `bp.templates` | `list`, `get`, `create`, `update`, `delete` |
@@ -102,6 +103,10 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 | Bluesky | `post` | Optional (max 4 images or 1 video) | — | 300 |
 | GMB | `standard`, `event`, `offer` | Optional (image only) | dates for event | 1,500 |
 | Mastodon | `post` | Optional (max 4 images or 1 video) | — | 500 |
+| Tumblr | `post` | Optional (up to 30 images, or 1 video) | — | 32,768 |
+| Snapchat | `story`, `saved_story`, `spotlight` | **Exactly 1 image or video** (Spotlight: video only) | — | 160 |
+| Discord | `post` | Optional (up to 10 files) | **`platformSpecific.discord.channelId`** | 2,000 |
+| Telegram | `post` | Optional (up to 10 files) | — | 4,096 |
 
 **Important:**
 - YouTube and TikTok **only accept video** — do not include them for image-only posts
@@ -115,7 +120,7 @@ import type { Post, Channel, CreatePostParams } from 'bulkpublish';
 - [Guides & Examples](https://github.com/azeemkafridi/bulkpublish-api)
 - [AI Agent Examples](https://github.com/azeemkafridi/bulkpublish-api/tree/main/examples/ai-agents) — Claude, GPT, LangChain
 - [MCP Server](https://github.com/azeemkafridi/bulkpublish-api/tree/main/mcp-server) — For Claude Desktop, Claude Code, Cursor
-- [Get an API Key](https://app.bulkpublish.com/settings/developer)
+- [Get an API Key](https://app.bulkpublish.com/developer)
 
 ## License
 

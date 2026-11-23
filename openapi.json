@@ -2823,7 +2823,7 @@
         ],
         "operationId": "listConversations",
         "summary": "List conversations",
-        "description": "Direct messages, reviews, comment threads and mentions across your connected channels, newest activity first.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence. Comment threads (`kind: \"comment\"`) are included only once comment replies are available to your account; until then they are left out of every view, including `kind=comment`. Mentions (`kind: \"mention\"`) work the same way: they appear only once mentions are available to your account, and only from networks that report them, so which networks deliver mentions depends on the network and on your workspace's plan.\n\n**Search** (`q`) also matches the internal notes your team has left on a conversation. WhatsApp conversations are not included for API keys and OAuth apps.\n\n**Paging.** Pass `nextCursor` back as `cursor` to get the next page; `nextCursor` is `null` on the last page. Treat it as opaque.\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
+        "description": "Direct messages, reviews, comment threads and mentions across your connected channels, newest activity first.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence. Comment threads (`kind: \"comment\"`) are included only once comment replies are available to your account; until then they are left out of every view, including `kind=comment`. Mentions (`kind: \"mention\"`) work the same way: they appear only once mentions are available to your account, and only from networks that report them, so which networks deliver mentions depends on the network and on your workspace's plan.\n\n**Search** (`q`) also matches the internal notes your team has left on a conversation. Conversations on networks that are not yet generally available are not included for API keys and OAuth apps.\n\n**Paging.** Pass `nextCursor` back as `cursor` to get the next page; `nextCursor` is `null` on the last page. Treat it as opaque.\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
         "parameters": [
           {
             "name": "status",
@@ -3391,7 +3391,7 @@
         ],
         "operationId": "getConversationMessages",
         "summary": "Get a conversation's messages",
-        "description": "The newest 500 messages of one conversation, oldest first. Reading does not mark the conversation read; use `PATCH /api/inbox/conversations/{id}` with `read: true` for that.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\n**Internal notes** your team leaves on the conversation are returned inline, in time order, with `direction: \"note\"` and their `author`. They are never sent to the other person. Add one with `POST /api/inbox/conversations/{id}/notes`. WhatsApp conversations are not available to API keys and OAuth apps (404).\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
+        "description": "The newest 500 messages of one conversation, oldest first. Reading does not mark the conversation read; use `PATCH /api/inbox/conversations/{id}` with `read: true` for that.\n\n**Availability.** The Inbox is being rolled out and is part of the Pro and Business plans. Until it is available to your account every Inbox endpoint returns **403** with `code: \"FEATURE_DISABLED\"` and `feature: \"inbox\"`. On a plan without the Inbox the same 403 also carries `plan`, `upgrade: true` and a `hint` naming the plan to upgrade to. Check for the code, not the sentence.\n\n**Internal notes** your team leaves on the conversation are returned inline, in time order, with `direction: \"note\"` and their `author`. They are never sent to the other person. Add one with `POST /api/inbox/conversations/{id}/notes`. Conversations on networks that are not yet generally available are not available to API keys and OAuth apps (404).\n\nReadable by every role. OAuth apps need the `inbox:read` scope (or `full`).",
         "parameters": [
           {
             "name": "id",
@@ -4006,8 +4006,7 @@
                       "type": "integer",
                       "minimum": 1
                     },
-                    "maxItems": 20,
-                    "description": "The complete set of inbox label ids the conversation should carry."
+                    "description": "The complete set of inbox label ids the conversation should carry: at most 20 different ids (duplicates are ignored before the limit is checked)."
                   }
                 }
               }
@@ -7281,7 +7280,7 @@
             ]
           }
         ],
-        "description": "Sorted by name (ties by `id`) and capped at 500 labels; a workspace with more gets the first 500 alphabetically. Response is `Cache-Control: private, no-store`. Each label: `{ id, name, color, type, createdAt }`. Add `?counts=1` to include `usageCount` (posts, media files or conversations carrying the label) on each row. Labels are read with the `posts:read` scope whatever their type, so an OAuth app that only has `inbox:read` sees a conversation's labels on the conversation itself (`labels` in `GET /api/inbox/conversations`) rather than here."
+        "description": "Sorted by name (ties by `id`) and capped at 500 labels; a workspace with more gets the first 500 alphabetically. Response is `Cache-Control: private, no-store`. Each label: `{ id, name, color, type, createdAt }`. Add `?counts=1` to include `usageCount` (posts, media files or conversations carrying the label) on each row. Labels are read with the `posts:read` scope. An OAuth app or read-only key also needs `inbox:read` to see `inbox` labels here, and `inbox:write` to create, rename or delete one (deleting an inbox label removes it from every conversation); without it those labels are left out of the list and answer 404. An app that only has `inbox:read` sees a conversation's labels on the conversation itself (`labels` in `GET /api/inbox/conversations`)."
       },
       "post": {
         "tags": [

@@ -77,7 +77,7 @@ while True:
         break
 ```
 
-WhatsApp conversations are not included for API keys and OAuth apps.
+Conversations on networks that are not yet generally available are not included for API keys and OAuth apps.
 
 ## Read a conversation
 

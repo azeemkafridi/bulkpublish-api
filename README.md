@@ -275,6 +275,12 @@ More examples in [`examples/`](examples/) — including [Python automation scrip
 - **Per-platform media** — Attach several files and choose which ones each platform publishes with `platformMediaFileIds` — see [Per-Platform Media](guides/platforms.md#per-platform-media)
 - **Review links** — Share a read-only page of a post with someone who has no account
 - **Calendar notes** — Pin campaigns, holidays and reminders to calendar days
+- **Inbox and comments** — Read and answer direct messages, reviews, comment threads and mentions, with team notes, labels and saved replies (Pro and Business plans) — see the [Inbox guide](guides/inbox.md)
+- **Approvals** — Hold a post for review before it publishes; a pending or rejected post never goes out
+- **Best times** — The weekdays and hours that get your account the most engagement, from your own posts
+- **Client connect links** — A one-time link a client opens to connect their own account, no BulkPublish account needed
+- **Read-only API keys** — Keys for reports, dashboards and agents that should only look — see [Authentication](guides/authentication.md#access-levels)
+- **OAuth 2.1** — Sign-in for apps and MCP clients, so a user authorizes access without pasting a key into every tool
 - **Bulk operations** — Delete or retry multiple posts in a single request
 - **Threads** — Multi-part thread posts for X, Threads, Bluesky, and Mastodon
 - **Auto first comment** — Automatically add a comment after publishing, on Facebook, Instagram, X, YouTube, Threads, Bluesky, LinkedIn, Mastodon and Telegram
@@ -349,17 +355,20 @@ See the [OpenAPI spec](openapi.json) for the complete endpoint list.
 
 | Platform | Post Types | Media |
 |----------|-----------|-------|
-| **Facebook** | Post, Story | Images, Videos |
+| **Facebook** | Post, Reel, Story | Images, Videos |
 | **Instagram** | Feed, Reel, Story, Carousel | Images (JPEG), Videos (MP4, MOV) |
 | **X / Twitter** | Tweet, Thread | Images, Videos, GIFs |
 | **TikTok** | Video, Photo Slideshow | Videos (MP4, MOV), Images |
 | **YouTube** | Video, Short | Videos (MP4, MOV, WebM, AVI, WMV, FLV) |
 | **Threads** | Post, Thread, Quote Post | Images, Videos |
 | **Bluesky** | Post, Thread | Images |
-| **Pinterest** | Pin | Images, Videos |
+| **Pinterest** | Pin, Video Pin, Carousel | Images, Videos |
 | **Google Business Profile** | Post, Event, Offer | Images |
 | **LinkedIn** | Post, Multi-image, PDF Carousel, Article, Document, Poll, Reshare | Images (JPEG, PNG, GIF), Videos (MP4), Documents (PDF, Word, PowerPoint) |
 | **Mastodon** | Post, Thread | Images, Videos |
+| **Tumblr** | Post | Images, Videos |
+| **Discord** | Post | Images, Videos |
+| **Telegram** | Post | Images, Videos |
 | **Snapchat** | Story, Saved Story, Spotlight | Exactly 1 image (JPG, PNG) or video (MP4, MOV, vertical, max 1GB; story video 5–60s, Spotlight 6–60s) |
 
 ## SDKs
@@ -405,8 +414,9 @@ curl https://app.bulkpublish.com/api/channels \
 | Reads/min | 300 | 300 | 300 |
 | Daily API requests | 10 | 5,000 | 50,000 |
 | API keys | 1 | 5 | 10 |
-
 | Recurring schedules | — | 10 | Unlimited |
+
+The Lifetime plan allows 1,000 API requests a day, 2 API keys and 3 recurring schedules.
 
 See the [rate limits guide](guides/rate-limits.md) for headers, backoff strategies, and best practices.
 

@@ -80,10 +80,11 @@ asyncio.run(main())
 
 | Resource | Methods |
 |----------|---------|
-| `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `approve`, `reject`, `bulk`, `queue_slot`, `share`, `unshare`, `engagement`, `reply_to_comment`, `moderate_comment` |
-| `bp.channels` | `list`, `get`, `delete`, `health` |
+| `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `approve`, `reject`, `bulk`, `queue_slot`, `metrics`, `publish_as_story`, `share`, `unshare`, `engagement`, `reply_to_comment`, `moderate_comment` |
+| `bp.channels` | `list`, `list_platforms`, `get`, `update`, `disconnect`, `health` |
 | `bp.media` | `upload`, `list`, `get`, `update` (alt text), `delete`, `get_labels`, `set_labels`, `create_multipart`, `complete_multipart`, `abort_multipart` |
-| `bp.analytics` | `summary`, `engagement`, `refresh`, `account` |
+| `bp.analytics` | `summary`, `engagement`, `refresh`, `account`, `post_history`, `links` |
+| `bp.platforms` | `list` — which platforms can be connected right now |
 | `bp.labels` | `list`, `create`, `update`, `delete` |
 | `bp.hashtag_groups` | `list`, `get`, `create`, `update`, `delete` |
 | `bp.templates` | `list`, `get`, `create`, `update`, `delete` |
@@ -109,7 +110,7 @@ Facebook, Instagram, X (Twitter), TikTok, YouTube, Threads, Bluesky, Pinterest, 
 - [Guides & Examples](https://github.com/azeemkafridi/bulkpublish-api)
 - [AI Agent Examples](https://github.com/azeemkafridi/bulkpublish-api/tree/main/examples/ai-agents) — Claude, GPT, LangChain
 - [MCP Server](https://github.com/azeemkafridi/bulkpublish-api/tree/main/mcp-server) — For Claude Desktop, Claude Code, Cursor
-- [Get an API Key](https://app.bulkpublish.com/settings/developer)
+- [Get an API Key](https://app.bulkpublish.com/developer)
 
 ## License
 
