@@ -288,7 +288,16 @@ export interface Channel {
   autoRenews: boolean;
   tokenStatus: TokenStatus;
   tokenExpiresAt: string | null;
-  metadata: Record<string, unknown> | null;
+  /**
+   * Platform-specific details. On an X channel, `xSubscription` is the
+   * account's X subscription as X reported it when the account was last
+   * connected (`Basic`, `Premium`, `PremiumPlus` or `None`; absent on a channel
+   * connected before it was read). `Basic`, `Premium` and `PremiumPlus`
+   * accounts may post up to 25,000 characters, every other X account 280, and
+   * a post to several X accounts is held to the smallest limit.
+   * `xSubscriptionCheckedAt` is when it was read; reconnect to read it again.
+   */
+  metadata: (Record<string, unknown> & { xSubscription?: string; xSubscriptionCheckedAt?: string }) | null;
   createdAt: string;
   updatedAt: string;
   /**
@@ -754,7 +763,8 @@ export interface CreatePostParams {
   platformSpecific?: Record<string, Record<string, unknown>>;
   /**
    * Per-platform content overrides for different character limits.
-   * Use for platforms with lower limits (bluesky: 300, pinterest/threads/mastodon: 500).
+   * Use for platforms with lower limits (x: 280, or 25,000 for an account with a paid
+   * X subscription; bluesky: 300, pinterest/threads/mastodon: 500).
    *
    * @example { bluesky: 'Short version', linkedin: 'Longer professional version' }
    */

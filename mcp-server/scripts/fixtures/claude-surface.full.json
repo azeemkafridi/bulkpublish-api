@@ -31,7 +31,7 @@
     {
       "name": "list_channels",
       "title": "List channels",
-      "description": "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status, plus a `capabilities` object saying whether the caller may create, publish or approve posts. Check that before attempting a write rather than discovering the permission from a 403. A read-only API key reports false for all three: it can read everything here but every change is refused. Use this when the user wants to see which social accounts are connected.",
+      "description": "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status, plus a `capabilities` object saying whether the caller may create, publish or approve posts. Check that before attempting a write rather than discovering the permission from a 403. A read-only API key reports false for all three: it can read everything here but every change is refused. On an X channel, `metadata.xSubscription` of `Basic`, `Premium` or `PremiumPlus` means the account may post up to 25,000 characters; any other value, or none, means 280 (reconnect the channel after subscribing). Use this when the user wants to see which social accounts are connected.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -234,7 +234,7 @@
         "type": "object",
         "properties": {
           "content": {
-            "description": "The post text content. Optional — defaults to empty for media-only posts. LinkedIn mentions: write @[Display Name](urn:li:organization:ID) for a Page or @[Display Name](urn:li:person:ID) for a person; search_mentions on a LinkedIn channel returns ready-made Page tokens. The token publishes as a real mention on LinkedIn and as plain @Display Name on other channels.",
+            "description": "The post text content. Optional — defaults to empty for media-only posts. X allows 280 characters, or 25,000 when every X channel on the post has a paid X subscription (metadata.xSubscription Basic, Premium or PremiumPlus in list_channels). LinkedIn mentions: write @[Display Name](urn:li:organization:ID) for a Page or @[Display Name](urn:li:person:ID) for a person; search_mentions on a LinkedIn channel returns ready-made Page tokens. The token publishes as a real mention on LinkedIn and as plain @Display Name on other channels.",
             "type": "string"
           },
           "channels": {
@@ -622,7 +622,7 @@
                     }
                   },
                   "shareToFeed": {
-                    "description": "Reels only. false shows the Reel only in the Reels tab; true also shows it in the main feed. Omitted: Instagram's own default (feed and Reels tab).",
+                    "description": "Reels only (reel or feed_video). false shows the Reel only in the Reels tab; true also shows it in the main feed. Omitted: Instagram's own default (feed and Reels tab).",
                     "type": "boolean"
                   },
                   "locationId": {
@@ -630,7 +630,7 @@
                     "type": "string"
                   },
                   "trialReel": {
-                    "description": "Publish as a trial reel, shown to people who do not follow the account first. Only takes effect with postTypeOverrides.instagram of 'reel' — a 'feed_video' publishes as an ordinary reel and this is ignored, even though both use the same underlying reel container.",
+                    "description": "Publish as a trial reel, shown to people who do not follow the account first. Takes effect with postTypeOverrides.instagram of 'reel' or 'feed_video' (Instagram publishes every video post as a Reel, so the two are the same).",
                     "type": "boolean"
                   },
                   "graduationStrategy": {
@@ -1809,6 +1809,39 @@
                   "items": {
                     "type": "number"
                   }
+                },
+                "poll": {
+                  "description": "Optional poll on this part. X and Threads post it on whichever part carries it, replies included; Mastodon only on the first part; Bluesky has no polls. A part with a poll cannot have mediaFileIds and needs text (its question).",
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "options": {
+                          "minItems": 2,
+                          "maxItems": 4,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 25
+                          },
+                          "description": "2 to 4 choices, 1 to 25 characters each."
+                        },
+                        "durationMinutes": {
+                          "description": "How long the poll runs, 5 to 10080 minutes. Default 1440 (one day). X and Mastodon only; Threads polls run 24 hours.",
+                          "type": "integer",
+                          "minimum": 5,
+                          "maximum": 10080
+                        }
+                      },
+                      "required": [
+                        "options"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -1981,7 +2014,7 @@
             ]
           },
           "platformThreadParts": {
-            "description": "Optional per-platform thread overrides, keyed by platform, e.g. { \"x\": [{ \"content\": \"Part 1\" }, { \"content\": \"Part 2\" }] }. Part content must be a plain string.",
+            "description": "Optional per-platform thread parts, keyed by platform, e.g. { \"x\": [{ \"content\": \"Part 1\" }, { \"content\": \"Part 2\" }] }. In a thread post (postFormat \"thread\") they replace threadParts for that platform. In any other post, a platform whose postTypeOverrides value is \"thread\" publishes these parts as its own thread while the other platforms publish the post as usual (an X thread and an Instagram Reel from one post); it needs at least 2 parts here, its parts are measured against its own character limit instead of content, and the shared media is not checked against it. Part content must be a plain string.",
             "type": "object",
             "propertyNames": {
               "type": "string"
@@ -2001,6 +2034,39 @@
                     "items": {
                       "type": "number"
                     }
+                  },
+                  "poll": {
+                    "description": "Optional poll on this part. X and Threads post it on whichever part carries it, replies included; Mastodon only on the first part; Bluesky has no polls. A part with a poll cannot have mediaFileIds and needs text (its question).",
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "options": {
+                            "minItems": 2,
+                            "maxItems": 4,
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 25
+                            },
+                            "description": "2 to 4 choices, 1 to 25 characters each."
+                          },
+                          "durationMinutes": {
+                            "description": "How long the poll runs, 5 to 10080 minutes. Default 1440 (one day). X and Mastodon only; Threads polls run 24 hours.",
+                            "type": "integer",
+                            "minimum": 5,
+                            "maximum": 10080
+                          }
+                        },
+                        "required": [
+                          "options"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -10832,6 +10898,39 @@
                   "items": {
                     "type": "number"
                   }
+                },
+                "poll": {
+                  "description": "Optional poll on this part. X and Threads post it on whichever part carries it, replies included; Mastodon only on the first part; Bluesky has no polls. A part with a poll cannot have mediaFileIds and needs text (its question).",
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "options": {
+                          "minItems": 2,
+                          "maxItems": 4,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 25
+                          },
+                          "description": "2 to 4 choices, 1 to 25 characters each."
+                        },
+                        "durationMinutes": {
+                          "description": "How long the poll runs, 5 to 10080 minutes. Default 1440 (one day). X and Mastodon only; Threads polls run 24 hours.",
+                          "type": "integer",
+                          "minimum": 5,
+                          "maximum": 10080
+                        }
+                      },
+                      "required": [
+                        "options"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -11353,7 +11452,7 @@
                     }
                   },
                   "shareToFeed": {
-                    "description": "Reels only. false shows the Reel only in the Reels tab; true also shows it in the main feed. Omitted: Instagram's own default (feed and Reels tab).",
+                    "description": "Reels only (reel or feed_video). false shows the Reel only in the Reels tab; true also shows it in the main feed. Omitted: Instagram's own default (feed and Reels tab).",
                     "type": "boolean"
                   },
                   "locationId": {
@@ -11361,7 +11460,7 @@
                     "type": "string"
                   },
                   "trialReel": {
-                    "description": "Publish as a trial reel, shown to people who do not follow the account first. Only takes effect with postTypeOverrides.instagram of 'reel' — a 'feed_video' publishes as an ordinary reel and this is ignored, even though both use the same underlying reel container.",
+                    "description": "Publish as a trial reel, shown to people who do not follow the account first. Takes effect with postTypeOverrides.instagram of 'reel' or 'feed_video' (Instagram publishes every video post as a Reel, so the two are the same).",
                     "type": "boolean"
                   },
                   "graduationStrategy": {

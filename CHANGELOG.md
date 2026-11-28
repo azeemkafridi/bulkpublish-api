@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-28 — Long X posts for accounts with a paid X subscription
+
+Node SDK **1.49.1** · Python **0.49.3** · MCP **1.61.1** · spec + Postman
+
+Not live yet: this documents a server change that has not been released. Until it is, every X channel is held to 280 characters and none reports `xSubscription`.
+
+### Changed
+
+- **X allows 25,000 characters for an account with a paid X subscription** (Basic, Premium or Premium+), 280 for every other account. The subscription is read when the account is connected and is returned as `metadata.xSubscription` on `GET /api/channels` (`Basic`, `Premium`, `PremiumPlus` or `None`), with `metadata.xSubscriptionCheckedAt`. A channel connected before then has no value and counts as 280 until it is reconnected; after subscribing, reconnect the channel once. A post going to several X accounts is held to the smallest of their limits, and thread parts follow the same rule. The 280 refusal now says so. Documented in the spec (`Create post` and `Channel.metadata`), the Postman collection, the platforms guide, the Node `Channel.metadata` type and `platformContent` JSDoc, the Python `Channel` type and `platform_content` docstring, the `list_channels` and `create_post` tool descriptions, and the platform-reference, schedule-post and using-bulkpublish skills.
+- **Skill fact check:** the rule that flagged "25,000" as a stale X claim now flags the opposite, an unconditional "X has a 280-character limit".
+- **Host-parity snapshots** refreshed. Besides the two descriptions above, they now include the thread-part `poll` schema and the Instagram `feed_video` wording from the 1.60.2 and 1.61.0 releases, which had not been written to the snapshots.
+
 ## 2026-11-28 — Adding a channel slot no longer charges twice for one slot
 
 spec

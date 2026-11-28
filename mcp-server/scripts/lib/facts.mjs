@@ -16,7 +16,7 @@ export const STALE = [
   [/suggestedTime/, "get_queue_slot returns scheduledAt and dayLabel"],
   [/\b20 feeds\b|up to 20 per workspace|feeds per org\b/i, "RSS feeds are capped by plan (1, 3, 10, 50)"],
   [/polled every 15 minutes|feed is checked every 15 minutes/i, "RSS feeds are checked every 60, 60, 30 or 15 minutes by plan"],
-  [/25,000 for long posts|25,000 long posts/i, "X posts are checked at 280 characters"],
+  [/X\W{0,4}(has|allows|is)\s+(a\s+|only\s+)?280[- ]char\w*(\s+limit)?\s*(for tweets)?\.|X (posts are|is) (always )?checked at 280\b/i, "X allows 25,000 characters for an account with a paid X subscription (metadata.xSubscription Basic, Premium or PremiumPlus), 280 otherwise"],
   [/cannot approve or reject from here/i, "approve_post and reject_post are served"],
   [/only (`?draft`?) (and|or) `?failed`? posts can be deleted|delete_post`? takes only/i, "delete_post takes any post that is not publishing right now"],
 ];

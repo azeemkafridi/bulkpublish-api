@@ -1888,7 +1888,7 @@ export function createServer(
 server.registerTool(
   "list_channels",
   {
-    description: "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status, plus a `capabilities` object saying whether the caller may create, publish or approve posts. Check that before attempting a write rather than discovering the permission from a 403. A read-only API key reports false for all three: it can read everything here but every change is refused.",
+    description: "List all connected social media channels (X/Twitter, Instagram, LinkedIn, Facebook, TikTok, etc.). Returns channel ID, platform, account name, and token status, plus a `capabilities` object saying whether the caller may create, publish or approve posts. Check that before attempting a write rather than discovering the permission from a 403. A read-only API key reports false for all three: it can read everything here but every change is refused. On an X channel, `metadata.xSubscription` of `Basic`, `Premium` or `PremiumPlus` means the account may post up to 25,000 characters; any other value, or none, means 280 (reconnect the channel after subscribing).",
     inputSchema: {
       active: z
         .boolean()
@@ -2042,6 +2042,7 @@ server.registerTool(
         .optional()
         .describe(
           "The post text content. Optional — defaults to empty for media-only posts. " +
+          "X allows 280 characters, or 25,000 when every X channel on the post has a paid X subscription (metadata.xSubscription Basic, Premium or PremiumPlus in list_channels). " +
           "LinkedIn mentions: write @[Display Name](urn:li:organization:ID) for a Page or @[Display Name](urn:li:person:ID) for a person; " +
           "search_mentions on a LinkedIn channel returns ready-made Page tokens. The token publishes as a real mention on LinkedIn and as plain @Display Name on other channels."
         ),

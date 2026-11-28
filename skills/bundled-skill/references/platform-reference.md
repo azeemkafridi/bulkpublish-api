@@ -108,7 +108,7 @@ Every value `postTypeOverrides` accepts; the first is the default.
 | Field | Value |
 |---|---|
 | Platform key | `x` |
-| Char limit | 280 (a link counts as 23) |
+| Char limit | 280, or 25,000 when the account has a paid X subscription (`metadata.xSubscription` on `list_channels` is `Basic`, `Premium` or `PremiumPlus`). A link counts as 23. A post to several X accounts gets the smallest limit; after subscribing, reconnect the channel |
 | Title required | No |
 
 **Post types:**

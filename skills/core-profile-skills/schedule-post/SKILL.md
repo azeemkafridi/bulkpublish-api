@@ -54,7 +54,7 @@ for one behaviour or the other** — sending `false` is an explicit "post the li
 as written" and is not the same as leaving it unset. Shortening happens at
 publish time, per channel, and is **skipped** for any channel where the rewrite
 would push the post past that platform's character limit: a short URL is 28
-characters and can be longer than the link it replaces, so on X (280) or Bluesky
+characters and can be longer than the link it replaces, so on X (280 on a standard account) or Bluesky
 (300) tracking may silently not apply. The post still publishes, with its
 original links.
 
@@ -119,7 +119,7 @@ even when they are scheduled and overdue.
 
 | Platform | Limit |
 |---|---|
-| X | 280 (a link counts as 23) |
+| X | 280, or 25,000 with a paid X subscription (`metadata.xSubscription` is `Basic`, `Premium` or `PremiumPlus`); a link counts as 23 |
 | Instagram | 2,200 |
 | Facebook | 63,206 |
 | LinkedIn | 3,000 |

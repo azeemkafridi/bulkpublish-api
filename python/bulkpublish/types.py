@@ -234,6 +234,14 @@ class Channel(TypedDict, total=False):
     autoRenews: bool
     tokenStatus: str
     tokenExpiresAt: Optional[str]
+    #: Platform-specific details. On an X channel, ``xSubscription`` is the
+    #: account's X subscription as X reported it at the last connect
+    #: (``Basic``, ``Premium``, ``PremiumPlus`` or ``None``; absent on a channel
+    #: connected before it was read). ``Basic``, ``Premium`` and ``PremiumPlus``
+    #: accounts may post up to 25,000 characters, every other X account 280, and
+    #: a post to several X accounts is held to the smallest limit.
+    #: ``xSubscriptionCheckedAt`` is when it was read; reconnect to read it again.
+    metadata: Optional[Dict[str, Any]]
     createdAt: str
     updatedAt: str
     # Availability of THIS channel: the platform flag narrowed by any variant

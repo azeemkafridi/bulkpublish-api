@@ -665,7 +665,12 @@ and `communityId` apply to the first post only. None of these applies to a `repo
 
 ### Notes
 
-- X has a 280-character limit for tweets.
+- X has a 280-character limit, or 25,000 for an account with a paid X subscription
+  (Basic, Premium or Premium+). The subscription is read when the account is connected
+  and shows as `metadata.xSubscription` on `GET /api/channels` (`Basic`, `Premium`,
+  `PremiumPlus` or `None`); after subscribing, reconnect the channel once. A post going
+  to several X accounts is held to the smallest of their limits, and a channel connected
+  before this was read counts as 280 until it is reconnected.
 - Thread posts (multi-part) are supported via `postFormat: "thread"` with `threadParts`.
   Every part is checked against the limit of every platform the post targets, so a long
   part 3 is rejected up front (400 `VALIDATION_ERROR`, naming the part) rather than
@@ -1036,7 +1041,7 @@ limits are rejected with `400 VALIDATION_ERROR` naming the path.
 - **`_firstComment` is not supported.** Discord exposes no comment API to the
   bot, so a first comment is recorded as failed while the main message publishes
   normally. See [Auto First Comment](#auto-first-comment).
-- Character limit: 2,000 — tighter than every platform except X (280),
+- Character limit: 2,000 — tighter than every platform except X (280 on a standard account),
   Bluesky (300), Threads / Pinterest / Mastodon (500) and Google Business
   (1,500). Use `platformContent` to supply a shorter variant rather than letting
   the post fail validation.
@@ -1189,7 +1194,7 @@ Each platform enforces its own character limit on the `content` field:
 
 | Platform | Character Limit |
 |----------|----------------|
-| X / Twitter | 280 |
+| X / Twitter | 280 (25,000 for an account with a paid X subscription, see [X / Twitter](#x--twitter)) |
 | Instagram | 2,200 |
 | TikTok | 2,200 |
 | YouTube | 5,000 (description) |
@@ -1213,7 +1218,7 @@ When link tracking is on — the organization setting, or `linkTrackingOverride`
 
 A short URL is 28 characters, which can be **longer** than the link it replaces. Because validation runs on the rewritten text, shortening is skipped for any channel where the rewrite would push the post past that platform's limit: a post composed at 295/300 for Bluesky publishes with its original links rather than failing at 308. The post still goes out — only the tracking is dropped for that channel, and no short link is minted for it, so `linkClicks` stays 0 there.
 
-The tight limits above are where this bites: X (280), Bluesky (300), Threads / Pinterest / Mastodon (500), and to a lesser degree Google Business (1,500) and Discord (2,000). It never applies on Facebook, LinkedIn, Tumblr or Telegram.
+The tight limits above are where this bites: X (280 on a standard account), Bluesky (300), Threads / Pinterest / Mastodon (500), and to a lesser degree Google Business (1,500) and Discord (2,000). It never applies on Facebook, LinkedIn, Tumblr or Telegram.
 
 ### Links in post options
 
