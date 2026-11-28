@@ -84,6 +84,7 @@ Every value `postTypeOverrides` accepts; the first is the default.
 - `locationId` — digits only: the numeric ID of a Facebook Page that has a location (not for Stories)
 - `coverUrl` — string, cover image URL for a video or Reel. Instagram accepts a cover image or a cover moment, never both, so this wins over `thumbnailTimestamp`
 - `isAiGenerated` — boolean, `true` shows Instagram's "AI info" label (feed photos, videos, Reels and carousels, not Stories; on a carousel it goes on the carousel itself). Set it only when the user says the content was made with AI
+- `audio` — licensed music for a Reel: `{ audioId, audioVolume?, videoVolume? }`. `audioId` is the digits-only `id` of a track from `get_channel_options` on the Instagram channel (no `q` lists trending tracks, `q` searches); volumes are whole numbers 0 to 100 (default 100). Takes effect with `reel` or `feed_video`. **Only accounts connected through Facebook** (`metadata.connectionMethod: "facebook"` in `list_channels`) get music: on any other Instagram account the field is dropped and the Reel publishes without music, and the search answers `unavailable: "facebook_required"`. Tell the user to reconnect with Facebook rather than promising music. A silent video gets a silent sound track added to a copy so the music can apply
 
 **IMPORTANT:** If you have video and don't set `postTypeOverrides.instagram`, it defaults to `feed_photo` and FAILS. Always set to `reel` or `feed_video` for video.
 

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 if TYPE_CHECKING:
     from .client import _BaseClient
 
-from .types import Channel, ChannelHealth, PlatformAvailability
+from .types import Channel, ChannelHealth, ChannelOptions, PlatformAvailability
 
 
 class ChannelsResource:
@@ -182,6 +182,76 @@ class ChannelsResource:
         """
         return self._client._request("GET", f"/api/channels/{channel_id}/health")
 
+    def options(
+        self,
+        channel_id: str,
+        *,
+        q: Optional[str] = None,
+        board_id: Optional[str] = None,
+        audio_type: Optional[str] = None,
+        probe: bool = False,
+    ) -> ChannelOptions:
+        """Get a channel's platform options, keyed by ``type``.
+
+        Pinterest boards (or a board's sections with ``board_id``), YouTube
+        playlists, Tumblr blogs, Discord text channels, Threads places
+        (``q``), TikTok ``creator_info`` and Instagram music (``audio``). A
+        platform without options answers ``{"type": None, "items": []}``.
+
+        Instagram: with no ``q`` it lists trending tracks; ``q`` searches, and
+        ``audio_type="original_sound"`` searches original sounds instead of
+        music. Pass an item's ``id`` as ``platformSpecific.instagram.audio.audioId``.
+        ``probe=True`` only reports whether the account can add music, without
+        searching. Music needs an account connected through Facebook: any
+        other Instagram channel answers
+        ``{"type": "audio", "unavailable": "facebook_required", "items": []}``,
+        and ``unavailable: "disabled"`` means music is not available for this
+        workspace right now.
+
+        Args:
+            channel_id: The channel's unique identifier.
+            q: Search term. Threads: place search. Instagram: track search
+                (omitted lists trending tracks).
+            board_id: Pinterest only: numeric board ID; returns that board's
+                sections instead of the boards.
+            audio_type: Instagram only: ``"music"`` (default) or
+                ``"original_sound"``. Any other value is read as ``"music"``.
+            probe: Instagram only: report availability without searching.
+
+        Example::
+
+            res = bp.channels.options("7", q="summer")
+            if res["type"] == "audio" and not res.get("unavailable") and res["items"]:
+                track = res["items"][0]
+                bp.posts.create(
+                    channels=[{"channelId": 7, "platform": "instagram"}],
+                    content="New Reel",
+                    media_files=[video_id],
+                    post_type_overrides={"instagram": "reel"},
+                    platform_specific={"instagram": {"audio": {"audioId": track["id"], "audioVolume": 60}}},
+                )
+        """
+        return self._client._request(
+            "GET",
+            f"/api/channels/{channel_id}/options",
+            params=_options_params(q, board_id, audio_type, probe),
+        )
+
+
+def _options_params(
+    q: Optional[str], board_id: Optional[str], audio_type: Optional[str], probe: bool
+) -> Dict[str, Any]:
+    params: Dict[str, Any] = {}
+    if q is not None:
+        params["q"] = q
+    if board_id is not None:
+        params["boardId"] = board_id
+    if audio_type is not None:
+        params["audioType"] = audio_type
+    if probe:
+        params["probe"] = "1"
+    return params
+
 
 class AsyncChannelsResource:
     """Async version of :class:`ChannelsResource`.
@@ -239,3 +309,19 @@ class AsyncChannelsResource:
     async def health(self, channel_id: str) -> ChannelHealth:
         """Check channel health — see :meth:`ChannelsResource.health`."""
         return await self._client._request("GET", f"/api/channels/{channel_id}/health")
+
+    async def options(
+        self,
+        channel_id: str,
+        *,
+        q: Optional[str] = None,
+        board_id: Optional[str] = None,
+        audio_type: Optional[str] = None,
+        probe: bool = False,
+    ) -> ChannelOptions:
+        """Get channel options — see :meth:`ChannelsResource.options`."""
+        return await self._client._request(
+            "GET",
+            f"/api/channels/{channel_id}/options",
+            params=_options_params(q, board_id, audio_type, probe),
+        )

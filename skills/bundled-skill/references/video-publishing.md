@@ -41,7 +41,10 @@ Instagram defaults to `feed_photo`, so a video there always needs a type.
   description on it).
 - **Instagram**: `shareToFeed` (Reels), `trialReel` (shown to non-followers
   first, Reels only) with `graduationStrategy`, a cover with `coverUrl` or
-  `thumbnailTimestamp` (`coverUrl` wins).
+  `thumbnailTimestamp` (`coverUrl` wins), and music with `audio: { audioId }`
+  (tracks from `get_channel_options` on the Instagram channel). Music works
+  only on an account connected through Facebook; elsewhere the Reel publishes
+  without it.
 - **Facebook**: `thumbnailUrl` sets a cover just after the video publishes.
 - **Pinterest**: a title and a board (`boardId` from `get_channel_options`).
 

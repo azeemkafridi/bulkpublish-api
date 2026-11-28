@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-11-28 — Music on Instagram Reels
+
+Node SDK **1.50.0** · Python **0.50.0** · MCP **1.62.0** · spec + Postman
+
+Not live yet: this documents a server change that goes live when connecting Instagram through Facebook is switched on in production. Until then no Instagram channel reports `metadata.connectionMethod: "facebook"`, the music search answers `unavailable`, and the `audio` field publishes no music.
+
+### Added
+
+- **`platformSpecific.instagram.audio`** (object or `null`): licensed music on a Reel, `{ audioId, audioVolume?, videoVolume?, title?, artist?, coverUrl? }`. `audioId` is required, digits only (a number is accepted); `audioVolume` and `videoVolume` are whole numbers 0 to 100 (Instagram's default 100) for the music and the video's own sound; `title`, `artist` (up to 200 characters) and `coverUrl` (`https` only, anything else dropped without an error) are display only and never sent to Instagram. Post types `reel` and `feed_video`; ignored on others. Absent, `null` or `{}` means no music. A non-numeric `audioId`, a bad volume, or a non-empty object without `audioId` is a `400 VALIDATION_ERROR`.
+- **Only Instagram accounts connected through Facebook get music** (`metadata.connectionMethod: "facebook"` on the channel, now described on `Channel.metadata`). On an account connected with Instagram sign-in the field is accepted but dropped, and the Reel publishes without music. A video with no sound gets a silent sound track added to a copy (the picture is unchanged) so the music can be applied; if that is not possible the post fails with a message saying so.
+- **Music search on `GET /api/channels/{id}/options`** for an Instagram channel: `{ type: "audio", items: [{ id, title, artist?, coverUrl?, durationMs?, previewUrl? }] }`. No `q` lists trending tracks, `q` searches, `audioType=original_sound` searches original sounds instead of music, and `probe=1` only reports whether the account can add music. A channel not connected through Facebook answers `{ type: "audio", unavailable: "facebook_required", items: [] }`; `unavailable: "disabled"` means music is not available for this workspace right now. `type` gains `audio`, and `unavailable` is now a boolean or a string.
+- **`channels.options()` in both SDKs**, which had no method for this endpoint: Node `bp.channels.options(id, { q, boardId, audioType, probe })` with `ChannelOptionsParams` / `ChannelOptionsResponse` / `ChannelOptionItem`, Python `bp.channels.options(channel_id, q=, board_id=, audio_type=, probe=)` (sync and async) with `ChannelOptions` / `ChannelOptionItem`.
+- **MCP:** `create_post` and `update_post` take `platformSpecific.instagram.audio`; `get_channel_options` takes `audioType` and `probe` and describes the audio items and `unavailable` answers. The Instagram prompt guide mentions music.
+- Documented in the spec, the Postman collection (Create post bodies and the options request), the platforms guide, the README endpoint table, the Node and Python READMEs, the Node `platformSpecific` JSDoc and `Channel.metadata` type, the Python `create` docstring and `Channel` type, and the platform-reference, manage-channels, using-bulkpublish and video-publishing skills. Host-parity snapshots refreshed.
+
 ## 2026-11-28 — X limit notes name the smallest-limit rule; server.json version
 
 Node SDK **1.49.2** · Python **0.49.4**

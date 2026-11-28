@@ -69,7 +69,7 @@ reject_post        send a pending post back to draft, with a reason
 **Channels**
 ```
 list_channels        connected accounts, with ids, platform and health
-get_channel_options  boards, sections, playlists, blogs, Discord channels
+get_channel_options  boards, sections, playlists, blogs, Discord channels, Instagram music
 update_channel       X only: turn analytics sync or DM/reply reading on or off
 ```
 

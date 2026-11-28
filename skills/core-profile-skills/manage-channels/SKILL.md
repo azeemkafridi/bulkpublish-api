@@ -12,7 +12,7 @@ description: List connected social media channels, check what the caller may do 
 |---|---|---|
 | `list_channels` | Connected accounts with IDs, status and the caller's capabilities | `active` (default true) |
 | `view_channels` | The same list as an interactive view | none |
-| `get_channel_options` | Destinations inside an account (see below) | `channelId`, plus `boardId` or `q` |
+| `get_channel_options` | Destinations inside an account, and Instagram music (see below) | `channelId`, plus `boardId`, `q`, `audioType` or `probe` |
 | `update_channel` | X sync switches (`metricsSyncEnabled`, `inboxSyncEnabled`) | `channelId` |
 
 Prefer `view_channels` when the user wants to look at their accounts, and
@@ -44,6 +44,7 @@ Platform keys: `facebook`, `instagram`, `x`, `linkedin`, `tiktok`, `youtube`,
 | Tumblr | Blogs |
 | Discord | Text channels in the connected server |
 | Threads | Places matching `q`, for `locationId` |
+| Instagram | Music for a Reel (`type: "audio"`): trending tracks, or tracks matching `q`; `audioType: "original_sound"` searches original sounds. Each item's `id` is `platformSpecific.instagram.audio.audioId`. An account not connected through Facebook answers `unavailable: "facebook_required"` (it must be reconnected with Facebook to add music) |
 
 ## Reconnecting
 

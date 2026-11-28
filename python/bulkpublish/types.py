@@ -241,6 +241,9 @@ class Channel(TypedDict, total=False):
     #: accounts may post up to 25,000 characters, every other X account 280, and
     #: a post to several X accounts is held to the smallest limit.
     #: ``xSubscriptionCheckedAt`` is when it was read; reconnect to read it again.
+    #: On an Instagram channel, ``connectionMethod`` is ``facebook`` when the
+    #: account was connected through Facebook, which is the only way to add
+    #: music to a Reel (``platformSpecific.instagram.audio``).
     metadata: Optional[Dict[str, Any]]
     createdAt: str
     updatedAt: str
@@ -316,6 +319,46 @@ class ChannelHealth(TypedDict, total=False):
     healthy: bool
     lastChecked: str
     error: str
+
+
+class ChannelOptionItem(TypedDict, total=False):
+    """One option from :meth:`ChannelsResource.options`.
+
+    Most platforms send ``id`` and ``name``. Instagram music (``type``
+    ``audio``) sends ``title`` and may send ``artist``, ``coverUrl``,
+    ``durationMs`` and ``previewUrl`` (a short listening link) instead of
+    ``name``. Threads places may carry ``address``.
+    """
+
+    id: str
+    name: str
+    address: str
+    title: str
+    artist: str
+    coverUrl: str
+    durationMs: int
+    previewUrl: str
+
+
+class ChannelOptions(TypedDict, total=False):
+    """Response from ``GET /api/channels/{id}/options``.
+
+    ``type`` is ``boards`` / ``sections`` (Pinterest), ``playlists``
+    (YouTube), ``blogs`` (Tumblr), ``channels`` (Discord), ``locations``
+    (Threads), ``creator_info`` (TikTok, see ``info``), ``audio`` (Instagram
+    music), or ``None`` for a platform without options.
+
+    ``unavailable`` is ``True`` on Threads until the account has granted
+    location tagging. On Instagram it is ``"facebook_required"`` when the
+    account is not connected through Facebook (reconnect it with Facebook to
+    add music), or ``"disabled"`` when music is not available for this
+    workspace right now.
+    """
+
+    type: Optional[str]
+    items: List[ChannelOptionItem]  # absent when type is "creator_info"
+    info: Dict[str, Any]  # TikTok only
+    unavailable: Any  # bool (Threads) or str (Instagram)
 
 
 # ---------------------------------------------------------------------------

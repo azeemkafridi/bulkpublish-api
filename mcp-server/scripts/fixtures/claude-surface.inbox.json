@@ -633,6 +633,57 @@
                   "isAiGenerated": {
                     "description": "true shows Instagram's \"AI info\" label, disclosing that the post contains AI-generated content. Feed photos, videos, Reels and carousels, not Stories; on a carousel it goes on the carousel itself. Only set it when the user says the content was made with AI. false or omitted adds no label, though Instagram may still label a post on its own.",
                     "type": "boolean"
+                  },
+                  "audio": {
+                    "description": "Licensed music for a Reel, from Instagram's audio library: find tracks with get_channel_options on the Instagram channel (q to search, empty for trending) and pass the item's id as audioId. Takes effect with postTypeOverrides.instagram of 'reel' or 'feed_video'; ignored on other post types. Omitted, null or {} means no music. Only accounts connected through Facebook can add music (metadata.connectionMethod 'facebook' in list_channels). On an account connected with Instagram sign-in it is accepted but dropped, and the Reel publishes without music: tell the user to reconnect the account with Facebook rather than promising music. A video with no sound gets a silent sound track added to a copy so the music can be applied; if that is not possible the post fails with a message saying to use a video with sound or remove the music.",
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "audioId": {
+                            "description": "Required for music. Digits only: the track's id from get_channel_options on the Instagram channel (type 'audio'). A number is accepted and read as its digits. Any other field sent without it is refused with 400.",
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "audioVolume": {
+                            "description": "How loud the music is, a whole number 0 to 100. Instagram's default is 100.",
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100
+                          },
+                          "videoVolume": {
+                            "description": "How loud the video's own sound is, a whole number 0 to 100. Instagram's default is 100.",
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100
+                          },
+                          "title": {
+                            "description": "Display only: the track title, so the post can show the chosen track again. Not sent to Instagram.",
+                            "type": "string",
+                            "maxLength": 200
+                          },
+                          "artist": {
+                            "description": "Display only: the artist. Not sent to Instagram.",
+                            "type": "string",
+                            "maxLength": 200
+                          },
+                          "coverUrl": {
+                            "description": "Display only: the track's artwork. Only an https link is kept; anything else is dropped without an error. Not sent to Instagram.",
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": {}
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "additionalProperties": {}
@@ -10750,6 +10801,57 @@
                   "isAiGenerated": {
                     "description": "true shows Instagram's \"AI info\" label, disclosing that the post contains AI-generated content. Feed photos, videos, Reels and carousels, not Stories; on a carousel it goes on the carousel itself. Only set it when the user says the content was made with AI. false or omitted adds no label, though Instagram may still label a post on its own.",
                     "type": "boolean"
+                  },
+                  "audio": {
+                    "description": "Licensed music for a Reel, from Instagram's audio library: find tracks with get_channel_options on the Instagram channel (q to search, empty for trending) and pass the item's id as audioId. Takes effect with postTypeOverrides.instagram of 'reel' or 'feed_video'; ignored on other post types. Omitted, null or {} means no music. Only accounts connected through Facebook can add music (metadata.connectionMethod 'facebook' in list_channels). On an account connected with Instagram sign-in it is accepted but dropped, and the Reel publishes without music: tell the user to reconnect the account with Facebook rather than promising music. A video with no sound gets a silent sound track added to a copy so the music can be applied; if that is not possible the post fails with a message saying to use a video with sound or remove the music.",
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "audioId": {
+                            "description": "Required for music. Digits only: the track's id from get_channel_options on the Instagram channel (type 'audio'). A number is accepted and read as its digits. Any other field sent without it is refused with 400.",
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "audioVolume": {
+                            "description": "How loud the music is, a whole number 0 to 100. Instagram's default is 100.",
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100
+                          },
+                          "videoVolume": {
+                            "description": "How loud the video's own sound is, a whole number 0 to 100. Instagram's default is 100.",
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100
+                          },
+                          "title": {
+                            "description": "Display only: the track title, so the post can show the chosen track again. Not sent to Instagram.",
+                            "type": "string",
+                            "maxLength": 200
+                          },
+                          "artist": {
+                            "description": "Display only: the artist. Not sent to Instagram.",
+                            "type": "string",
+                            "maxLength": 200
+                          },
+                          "coverUrl": {
+                            "description": "Display only: the track's artwork. Only an https link is kept; anything else is dropped without an error. Not sent to Instagram.",
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": {}
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "additionalProperties": {}
@@ -13123,7 +13225,7 @@
     {
       "name": "get_channel_options",
       "title": "Get channel post-type options",
-      "description": "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search. Returns type (which kind of option came back) and items, each with an id and a name; a TikTok channel returns info instead of items. Use this when you need a platform's valid post types before creating a post for it.",
+      "description": "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search, Instagram music for Reels. Returns type (which kind of option came back) and items, each with an id and a name; a TikTok channel returns info instead of items, and Instagram music items carry title, artist, coverUrl, durationMs and previewUrl instead of name. Instagram: with no q it lists trending tracks, q searches; pass an item's id as platformSpecific.instagram.audio.audioId. Music needs an account connected through Facebook: any other Instagram channel answers { type: 'audio', unavailable: 'facebook_required', items: [] } (reconnect it with Facebook), and unavailable 'disabled' means music is not available for this workspace right now. Use this when you need a platform's valid post types before creating a post for it.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -13132,12 +13234,24 @@
             "description": "The channel ID to get options for, from list_channels."
           },
           "q": {
-            "description": "Search term. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging).",
+            "description": "Search term. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging). Instagram: track search for platformSpecific.instagram.audio (omit for trending tracks).",
             "type": "string"
           },
           "boardId": {
             "description": "Pinterest only: the board's ID, digits only, sent as a string (from this tool's boards list). Returns that board's sections ({ type: 'sections', items: [{ id, name }] }) for platformSpecific.pinterest.boardSectionId, instead of the boards. Non-numeric values return 400.",
             "type": "string"
+          },
+          "audioType": {
+            "description": "Instagram only: 'music' (default) or 'original_sound' to search original sounds instead of music.",
+            "type": "string",
+            "enum": [
+              "music",
+              "original_sound"
+            ]
+          },
+          "probe": {
+            "description": "Instagram only: true only reports whether the account can add music ({ type: 'audio', items: [] }, or the unavailable answer), without searching.",
+            "type": "boolean"
           }
         },
         "required": [
@@ -13149,7 +13263,7 @@
         "type": "object",
         "properties": {
           "type": {
-            "description": "boards, sections, playlists, blogs, channels, locations or creator_info.",
+            "description": "boards, sections, playlists, blogs, channels, locations, creator_info or audio.",
             "anyOf": [
               {
                 "type": "string"
@@ -13160,7 +13274,7 @@
             ]
           },
           "items": {
-            "description": "The options of that type. Use an item's id in the matching platformSpecific field.",
+            "description": "The options of that type. Use an item's id in the matching platformSpecific field (for Instagram audio, platformSpecific.instagram.audio.audioId).",
             "anyOf": [
               {
                 "type": "array",
@@ -13187,6 +13301,68 @@
                     },
                     "name": {
                       "description": "The option's name.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "title": {
+                      "description": "Instagram audio: the track title.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "artist": {
+                      "description": "Instagram audio: the artist, when known.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "coverUrl": {
+                      "description": "Instagram audio: the track's artwork, when it has one. The link expires.",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "durationMs": {
+                      "description": "Instagram audio: the track's length in milliseconds, when known.",
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "previewUrl": {
+                      "description": "Instagram audio: a short listening link, when there is one.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -13307,7 +13483,7 @@
             ]
           },
           "unavailable": {
-            "description": "Set when the options cannot be offered for this channel.",
+            "description": "Set when the options cannot be offered for this channel. Threads: true until location tagging is granted. Instagram audio: 'facebook_required' (the account must be reconnected with Facebook to add music) or 'disabled' (music is not available for this workspace right now).",
             "anyOf": [
               {
                 "anyOf": [

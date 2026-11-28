@@ -81,7 +81,7 @@ asyncio.run(main())
 | Resource | Methods |
 |----------|---------|
 | `bp.posts` | `create`, `list`, `get`, `update`, `delete`, `publish`, `retry`, `approve`, `reject`, `bulk`, `queue_slot`, `metrics`, `publish_as_story`, `share`, `unshare`, `engagement`, `reply_to_comment`, `moderate_comment` |
-| `bp.channels` | `list`, `list_platforms`, `get`, `update`, `disconnect`, `health` |
+| `bp.channels` | `list`, `list_platforms`, `get`, `update`, `disconnect`, `health`, `options` |
 | `bp.media` | `upload`, `list`, `get`, `update` (alt text), `delete`, `get_labels`, `set_labels`, `create_multipart`, `complete_multipart`, `abort_multipart` |
 | `bp.analytics` | `summary`, `engagement`, `refresh`, `account`, `post_history`, `links` |
 | `bp.platforms` | `list` — which platforms can be connected right now |

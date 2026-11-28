@@ -344,6 +344,7 @@ inside a platform key, so it applies to every channel on the post.
 | `shareToFeed` | boolean | **Reels only** (`reel` and `feed_video`). `false` shows the Reel only in the Reels tab; `true` also shows it in the main feed. Omit for Instagram's own default (feed and Reels tab). Ignored on other post types |
 | `locationId` | string | Digits only: the numeric ID of a Facebook Page that has a location (shown in the Page's About section). Photos, videos, Reels and carousels; not Stories. Instagram refuses the post if it does not recognise the ID as a place |
 | `isAiGenerated` | boolean | `true` shows Instagram's "AI info" label, disclosing that the post contains AI-generated content. Every post type; on a carousel it is set on the carousel itself, not on its items. Only `true` is sent: `false` or omitting it adds no label, and Instagram may still label a post on its own. A non-boolean is rejected with `400 VALIDATION_ERROR` |
+| `audio` | object or null | Licensed music for a Reel: `{ "audioId": "1234567890", "audioVolume": 60, "videoVolume": 100 }`. Post types `reel` and `feed_video`; ignored on others. **Only for accounts connected through Facebook.** See below |
 
 **`userTags`.** `username` is a public Instagram account (letters, numbers,
 periods, underscores, up to 30 characters; a leading `@` is optional). `x` and
@@ -359,6 +360,39 @@ media. An invalid username, `x` or `y` outside 0 to 1 (or only one of them), a
 negative or fractional `mediaIndex`, more than 20 on one item, or a value that is
 not an array is rejected with `400 VALIDATION_ERROR`; a non-boolean `shareToFeed`
 or a `locationId` that is not digits is too.
+
+**Music (`audio`).** Find a track with `GET /api/channels/{id}/options` on the
+Instagram channel. It answers `{ "type": "audio", "items": [{ "id", "title",
+"artist", "coverUrl", "durationMs", "previewUrl" }] }`, where everything but
+`id` and `title` may be missing. With no `q` it lists trending tracks, `?q=<words>`
+searches, and `?audioType=original_sound` searches original sounds instead of
+music. `?probe=1` only reports whether the account can add music, without
+searching. Pass the track's `id` as `audioId`.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `audioId` | string | **Required.** Digits only, the track's `id` from the search. A number is accepted and read as its digits |
+| `audioVolume` | integer | How loud the music is, 0 to 100. Instagram's default is 100 |
+| `videoVolume` | integer | How loud the video's own sound is, 0 to 100. Instagram's default is 100 |
+| `title`, `artist` | string | Display only, up to 200 characters each: kept so the post can show the chosen track again. Not sent to Instagram |
+| `coverUrl` | string | Display only: the track's artwork. Only an `https` link is kept; anything else is dropped without an error. Not sent to Instagram |
+
+Absent, `null` or `{}` means no music. A non-numeric `audioId`, a volume outside
+0 to 100 or not a whole number, or a non-empty object without `audioId` is
+rejected with `400 VALIDATION_ERROR`.
+
+Only an Instagram account connected through Facebook can add music: its channel
+has `metadata.connectionMethod: "facebook"`. On an account connected with
+Instagram sign-in the field is accepted but dropped, and the Reel publishes
+without music; the music search answers `{ "type": "audio", "unavailable":
+"facebook_required", "items": [] }` there. Reconnect the account with Facebook
+to use it. `"unavailable": "disabled"` means music is not available for this
+workspace right now.
+
+Instagram does not add music to a video with no sound, so a silent sound track
+is added to a copy of a silent video before it is sent (the picture is
+unchanged). If that is not possible the post fails with a message saying to use
+a video with sound or remove the music.
 
 ### Notes
 

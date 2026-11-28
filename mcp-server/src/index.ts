@@ -583,6 +583,26 @@ const PLATFORM_SPECIFIC_SCHEMA = z
           .describe(
             "true shows Instagram's \"AI info\" label, disclosing that the post contains AI-generated content. Feed photos, videos, Reels and carousels, not Stories; on a carousel it goes on the carousel itself. Only set it when the user says the content was made with AI. false or omitted adds no label, though Instagram may still label a post on its own."
           ),
+        audio: z
+          .object({
+            audioId: z
+              .union([z.string(), z.number()])
+              .optional()
+              .describe("Required for music. Digits only: the track's id from get_channel_options on the Instagram channel (type 'audio'). A number is accepted and read as its digits. Any other field sent without it is refused with 400."),
+            audioVolume: z.number().int().min(0).max(100).optional().describe("How loud the music is, a whole number 0 to 100. Instagram's default is 100."),
+            videoVolume: z.number().int().min(0).max(100).optional().describe("How loud the video's own sound is, a whole number 0 to 100. Instagram's default is 100."),
+            title: z.string().max(200).optional().describe("Display only: the track title, so the post can show the chosen track again. Not sent to Instagram."),
+            artist: z.string().max(200).optional().describe("Display only: the artist. Not sent to Instagram."),
+            coverUrl: z.string().optional().describe("Display only: the track's artwork. Only an https link is kept; anything else is dropped without an error. Not sent to Instagram."),
+          })
+          .passthrough()
+          .nullable()
+          .optional()
+          .describe(
+            "Licensed music for a Reel, from Instagram's audio library: find tracks with get_channel_options on the Instagram channel (q to search, empty for trending) and pass the item's id as audioId. Takes effect with postTypeOverrides.instagram of 'reel' or 'feed_video'; ignored on other post types. Omitted, null or {} means no music. " +
+              "Only accounts connected through Facebook can add music (metadata.connectionMethod 'facebook' in list_channels). On an account connected with Instagram sign-in it is accepted but dropped, and the Reel publishes without music: tell the user to reconnect the account with Facebook rather than promising music. " +
+              "A video with no sound gets a silent sound track added to a copy so the music can be applied; if that is not possible the post fails with a message saying to use a video with sound or remove the music."
+          ),
       })
       .passthrough()
       .optional()
@@ -1015,11 +1035,16 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
   // GET /api/labels answers with a bare array, which attachStructured wraps.
   list_labels: { items: sArr(LABEL_SHAPE).describe("The workspace's labels. id is what the labels input of create_post takes.") },
   get_channel_options: {
-    type: sStr().describe("boards, sections, playlists, blogs, channels, locations or creator_info."),
+    type: sStr().describe("boards, sections, playlists, blogs, channels, locations, creator_info or audio."),
     items: sArr({
       id: sNum().describe("The option's ID, for the matching platformSpecific field."),
       name: sStr().describe("The option's name."),
-    }).describe("The options of that type. Use an item's id in the matching platformSpecific field."),
+      title: sStr().describe("Instagram audio: the track title."),
+      artist: sStr().describe("Instagram audio: the artist, when known."),
+      coverUrl: sStr().describe("Instagram audio: the track's artwork, when it has one. The link expires."),
+      durationMs: sNum().describe("Instagram audio: the track's length in milliseconds, when known."),
+      previewUrl: sStr().describe("Instagram audio: a short listening link, when there is one."),
+    }).describe("The options of that type. Use an item's id in the matching platformSpecific field (for Instagram audio, platformSpecific.instagram.audio.audioId)."),
     info: sObj({
       nickname: sStr().describe("TikTok: the creator's display name."),
       avatarUrl: sStr().describe("TikTok: address of the creator's picture."),
@@ -1029,7 +1054,7 @@ export const TOOL_OUTPUT_SCHEMAS: Record<string, Record<string, z.ZodTypeAny>> =
       stitchDisabled: sBool().describe("TikTok: true when the account has stitches turned off."),
       maxVideoPostDurationSec: sNum().describe("TikTok: the longest video, in seconds, this account may post."),
     }).describe("Extra details for types that are not a list, such as creator_info."),
-    unavailable: z.union([z.boolean(), z.string()]).nullish().describe("Set when the options cannot be offered for this channel."),
+    unavailable: z.union([z.boolean(), z.string()]).nullish().describe("Set when the options cannot be offered for this channel. Threads: true until location tagging is granted. Instagram audio: 'facebook_required' (the account must be reconnected with Facebook to add music) or 'disabled' (music is not available for this workspace right now)."),
   },
   update_channel: { success: sBool().describe("true when the settings were saved.") },
   approve_post: POST_SHAPE,
@@ -3697,20 +3722,31 @@ server.registerTool(
 server.registerTool(
   "get_channel_options",
   {
-    description: "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search. Returns type (which kind of option came back) and items, each with an id and a name; a TikTok channel returns info instead of items.",
+    description: "Get platform-specific options for a channel: Pinterest boards (or, with boardId, that board's sections), YouTube playlists, Tumblr blogs, Discord text channels, Threads location search, Instagram music for Reels. Returns type (which kind of option came back) and items, each with an id and a name; a TikTok channel returns info instead of items, and Instagram music items carry title, artist, coverUrl, durationMs and previewUrl instead of name. " +
+      "Instagram: with no q it lists trending tracks, q searches; pass an item's id as platformSpecific.instagram.audio.audioId. Music needs an account connected through Facebook: any other Instagram channel answers { type: 'audio', unavailable: 'facebook_required', items: [] } (reconnect it with Facebook), and unavailable 'disabled' means music is not available for this workspace right now.",
     inputSchema: {
       channelId: z.number().describe("The channel ID to get options for, from list_channels."),
       q: z
         .string()
         .optional()
-        .describe("Search term. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging)."),
+        .describe("Search term. Threads: place search for platformSpecific.threads.locationId (returns { unavailable: true } until the channel has granted location tagging). Instagram: track search for platformSpecific.instagram.audio (omit for trending tracks)."),
       boardId: z.string().optional().describe("Pinterest only: the board's ID, digits only, sent as a string (from this tool's boards list). Returns that board's sections ({ type: 'sections', items: [{ id, name }] }) for platformSpecific.pinterest.boardSectionId, instead of the boards. Non-numeric values return 400."),
+      audioType: z
+        .enum(["music", "original_sound"])
+        .optional()
+        .describe("Instagram only: 'music' (default) or 'original_sound' to search original sounds instead of music."),
+      probe: z
+        .boolean()
+        .optional()
+        .describe("Instagram only: true only reports whether the account can add music ({ type: 'audio', items: [] }, or the unavailable answer), without searching."),
     },
   },
-  async ({ channelId, q, boardId }) => {
+  async ({ channelId, q, boardId, audioType, probe }) => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (boardId) params.set("boardId", boardId);
+    if (audioType) params.set("audioType", audioType);
+    if (probe) params.set("probe", "1");
     const qs = params.toString();
     const res = await api("GET", `/api/channels/${channelId}/options${qs ? `?${qs}` : ""}`);
     return { content: [{ type: "text" as const, text: formatResponse(res) }] };

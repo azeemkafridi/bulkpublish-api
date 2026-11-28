@@ -296,8 +296,17 @@ export interface Channel {
    * accounts may post up to 25,000 characters, every other X account 280, and
    * a post to several X accounts is held to the smallest limit.
    * `xSubscriptionCheckedAt` is when it was read; reconnect to read it again.
+   * On an Instagram channel, `connectionMethod` is `facebook` when the account
+   * was connected through Facebook, which is the only way to add music to a
+   * Reel (`platformSpecific.instagram.audio`).
    */
-  metadata: (Record<string, unknown> & { xSubscription?: string; xSubscriptionCheckedAt?: string }) | null;
+  metadata:
+    | (Record<string, unknown> & {
+        xSubscription?: string;
+        xSubscriptionCheckedAt?: string;
+        connectionMethod?: string;
+      })
+    | null;
   createdAt: string;
   updatedAt: string;
   /**
@@ -373,6 +382,84 @@ export interface UpdateChannelResponse {
 export interface DeleteChannelResponse {
   success: boolean;
   deletedId: number;
+}
+
+/**
+ * Query for `channels.options()`. Each field applies to one platform and is
+ * ignored by the others.
+ */
+export interface ChannelOptionsParams {
+  /**
+   * Search term. Threads: place search for `platformSpecific.threads.locationId`.
+   * Instagram: track search for `platformSpecific.instagram.audio` (empty or
+   * omitted lists trending tracks).
+   */
+  q?: string;
+  /**
+   * Pinterest only: numeric board ID. Returns that board's sections instead of
+   * the boards. Anything non-numeric returns 400 `Invalid board ID`.
+   */
+  boardId?: string;
+  /**
+   * Instagram only: `music` (default) or `original_sound`. Any other value is
+   * read as `music`.
+   */
+  audioType?: 'music' | 'original_sound';
+  /**
+   * Instagram only: `1` (or `true`) only reports whether the account can add
+   * music, answering `{ type: 'audio', items: [] }` or the `unavailable`
+   * answer, without running a search.
+   */
+  probe?: 1 | '1' | true;
+}
+
+/**
+ * One option returned by `channels.options()`. Most platforms send `id` and
+ * `name`; Instagram music (`type: 'audio'`) sends `title`, and may send
+ * `artist`, `coverUrl`, `durationMs` and `previewUrl` (a short listening
+ * link) instead of `name`. Threads places may carry `address`.
+ */
+export interface ChannelOptionItem {
+  id: string;
+  name?: string;
+  address?: string;
+  title?: string;
+  artist?: string;
+  coverUrl?: string;
+  durationMs?: number;
+  previewUrl?: string;
+  [key: string]: unknown;
+}
+
+/** Response from `GET /api/channels/{id}/options`. */
+export interface ChannelOptionsResponse {
+  /**
+   * What `items` holds: `boards` / `sections` (Pinterest), `playlists`
+   * (YouTube), `blogs` (Tumblr), `channels` (Discord), `locations` (Threads),
+   * `creator_info` (TikTok, see `info`), `audio` (Instagram music), or `null`
+   * for a platform without options.
+   */
+  type:
+    | 'boards'
+    | 'sections'
+    | 'playlists'
+    | 'blogs'
+    | 'channels'
+    | 'locations'
+    | 'creator_info'
+    | 'audio'
+    | null;
+  /** Absent when `type` is `creator_info`. */
+  items?: ChannelOptionItem[];
+  /** TikTok only (`type: 'creator_info'`): the creator's settings and limits. */
+  info?: Record<string, unknown>;
+  /**
+   * Threads: `true` until the account has granted location tagging.
+   * Instagram: `'facebook_required'` when the account is not connected
+   * through Facebook (reconnect it with Facebook to add music), or
+   * `'disabled'` when music is not available for this workspace right now.
+   */
+  unavailable?: boolean | 'facebook_required' | 'disabled';
 }
 
 // ---------- Posts ----------
@@ -683,7 +770,7 @@ export interface CreatePostParams {
    *   `boardSectionId` (numeric section of the chosen board, for `pin`, `video_pin` and `carousel`; list sections with
    *   `GET /api/channels/{id}/options?boardId=<boardId>`; ignored when no board was chosen), `coverKeyFrameTime` (`video_pin` only: whole seconds, 0 or more, used as the cover frame; `coverImageUrl` wins when both are sent)
    * - **instagram**: Optional: `collaborators`, `shareToStory`, `trialReel`, `graduationStrategy`
-   *   (`'manual'|'auto'`), `thumbnailTimestamp`, `coverUrl`, `userTags`, `shareToFeed`, `locationId`, `isAiGenerated`. `collaborators` is a comma-separated
+   *   (`'manual'|'auto'`), `thumbnailTimestamp`, `coverUrl`, `userTags`, `shareToFeed`, `locationId`, `isAiGenerated`, `audio`. `collaborators` is a comma-separated
    *   list of usernames (no leading @) tagged as co-authors; it applies to post types
    *   `feed_photo`, `feed_video`, `reel` and `carousel` — on a carousel the co-authors go on the
    *   carousel itself, not on its individual items — and is ignored on `story`, which has no
@@ -696,6 +783,14 @@ export interface CreatePostParams {
    *   shows the Reel only in the Reels tab, `true` also in the main feed; omitted keeps Instagram's default. `locationId` (digits) is the numeric
    *   ID of a Facebook Page that has a location (photos, videos, Reels, carousels; not Stories). `isAiGenerated` (boolean) shows Instagram's
    *   "AI info" label on a feed photo, video, Reel or carousel, not a Story (on a carousel, on the carousel itself); only `true` is sent, and Instagram may still label a post on its own.
+   *   `audio` adds licensed music to a Reel (post types `reel` and `feed_video`; ignored on others): `{ audioId, audioVolume?, videoVolume?, title?, artist?, coverUrl? }`.
+   *   `audioId` is the digits-only `id` of a track from `channels.options(id)` on the Instagram channel (a number is accepted); `audioVolume`
+   *   and `videoVolume` are whole numbers 0 to 100 (Instagram's default 100) for the music and the video's own sound; `title`, `artist` and
+   *   `coverUrl` (https only, anything else dropped) are display only and not sent to Instagram. Absent, `null` or `{}` means no music; a
+   *   non-numeric `audioId`, a bad volume, or a non-empty object without `audioId` is a 400 `VALIDATION_ERROR`. Only accounts connected
+   *   through Facebook (`metadata.connectionMethod: 'facebook'`) get music: on an account connected with Instagram sign-in the field is
+   *   accepted but dropped and the Reel publishes without music. A video with no sound gets a silent sound track added to a copy (the
+   *   picture is unchanged) so the music can be applied; if that is not possible the post fails with a message saying so.
    * - **facebook**: Optional: `shareToStory`, `thumbnailUrl`, `textFormatPresetId`. `textFormatPresetId` (digits, a Facebook background ID) shows a short
    *   text post on a coloured background; used only on a Page feed post with no photo, video or link card and at most 130 characters,
    *   otherwise left out, and dropped (published as plain text) if Facebook refuses it. `thumbnailUrl` is the cover for a video

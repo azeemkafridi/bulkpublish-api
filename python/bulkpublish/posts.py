@@ -209,7 +209,7 @@ class PostsResource:
                   as the cover frame; ``coverImageUrl`` wins when both are sent)
                 - **instagram**: Optional: ``collaborators``, ``shareToStory``, ``trialReel``,
                   ``graduationStrategy`` (``"manual"``/``"auto"``), ``thumbnailTimestamp``,
-                  ``coverUrl``, ``userTags``, ``shareToFeed``, ``locationId``, ``isAiGenerated``.
+                  ``coverUrl``, ``userTags``, ``shareToFeed``, ``locationId``, ``isAiGenerated``, ``audio``.
                   ``isAiGenerated`` (bool) shows Instagram's "AI info" label on a feed photo, video, Reel or carousel, not a Story (on a
                   carousel, on the carousel itself); only ``True`` is sent. ``collaborators`` is a comma-separated list of usernames (no
                   leading @) tagged as co-authors; it applies to post types ``feed_photo``,
@@ -229,6 +229,20 @@ class PostsResource:
                   ``False`` shows the Reel only in the Reels tab, ``True`` also in the main feed.
                   ``locationId`` (digits) is the numeric ID of a Facebook Page that has a location
                   (photos, videos, Reels, carousels; not Stories).
+                  ``audio`` adds licensed music to a Reel (post types ``reel`` and ``feed_video``; ignored
+                  on others): ``{"audioId", "audioVolume", "videoVolume", "title", "artist", "coverUrl"}``.
+                  ``audioId`` (required) is the digits-only ``id`` of a track from
+                  ``bp.channels.options(channel_id)`` on the Instagram channel (a number is accepted);
+                  ``audioVolume`` and ``videoVolume`` are whole numbers 0 to 100 (Instagram's default 100)
+                  for the music and the video's own sound; ``title``, ``artist`` and ``coverUrl`` (https
+                  only, anything else dropped) are display only and not sent to Instagram. Absent,
+                  ``None`` or ``{}`` means no music; a non-numeric ``audioId``, a bad volume, or a
+                  non-empty dict without ``audioId`` is a 400 ``VALIDATION_ERROR``. Only accounts
+                  connected through Facebook (``metadata["connectionMethod"] == "facebook"``) get music:
+                  on an account connected with Instagram sign-in the field is accepted but dropped and
+                  the Reel publishes without music. A video with no sound gets a silent sound track
+                  added to a copy (the picture is unchanged) so the music can be applied; if that is not
+                  possible the post fails with a message saying so.
                 - **facebook**: Optional: ``shareToStory``, ``thumbnailUrl``, ``textFormatPresetId``.
                   ``textFormatPresetId`` (digits, a Facebook background ID) shows a short text post on a
                   coloured background; used only on a Page feed post with no photo, video or link card

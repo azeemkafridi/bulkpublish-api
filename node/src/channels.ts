@@ -5,6 +5,8 @@ import type {
   ListChannelsResponse,
   GetChannelResponse,
   ChannelHealthResponse,
+  ChannelOptionsParams,
+  ChannelOptionsResponse,
   DeleteChannelResponse,
   UpdateChannelParams,
   UpdateChannelResponse,
@@ -119,5 +121,47 @@ export class ChannelsResource {
    */
   health(id: number): Promise<ChannelHealthResponse> {
     return this.http.get<ChannelHealthResponse>(`/api/channels/${id}/health`);
+  }
+
+  /**
+   * Get a channel's platform options, keyed by `type`: Pinterest boards (or a
+   * board's sections with `boardId`), YouTube playlists, Tumblr blogs, Discord
+   * text channels, Threads places (`q`), TikTok `creator_info`, and Instagram
+   * music (`audio`). A platform without options answers `{ type: null, items: [] }`.
+   *
+   * Instagram: with no `q` it lists trending tracks; `q` searches, and
+   * `audioType: 'original_sound'` searches original sounds instead of music.
+   * Pass an item's `id` as `platformSpecific.instagram.audio.audioId`. `probe`
+   * only reports whether the account can add music. Music needs an account
+   * connected through Facebook: any other Instagram channel answers
+   * `{ type: 'audio', unavailable: 'facebook_required', items: [] }`, and
+   * `unavailable: 'disabled'` means music is not available for this workspace
+   * right now.
+   *
+   * @param id - The channel ID.
+   * @param params - Optional per-platform query (`q`, `boardId`, `audioType`, `probe`).
+   *
+   * @example
+   * ```typescript
+   * const { type, items, unavailable } = await bp.channels.options(7, { q: 'summer' });
+   * if (type === 'audio' && !unavailable && items?.length) {
+   *   await bp.posts.create({
+   *     channels: [{ channelId: 7, platform: 'instagram' }],
+   *     content: 'New Reel',
+   *     mediaFiles: [videoId],
+   *     postTypeOverrides: { instagram: 'reel' },
+   *     platformSpecific: { instagram: { audio: { audioId: items[0].id, audioVolume: 60 } } },
+   *   });
+   * }
+   * ```
+   */
+  options(id: number, params?: ChannelOptionsParams): Promise<ChannelOptionsResponse> {
+    const query: Record<string, string | undefined> = {
+      q: params?.q,
+      boardId: params?.boardId,
+      audioType: params?.audioType,
+      probe: params?.probe ? '1' : undefined,
+    };
+    return this.http.get<ChannelOptionsResponse>(`/api/channels/${id}/options`, query);
   }
 }
