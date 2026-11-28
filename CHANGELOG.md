@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-28 — Adding a channel slot no longer charges twice for one slot
+
+spec
+
+### Fixed
+
+- **`POST /api/quotas/channel-slots/checkout` adds nothing when an earlier slot is still being applied.** If the slot subscription is already billed for more seats than the organization has active slots, the call now makes those slots active and answers `{ updated: true, seats, synced: true }` with the seat count unchanged, instead of adding and charging for another seat. A seat increase also makes its slot active before it answers, rather than shortly after. Call again to add a slot once `synced` comes back. Documented in the spec.
+
 ## 2026-11-24 — A poll on any thread part; one post can send X a thread
 
 Node SDK **1.49.0** · Python **0.49.2** · MCP **1.61.0** · spec + Postman
