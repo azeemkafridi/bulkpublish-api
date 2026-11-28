@@ -329,7 +329,8 @@ class PostsResource:
                     {"discord": {"12": {"channelId": "1090123456789012345"}}}
 
             platform_content: Per-platform content overrides for different char limits
-                (x: 280, or 25,000 for an account with a paid X subscription;
+                (x: 280, or 25,000 for an account with a paid X subscription, and a
+                post to several X accounts uses the smallest of their limits;
                 bluesky: 300, pinterest/threads/mastodon: 500, etc.).
             platform_media_file_ids: Which of the attached media each platform
                 publishes, keyed by platform, e.g.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-28 — X limit notes name the smallest-limit rule; server.json version
+
+Node SDK **1.49.2** · Python **0.49.4**
+
+### Fixed
+
+- **X's limit, stated in full.** The Node `platformContent` JSDoc, the Python `platform_content` docstring, the Node README platform table and the schedule-post and using-bulkpublish skills now also say that a post to several X accounts uses the smallest of their limits.
+- **Skill fact check:** the stale X-limit rule now catches any line that states 280 for X without the condition ("X limit is 280 characters", "X: 280 characters max", a `| X | 280 |` row, "280 characters on X"), and passes lines that name 25,000, a standard account or a paid X subscription. Covered by `mcp-server/test/facts.test.ts`.
+- **`mcp-server/server.json`** said 1.53.0; it now says 1.61.1, the current MCP server version, for both the server and its npm package. Nothing generates or checks this file, so it has to be bumped by hand with `mcp-server/package.json`.
+
 ## 2026-11-28 — Long X posts for accounts with a paid X subscription
 
 Node SDK **1.49.1** · Python **0.49.3** · MCP **1.61.1** · spec + Postman

@@ -16,7 +16,6 @@ export const STALE = [
   [/suggestedTime/, "get_queue_slot returns scheduledAt and dayLabel"],
   [/\b20 feeds\b|up to 20 per workspace|feeds per org\b/i, "RSS feeds are capped by plan (1, 3, 10, 50)"],
   [/polled every 15 minutes|feed is checked every 15 minutes/i, "RSS feeds are checked every 60, 60, 30 or 15 minutes by plan"],
-  [/X\W{0,4}(has|allows|is)\s+(a\s+|only\s+)?280[- ]char\w*(\s+limit)?\s*(for tweets)?\.|X (posts are|is) (always )?checked at 280\b/i, "X allows 25,000 characters for an account with a paid X subscription (metadata.xSubscription Basic, Premium or PremiumPlus), 280 otherwise"],
   [/cannot approve or reject from here/i, "approve_post and reject_post are served"],
   [/only (`?draft`?) (and|or) `?failed`? posts can be deleted|delete_post`? takes only/i, "delete_post takes any post that is not publishing right now"],
 ];
@@ -103,6 +102,33 @@ function postTypeTableProblems(text, postTypes) {
   return out;
 }
 
+/**
+ * X's limit is 280 only for a standard account: one with a paid X subscription
+ * (metadata.xSubscription Basic, Premium or PremiumPlus) may post 25,000, and a
+ * post to several X accounts uses the smallest of their limits. A line that
+ * states 280 for X must carry the condition: 25,000, "standard account" or
+ * "paid X subscription" on the same line.
+ */
+const X_280 = [
+  // "X limit is 280", "X: 280 characters max", "X has a 280-character limit", "| X | 280 |", "X (280)"
+  /(?:^|[^\w/-])(?:X|Twitter|X\s*\/\s*Twitter)(?:'s)?(?![\w-])[^.\n]{0,40}?(?<![\w,.])280(?![\w,])/,
+  // "280 characters on X", "a 280-character limit for X"
+  /(?<![\w,.])280[- ]char\w*(?:\s+limit)?\s+(?:on|for)\s+(?:X|Twitter)(?![\w-])/,
+];
+const X_280_CONDITION = /25,000|25000|standard (X )?account|paid X subscription/i;
+
+export function xLimitProblems(text) {
+  const out = [];
+  for (const line of text.split("\n")) {
+    if (X_280_CONDITION.test(line)) continue;
+    for (const re of X_280) {
+      const m = line.match(re);
+      if (m) { out.push(`stale claim "${m[0].trim()}": X allows 25,000 characters for an account with a paid X subscription (metadata.xSubscription Basic, Premium or PremiumPlus), 280 otherwise, and a post to several X accounts uses the smallest limit`); break; }
+    }
+  }
+  return out;
+}
+
 /** All fact problems in a text, for a server instance's tools. */
 export function factProblems(text, tools) {
   const toolsByName = Object.fromEntries(tools.map((t) => [t.name, t]));
@@ -114,6 +140,7 @@ export function factProblems(text, tools) {
     const m = text.match(re);
     if (m) out.push(`stale claim "${m[0]}": ${truth}`);
   }
+  out.push(...xLimitProblems(text));
   out.push(...postTypeProblems(text, postTypes), ...postTypeTableProblems(text, postTypes), ...paramTableProblems(text, toolsByName));
   return out;
 }

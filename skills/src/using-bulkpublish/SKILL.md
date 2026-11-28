@@ -187,7 +187,7 @@ approver passes `whenLate: "publish"` to `approve_post` (`"hold"` forces draft).
 
 | Network | Characters | Threads |
 |---|---|---|
-| X | 280 (25,000 with a paid X subscription) | yes |
+| X | 280 (25,000 with a paid X subscription; several X accounts use the smallest limit) | yes |
 | Instagram | 2,200 | no |
 | Facebook | 63,206 | no |
 | LinkedIn | 3,000 | no |

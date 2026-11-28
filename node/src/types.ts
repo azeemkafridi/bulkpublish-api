@@ -764,7 +764,8 @@ export interface CreatePostParams {
   /**
    * Per-platform content overrides for different character limits.
    * Use for platforms with lower limits (x: 280, or 25,000 for an account with a paid
-   * X subscription; bluesky: 300, pinterest/threads/mastodon: 500).
+   * X subscription, and a post to several X accounts uses the smallest of their
+   * limits; bluesky: 300, pinterest/threads/mastodon: 500).
    *
    * @example { bluesky: 'Short version', linkedin: 'Longer professional version' }
    */

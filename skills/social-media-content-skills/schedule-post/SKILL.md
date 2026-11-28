@@ -121,7 +121,7 @@ even when they are scheduled and overdue.
 
 | Platform | Limit |
 |---|---|
-| X | 280, or 25,000 with a paid X subscription (`metadata.xSubscription` is `Basic`, `Premium` or `PremiumPlus`); a link counts as 23 |
+| X | 280, or 25,000 with a paid X subscription (`metadata.xSubscription` is `Basic`, `Premium` or `PremiumPlus`); a post to several X accounts uses the smallest of their limits; a link counts as 23 |
 | Instagram | 2,200 |
 | Facebook | 63,206 |
 | LinkedIn | 3,000 |
